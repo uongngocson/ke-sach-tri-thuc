@@ -1,0 +1,56 @@
+<svg viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="fpt-bg-glow" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F36F21" stop-opacity="0.25"/>
+      <stop offset="50%" stop-color="#0054A6" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#70B928" stop-opacity="0.25"/>
+    </linearGradient>
+    <linearGradient id="fpt-canopy-blue" x1="20" y1="20" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0054A6"/>
+    </linearGradient>
+    <linearGradient id="fpt-canopy-green" x1="40" y1="10" x2="88" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#85CC38"/>
+      <stop offset="100%" stop-color="#70B928"/>
+    </linearGradient>
+    <linearGradient id="fpt-trunk" x1="56" y1="65" x2="72" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="fpt-shadow" x="0" y="0" width="128" height="128" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#0054A6" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Nền tròn hiệu ứng 3 màu FPT -->
+  <circle cx="64" cy="64" r="60" fill="url(#fpt-bg-glow)"/>
+  <circle cx="64" cy="64" r="58" stroke="#0054A6" stroke-width="2" stroke-opacity="0.35" stroke-dasharray="6 4"/>
+
+  <!-- Thân cây Titan -->
+  <path d="M58 72 C59 86, 56 100, 52 110 L76 110 C72 100, 69 86, 70 72 Z" fill="url(#fpt-trunk)"/>
+
+  <!-- Tán cây 3 màu FPT: Xanh Dương, Xanh Lá, Cam -->
+  <g filter="url(#fpt-shadow)">
+    <!-- Tầng Xanh Dương (Công nghệ) -->
+    <circle cx="44" cy="62" r="24" fill="#0054A6"/>
+    <circle cx="84" cy="62" r="24" fill="#0054A6"/>
+    
+    <!-- Tầng Xanh Lá (Phát triển) -->
+    <circle cx="64" cy="54" r="30" fill="url(#fpt-canopy-green)"/>
+    <circle cx="48" cy="46" r="20" fill="#70B928"/>
+    <circle cx="80" cy="46" r="20" fill="#70B928"/>
+    
+    <!-- Tầng Cam FPT (Nhiệt huyết & Sáng tạo) -->
+    <circle cx="64" cy="38" r="22" fill="#F36F21"/>
+    <circle cx="64" cy="28" r="14" fill="#FF8A3D"/>
+  </g>
+
+  <!-- Biểu tượng sách FPT -->
+  <rect x="48" y="84" width="32" height="18" rx="6" fill="#F36F21" stroke="#ffffff" stroke-width="2"/>
+  <text x="64" y="97" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Quicksand', sans-serif">📖</text>
+
+  <!-- Điểm nhấn ánh sáng công nghệ -->
+  <circle cx="40" cy="44" r="3" fill="#F36F21"/>
+  <circle cx="88" cy="44" r="3" fill="#70B928"/>
+  <circle cx="64" cy="20" r="2.5" fill="#38bdf8"/>
+</svg>
