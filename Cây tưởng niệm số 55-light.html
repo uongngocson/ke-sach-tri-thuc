@@ -102,8 +102,12 @@
 <!-- TOAST NOTIFICATION -->
 <!-- BOOK QUOTE MODAL HTML -->
 <!-- TOAST NOTIFICATION -->
-
 <!-- MODAL OVERLAY -->
+<!-- TOAST POPUP -->
+
+<!-- BOOK QUOTE MODAL -->
+
+<!-- ON-CHAIN TRANSPARENCY MODAL -->
 
 <!-- TOAST POPUP -->
 
@@ -114,8 +118,8 @@
         transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
       }
       
-      /* Book Quote & OnChain Modal */
-      #book-quote-modal-overlay, #onchain-info-modal-overlay {
+      /* All Modals Overlay */
+      #book-quote-modal-overlay, #onchain-info-modal-overlay, #contribute-book-modal-overlay {
         position: fixed;
         inset: 0;
         z-index: 2147483640;
@@ -123,18 +127,18 @@
         align-items: center;
         justify-content: center;
         padding: 16px;
-        background: rgba(15, 23, 42, 0.68);
+        background: rgba(15, 23, 42, 0.7);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         opacity: 0;
         transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         font-family: 'Quicksand', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       }
-      #book-quote-modal-overlay.active, #onchain-info-modal-overlay.active {
+      #book-quote-modal-overlay.active, #onchain-info-modal-overlay.active, #contribute-book-modal-overlay.active {
         display: flex;
         opacity: 1;
       }
-      #book-quote-card, #onchain-card {
+      #book-quote-card, #onchain-card, #contribute-book-card {
         position: relative;
         width: 100%;
         max-width: 520px;
@@ -148,15 +152,18 @@
         transform: scale(0.92) translateY(12px);
         opacity: 0;
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        max-height: 90vh;
+        overflow-y: auto;
       }
-      html.dark #book-quote-card, html.dark #onchain-card {
+      html.dark #book-quote-card, html.dark #onchain-card, html.dark #contribute-book-card {
         background: #141c2b;
         color: #f1f5f9;
         border-color: #334155;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(51, 65, 85, 0.6);
       }
       #book-quote-modal-overlay.active #book-quote-card,
-      #onchain-info-modal-overlay.active #onchain-card {
+      #onchain-info-modal-overlay.active #onchain-card,
+      #contribute-book-modal-overlay.active #contribute-book-card {
         transform: scale(1) translateY(0);
         opacity: 1;
       }
@@ -297,13 +304,13 @@
         background: rgba(30, 41, 59, 0.6);
         border-color: rgba(51, 65, 85, 0.6);
       }
-      .bq-copy-btn {
+      .bq-copy-btn, .cb-submit-btn {
         flex: 1;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
-        padding: 10px 18px;
+        padding: 11px 18px;
         border-radius: 14px;
         background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%);
         color: #0f172a;
@@ -314,14 +321,14 @@
         box-shadow: 0 4px 12px -2px rgba(245, 158, 11, 0.35);
         transition: all 0.2s ease;
       }
-      .bq-copy-btn:hover {
+      .bq-copy-btn:hover, .cb-submit-btn:hover {
         background: linear-gradient(135deg, #d97706 0%, #ca8a04 100%);
         color: #ffffff;
         transform: translateY(-1px);
         box-shadow: 0 6px 16px -2px rgba(245, 158, 11, 0.45);
       }
-      .bq-dismiss-btn {
-        padding: 10px 18px;
+      .bq-dismiss-btn, .cb-cancel-btn {
+        padding: 11px 18px;
         border-radius: 14px;
         background: rgba(100, 116, 139, 0.12);
         color: #475569;
@@ -331,18 +338,60 @@
         cursor: pointer;
         transition: all 0.2s ease;
       }
-      .bq-dismiss-btn:hover {
+      .bq-dismiss-btn:hover, .cb-cancel-btn:hover {
         background: rgba(100, 116, 139, 0.22);
         color: #0f172a;
       }
-      html.dark .bq-dismiss-btn {
+      html.dark .bq-dismiss-btn, html.dark .cb-cancel-btn {
         background: rgba(255, 255, 255, 0.08);
         color: #cbd5e1;
       }
-      html.dark .bq-dismiss-btn:hover {
+      html.dark .bq-dismiss-btn:hover, html.dark .cb-cancel-btn:hover {
         background: rgba(255, 255, 255, 0.16);
         color: #ffffff;
       }
+
+      /* Form inputs styling */
+      .cb-input, .cb-select, .cb-textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid #d7c4a5;
+        background: rgba(255, 255, 255, 0.8);
+        color: #1c1917;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        outline: none;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+      }
+      .cb-input:focus, .cb-select:focus, .cb-textarea:focus {
+        border-color: #f59e0b;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+      }
+      html.dark .cb-input, html.dark .cb-select, html.dark .cb-textarea {
+        background: rgba(15, 23, 42, 0.6);
+        border-color: #334155;
+        color: #f8fafc;
+      }
+      html.dark .cb-input:focus, html.dark .cb-select:focus, html.dark .cb-textarea:focus {
+        border-color: #fbbf24;
+        background: #0f172a;
+        box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+      }
+      .cb-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 800;
+        margin-bottom: 5px;
+        color: #6b5544;
+      }
+      html.dark .cb-label {
+        color: #94a3b8;
+      }
+
       #book-toast-popup {
         position: fixed;
         top: 24px;
@@ -370,7 +419,74 @@
         transform: translateX(-50%) translateY(0);
       }
     </style>
-<!-- BOOK QUOTE MODAL -->
+<!-- 1. CONTRIBUTE NEW BOOK MODAL (GÓP SÁCH NGAY) -->
+<div id="contribute-book-modal-overlay">
+<div id="contribute-book-card">
+<div class="bq-glow-1"></div>
+<div class="bq-glow-2"></div>
+<!-- Header -->
+<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; position:relative; z-index:2;">
+<div style="display:flex; align-items:center; gap:8px;">
+<span class="bq-badge">
+<span>📚</span>
+<span>GÓP SÁCH VÀO CÂY TRI THỨC</span>
+</span>
+</div>
+<button class="bq-close" id="cb-close-btn" title="Đóng (Esc)">✕</button>
+</div>
+<!-- Form Body -->
+<form id="contribute-book-form" onsubmit="return false;" style="display:flex; flex-direction:column; gap:12px; position:relative; z-index:2;">
+<div>
+<label class="cb-label">📖 Tên Tác Phẩm / Cuốn Sách <span style="color:#ef4444;">*</span></label>
+<input autocomplete="off" class="cb-input" id="cb-book-title" placeholder="Ví dụ: Nhà Giả Kim, Đắc Nhân Tâm, Sapiens..." required="" type="text"/>
+</div>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+<div>
+<label class="cb-label">✍️ Tác Giả <span style="color:#ef4444;">*</span></label>
+<input autocomplete="off" class="cb-input" id="cb-book-author" placeholder="Ví dụ: Paulo Coelho..." required="" type="text"/>
+</div>
+<div>
+<label class="cb-label">🏷️ Thể Loại</label>
+<select class="cb-select" id="cb-book-category">
+<option value="Sách Tinh Hoa">📚 Sách Tinh Hoa</option>
+<option value="Sách Tư Duy">💡 Sách Tư Duy</option>
+<option value="Sách Kỹ Năng">🌱 Sách Kỹ Năng</option>
+<option value="Sách Triết Học">📜 Sách Triết Học</option>
+<option value="Sách Nghệ Thuật">🎨 Sách Nghệ Thuật</option>
+</select>
+</div>
+</div>
+<div>
+<label class="cb-label">💬 Câu Trích Dẫn Hoặc Bài Học Tâm Đắc <span style="color:#ef4444;">*</span></label>
+<textarea class="cb-textarea" id="cb-book-quote" placeholder="Nhập câu trích dẫn hay hoặc cảm nghĩ sâu sắc mà bạn muốn chia sẻ với cộng đồng..." required="" rows="3"></textarea>
+</div>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+<div>
+<label class="cb-label">👤 Tên Của Bạn / Bút Danh</label>
+<input autocomplete="off" class="cb-input" id="cb-reader-name" placeholder="Ví dụ: Minh Trí, Bạn đọc..." type="text"/>
+</div>
+<div>
+<label class="cb-label">📍 Vị Trí Đóng Góp</label>
+<select class="cb-select" id="cb-placement">
+<option value="tree">🌿 Gắn lên Tán Cây</option>
+<option value="ground">🌾 Đặt xuống Bãi Tri Thức</option>
+</select>
+</div>
+</div>
+<!-- Buttons -->
+<div style="display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:8px;">
+<button class="cb-submit-btn" id="cb-submit-btn" type="submit">
+<span>✨</span>
+<span>Xác Nhận Góp Sách</span>
+</button>
+<button class="cb-cancel-btn" id="cb-cancel-btn" type="button">
+              Hủy
+            </button>
+</div>
+</form>
+</div>
+</div>
+<!-- 2. BOOK QUOTE MODAL (HIỂN THỊ CHI TIẾT TRÍCH DẪN) -->
 <div id="book-quote-modal-overlay">
 <div id="book-quote-card">
 <div class="bq-glow-1"></div>
@@ -429,7 +545,7 @@
 </div>
 </div>
 </div>
-<!-- ON-CHAIN TRANSPARENCY MODAL -->
+<!-- 3. ON-CHAIN TRANSPARENCY MODAL -->
 <div id="onchain-info-modal-overlay">
 <div id="onchain-card">
 <div class="bq-glow-1"></div>
@@ -479,6 +595,7 @@
 <script id="book-tree-master-script">
     (function() {
       const bookQuotesDB = {"Sách Tinh Hoa": [{"book": "Nhà Giả Kim (The Alchemist)", "author": "Paulo Coelho", "category": "Sách Tinh Hoa", "icon": "📚", "quote": "Khi bạn thực sự khao khát một điều gì đó, cả vũ trụ sẽ hợp lực giúp bạn đạt được nó.", "chapter": "Chương 2 - Hành trình sa mạc", "tag": "Kinh Điển"}, {"book": "Hoàng Tử Bé (Le Petit Prince)", "author": "Antoine de Saint-Exupéry", "category": "Sách Tinh Hoa", "icon": "📚", "quote": "Người ta chỉ thấy rõ bằng trái tim. Điều cốt lõi thì vô hình trong mắt trần.", "chapter": "Chương 21 - Bí mật của Cáo", "tag": "Văn Học"}, {"book": "Sapiens: Lược Sử Loài Người", "author": "Yuval Noah Harari", "category": "Sách Tinh Hoa", "icon": "📚", "quote": "Bạn không thể thuyết phục một con khỉ cho bạn quả chuối bằng cách hứa với nó về những quả chuối vô tận trên thiên đường sau khi chết.", "chapter": "Chương 1 - Cách mạng Nhận thức", "tag": "Lịch Sử & Tri Thức"}, {"book": "Chiến Tranh và Hòa Bình", "author": "Lev Tolstoy", "category": "Sách Tinh Hoa", "icon": "📚", "quote": "Hai chiến binh dũng cảm và mạnh mẽ nhất trên thế giới là Thời Gian và Sự Kiên Nhẫn.", "chapter": "Tập 3 - Phần kết", "tag": "Kinh Điển"}, {"book": "Những Người Khốn Khổ", "author": "Victor Hugo", "category": "Sách Tinh Hoa", "icon": "📚", "quote": "Học cách yêu thương là học cách sống. Tương lai thuộc về những ai tin vào cái đẹp của ước mơ.", "chapter": "Quyển 4 - Tình yêu và Hy vọng", "tag": "Nhân Văn"}, {"book": "Tội Ác và Hình Phạt", "author": "Fyodor Dostoevsky", "category": "Sách Tinh Hoa", "icon": "📚", "quote": "Bóng tối sâu thẳm nhất không thể ngăn nổi một tia sáng lẻ loi tìm đường vươn tới.", "chapter": "Phần kết - Sự hồi sinh", "tag": "Tâm Lý"}], "Sách Tư Duy": [{"book": "Tư Duy Nhanh và Chậm (Thinking, Fast and Slow)", "author": "Daniel Kahneman", "category": "Sách Tư Duy", "icon": "💡", "quote": "Sự tự tin quá mức của con người thường bắt nguồn từ ảo tưởng rằng chúng ta hiểu thế giới xung quanh nhiều hơn thực tế.", "chapter": "Phần 3 - Ảo tưởng về sự thấu hiểu", "tag": "Tâm Lý Học"}, {"book": "Tư Duy Ngược Dịch Chuyển Thế Giới (Originals)", "author": "Adam Grant", "category": "Sách Tư Duy", "icon": "💡", "quote": "Những người độc bản không sợ thất bại trong việc thử nghiệm ý tưởng mới, họ sợ nhất là thất bại vì không dám thử.", "chapter": "Chương 4 - Sáng tạo và Đột phá", "tag": "Sáng Tạo"}, {"book": "Tư Duy Tối Ưu (Principles)", "author": "Ray Dalio", "category": "Sách Tư Duy", "icon": "💡", "quote": "Nỗi đau + Sự suy ngẫm = Tiến bộ. Đừng né tránh sai lầm, hãy coi chúng là bài học quý giá nhất.", "chapter": "Nguyên tắc cuộc sống #1", "tag": "Tư Duy Hệ Thống"}, {"book": "Nghệ Thuật Tư Duy Rành Mạch", "author": "Rolf Dobelli", "category": "Sách Tư Duy", "icon": "💡", "quote": "Biết những gì mình không biết chính là khởi đầu của trí tuệ đích thực.", "chapter": "Chương 12 - Thiên kiến nhận thức", "tag": "Tư Duy Phản Biện"}, {"book": "Lập Luận Logic và Tư Duy Phản Biện", "author": "Richard Paul & Linda Elder", "category": "Sách Tư Duy", "icon": "💡", "quote": "Tâm trí bạn giống như một khu vườn: nếu không gieo trồng tư duy phản biện, cỏ dại thành kiến sẽ tự mọc lên.", "chapter": "Chương 2 - Tiêu chuẩn tư duy", "tag": "Tri Thức"}], "Sách Kỹ Năng": [{"book": "Đắc Nhân Tâm (How to Win Friends and Influence People)", "author": "Dale Carnegie", "category": "Sách Kỹ Năng", "icon": "🌱", "quote": "Một nụ cười chân thành có thể làm tan chảy sự lạnh lùng và mở lối cho những điều kỳ diệu nhất trong giao tiếp.", "chapter": "Phần 2 - Sáu cách tạo thiện cảm", "tag": "Giao Tiếp"}, {"book": "Thói Quen Nguyên Tử (Atomic Habits)", "author": "James Clear", "category": "Sách Kỹ Năng", "icon": "🌱", "quote": "Bạn không vươn lên tới tầm của những mục tiêu. Bạn rơi xuống ngang hàng với các hệ thống thói quen của bạn.", "chapter": "Chương 1 - Sức mạnh bất ngờ của 1%", "tag": "Phát Triển Bản Thân"}, {"book": "7 Thói Quen Của Người Thành Đạt", "author": "Stephen R. Covey", "category": "Sách Kỹ Năng", "icon": "🌱", "quote": "Cách chúng ta nhìn nhận vấn đề mới chính là vấn đề. Hãy bắt đầu bằng sự chủ động và trách nhiệm với lựa chọn của chính mình.", "chapter": "Thói quen 1 - Luôn chủ động", "tag": "Kỹ Năng Sống"}, {"book": "Lối Sống Tối Giản Của Người Nhật", "author": "Sasaki Fumio", "category": "Sách Kỹ Năng", "icon": "🌱", "quote": "Bằng cách giảm bớt những thứ không cần thiết, bạn có thêm không gian cho những điều thực sự quan trọng trong cuộc sống.", "chapter": "Chương 3 - Tự do và Hạnh phúc", "tag": "Lối Sống"}, {"book": "Làm Ra Làm Chơi Ra Chơi (Deep Work)", "author": "Cal Newport", "category": "Sách Kỹ Năng", "icon": "🌱", "quote": "Khả năng tập trung cao độ mà không bị xao nhãng đang trở thành siêu năng lực hiếm có và giá trị nhất trong kỷ nguyên số.", "chapter": "Quy tắc #1 - Làm việc sâu", "tag": "Năng Suất"}], "Sách Triết Học": [{"book": "Suy Tưởng (Meditations)", "author": "Marcus Aurelius", "category": "Sách Triết Học", "icon": "📜", "quote": "Bạn có quyền kiểm soát tâm trí của mình, chứ không phải các sự kiện bên ngoài. Hãy nhận ra điều này và bạn sẽ tìm thấy sức mạnh.", "chapter": "Quyển 4 - Tâm thức tĩnh lặng", "tag": "Chủ Nghĩa Khắc Kỷ"}, {"book": "Bàn Về Tự Do (On Liberty)", "author": "John Stuart Mill", "category": "Sách Triết Học", "icon": "📜", "quote": "Nếu toàn thể nhân loại cùng một ý kiến và chỉ có một người có ý kiến ngược lại, nhân loại cũng không có quyền bắt người ấy im lặng.", "chapter": "Chương 2 - Tự do tư tưởng", "tag": "Triết Học Khai Phóng"}, {"book": "Đạo Đức Kinh (Tao Te Ching)", "author": "Lão Tử", "category": "Sách Triết Học", "icon": "📜", "quote": "Biết người là trí, biết mình là sáng. Thắng người là có sức, thắng mình mới là kiên cường.", "chapter": "Chương 33 - Trí tuệ nội tại", "tag": "Triết Học Phương Đông"}, {"book": "Bức Thư Gửi Lucilius (Letters from a Stoic)", "author": "Seneca", "category": "Sách Triết Học", "icon": "📜", "quote": "Chúng ta đau khổ trong tưởng tượng thường nhiều hơn là trong thực tế.", "chapter": "Bức thư XIII - Về nỗi sợ hãi", "tag": "Khắc Kỷ"}, {"book": "Đi Tìm Lẽ Sống (Man's Search for Meaning)", "author": "Viktor E. Frankl", "category": "Sách Triết Học", "icon": "📜", "quote": "Người có một lý do để sống có thể chịu đựng được hầu hết mọi nghịch cảnh.", "chapter": "Phần 1 - Trải nghiệm và Thức tỉnh", "tag": "Ý Nghĩa Cuộc Sống"}], "Sách Nghệ Thuật": [{"book": "Lịch Sử Nghệ Thuật (The Story of Art)", "author": "E.H. Gombrich", "category": "Sách Nghệ Thuật", "icon": "🎨", "quote": "Nghệ thuật không tồn tại độc lập, chỉ có các nghệ sĩ - những người đem tâm hồn và hơi thở thổi vào từng tác phẩm.", "chapter": "Lời mở đầu - Về nghệ thuật và nghệ sĩ", "tag": "Hội Họa & Mỹ Thuật"}, {"book": "Nghệ Thuật Nhìn (Ways of Seeing)", "author": "John Berger", "category": "Sách Nghệ Thuật", "icon": "🎨", "quote": "Cách chúng ta nhìn sự vật bị ảnh hưởng bởi những gì chúng ta biết hoặc những gì chúng ta tin tưởng.", "chapter": "Tiểu luận 1 - Thị giác và Nhận thức", "tag": "Thẩm Mỹ Học"}, {"book": "Nghệ Thuật Sống Đẹp (The Art of Living)", "author": "Epictetus", "category": "Sách Nghệ Thuật", "icon": "🎨", "quote": "Đừng đòi hỏi các sự việc phải diễn ra theo ý bạn, hãy mong muốn chúng diễn ra như chúng vốn là, và cuộc sống của bạn sẽ thanh thản.", "chapter": "Cẩm nang sống", "tag": "Nghệ Thuật Sống"}, {"book": "Bút Ký Hội Họa", "author": "Leonardo da Vinci", "category": "Sách Nghệ Thuật", "icon": "🎨", "quote": "Sự đơn giản chính là đỉnh cao của sự tinh tế. Học cách quan sát thế giới với sự tò mò không ngừng nghỉ.", "chapter": "Tập bản thảo - Quan sát tự nhiên", "tag": "Nghệ Thuật & Tư Duy"}, {"book": "Âm Nhạc và Tâm Hồn", "author": "Arthur Schopenhauer", "category": "Sách Nghệ Thuật", "icon": "🎨", "quote": "Âm nhạc thể hiện bản chất sâu kín nhất của cuộc sống và sự tồn tại mà ngôn từ không thể diễn đạt hết.", "chapter": "Tiểu luận - Nghệ thuật âm thanh", "tag": "Âm Nhạc"}]};
+      const userCustomBooks = [];
 
       /* 1. THEME SWITCHER */
       function initTheme() {
@@ -616,11 +733,11 @@
       }
 
       /* 3. MODALS CONTROLLERS */
-      const overlay = document.getElementById('book-quote-modal-overlay');
-      const card = document.getElementById('book-quote-card');
-      const closeBtn = document.getElementById('bq-close-btn');
-      const dismissBtn = document.getElementById('bq-dismiss-btn');
-      const copyBtn = document.getElementById('bq-copy-btn');
+      const quoteOverlay = document.getElementById('book-quote-modal-overlay');
+      const quoteCard = document.getElementById('book-quote-card');
+      const quoteCloseBtn = document.getElementById('bq-close-btn');
+      const quoteDismissBtn = document.getElementById('bq-dismiss-btn');
+      const quoteCopyBtn = document.getElementById('bq-copy-btn');
       
       const badgeText = document.getElementById('bq-badge-text');
       const badgeIcon = document.getElementById('bq-badge-icon');
@@ -636,6 +753,19 @@
       const onchainCloseBtn = document.getElementById('onchain-close-btn');
       const onchainDoneBtn = document.getElementById('onchain-done-btn');
 
+      // CONTRIBUTE MODAL
+      const contributeOverlay = document.getElementById('contribute-book-modal-overlay');
+      const contributeCard = document.getElementById('contribute-book-card');
+      const contributeCloseBtn = document.getElementById('cb-close-btn');
+      const contributeCancelBtn = document.getElementById('cb-cancel-btn');
+      const contributeForm = document.getElementById('contribute-book-form');
+      const cbBookTitle = document.getElementById('cb-book-title');
+      const cbBookAuthor = document.getElementById('cb-book-author');
+      const cbBookCat = document.getElementById('cb-book-category');
+      const cbBookQuote = document.getElementById('cb-book-quote');
+      const cbReaderName = document.getElementById('cb-reader-name');
+      const cbPlacement = document.getElementById('cb-placement');
+
       const toast = document.getElementById('book-toast-popup');
       const toastText = document.getElementById('book-toast-text');
 
@@ -645,11 +775,12 @@
         toast.classList.add('show');
         setTimeout(() => {
           toast.classList.remove('show');
-        }, 2400);
+        }, 2600);
       }
 
-      function openModal(data) {
-        if (!overlay || !card) return;
+      // OPEN BOOK DETAIL MODAL
+      function openQuoteModal(data) {
+        if (!quoteOverlay || !quoteCard) return;
         
         badgeText.textContent = data.category || 'SÁCH TRI THỨC';
         badgeIcon.textContent = data.icon || '📚';
@@ -661,16 +792,38 @@
         quote.textContent = data.quote || 'Tri thức là ánh sáng soi rọi tương lai.';
         reader.textContent = data.reader || 'Độc giả yêu sách';
 
-        overlay.style.display = 'flex';
-        void overlay.offsetWidth;
-        overlay.classList.add('active');
+        quoteOverlay.style.display = 'flex';
+        void quoteOverlay.offsetWidth;
+        quoteOverlay.classList.add('active');
       }
 
-      function closeModal() {
-        if (!overlay) return;
-        overlay.classList.remove('active');
+      function closeQuoteModal() {
+        if (!quoteOverlay) return;
+        quoteOverlay.classList.remove('active');
         setTimeout(() => {
-          overlay.style.display = 'none';
+          quoteOverlay.style.display = 'none';
+        }, 260);
+      }
+
+      // OPEN CONTRIBUTE MODAL
+      function openContributeModal(preselectedCat) {
+        if (!contributeOverlay) return;
+        if (preselectedCat && cbBookCat) {
+          cbBookCat.value = preselectedCat;
+        }
+        contributeOverlay.style.display = 'flex';
+        void contributeOverlay.offsetWidth;
+        contributeOverlay.classList.add('active');
+        setTimeout(() => {
+          if (cbBookTitle) cbBookTitle.focus();
+        }, 100);
+      }
+
+      function closeContributeModal() {
+        if (!contributeOverlay) return;
+        contributeOverlay.classList.remove('active');
+        setTimeout(() => {
+          contributeOverlay.style.display = 'none';
         }, 260);
       }
 
@@ -689,11 +842,20 @@
         }, 260);
       }
 
-      if (closeBtn) closeBtn.addEventListener('click', closeModal);
-      if (dismissBtn) dismissBtn.addEventListener('click', closeModal);
-      if (overlay) {
-        overlay.addEventListener('click', (e) => {
-          if (e.target === overlay) closeModal();
+      // Modal listeners
+      if (quoteCloseBtn) quoteCloseBtn.addEventListener('click', closeQuoteModal);
+      if (quoteDismissBtn) quoteDismissBtn.addEventListener('click', closeQuoteModal);
+      if (quoteOverlay) {
+        quoteOverlay.addEventListener('click', (e) => {
+          if (e.target === quoteOverlay) closeQuoteModal();
+        });
+      }
+
+      if (contributeCloseBtn) contributeCloseBtn.addEventListener('click', closeContributeModal);
+      if (contributeCancelBtn) contributeCancelBtn.addEventListener('click', closeContributeModal);
+      if (contributeOverlay) {
+        contributeOverlay.addEventListener('click', (e) => {
+          if (e.target === contributeOverlay) closeContributeModal();
         });
       }
 
@@ -707,13 +869,14 @@
 
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-          closeModal();
+          closeQuoteModal();
+          closeContributeModal();
           closeOnchainModal();
         }
       });
 
-      if (copyBtn) {
-        copyBtn.addEventListener('click', (e) => {
+      if (quoteCopyBtn) {
+        quoteCopyBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           const copyStr = `"${quote.textContent.trim()}" — ${title.textContent.trim()} (${author.textContent.trim()})`;
           if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -728,6 +891,106 @@
         });
       }
 
+      // SUBMIT NEW BOOK
+      if (contributeForm) {
+        contributeForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const bookTitleVal = cbBookTitle.value.trim();
+          const bookAuthorVal = cbBookAuthor.value.trim();
+          const bookCatVal = cbBookCat.value;
+          const bookQuoteVal = cbBookQuote.value.trim();
+          const readerVal = cbReaderName.value.trim() || 'Bạn đọc yêu sách';
+          const placeVal = cbPlacement.value;
+
+          if (!bookTitleVal || !bookAuthorVal || !bookQuoteVal) {
+            showToast('⚠️ Vui lòng điền đủ Tên sách, Tác giả và Trích dẫn!');
+            return;
+          }
+
+          const catIcons = {
+            'Sách Tinh Hoa': '📚',
+            'Sách Tư Duy': '💡',
+            'Sách Kỹ Năng': '🌱',
+            'Sách Triết Học': '📜',
+            'Sách Nghệ Thuật': '🎨'
+          };
+
+          const newBookObj = {
+            book: bookTitleVal,
+            author: bookAuthorVal,
+            category: bookCatVal,
+            icon: catIcons[bookCatVal] || '📚',
+            quote: bookQuoteVal,
+            chapter: 'Trích đoạn tâm đắc',
+            tag: 'Độc Giả Góp',
+            reader: readerVal
+          };
+
+          // Add to DB
+          if (!bookQuotesDB[bookCatVal]) bookQuotesDB[bookCatVal] = [];
+          bookQuotesDB[bookCatVal].unshift(newBookObj);
+          userCustomBooks.push(newBookObj);
+
+          // Spawn new interactive leaf / note element visually!
+          try {
+            if (placeVal === 'tree') {
+              const treeContainer = document.querySelector('.origin-bottom');
+              if (treeContainer) {
+                const newBtn = document.createElement('button');
+                newBtn.className = 'absolute z-30 hover:z-50 focus:z-50 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-transform hover:scale-135 pointer-events-auto group/note flex flex-col items-center animate-bounce';
+                const leftPos = (30 + Math.random() * 40).toFixed(1);
+                const topPos = (25 + Math.random() * 35).toFixed(1);
+                newBtn.style.left = leftPos + '%';
+                newBtn.style.top = topPos + '%';
+                newBtn.innerHTML = `
+                  <div class="relative px-2 py-1 min-w-[34px] rounded-md bg-[#fff7d1] dark:bg-[#fef08a] border border-[#e6d8a8] shadow-lg flex items-center justify-center transform rotate-1">
+                    <span class="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[9px]">📌</span>
+                    <span class="text-xs mr-0.5">${newBookObj.icon}</span>
+                    <span class="text-[9px] font-black text-emerald-600">✓</span>
+                  </div>
+                `;
+                newBtn.dataset.bookJson = JSON.stringify(newBookObj);
+                treeContainer.appendChild(newBtn);
+              }
+            } else {
+              const groundContainer = document.querySelector('[class*="min-h-[460px]"] .relative');
+              if (groundContainer) {
+                const newBtn = document.createElement('button');
+                newBtn.className = 'absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-125 hover:z-50 focus:z-50 z-30 group/fl flex flex-col items-center animate-bounce';
+                const leftPos = (15 + Math.random() * 70).toFixed(1);
+                const topPos = (20 + Math.random() * 60).toFixed(1);
+                newBtn.style.left = leftPos + '%';
+                newBtn.style.top = topPos + '%';
+                newBtn.innerHTML = `
+                  <div class="relative w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 rounded-full bg-amber-400/90 dark:bg-amber-500/90 shadow-lg border-2 border-white text-base sm:text-lg flex items-center justify-center select-none shadow-amber-900/30">
+                    <span class="leading-none">${newBookObj.icon}</span>
+                  </div>
+                `;
+                newBtn.dataset.bookJson = JSON.stringify(newBookObj);
+                groundContainer.appendChild(newBtn);
+              }
+            }
+
+            // Increment Header Counters
+            const noteCountBtn = document.querySelector('button[title*="Trích Dẫn"] span:last-child');
+            if (noteCountBtn) {
+              const m = noteCountBtn.textContent.match(/\((\d[\d,]*)\)/);
+              if (m) {
+                const val = parseInt(m[1].replace(/,/g, '')) + 1;
+                noteCountBtn.textContent = 'Trích Dẫn Sách (' + val.toLocaleString() + ')';
+              }
+            }
+          } catch (err) {
+            console.error('Spawn leaf error:', err);
+          }
+
+          // Reset form & Close modal
+          contributeForm.reset();
+          closeContributeModal();
+          showToast(`🎉 Góp sách thành công: "${bookTitleVal}" đã được gieo mầm!`);
+        });
+      }
+
       function getCategoryFromElement(el) {
         const text = (el.textContent || '') + ' ' + (el.getAttribute('title') || '');
         if (text.includes('Tư Duy') || text.includes('💡')) return 'Sách Tư Duy';
@@ -737,6 +1000,7 @@
         return 'Sách Tinh Hoa';
       }
 
+      let currentSelectedCategory = 'Sách Tinh Hoa';
       let quoteIndex = 0;
       function getRandomBook(categoryKey) {
         const list = bookQuotesDB[categoryKey] || bookQuotesDB['Sách Tinh Hoa'];
@@ -745,13 +1009,13 @@
         return item;
       }
 
-      /* 4. MASTER GLOBAL CLICK DISPATCHER */
+      /* 4. MASTER GLOBAL CLICK DISPATCHER (CAPTURE PHASE) */
       window.addEventListener('click', (e) => {
         const target = e.target;
         if (!target) return;
 
-        // Ignore clicks inside open modal cards
-        if (target.closest && (target.closest('#book-quote-card') || target.closest('#onchain-card') || target.closest('#book-toast-popup'))) {
+        // Ignore clicks inside open cards
+        if (target.closest && (target.closest('#book-quote-card') || target.closest('#contribute-book-card') || target.closest('#onchain-card') || target.closest('#book-toast-popup'))) {
           return;
         }
 
@@ -773,7 +1037,39 @@
           return;
         }
 
-        // C. ON-CHAIN & WEB3 BUTTONS / LINKS (INTERCEPT ZERO EXTERNAL NAVIGATION)
+        // C. MAIN CTA BUTTON (GÓP SÁCH NGAY) -> OPENS CONTRIBUTE MODAL!
+        const ctaBtn = target.closest && target.closest('button[title*="Đóng góp sách"], button[title*="Góp Sách"]');
+        if (ctaBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          openContributeModal(currentSelectedCategory);
+          return;
+        }
+
+        // D. CATEGORY SELECTION IN BOTTOM BAR
+        const catBtn = target.closest && target.closest('button[title*="Chọn Sách"]');
+        if (catBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          const allCatBtns = document.querySelectorAll('button[title*="Chọn Sách"]');
+          allCatBtns.forEach(b => {
+            b.className = 'flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1 sm:px-2.5 lg:px-3 py-1 sm:py-1.5 rounded-xl border border-[#d7c4a5] dark:border-slate-700 font-bold transition-all cursor-pointer shadow-xs active:scale-95 shrink-0 lg:shrink-0 hover:border-amber-400/80 text-center w-full lg:w-auto bg-white/90 text-[#3c2a1e] dark:bg-slate-800 dark:text-slate-200';
+          });
+          catBtn.className = 'flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1 sm:px-2.5 lg:px-3 py-1 sm:py-1.5 rounded-xl border font-bold transition-all cursor-pointer shadow-xs active:scale-95 shrink-0 lg:shrink-0 hover:border-amber-400/80 text-center w-full lg:w-auto bg-[#3c2a1e] text-[#f5ce42] border-[#3c2a1e] shadow-md scale-[1 ring-2 ring-amber-400/50 dark:bg-amber-500 dark:text-slate-950 dark:border-amber-400';
+          
+          currentSelectedCategory = getCategoryFromElement(catBtn);
+          const ctaBtnEl = document.querySelector('button[title*="Đóng góp sách"]');
+          if (ctaBtnEl) {
+            const lastSpan = ctaBtnEl.querySelector('span:last-child');
+            if (lastSpan && lastSpan.textContent.includes('(')) {
+              lastSpan.textContent = '(' + currentSelectedCategory + ')';
+            }
+          }
+          showToast('Đã chọn: ' + currentSelectedCategory);
+          return;
+        }
+
+        // E. ON-CHAIN & WEB3 BUTTONS / LINKS
         const onchainTrigger = target.closest && target.closest('a[title*="Blockchain"], a[title*="On-Chain"], button[title*="On-Chain"], a[href*="proof"], aside a, aside button');
         if (onchainTrigger) {
           e.preventDefault();
@@ -782,7 +1078,7 @@
           if (text.includes('Thư Viện Mở') || text.includes('Văn Hóa Đọc') || text.includes('Bách Khoa')) {
             const cat = text.includes('Văn Hóa Đọc') ? 'Sách Tư Duy' : (text.includes('Bách Khoa') ? 'Sách Triết Học' : 'Sách Tinh Hoa');
             const book = getRandomBook(cat);
-            openModal({
+            openQuoteModal({
               category: cat,
               icon: book.icon,
               tag: book.tag,
@@ -793,7 +1089,6 @@
               reader: 'Tủ Sách Tri Thức'
             });
           } else if (text.includes('Thu gọn') || text.includes('—') || text.includes('+')) {
-            // Aside minimize
             const asideContent = target.closest('aside').querySelector('.space-y-2\.5, .space-y-2, div.space-y-2\.5');
             if (asideContent) {
               if (asideContent.style.display === 'none') {
@@ -805,13 +1100,12 @@
               }
             }
           } else {
-            // Show On-Chain info modal
             openOnchainModal();
           }
           return;
         }
 
-        // D. LIGHT LAMP BUTTON
+        // F. LIGHT LAMP BUTTON
         const lightLampBtn = target.closest && target.closest('button[title*="Thắp sáng"]');
         if (lightLampBtn) {
           e.preventDefault();
@@ -828,7 +1122,7 @@
           return;
         }
 
-        // E. QUOTE BUTTON IN HEADER (Trích Dẫn Sách 1,100)
+        // G. QUOTE BUTTON IN HEADER
         const quoteHeaderBtn = target.closest && target.closest('button[title*="Trích Dẫn"], button[title*="Giấy Nhớ"]');
         if (quoteHeaderBtn) {
           e.preventDefault();
@@ -836,7 +1130,7 @@
           const cats = ['Sách Tinh Hoa', 'Sách Tư Duy', 'Sách Kỹ Năng', 'Sách Triết Học', 'Sách Nghệ Thuật'];
           const cat = cats[Math.floor(Math.random() * cats.length)];
           const book = getRandomBook(cat);
-          openModal({
+          openQuoteModal({
             category: cat,
             icon: book.icon,
             tag: book.tag,
@@ -845,48 +1139,6 @@
             chapter: book.chapter,
             quote: book.quote,
             reader: 'Cộng đồng Độc Giả'
-          });
-          return;
-        }
-
-        // F. CATEGORY SELECTION IN BOTTOM BAR
-        const catBtn = target.closest && target.closest('button[title*="Chọn Sách"]');
-        if (catBtn) {
-          e.preventDefault();
-          e.stopPropagation();
-          const allCatBtns = document.querySelectorAll('button[title*="Chọn Sách"]');
-          allCatBtns.forEach(b => {
-            b.className = 'flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1 sm:px-2.5 lg:px-3 py-1 sm:py-1.5 rounded-xl border border-[#d7c4a5] dark:border-slate-700 font-bold transition-all cursor-pointer shadow-xs active:scale-95 shrink-0 lg:shrink-0 hover:border-amber-400/80 text-center w-full lg:w-auto bg-white/90 text-[#3c2a1e] dark:bg-slate-800 dark:text-slate-200';
-          });
-          catBtn.className = 'flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1 sm:px-2.5 lg:px-3 py-1 sm:py-1.5 rounded-xl border font-bold transition-all cursor-pointer shadow-xs active:scale-95 shrink-0 lg:shrink-0 hover:border-amber-400/80 text-center w-full lg:w-auto bg-[#3c2a1e] text-[#f5ce42] border-[#3c2a1e] shadow-md scale-[1 ring-2 ring-amber-400/50 dark:bg-amber-500 dark:text-slate-950 dark:border-amber-400';
-          
-          const catName = getCategoryFromElement(catBtn);
-          const ctaBtn = document.querySelector('button[title*="Đóng góp sách"]');
-          if (ctaBtn) {
-            const lastSpan = ctaBtn.querySelector('span:last-child');
-            if (lastSpan && lastSpan.textContent.includes('(')) {
-              lastSpan.textContent = '(' + catName + ')';
-            }
-          }
-          showToast('Đã chọn: ' + catName);
-          return;
-        }
-
-        // G. MAIN CTA BUTTON (GÓP SÁCH NGAY)
-        const ctaBtn = target.closest && target.closest('button[title*="Đóng góp sách"]');
-        if (ctaBtn) {
-          e.preventDefault();
-          e.stopPropagation();
-          const book = getRandomBook('Sách Tinh Hoa');
-          openModal({
-            category: 'Sách Tinh Hoa',
-            icon: '📚',
-            tag: 'Đóng Góp Mới',
-            book: book.book,
-            author: book.author,
-            chapter: book.chapter,
-            quote: book.quote,
-            reader: 'Bạn'
           });
           return;
         }
@@ -906,8 +1158,17 @@
         if (noteBtn || groundBtn || anyTreeBtn) {
           isLeafClick = true;
           const btn = noteBtn || groundBtn || anyTreeBtn;
-          categoryKey = getCategoryFromElement(btn);
           
+          // Check if this button was dynamically added with custom book data
+          if (btn.dataset && btn.dataset.bookJson) {
+            try {
+              const customData = JSON.parse(btn.dataset.bookJson);
+              openQuoteModal(customData);
+              return;
+            } catch (e) {}
+          }
+
+          categoryKey = getCategoryFromElement(btn);
           const spans = btn.querySelectorAll('span');
           spans.forEach(s => {
             const t = s.textContent.trim();
@@ -943,7 +1204,7 @@
           e.stopPropagation();
 
           const book = getRandomBook(categoryKey);
-          openModal({
+          openQuoteModal({
             category: categoryKey,
             icon: icon || book.icon,
             tag: book.tag,
