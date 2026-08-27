@@ -7559,27 +7559,17 @@
       <div class="bq-glow-1"></div>
       <div class="bq-glow-2"></div>
       <div
-        style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; position:relative; z-index:2;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span class="bq-badge" id="bq-badge">
-            <span id="bq-badge-icon">📚</span>
-            <span id="bq-badge-text">SÁCH TINH HOA</span>
-          </span>
-          <span class="bq-tag" id="bq-tag">Kinh Điển</span>
-        </div>
+        style="display:flex; align-items:center; justify-content:flex-end; margin-bottom:10px; position:relative; z-index:2;">
         <button class="bq-close" id="bq-close-btn" title="Đóng (Esc)">✕</button>
       </div>
-      <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:12px; position:relative; z-index:2;">
+      <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:14px; position:relative; z-index:2;">
         <div class="bq-avatar" id="bq-avatar">📖</div>
         <div style="flex:1; min-width:0;">
-          <h3 id="bq-title" style="font-size:17px; font-weight:900; line-height:1.3; margin:0 0 3px 0; color:#0054A6;">
+          <h3 id="bq-title" style="font-size:17px; font-weight:900; line-height:1.3; margin:0 0 4px 0; color:#0054A6;">
             Nhà Giả Kim (The Alchemist)
           </h3>
           <div style="font-size:13px; font-weight:700; color:#F36F21; display:flex; align-items:center; gap:4px;">
             <span>✍️</span> <span id="bq-author">Paulo Coelho</span>
-          </div>
-          <div id="bq-chapter" style="font-size:11px; opacity:0.75; margin-top:2px;">
-            🔖 Chương 2 - Hành trình sa mạc
           </div>
         </div>
       </div>
@@ -7590,7 +7580,7 @@
         </div>
         <div class="bq-quote-mark" style="text-align:right;">”</div>
       </div>
-      <div class="bq-reader-bar" style="position:relative; z-index:2;">
+      <div class="bq-reader-bar" style="position:relative; z-index:2; margin-bottom:14px;">
         <div
           style="display:flex; align-items:center; gap:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
           <span
@@ -7600,10 +7590,6 @@
             <strong id="bq-reader" style="font-weight:800; color:#0054A6;">Độc giả yêu sách</strong>
           </div>
         </div>
-        <span
-          style="font-size:10px; font-weight:800; color:#70B928; background:rgba(112,185,40,0.12); padding:3px 8px; border-radius:6px; border:1px solid rgba(112,185,40,0.3); flex-shrink:0;">
-          ✓ Đã lưu trữ On-Chain
-        </span>
       </div>
       <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px; position:relative; z-index:2;">
         <button class="bq-copy-btn" id="bq-copy-btn">
@@ -8047,15 +8033,15 @@
       function openQuoteModal(data) {
         if (!quoteOverlay || !quoteCard) return;
 
-        badgeText.textContent = data.category || 'SÁCH TRI THỨC';
-        badgeIcon.textContent = data.icon || '📚';
-        tagText.textContent = data.tag || 'Tri Thức';
-        avatar.textContent = data.icon || '📖';
-        title.textContent = data.book || 'Cây Sách Tri Thức';
-        author.textContent = data.author || 'Tác giả Tinh Hoa';
-        chapter.textContent = '🔖 ' + (data.chapter || 'Chương Sách Hay');
-        quote.textContent = data.quote || 'Tri thức là ánh sáng soi rọi tương lai.';
-        reader.textContent = data.reader || 'Độc giả yêu sách';
+        if (badgeText) badgeText.textContent = data.category || 'SÁCH TRI THỨC';
+        if (badgeIcon) badgeIcon.textContent = data.icon || '📚';
+        if (tagText) tagText.textContent = data.tag || 'Tri Thức';
+        if (avatar) avatar.textContent = data.icon || '📖';
+        if (title) title.textContent = data.book || 'Cây Sách Tri Thức';
+        if (author) author.textContent = data.author || 'Tác giả Tinh Hoa';
+        if (chapter) chapter.textContent = '🔖 ' + (data.chapter || 'Chương Sách Hay');
+        if (quote) quote.textContent = data.quote || 'Tri thức là ánh sáng soi rọi tương lai.';
+        if (reader) reader.textContent = data.reader || 'Độc giả yêu sách';
 
         quoteOverlay.style.display = 'flex';
         void quoteOverlay.offsetWidth;
