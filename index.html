@@ -1127,7 +1127,7 @@
           <canvas _ngcontent-ng-c4179040905="" class="fixed inset-0 pointer-events-none z-0" height="730"
             width="1536"></canvas>
           <header _ngcontent-ng-c4179040905=""
-            class="sticky top-0 z-40 w-full bg-[#faf6ed]/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-[#0054A6]/25 dark:border-slate-800 shadow-xs">
+            class="sticky top-0 z-40 w-full bg-transparent border-b-0 shadow-none">
             <div _ngcontent-ng-c4179040905=""
               class="max-w-[1530px] mx-auto px-3 sm:px-6 py-2 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
               <div _ngcontent-ng-c4179040905=""
@@ -6799,16 +6799,20 @@
       background-color: #0b132b !important;
     }
 
-    /* Header & Navbar Contrast in Dark Mode */
+    /* Header & Navbar - Seamless with tree background */
     header,
     .sticky {
-      background-color: rgba(250, 246, 237, 0.95) !important;
+      background-color: transparent !important;
+      border-bottom: none !important;
+      box-shadow: none !important;
     }
 
     html.dark header,
     html.dark .sticky {
-      background-color: rgba(15, 23, 42, 0.95) !important;
-      border-color: rgba(51, 65, 85, 0.6) !important;
+      background-color: transparent !important;
+      border-color: transparent !important;
+      border-bottom: none !important;
+      box-shadow: none !important;
     }
 
     /* Theme & Particle Toggle Buttons */
