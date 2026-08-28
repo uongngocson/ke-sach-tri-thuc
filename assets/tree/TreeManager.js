@@ -1,7 +1,7 @@
 /**
  * assets/tree/TreeManager.js
  * Master 3D Procedural Tree Coordinator for Cây Sách Tri Thức
- * Seamlessly integrates the Tree.js generator into Three.js with full GUI Option Panel
+ * Features 100% "Cây Cổ Thụ Lâu Năm" (Ancient Thousand-Year Tree) with Full Customization GUI
  */
 import { Tree, LeafStyle, LeafType } from './tree.js';
 import GUI from './lil-gui.module.min.js';
@@ -12,42 +12,42 @@ export class TreeManager {
     this.scene = scene;
     this.camera = camera;
 
-    // Default aesthetic tree parameters (Majestic Oak of Knowledge)
+    // Cây Cổ Thụ Lâu Năm Parameters (Ancient Majestic Oak)
     this.treeParams = {
-      seed: 42890,
+      seed: 9999,
       maturity: 1.0,
       animateGrowth: false,
       autoRotate: false,
       windSway: true,
 
-      // Transform & Placement: calibrated to seamlessly embed into the compact ground dome (0 gap)
+      // Placement & Height: Perfectly sitting on top of the ground dome
       transform: {
-        posY: -82,
+        posY: -58,
         posZ: -260,
-        scale: 6.4
+        scale: 5.6
       },
 
       trunk: {
-        color: 0x5c3a21,
+        color: 0x3d2716,
         flatShading: false,
         textured: true,
         length: 19.0,
-        radius: 1.7,
-        flare: 1.4
+        radius: 2.2,
+        flare: 2.0
       },
 
       branch: {
         levels: 4,
-        start: 0.48,
+        start: 0.42,
         stop: 0.95,
-        sweepAngle: 2.1,
-        minChildren: 3,
-        maxChildren: 5,
+        sweepAngle: 2.5,
+        minChildren: 4,
+        maxChildren: 6,
         lengthVariance: 0.22,
         lengthMultiplier: 0.72,
         radiusMultiplier: 0.88,
         taper: 0.72,
-        gnarliness: 0.16,
+        gnarliness: 0.24,
         gnarliness1_R: 0.04,
         twist: 0.0
       },
@@ -65,10 +65,10 @@ export class TreeManager {
         type: LeafType.Oak,
         minCount: 6,
         maxCount: 9,
-        size: 2.2,
+        size: 2.5,
         sizeVariance: 0.2,
-        color: 0x4f8a10,
-        emissive: 0.08,
+        color: 0x386b12,
+        emissive: 0.06,
         opacity: 1.0,
         alphaTest: 0.45
       },
@@ -88,7 +88,7 @@ export class TreeManager {
     // Dedicated Lighting for 3D Tree
     this.#setupLighting();
 
-    // Instantiate Tree
+    // Instantiate Cây Cổ Thụ Lâu Năm
     this.tree = new Tree(THREE, this.treeParams);
     this.treeAnchor.add(this.tree.group);
 
@@ -125,53 +125,12 @@ export class TreeManager {
 
     // Create GUI Container floating on right side
     const gui = new GUI({
-      title: '🌳 TÙY CHỈNH CÂY 3D',
+      title: '🌳 CÂY CỔ THỤ LÂU NĂM',
       width: 310,
       autoPlace: false
     });
 
     this.gui = gui;
-
-    // Presets definitions
-    const presets = {
-      'Cây Sồi Tinh Hoa (Mặc định)': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x5c3a21, length: 19.0, radius: 1.7, flare: 1.4 });
-        Object.assign(this.treeParams.branch, { levels: 4, start: 0.48, sweepAngle: 2.1, minChildren: 3, maxChildren: 5, gnarliness: 0.16 });
-        Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Oak, size: 2.2, color: 0x4f8a10, emissive: 0.08 });
-        this.treeParams.seed = 42890;
-        this.tree.generate();
-        gui.controllersRecursive().forEach(c => c.updateDisplay());
-      },
-      'Cổ Thụ Ngàn Năm': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x3d2716, length: 19.5, radius: 2.2, flare: 2.2 });
-        Object.assign(this.treeParams.branch, { levels: 4, start: 0.42, sweepAngle: 2.5, minChildren: 4, maxChildren: 6, gnarliness: 0.24 });
-        Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Oak, size: 2.5, color: 0x386b12, emissive: 0.06 });
-        this.treeParams.seed = 9999;
-        this.tree.generate();
-        gui.controllersRecursive().forEach(c => c.updateDisplay());
-      },
-      'Hoa Anh Đào (Cherry)': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x4a3b32, length: 18.5, radius: 1.5, flare: 1.15 });
-        Object.assign(this.treeParams.branch, { levels: 4, start: 0.45, sweepAngle: 2.3, minChildren: 3, maxChildren: 5, gnarliness: 0.18 });
-        Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Flowers, size: 2.4, color: 0xffb7c5, emissive: 0.15 });
-        this.treeParams.seed = 77123;
-        this.tree.generate();
-        gui.controllersRecursive().forEach(c => c.updateDisplay());
-      },
-      'Phong Đỏ Mùa Thu': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x482d1c, length: 19.0, radius: 1.5, flare: 1.25 });
-        Object.assign(this.treeParams.branch, { levels: 4, start: 0.48, sweepAngle: 2.0, minChildren: 3, maxChildren: 5, gnarliness: 0.14 });
-        Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Aspen, size: 2.3, color: 0xd9381e, emissive: 0.12 });
-        this.treeParams.seed = 54321;
-        this.tree.generate();
-        gui.controllersRecursive().forEach(c => c.updateDisplay());
-      }
-    };
-
-    const presetFolder = gui.addFolder('✨ Mẫu Cây Có Sẵn');
-    presetFolder.add({ p: 'Cây Sồi Tinh Hoa (Mặc định)' }, 'p', Object.keys(presets)).name('Chọn Mẫu').onChange((val) => {
-      if (presets[val]) presets[val]();
-    });
 
     // Placement & Position on ground
     const posFolder = gui.addFolder('📍 Vị Trí & Tỉ Lệ Mặt Đất');
@@ -218,7 +177,6 @@ export class TreeManager {
     // Leaves
     const leavesFolder = gui.addFolder('Tán Lá (Leaves)').close();
     leavesFolder.add(this.treeParams.leaves, 'style', { 'Đơn (Single)': 0, 'Kép (Double)': 1 }).name('Kiểu Lá');
-    leavesFolder.add(this.treeParams.leaves, 'type', { 'Sồi (Oak)': 2, 'Dương (Aspen)': 1, 'Tần Bì (Ash)': 0, 'Hoa (Flowers)': 3 }).name('Loại Lá');
     leavesFolder.add(this.treeParams.leaves, 'size', 0.5, 5.0, 0.1).name('Kích Cỡ Lá');
     leavesFolder.addColor(this.treeParams.leaves, 'color').name('Màu Lá');
     leavesFolder.add(this.treeParams.leaves, 'minCount', 1, 20, 1).name('Mật Độ Nhỏ');
@@ -226,14 +184,29 @@ export class TreeManager {
     leavesFolder.add(this.treeParams.leaves, 'emissive', 0, 0.5, 0.01).name('Phát Sáng');
     leavesFolder.add(this.treeParams.leaves, 'opacity', 0.2, 1.0, 0.05).name('Độ Trong Suốt');
 
-    // Quick Actions
+    // Reset to Default Cổ Thụ
+    gui.add({
+      reset: () => {
+        Object.assign(this.treeParams.trunk, { color: 0x3d2716, length: 19.0, radius: 2.2, flare: 2.0 });
+        Object.assign(this.treeParams.branch, { levels: 4, start: 0.42, sweepAngle: 2.5, minChildren: 4, maxChildren: 6, gnarliness: 0.24 });
+        Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Oak, size: 2.5, color: 0x386b12, emissive: 0.06 });
+        this.treeParams.seed = 9999;
+        this.treeParams.transform.posY = -58;
+        this.treeParams.transform.scale = 5.6;
+        this.updateAnchorTransform();
+        this.tree.generate();
+        gui.controllersRecursive().forEach(c => c.updateDisplay());
+      }
+    }, 'reset').name('↺ Đặt Lại Cổ Thụ Chuẩn');
+
+    // Quick Random
     gui.add({
       random: () => {
         this.treeParams.seed = Math.floor(Math.random() * 65535);
         this.tree.generate();
         gui.controllersRecursive().forEach(c => c.updateDisplay());
       }
-    }, 'random').name('🎲 Đổi Dáng Cây Ngẫu Nhiên');
+    }, 'random').name('🎲 Đổi Dáng Cổ Thụ Ngẫu Nhiên');
 
     gui.onChange(() => {
       this.tree.generate();
