@@ -3605,7 +3605,7 @@
                     class="w-full min-h-[230px] xs:min-h-[260px] sm:min-h-[300px] md:min-h-[340px] fpt-ground-container cursor-pointer relative transition-all duration-300 group pb-14 sm:pb-16 overflow-visible"
                     title="Click bất kỳ vị trí nào trên bãi tri thức để góp sách">
                     <div _ngcontent-ng-c4179040905=""
-                      class="absolute inset-0 rounded-t-[50%_35px] sm:rounded-t-[50%_60px] fpt-ground-arc shadow-2xl overflow-hidden pointer-events-none">
+                      class="absolute inset-0 rounded-t-[50%_16px] sm:rounded-t-[50%_18px] fpt-ground-arc shadow-2xl overflow-hidden pointer-events-none">
                       <div _ngcontent-ng-c4179040905=""
                         class="absolute inset-0 opacity-40 dark:opacity-20 pointer-events-none"
                         style="background-image: radial-gradient(#a38c6b 1.2px, transparent 1.2px); background-size: 18px 18px;">
@@ -7607,11 +7607,15 @@
     }
 
     .fpt-ground-arc {
+      border-top-left-radius: 50% 18px !important;
+      border-top-right-radius: 50% 18px !important;
       background: linear-gradient(180deg, #E6F0FA 0%, #D3E6F7 45%, #C2DCF2 100%) !important;
       border-top: 3px solid #0054A6 !important;
     }
 
     html.dark .fpt-ground-arc {
+      border-top-left-radius: 50% 18px !important;
+      border-top-right-radius: 50% 18px !important;
       background: linear-gradient(180deg, #132247 0%, #0d1730 45%, #080f21 100%) !important;
       border-top: 3px solid #0054A6 !important;
     }
@@ -7622,31 +7626,31 @@
       display: none !important;
     }
 
-    /* Ground height refined and reduced for a sleek, proportional appearance */
+    /* Ground height set to 1/2 of previous height */
     .fpt-ground-container {
-      min-height: 140px !important;
-      padding-bottom: 2rem !important;
+      min-height: 230px !important;
+      padding-bottom: 3.5rem !important;
     }
     .fpt-ground-inner {
-      min-height: 140px !important;
+      min-height: 230px !important;
     }
     @media (min-width: 480px) {
       .fpt-ground-container, .fpt-ground-inner {
-        min-height: 160px !important;
+        min-height: 260px !important;
       }
     }
     @media (min-width: 640px) {
       .fpt-ground-container {
-        min-height: 170px !important;
-        padding-bottom: 2.2rem !important;
+        min-height: 300px !important;
+        padding-bottom: 4rem !important;
       }
       .fpt-ground-inner {
-        min-height: 170px !important;
+        min-height: 300px !important;
       }
     }
     @media (min-width: 768px) {
       .fpt-ground-container, .fpt-ground-inner {
-        min-height: 180px !important;
+        min-height: 340px !important;
       }
     }
 
