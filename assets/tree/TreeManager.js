@@ -20,25 +20,25 @@ export class TreeManager {
       autoRotate: false,
       windSway: true,
 
-      // Transform & Placement on Ground Horizon
+      // Transform & Placement: precisely calibrated to sit on top of the ground dome
       transform: {
-        posY: -92,      // Root base sits firmly right on top of the ground dome arc
+        posY: -58,
         posZ: -260,
-        scale: 6.8
+        scale: 5.6
       },
 
       trunk: {
         color: 0x5c3a21,
         flatShading: false,
         textured: true,
-        length: 16.5,
-        radius: 1.6,
-        flare: 1.25
+        length: 18.5,
+        radius: 1.7,
+        flare: 1.35
       },
 
       branch: {
         levels: 4,
-        start: 0.52,
+        start: 0.48,
         stop: 0.95,
         sweepAngle: 2.1,
         minChildren: 3,
@@ -135,23 +135,23 @@ export class TreeManager {
     // Presets definitions
     const presets = {
       'Cây Sồi Tinh Hoa (Mặc định)': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x5c3a21, length: 16.5, radius: 1.6, flare: 1.25 });
-        Object.assign(this.treeParams.branch, { levels: 4, start: 0.52, sweepAngle: 2.1, minChildren: 3, maxChildren: 5, gnarliness: 0.16 });
+        Object.assign(this.treeParams.trunk, { color: 0x5c3a21, length: 18.5, radius: 1.7, flare: 1.35 });
+        Object.assign(this.treeParams.branch, { levels: 4, start: 0.48, sweepAngle: 2.1, minChildren: 3, maxChildren: 5, gnarliness: 0.16 });
         Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Oak, size: 2.2, color: 0x4f8a10, emissive: 0.08 });
         this.treeParams.seed = 42890;
         this.tree.generate();
         gui.controllersRecursive().forEach(c => c.updateDisplay());
       },
       'Cổ Thụ Ngàn Năm': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x3d2716, length: 14, radius: 2.4, flare: 2.2 });
-        Object.assign(this.treeParams.branch, { levels: 4, start: 0.35, sweepAngle: 2.6, minChildren: 4, maxChildren: 6, gnarliness: 0.28 });
-        Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Oak, size: 2.6, color: 0x386b12, emissive: 0.06 });
+        Object.assign(this.treeParams.trunk, { color: 0x3d2716, length: 19.0, radius: 2.2, flare: 2.0 });
+        Object.assign(this.treeParams.branch, { levels: 4, start: 0.42, sweepAngle: 2.5, minChildren: 4, maxChildren: 6, gnarliness: 0.24 });
+        Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Oak, size: 2.5, color: 0x386b12, emissive: 0.06 });
         this.treeParams.seed = 9999;
         this.tree.generate();
         gui.controllersRecursive().forEach(c => c.updateDisplay());
       },
       'Hoa Anh Đào (Cherry)': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x4a3b32, length: 15, radius: 1.3, flare: 0.9 });
+        Object.assign(this.treeParams.trunk, { color: 0x4a3b32, length: 18.0, radius: 1.5, flare: 1.1 });
         Object.assign(this.treeParams.branch, { levels: 4, start: 0.45, sweepAngle: 2.3, minChildren: 3, maxChildren: 5, gnarliness: 0.18 });
         Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Flowers, size: 2.4, color: 0xffb7c5, emissive: 0.15 });
         this.treeParams.seed = 77123;
@@ -159,8 +159,8 @@ export class TreeManager {
         gui.controllersRecursive().forEach(c => c.updateDisplay());
       },
       'Phong Đỏ Mùa Thu': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x482d1c, length: 17, radius: 1.4, flare: 1.1 });
-        Object.assign(this.treeParams.branch, { levels: 4, start: 0.5, sweepAngle: 2.0, minChildren: 3, maxChildren: 5, gnarliness: 0.14 });
+        Object.assign(this.treeParams.trunk, { color: 0x482d1c, length: 18.5, radius: 1.5, flare: 1.2 });
+        Object.assign(this.treeParams.branch, { levels: 4, start: 0.48, sweepAngle: 2.0, minChildren: 3, maxChildren: 5, gnarliness: 0.14 });
         Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Aspen, size: 2.3, color: 0xd9381e, emissive: 0.12 });
         this.treeParams.seed = 54321;
         this.tree.generate();
