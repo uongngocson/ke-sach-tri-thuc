@@ -1,6 +1,7 @@
 /**
  * components/Moon.js
- * 3D Procedural Moon Sphere with Crater Formations and Phase Shading
+ * Photorealistic Moon Celestial Object with High-Res Texture, Dynamic Phase Terminator,
+ * Earthshine, and Cold Atmospheric Glow
  */
 import { MoonVertexShader, MoonFragmentShader } from '../shaders/moonShaders.js';
 
@@ -8,15 +9,22 @@ export class Moon {
   constructor(THREE) {
     this.THREE = THREE;
 
-    // 3D Sphere geometry for realistic lighting normals
-    const radius = 34;
+    // Sized for majestic presence in night sky
+    const radius = 38;
     const geometry = new THREE.SphereGeometry(radius, 48, 48);
+
+    // Texture Loader
+    const textureLoader = new THREE.TextureLoader();
+    const moonTexture = textureLoader.load('./assets/sky/moon.png');
+    moonTexture.generateMipmaps = true;
+    moonTexture.minFilter = THREE.LinearMipmapLinearFilter;
 
     this.material = new THREE.ShaderMaterial({
       vertexShader: MoonVertexShader,
       fragmentShader: MoonFragmentShader,
       uniforms: {
-        uPhase: { value: 0.5 },
+        uMoonTexture: { value: moonTexture },
+        uPhase: { value: 0.5 }, // 0.5 = Full Moon
         uIntensity: { value: 1.0 },
         uDaylightFactor: { value: 0.0 },
         uTime: { value: 0.0 }
@@ -37,9 +45,10 @@ export class Moon {
       this.mesh.visible = true;
       this.mesh.position.set(moon.x, moon.y, moon.z);
       
-      // Face towards camera, with realistic slight axial tilt
+      // Face towards camera, with slight realistic orientation
       this.mesh.lookAt(camera.position);
-      this.mesh.rotateZ(0.15);
+      this.mesh.rotateY(Math.PI); // Align texture front-facing
+      this.mesh.rotateZ(-0.08);   // Realistic lunar axial tilt
 
       this.material.uniforms.uPhase.value = moon.phase.value;
       this.material.uniforms.uIntensity.value = moon.intensity;
