@@ -20,20 +20,20 @@ export class TreeManager {
       autoRotate: false,
       windSway: true,
 
-      // Transform & Placement: precisely calibrated to sit on top of the ground dome
+      // Transform & Placement: calibrated to seamlessly embed into the compact ground dome (0 gap)
       transform: {
-        posY: -58,
+        posY: -82,
         posZ: -260,
-        scale: 5.6
+        scale: 6.4
       },
 
       trunk: {
         color: 0x5c3a21,
         flatShading: false,
         textured: true,
-        length: 18.5,
+        length: 19.0,
         radius: 1.7,
-        flare: 1.35
+        flare: 1.4
       },
 
       branch: {
@@ -135,7 +135,7 @@ export class TreeManager {
     // Presets definitions
     const presets = {
       'Cây Sồi Tinh Hoa (Mặc định)': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x5c3a21, length: 18.5, radius: 1.7, flare: 1.35 });
+        Object.assign(this.treeParams.trunk, { color: 0x5c3a21, length: 19.0, radius: 1.7, flare: 1.4 });
         Object.assign(this.treeParams.branch, { levels: 4, start: 0.48, sweepAngle: 2.1, minChildren: 3, maxChildren: 5, gnarliness: 0.16 });
         Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Oak, size: 2.2, color: 0x4f8a10, emissive: 0.08 });
         this.treeParams.seed = 42890;
@@ -143,7 +143,7 @@ export class TreeManager {
         gui.controllersRecursive().forEach(c => c.updateDisplay());
       },
       'Cổ Thụ Ngàn Năm': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x3d2716, length: 19.0, radius: 2.2, flare: 2.0 });
+        Object.assign(this.treeParams.trunk, { color: 0x3d2716, length: 19.5, radius: 2.2, flare: 2.2 });
         Object.assign(this.treeParams.branch, { levels: 4, start: 0.42, sweepAngle: 2.5, minChildren: 4, maxChildren: 6, gnarliness: 0.24 });
         Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Oak, size: 2.5, color: 0x386b12, emissive: 0.06 });
         this.treeParams.seed = 9999;
@@ -151,7 +151,7 @@ export class TreeManager {
         gui.controllersRecursive().forEach(c => c.updateDisplay());
       },
       'Hoa Anh Đào (Cherry)': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x4a3b32, length: 18.0, radius: 1.5, flare: 1.1 });
+        Object.assign(this.treeParams.trunk, { color: 0x4a3b32, length: 18.5, radius: 1.5, flare: 1.15 });
         Object.assign(this.treeParams.branch, { levels: 4, start: 0.45, sweepAngle: 2.3, minChildren: 3, maxChildren: 5, gnarliness: 0.18 });
         Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Flowers, size: 2.4, color: 0xffb7c5, emissive: 0.15 });
         this.treeParams.seed = 77123;
@@ -159,7 +159,7 @@ export class TreeManager {
         gui.controllersRecursive().forEach(c => c.updateDisplay());
       },
       'Phong Đỏ Mùa Thu': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x482d1c, length: 18.5, radius: 1.5, flare: 1.2 });
+        Object.assign(this.treeParams.trunk, { color: 0x482d1c, length: 19.0, radius: 1.5, flare: 1.25 });
         Object.assign(this.treeParams.branch, { levels: 4, start: 0.48, sweepAngle: 2.0, minChildren: 3, maxChildren: 5, gnarliness: 0.14 });
         Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Aspen, size: 2.3, color: 0xd9381e, emissive: 0.12 });
         this.treeParams.seed = 54321;
