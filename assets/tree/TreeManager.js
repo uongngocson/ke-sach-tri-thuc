@@ -1,7 +1,8 @@
 /**
  * assets/tree/TreeManager.js
  * Master 3D Procedural Tree Coordinator for Cây Sách Tri Thức
- * Features 100% "Cây Cổ Thụ Lâu Năm" (Ancient Thousand-Year Tree) with Full Customization GUI
+ * Features 100% "Cây Cổ Thụ Lâu Năm" (Ancient Thousand-Year Tree)
+ * Dynamically Locks Tree Root directly to the DOM Ground Horizon Border
  */
 import { Tree, LeafStyle, LeafType } from './tree.js';
 import GUI from './lil-gui.module.min.js';
@@ -19,10 +20,11 @@ export class TreeManager {
       animateGrowth: false,
       autoRotate: false,
       windSway: true,
+      lockToGroundBorder: true, // 100% Mathematically Locked to Ground Border
 
-      // Placement & Height: Perfectly sitting on top of the ground dome
+      // Placement & Height
       transform: {
-        posY: -58,
+        groundOffset: 2.0,      // Fine adjustment above ground border
         posZ: -260,
         scale: 5.6
       },
@@ -94,11 +96,37 @@ export class TreeManager {
 
     // Setup GUI option panel
     this.#setupGUI();
+
+    // Resize listener for continuous grounding
+    window.addEventListener('resize', () => this.updateAnchorTransform(), { passive: true });
   }
 
+  /**
+   * Mathematically lock the base of the tree to the exact pixel top border of the ground dome
+   */
   updateAnchorTransform() {
+    const THREE = this.THREE;
     const t = this.treeParams.transform;
-    this.treeAnchor.position.set(0, t.posY, t.posZ);
+    let computedY = -58; // default fallback
+
+    if (this.treeParams.lockToGroundBorder && this.camera) {
+      const groundEl = document.querySelector('.fpt-ground-arc') || document.querySelector('.fpt-ground-container');
+      if (groundEl) {
+        const rect = groundEl.getBoundingClientRect();
+        // The top edge of the ground dome arc
+        const groundTopPx = rect.top;
+        const ndcY = 1.0 - (groundTopPx / window.innerHeight) * 2.0;
+
+        const distance = Math.abs(this.camera.position.z - t.posZ);
+        const vFovRad = THREE.MathUtils.degToRad(this.camera.fov);
+        const halfFrustumH = Math.tan(vFovRad / 2.0) * distance;
+
+        // Exact world Y where the ground dome crest is located
+        computedY = ndcY * halfFrustumH + (t.groundOffset || 0);
+      }
+    }
+
+    this.treeAnchor.position.set(0, computedY, t.posZ);
     this.treeAnchor.scale.set(t.scale, t.scale, t.scale);
   }
 
@@ -132,11 +160,12 @@ export class TreeManager {
 
     this.gui = gui;
 
-    // Placement & Position on ground
-    const posFolder = gui.addFolder('📍 Vị Trí & Tỉ Lệ Mặt Đất');
-    posFolder.add(this.treeParams.transform, 'posY', -140, 0, 1).name('Cao Độ Gốc (Y)').onChange(() => this.updateAnchorTransform());
-    posFolder.add(this.treeParams.transform, 'scale', 2.0, 12.0, 0.1).name('Kích Cỡ Cây').onChange(() => this.updateAnchorTransform());
-    posFolder.add(this.treeParams.transform, 'posZ', -400, -150, 5).name('Độ Sâu (Z)').onChange(() => this.updateAnchorTransform());
+    // Ground Locking & Scale
+    const groundFolder = gui.addFolder('📍 Khóa Chặt Mặt Đất & Kích Cỡ');
+    groundFolder.add(this.treeParams, 'lockToGroundBorder').name('Khóa Vào Viền Đất').onChange(() => this.updateAnchorTransform());
+    groundFolder.add(this.treeParams.transform, 'groundOffset', -20, 20, 0.5).name('Tinh Chỉnh Cao Độ Gốc').onChange(() => this.updateAnchorTransform());
+    groundFolder.add(this.treeParams.transform, 'scale', 2.0, 12.0, 0.1).name('Kích Cỡ Cây').onChange(() => this.updateAnchorTransform());
+    groundFolder.add(this.treeParams.transform, 'posZ', -400, -150, 5).name('Độ Sâu (Z)').onChange(() => this.updateAnchorTransform());
 
     // Main Parameters
     gui.add(this.treeParams, 'seed', 0, 65536, 1).name('Seed (Ngẫu nhiên)');
@@ -191,7 +220,8 @@ export class TreeManager {
         Object.assign(this.treeParams.branch, { levels: 4, start: 0.42, sweepAngle: 2.5, minChildren: 4, maxChildren: 6, gnarliness: 0.24 });
         Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Oak, size: 2.5, color: 0x386b12, emissive: 0.06 });
         this.treeParams.seed = 9999;
-        this.treeParams.transform.posY = -58;
+        this.treeParams.lockToGroundBorder = true;
+        this.treeParams.transform.groundOffset = 2.0;
         this.treeParams.transform.scale = 5.6;
         this.updateAnchorTransform();
         this.tree.generate();
@@ -310,6 +340,11 @@ export class TreeManager {
    */
   update(celestialState, elapsedTime, delta) {
     const { factors, sun, moon } = celestialState;
+
+    // Dynamically maintain lock with ground border if resized
+    if (this.treeParams.lockToGroundBorder) {
+      this.updateAnchorTransform();
+    }
 
     // 1. Dynamic Lighting synced with Day/Night Cycle
     const daylight = factors.daylight;
