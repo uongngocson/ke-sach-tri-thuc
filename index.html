@@ -7629,28 +7629,46 @@
       display: none !important;
     }
 
-    /* Ground section shifted down moderately (50px) to balance tree space and ground visibility */
+    /* Ground section positioning */
     div[class*="z-15 -mt-6"],
     div[class*="z-15 -mt-8"] {
       margin-top: auto !important;
-      transform: translateY(50px) !important;
+      transform: translateY(115px) !important;
       overflow: visible !important;
       transition: transform 0.3s ease !important;
     }
 
     .fpt-ground-container {
       min-height: 290px !important;
-      padding-bottom: 5.5rem !important;
+      padding-bottom: 7.5rem !important;
     }
     .fpt-ground-inner {
       min-height: 290px !important;
     }
-    @media (min-width: 480px) {
-      .fpt-ground-container, .fpt-ground-inner {
-        min-height: 310px !important;
+
+    @media (max-width: 1024px) {
+      /* Hide 3D tree option GUI button on mobile & tablet to avoid overlap */
+      #tree3d-gui-container {
+        display: none !important;
       }
     }
-    @media (min-width: 768px) {
+
+    @media (max-width: 768px) {
+      /* Lower ground further on mobile/portrait screens */
+      div[class*="z-15 -mt-6"],
+      div[class*="z-15 -mt-8"] {
+        transform: translateY(155px) !important;
+      }
+      .fpt-ground-container {
+        min-height: 240px !important;
+        padding-bottom: 9rem !important;
+      }
+      .fpt-ground-inner {
+        min-height: 240px !important;
+      }
+    }
+
+    @media (min-width: 769px) {
       .fpt-ground-container, .fpt-ground-inner {
         min-height: 340px !important;
       }

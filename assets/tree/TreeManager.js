@@ -126,8 +126,13 @@ export class TreeManager {
       }
     }
 
+    // Responsive scale adjustment for narrow mobile screens
+    const isMobile = window.innerWidth < 768;
+    const isSmallMobile = window.innerWidth < 480;
+    const responsiveScale = isSmallMobile ? t.scale * 0.72 : (isMobile ? t.scale * 0.82 : t.scale);
+
     this.treeAnchor.position.set(0, computedY, t.posZ);
-    this.treeAnchor.scale.set(t.scale, t.scale, t.scale);
+    this.treeAnchor.scale.set(responsiveScale, responsiveScale, responsiveScale);
   }
 
   #setupLighting() {
