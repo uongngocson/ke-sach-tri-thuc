@@ -1,6 +1,7 @@
 /**
  * components/SkyCanvas.js
  * Three.js WebGL Scene, Camera, Render Loop, and Celestial Component Coordinator
+ * Includes Integrated 3D Procedural Tree System (Tree.js)
  */
 import { Atmosphere } from './Atmosphere.js';
 import { Sun } from './Sun.js';
@@ -10,6 +11,7 @@ import { Stars } from './Stars.js';
 import { AtmosphericPost } from './AtmosphericPost.js';
 import { calculateCelestialState } from '../lib/astronomy.js';
 import { detectQualitySettings } from '../lib/quality.js';
+import { TreeManager } from '../../tree/TreeManager.js';
 
 export class SkyCanvas {
   constructor(container, options = {}) {
@@ -35,6 +37,7 @@ export class SkyCanvas {
     this.clouds = null;
     this.stars = null;
     this.atmosphericPost = null;
+    this.treeManager = null;
 
     // Animation state
     this.clock = new this.THREE.Clock();
@@ -86,9 +89,16 @@ export class SkyCanvas {
     this.clouds = new Clouds(this.THREE);
     this.scene.add(this.clouds.mesh);
 
+    // 4. Initialize 3D Procedural Tree (Tree.js)
+    try {
+      this.treeManager = new TreeManager(this.THREE, this.scene, this.camera);
+    } catch (err) {
+      console.warn('Failed to initialize 3D TreeManager:', err);
+    }
+
     this.atmosphericPost = new AtmosphericPost();
 
-    // 4. Listeners
+    // 5. Listeners
     window.addEventListener('resize', this.onResize.bind(this), { passive: true });
     document.addEventListener('visibilitychange', this.onVisibilityChange.bind(this));
   }
@@ -129,10 +139,15 @@ export class SkyCanvas {
     this.moon.update(celestialState, elapsedTime, this.camera);
     this.clouds.update(celestialState, elapsedTime);
 
-    // 3. Subtle ambient light broadcast to DOM
+    // 3. Update 3D Procedural Tree
+    if (this.treeManager) {
+      this.treeManager.update(celestialState, elapsedTime, delta);
+    }
+
+    // 4. Subtle ambient light broadcast to DOM
     this.atmosphericPost.update(celestialState);
 
-    // 4. Render WebGL Frame
+    // 5. Render WebGL Frame
     this.renderer.render(this.scene, this.camera);
 
     return celestialState;
@@ -148,6 +163,7 @@ export class SkyCanvas {
     if (this.moon) this.moon.dispose();
     if (this.clouds) this.clouds.dispose();
     if (this.stars) this.stars.dispose();
+    if (this.treeManager) this.treeManager.dispose();
 
     if (this.renderer) {
       this.renderer.dispose();
