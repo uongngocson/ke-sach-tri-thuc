@@ -20,6 +20,13 @@ export class TreeManager {
       autoRotate: false,
       windSway: true,
 
+      // Transform & Placement on Ground Horizon
+      transform: {
+        posY: -45,      // Sitting directly on top of the ground arc
+        posZ: -260,
+        scale: 5.5
+      },
+
       trunk: {
         color: 0x5c3a21,
         flatShading: false,
@@ -75,9 +82,7 @@ export class TreeManager {
     // Tree Scene Anchor & Transforms
     this.treeAnchor = new THREE.Group();
     this.treeAnchor.name = 'TreeAnchor';
-    // Position to perfectly frame center in front of background sky & ground
-    this.treeAnchor.position.set(0, -112, -260);
-    this.treeAnchor.scale.set(6.2, 6.2, 6.2);
+    this.updateAnchorTransform();
     this.scene.add(this.treeAnchor);
 
     // Dedicated Lighting for 3D Tree
@@ -89,6 +94,12 @@ export class TreeManager {
 
     // Setup GUI option panel
     this.#setupGUI();
+  }
+
+  updateAnchorTransform() {
+    const t = this.treeParams.transform;
+    this.treeAnchor.position.set(0, t.posY, t.posZ);
+    this.treeAnchor.scale.set(t.scale, t.scale, t.scale);
   }
 
   #setupLighting() {
@@ -161,6 +172,12 @@ export class TreeManager {
     presetFolder.add({ p: 'Cây Sồi Tinh Hoa (Mặc định)' }, 'p', Object.keys(presets)).name('Chọn Mẫu').onChange((val) => {
       if (presets[val]) presets[val]();
     });
+
+    // Placement & Position on ground
+    const posFolder = gui.addFolder('📍 Vị Trí & Tỉ Lệ Mặt Đất');
+    posFolder.add(this.treeParams.transform, 'posY', -100, 20, 1).name('Cao Độ Gốc (Y)').onChange(() => this.updateAnchorTransform());
+    posFolder.add(this.treeParams.transform, 'scale', 2.0, 10.0, 0.1).name('Kích Cỡ Cây').onChange(() => this.updateAnchorTransform());
+    posFolder.add(this.treeParams.transform, 'posZ', -400, -150, 5).name('Độ Sâu (Z)').onChange(() => this.updateAnchorTransform());
 
     // Main Parameters
     gui.add(this.treeParams, 'seed', 0, 65536, 1).name('Seed (Ngẫu nhiên)');
