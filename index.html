@@ -3596,7 +3596,7 @@
               <div _ngcontent-ng-c4179040905="" class="w-full relative z-15 -mt-6 sm:-mt-8">
                 <div _ngcontent-ng-c4179040905="" class="w-full relative">
                   <div _ngcontent-ng-c4179040905=""
-                    class="w-full min-h-[460px] xs:min-h-[520px] sm:min-h-[600px] md:min-h-[680px] cursor-pointer relative transition-all duration-300 group pb-28 sm:pb-32 overflow-visible"
+                    class="w-full min-h-[230px] xs:min-h-[260px] sm:min-h-[300px] md:min-h-[340px] fpt-ground-container cursor-pointer relative transition-all duration-300 group pb-14 sm:pb-16 overflow-visible"
                     title="Click bất kỳ vị trí nào trên bãi tri thức để góp sách">
                     <div _ngcontent-ng-c4179040905=""
                       class="absolute inset-0 rounded-t-[50%_35px] sm:rounded-t-[50%_60px] fpt-ground-arc shadow-2xl overflow-hidden pointer-events-none">
@@ -3611,7 +3611,7 @@
                           _ngcontent-ng-c4179040905="">"Gieo Mầm Ngay"</strong> bên dưới để chia sẻ sách</span>
                     </div>
                     <div _ngcontent-ng-c4179040905=""
-                      class="relative w-full min-h-[460px] xs:min-h-[520px] sm:min-h-[600px] md:min-h-[680px] overflow-visible z-20">
+                      class="relative w-full min-h-[230px] xs:min-h-[260px] sm:min-h-[300px] md:min-h-[340px] fpt-ground-inner overflow-visible z-20">
                       <!-- --><button _ngcontent-ng-c4179040905=""
                         class="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-125 hover:z-50 focus:z-50 z-20 group/fl flex flex-col items-center"
                         style="left: 32.4%; top: 46.6%;">
@@ -7454,6 +7454,34 @@
       border-top: 3px solid #0054A6 !important;
     }
 
+    /* Ground height set to 1/2 of previous height */
+    .fpt-ground-container {
+      min-height: 230px !important;
+      padding-bottom: 3.5rem !important;
+    }
+    .fpt-ground-inner {
+      min-height: 230px !important;
+    }
+    @media (min-width: 480px) {
+      .fpt-ground-container, .fpt-ground-inner {
+        min-height: 260px !important;
+      }
+    }
+    @media (min-width: 640px) {
+      .fpt-ground-container {
+        min-height: 300px !important;
+        padding-bottom: 4rem !important;
+      }
+      .fpt-ground-inner {
+        min-height: 300px !important;
+      }
+    }
+    @media (min-width: 768px) {
+      .fpt-ground-container, .fpt-ground-inner {
+        min-height: 340px !important;
+      }
+    }
+
 
 
 
@@ -8155,7 +8183,7 @@
           userCustomBooks.push(newBookObj);
 
           try {
-            const groundContainer = document.querySelector('[class*="min-h-[460px]"] .relative');
+            const groundContainer = document.querySelector('.fpt-ground-inner') || document.querySelector('[class*="fpt-ground"] .relative') || document.querySelector('[class*="min-h-"] .relative');
             if (groundContainer) {
               const newBtn = document.createElement('button');
               newBtn.className = 'absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-125 hover:z-50 focus:z-50 z-30 group/fl flex flex-col items-center animate-bounce';
