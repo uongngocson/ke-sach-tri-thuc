@@ -15,10 +15,10 @@ export class TreeManager {
 
     // Cây Cổ Thụ Lâu Năm Parameters (Ancient Majestic Oak)
     this.treeParams = {
-      seed: 9999,
+      seed: 44402,
       maturity: 1.0,
       animateGrowth: false,
-      autoRotate: true,   // Default 360° rotation enabled
+      autoRotate: false,  // 360° auto-rotation disabled
       windSway: true,
       lockToGroundBorder: true, // 100% Mathematically Locked to Ground Border
 
@@ -219,10 +219,10 @@ export class TreeManager {
         Object.assign(this.treeParams.trunk, { color: 0x3d2716, length: 19.0, radius: 2.2, flare: 2.0 });
         Object.assign(this.treeParams.branch, { levels: 4, start: 0.42, sweepAngle: 2.5, minChildren: 4, maxChildren: 6, gnarliness: 0.24 });
         Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Oak, size: 2.5, color: 0x386b12, emissive: 0.06 });
-        this.treeParams.seed = 9999;
+        this.treeParams.seed = 44402;
         this.treeParams.lockToGroundBorder = true;
         this.treeParams.transform.groundOffset = 2.0;
-        this.treeParams.transform.scale = 5.6;
+        this.treeParams.transform.scale = 6.2;
         this.updateAnchorTransform();
         this.tree.generate();
         gui.controllersRecursive().forEach(c => c.updateDisplay());
