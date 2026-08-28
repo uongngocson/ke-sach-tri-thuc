@@ -26,7 +26,7 @@ export class TreeManager {
       transform: {
         groundOffset: 2.0,      // Fine adjustment above ground border
         posZ: -260,
-        scale: 5.6
+        scale: 6.2
       },
 
       trunk: {
