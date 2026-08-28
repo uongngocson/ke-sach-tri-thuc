@@ -22,9 +22,9 @@ export class TreeManager {
 
       // Transform & Placement on Ground Horizon
       transform: {
-        posY: -45,      // Sitting directly on top of the ground arc
+        posY: -92,      // Root base sits firmly right on top of the ground dome arc
         posZ: -260,
-        scale: 5.5
+        scale: 6.8
       },
 
       trunk: {
@@ -33,7 +33,7 @@ export class TreeManager {
         textured: true,
         length: 16.5,
         radius: 1.6,
-        flare: 1.15
+        flare: 1.25
       },
 
       branch: {
@@ -135,7 +135,7 @@ export class TreeManager {
     // Presets definitions
     const presets = {
       'Cây Sồi Tinh Hoa (Mặc định)': () => {
-        Object.assign(this.treeParams.trunk, { color: 0x5c3a21, length: 16.5, radius: 1.6, flare: 1.15 });
+        Object.assign(this.treeParams.trunk, { color: 0x5c3a21, length: 16.5, radius: 1.6, flare: 1.25 });
         Object.assign(this.treeParams.branch, { levels: 4, start: 0.52, sweepAngle: 2.1, minChildren: 3, maxChildren: 5, gnarliness: 0.16 });
         Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Oak, size: 2.2, color: 0x4f8a10, emissive: 0.08 });
         this.treeParams.seed = 42890;
@@ -175,8 +175,8 @@ export class TreeManager {
 
     // Placement & Position on ground
     const posFolder = gui.addFolder('📍 Vị Trí & Tỉ Lệ Mặt Đất');
-    posFolder.add(this.treeParams.transform, 'posY', -100, 20, 1).name('Cao Độ Gốc (Y)').onChange(() => this.updateAnchorTransform());
-    posFolder.add(this.treeParams.transform, 'scale', 2.0, 10.0, 0.1).name('Kích Cỡ Cây').onChange(() => this.updateAnchorTransform());
+    posFolder.add(this.treeParams.transform, 'posY', -140, 0, 1).name('Cao Độ Gốc (Y)').onChange(() => this.updateAnchorTransform());
+    posFolder.add(this.treeParams.transform, 'scale', 2.0, 12.0, 0.1).name('Kích Cỡ Cây').onChange(() => this.updateAnchorTransform());
     posFolder.add(this.treeParams.transform, 'posZ', -400, -150, 5).name('Độ Sâu (Z)').onChange(() => this.updateAnchorTransform());
 
     // Main Parameters
