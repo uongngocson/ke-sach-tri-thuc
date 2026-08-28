@@ -1,75 +1,74 @@
 /**
  * shaders/moonShaders.js
- * Realistic Photorealistic Moon Shader with Real Moon Texture, Dynamic Phase Terminator,
- * Earthshine, and Atmospheric Lunar Halo.
+ * Photorealistic Moon Billboard Shader with Lunar Glow & Atmospheric Halo
  */
 
 export const MoonVertexShader = `
   varying vec2 vUv;
-  varying vec3 vNormal;
-  varying vec3 vViewPosition;
-
   void main() {
     vUv = uv;
-    vNormal = normalize(normalMatrix * normal);
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    vViewPosition = -mvPosition.xyz;
-    gl_Position = projectionMatrix * mvPosition;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
 
 export const MoonFragmentShader = `
   uniform sampler2D uMoonTexture;
-  uniform float uPhase; // 0.0 to 1.0 (0=New, 0.25=First Q, 0.5=Full, 0.75=Last Q)
   uniform float uIntensity;
   uniform float uDaylightFactor;
   uniform float uTime;
 
   varying vec2 vUv;
-  varying vec3 vNormal;
-  varying vec3 vViewPosition;
 
   void main() {
+    vec2 center = vec2(0.5, 0.5);
+    vec2 pos = vUv - center;
+    float dist = length(pos) * 2.0; // 0 at center, 1.0 at quad boundary
+
     // 1. Sample real high-res Moon photographic texture
     vec4 texColor = texture2D(uMoonTexture, vUv);
     
-    if (texColor.a < 0.05) discard;
+    // Moon disk radius in normalized quad space
+    float diskRadius = 0.72;
 
-    vec3 N = normalize(vNormal);
-    vec3 V = normalize(vViewPosition);
+    vec3 moonColor = vec3(0.0);
+    float alpha = 0.0;
 
-    // 2. Realistic Lunar Phase Lighting & Terminator Line
-    // Phase angle: 0=New, 0.25=First Q (lit from right), 0.5=Full Moon, 0.75=Last Q (lit from left)
-    float phaseAngle = uPhase * 6.2831853;
-    vec3 lightDir = normalize(vec3(-sin(phaseAngle), 0.0, cos(phaseAngle)));
+    // Atmospheric Cold Lunar Halo Colors
+    vec3 haloInnerColor = vec3(0.85, 0.92, 1.0);
+    vec3 haloOuterColor = vec3(0.35, 0.55, 0.90);
 
-    // Hapke / Rough regolith diffuse model
-    float NdotL = dot(N, lightDir);
-    float illumination = smoothstep(-0.06, 0.08, NdotL);
+    if (dist <= diskRadius) {
+      // Inside Moon disk
+      if (texColor.a > 0.05) {
+        // Bright silvery-white moon surface
+        vec3 surface = texColor.rgb * 1.15 + vec3(0.04);
+        
+        // Subtle edge atmospheric radiance
+        float edge = smoothstep(0.4, diskRadius, dist);
+        surface += haloInnerColor * edge * 0.25;
 
-    // Subtle limb brightening characteristic of retroreflective lunar dust
-    float NdotV = max(0.0, dot(N, V));
-    float retroReflection = pow(1.0 - NdotV, 3.2) * 0.2;
+        moonColor = surface;
+        alpha = texColor.a;
+      }
+    } else {
+      // Outer Atmospheric Moon Halo
+      float haloDist = (dist - diskRadius) / (1.0 - diskRadius);
+      float haloFalloff = exp(-haloDist * 3.2) * 0.45;
+      
+      // Subtle gentle shimmer
+      float shimmer = 1.0 + 0.03 * sin(uTime * 0.8 + dist * 10.0);
+      
+      vec3 halo = mix(haloInnerColor, haloOuterColor, haloDist);
+      moonColor = halo * 1.2;
+      alpha = clamp(haloFalloff * shimmer, 0.0, 1.0);
+    }
 
-    // Direct sunlit portion on the photographic surface
-    vec3 litSurface = texColor.rgb * (illumination * 1.05 + retroReflection);
+    // Modulate by global intensity and day/night visibility (fades out in day)
+    float visibility = uIntensity * (1.0 - uDaylightFactor * 0.95);
+    float totalAlpha = alpha * visibility;
 
-    // Earthshine (dark side faintly illuminated by reflected light from Earth)
-    vec3 earthshineColor = vec3(0.04, 0.06, 0.10);
-    vec3 unlitSurface = texColor.rgb * earthshineColor * 0.75;
-
-    // Blend between lit and unlit side according to phase
-    vec3 finalMoon = mix(unlitSurface, litSurface, illumination);
-
-    // 3. Cold Silvery Atmospheric Rim Halo
-    vec3 haloColdColor = vec3(0.72, 0.85, 1.0);
-    float edgeHalo = pow(1.0 - NdotV, 2.5) * 0.28 * illumination;
-    finalMoon += haloColdColor * edgeHalo;
-
-    // Total opacity modulated by global intensity and day/night factor
-    float totalAlpha = texColor.a * uIntensity * (1.0 - uDaylightFactor * 0.92);
     if (totalAlpha < 0.005) discard;
 
-    gl_FragColor = vec4(finalMoon, totalAlpha);
+    gl_FragColor = vec4(moonColor, totalAlpha);
   }
 `;

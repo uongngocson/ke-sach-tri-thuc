@@ -1,7 +1,7 @@
 /**
  * components/Moon.js
- * Photorealistic Moon Celestial Object with High-Res Texture, Dynamic Phase Terminator,
- * Earthshine, and Cold Atmospheric Glow
+ * Photorealistic Moon Celestial Object with Direct High-Res Photographic Texture
+ * and Atmospheric Halo Billboard (Proportionately sized for elegance)
  */
 import { MoonVertexShader, MoonFragmentShader } from '../shaders/moonShaders.js';
 
@@ -9,9 +9,9 @@ export class Moon {
   constructor(THREE) {
     this.THREE = THREE;
 
-    // Sized for majestic presence in night sky
-    const radius = 38;
-    const geometry = new THREE.SphereGeometry(radius, 48, 48);
+    // Elegant, realistic proportion size
+    const size = 115;
+    const geometry = new THREE.PlaneGeometry(size, size);
 
     // Texture Loader
     const textureLoader = new THREE.TextureLoader();
@@ -24,7 +24,6 @@ export class Moon {
       fragmentShader: MoonFragmentShader,
       uniforms: {
         uMoonTexture: { value: moonTexture },
-        uPhase: { value: 0.5 }, // 0.5 = Full Moon
         uIntensity: { value: 1.0 },
         uDaylightFactor: { value: 0.0 },
         uTime: { value: 0.0 }
@@ -45,12 +44,9 @@ export class Moon {
       this.mesh.visible = true;
       this.mesh.position.set(moon.x, moon.y, moon.z);
       
-      // Face towards camera, with slight realistic orientation
+      // Billboard facing camera directly
       this.mesh.lookAt(camera.position);
-      this.mesh.rotateY(Math.PI); // Align texture front-facing
-      this.mesh.rotateZ(-0.08);   // Realistic lunar axial tilt
 
-      this.material.uniforms.uPhase.value = moon.phase.value;
       this.material.uniforms.uIntensity.value = moon.intensity;
       this.material.uniforms.uDaylightFactor.value = factors.daylight;
       this.material.uniforms.uTime.value = elapsedTime;

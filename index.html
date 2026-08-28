@@ -1217,7 +1217,13 @@
                       <p class="aside-quote-text text-[12px] sm:text-[12.5px] font-semibold italic leading-relaxed my-1" id="aside-quote-text">
                         Nếu toàn thể nhân loại cùng một ý kiến và chỉ có một người có ý kiến ngược lại, nhân loại cũng không có quyền bắt người ấy im lặng.
                       </p>
-                      <div class="aside-quote-quotemark text-base leading-none text-right select-none">”</div>
+                      <div class="flex items-center justify-between mt-1 pt-1.5 border-t border-slate-200/50 dark:border-slate-700/50">
+                        <div class="aside-quote-quotemark text-base leading-none select-none">”</div>
+                        <button class="aside-quote-like-btn" id="aside-like-btn" title="Thả tim trích dẫn này">
+                          <span class="aside-like-icon" id="aside-like-icon">❤️</span>
+                          <span class="aside-like-count" id="aside-quote-like-count">128</span>
+                        </button>
+                      </div>
                     </div>
 
                     <!-- Sharer / Reader Footer -->
@@ -7329,6 +7335,140 @@
       border-color: rgba(0, 84, 166, 0.4);
     }
 
+    /* LIKE / THẢ TIM BUTTONS & ANIMATIONS */
+    .bq-like-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 12px 18px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      color: #ffffff !important;
+      font-size: 13px;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 18px -2px rgba(244, 63, 94, 0.45);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+
+    .bq-like-btn:hover {
+      background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 8px 24px -2px rgba(244, 63, 94, 0.6);
+    }
+
+    .bq-like-btn.liked {
+      background: linear-gradient(135deg, #be123c 0%, #9f1239 100%);
+      box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.35);
+    }
+
+    .aside-quote-like-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      background: rgba(244, 63, 94, 0.12);
+      color: #e11d48;
+      border: 1px solid rgba(244, 63, 94, 0.28);
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+
+    .aside-quote-like-btn:hover {
+      background: rgba(244, 63, 94, 0.22);
+      transform: scale(1.08);
+    }
+
+    .aside-quote-like-btn.liked {
+      background: #e11d48;
+      color: #ffffff;
+      border-color: #e11d48;
+      box-shadow: 0 2px 8px rgba(225, 29, 72, 0.4);
+    }
+
+    html.dark .aside-quote-like-btn {
+      background: rgba(244, 63, 94, 0.2);
+      color: #fb7185;
+      border-color: rgba(244, 63, 94, 0.45);
+    }
+
+    html.dark .aside-quote-like-btn.liked {
+      background: #e11d48;
+      color: #ffffff;
+    }
+
+    .bq-bubble-like-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(244, 63, 94, 0.12);
+      color: #e11d48;
+      border: 1.5px solid rgba(244, 63, 94, 0.3);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+
+    .bq-bubble-like-btn:hover {
+      background: rgba(244, 63, 94, 0.22);
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.35);
+    }
+
+    .bq-bubble-like-btn.liked {
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      color: #ffffff;
+      border-color: #e11d48;
+      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.45);
+    }
+
+    html.dark .bq-bubble-like-btn {
+      background: rgba(244, 63, 94, 0.2);
+      color: #fb7185;
+      border-color: rgba(244, 63, 94, 0.45);
+    }
+
+    html.dark .bq-bubble-like-btn.liked {
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      color: #ffffff;
+    }
+
+    /* Floating Heart Micro-animation */
+    @keyframes burstHeart {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.6) rotate(0deg);
+      }
+      50% {
+        opacity: 0.95;
+        transform: translate(-50%, -80px) scale(1.4) rotate(-15deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -140px) scale(1.8) rotate(20deg);
+      }
+    }
+
+    .floating-heart-particle {
+      position: fixed;
+      pointer-events: none;
+      font-size: 24px;
+      z-index: 2147483647;
+      animation: burstHeart 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      filter: drop-shadow(0 4px 12px rgba(244, 63, 94, 0.5));
+    }
+
     .bq-copy-btn,
     .cb-submit-btn {
       flex: 1;
@@ -7611,7 +7751,14 @@
         <div class="bq-quote-text" id="bq-quote">
           Khi bạn thực sự khao khát một điều gì đó, cả vũ trụ sẽ hợp lực giúp bạn đạt được nó.
         </div>
-        <div class="bq-quote-mark" style="text-align:right;">”</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px; padding-top:6px; border-top:1px dashed rgba(0,84,166,0.15);">
+          <div class="bq-quote-mark" style="line-height:1;">”</div>
+          <button class="bq-bubble-like-btn" id="bq-like-btn" title="Thả tim câu trích dẫn này">
+            <span id="bq-like-icon">❤️</span>
+            <span id="bq-like-count">142</span>
+            <span id="bq-like-label" style="font-size:11px; font-weight:800; margin-left:2px;">Thả Tim</span>
+          </button>
+        </div>
       </div>
       <div class="bq-reader-bar" style="position:relative; z-index:2; margin-bottom:14px;">
         <div
@@ -7802,12 +7949,43 @@
           resetTimerBar();
         }
 
+        const asideLikeBtn = document.getElementById('aside-like-btn');
+        const asideLikeCount = document.getElementById('aside-quote-like-count');
+
         function renderQuoteContent(q) {
           if (elTitle) elTitle.textContent = q.book;
           if (elAuthor) elAuthor.innerHTML = '<span>✍️</span> <span>' + q.author + '</span>';
           if (elQuote) elQuote.textContent = q.quote;
           if (elReader) elReader.textContent = q.reader || 'Độc giả yêu sách';
           if (elTag) elTag.textContent = q.tag || (q.category ? q.category.replace('Sách ', '') : 'Tri Thức');
+
+          // Update Like button on Aside widget
+          if (asideLikeBtn && asideLikeCount) {
+            const likeData = getQuoteLikesData(q);
+            asideLikeCount.textContent = likeData.count.toLocaleString();
+            if (likeData.isLiked) {
+              asideLikeBtn.classList.add('liked');
+            } else {
+              asideLikeBtn.classList.remove('liked');
+            }
+          }
+        }
+
+        if (asideLikeBtn) {
+          asideLikeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const q = allQuotes[currentIdx];
+            const updated = toggleQuoteLike(q);
+            if (asideLikeCount) asideLikeCount.textContent = updated.count.toLocaleString();
+            if (updated.isLiked) {
+              asideLikeBtn.classList.add('liked');
+              spawnFloatingHeart(e.clientX, e.clientY);
+              showToast('💖 Đã thả tim: "' + q.book + '"');
+            } else {
+              asideLikeBtn.classList.remove('liked');
+              showToast('Đã bỏ thả tim');
+            }
+          });
         }
 
         function resetTimerBar() {
@@ -8017,12 +8195,65 @@
         };
       }
 
+      /* 3. LIKES & FLOATING HEARTS STORE */
+      function getQuoteKey(q) {
+        if (!q) return 'quote_default';
+        const str = (q.book || '') + '::' + (q.quote || '');
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          hash = ((hash << 5) - hash) + str.charCodeAt(i);
+          hash |= 0;
+        }
+        return 'quote_likes_' + Math.abs(hash);
+      }
+
+      function getQuoteLikesData(q) {
+        const key = getQuoteKey(q);
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          try { return JSON.parse(saved); } catch (e) { }
+        }
+        // Deterministic realistic initial like count based on quote length & key
+        const baseLikes = 75 + Math.abs(key.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 180);
+        const initial = { count: baseLikes, isLiked: false };
+        localStorage.setItem(key, JSON.stringify(initial));
+        return initial;
+      }
+
+      function toggleQuoteLike(q) {
+        const key = getQuoteKey(q);
+        const data = getQuoteLikesData(q);
+        data.isLiked = !data.isLiked;
+        data.count += data.isLiked ? 1 : -1;
+        localStorage.setItem(key, JSON.stringify(data));
+        return data;
+      }
+
+      function spawnFloatingHeart(x, y) {
+        const heart = document.createElement('div');
+        heart.className = 'floating-heart-particle';
+        const icons = ['❤️', '💖', '✨', '💕', '🥰', '💓'];
+        heart.textContent = icons[Math.floor(Math.random() * icons.length)];
+        heart.style.left = (x || window.innerWidth / 2) + 'px';
+        heart.style.top = (y || window.innerHeight / 2) + 'px';
+        document.body.appendChild(heart);
+        setTimeout(() => {
+          if (heart.parentNode) heart.parentNode.removeChild(heart);
+        }, 900);
+      }
+
+      let currentActiveQuoteData = null;
+
       /* 4. MODALS CONTROLLERS */
       const quoteOverlay = document.getElementById('book-quote-modal-overlay');
       const quoteCard = document.getElementById('book-quote-card');
       const quoteCloseBtn = document.getElementById('bq-close-btn');
       const quoteDismissBtn = document.getElementById('bq-dismiss-btn');
       const quoteCopyBtn = document.getElementById('bq-copy-btn');
+      const quoteLikeBtn = document.getElementById('bq-like-btn');
+      const quoteLikeCount = document.getElementById('bq-like-count');
+      const quoteLikeIcon = document.getElementById('bq-like-icon');
+      const quoteLikeLabel = document.getElementById('bq-like-label');
 
       const badgeText = document.getElementById('bq-badge-text');
       const badgeIcon = document.getElementById('bq-badge-icon');
@@ -8065,6 +8296,7 @@
 
       function openQuoteModal(data) {
         if (!quoteOverlay || !quoteCard) return;
+        currentActiveQuoteData = data;
 
         if (badgeText) badgeText.textContent = data.category || 'SÁCH TRI THỨC';
         if (badgeIcon) badgeIcon.textContent = data.icon || '📚';
@@ -8075,6 +8307,19 @@
         if (chapter) chapter.textContent = '🔖 ' + (data.chapter || 'Chương Sách Hay');
         if (quote) quote.textContent = data.quote || 'Tri thức là ánh sáng soi rọi tương lai.';
         if (reader) reader.textContent = data.reader || 'Độc giả yêu sách';
+
+        // Update Modal Like button
+        if (quoteLikeBtn && quoteLikeCount) {
+          const likeData = getQuoteLikesData(data);
+          quoteLikeCount.textContent = likeData.count.toLocaleString();
+          if (likeData.isLiked) {
+            quoteLikeBtn.classList.add('liked');
+            if (quoteLikeLabel) quoteLikeLabel.textContent = 'Đã Thích';
+          } else {
+            quoteLikeBtn.classList.remove('liked');
+            if (quoteLikeLabel) quoteLikeLabel.textContent = 'Thả Tim';
+          }
+        }
 
         quoteOverlay.style.display = 'flex';
         void quoteOverlay.offsetWidth;
@@ -8156,6 +8401,25 @@
           closeOnchainModal();
         }
       });
+
+      if (quoteLikeBtn) {
+        quoteLikeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (!currentActiveQuoteData) return;
+          const updated = toggleQuoteLike(currentActiveQuoteData);
+          if (quoteLikeCount) quoteLikeCount.textContent = updated.count.toLocaleString();
+          if (updated.isLiked) {
+            quoteLikeBtn.classList.add('liked');
+            if (quoteLikeLabel) quoteLikeLabel.textContent = 'Đã Thích';
+            spawnFloatingHeart(e.clientX, e.clientY);
+            showToast('💖 Đã thả tim trích dẫn này!');
+          } else {
+            quoteLikeBtn.classList.remove('liked');
+            if (quoteLikeLabel) quoteLikeLabel.textContent = 'Thả Tim';
+            showToast('Đã bỏ thả tim');
+          }
+        });
+      }
 
       if (quoteCopyBtn) {
         quoteCopyBtn.addEventListener('click', (e) => {
