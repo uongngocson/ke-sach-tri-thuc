@@ -3606,10 +3606,8 @@
                     title="Click bất kỳ vị trí nào trên bãi tri thức để góp sách">
                     <div _ngcontent-ng-c4179040905=""
                       class="absolute inset-0 rounded-t-[50%_35px] sm:rounded-t-[50%_60px] fpt-ground-arc shadow-2xl overflow-hidden pointer-events-none">
-                      <div _ngcontent-ng-c4179040905=""
-                        class="absolute inset-0 opacity-40 dark:opacity-20 pointer-events-none"
-                        style="background-image: radial-gradient(#a38c6b 1.2px, transparent 1.2px); background-size: 18px 18px;">
-                      </div>
+                      <!-- Organic root ambient occlusion shadow -->
+                      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-24 bg-black/40 blur-2xl rounded-full pointer-events-none"></div>
                     </div>
                     <div _ngcontent-ng-c4179040905=""
                       class="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none opacity-75 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 text-[11px] font-bold text-[#4f3b2c] dark:text-slate-400 select-none text-center px-4 z-10">
@@ -7606,14 +7604,23 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    /* Seamless 3D Ground Terrain integration */
     .fpt-ground-arc {
-      background: linear-gradient(180deg, #E6F0FA 0%, #D3E6F7 45%, #C2DCF2 100%) !important;
-      border-top: 3px solid #0054A6 !important;
+      background: transparent !important;
+      border: none !important;
+      border-top: none !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
     }
 
     html.dark .fpt-ground-arc {
-      background: linear-gradient(180deg, #132247 0%, #0d1730 45%, #080f21 100%) !important;
-      border-top: 3px solid #0054A6 !important;
+      background: transparent !important;
+      border: none !important;
+      border-top: none !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
     }
 
     /* Hide all 2D note/leaf pins on the tree */
@@ -7622,18 +7629,18 @@
       display: none !important;
     }
 
-    /* Ground section shifted lower down on screen to give generous space for the tree */
+    /* Ground section shifted down moderately (50px) to balance tree space and ground visibility */
     div[class*="z-15 -mt-6"],
     div[class*="z-15 -mt-8"] {
       margin-top: auto !important;
-      transform: translateY(110px) !important;
+      transform: translateY(50px) !important;
       overflow: visible !important;
       transition: transform 0.3s ease !important;
     }
 
     .fpt-ground-container {
       min-height: 290px !important;
-      padding-bottom: 7rem !important;
+      padding-bottom: 5.5rem !important;
     }
     .fpt-ground-inner {
       min-height: 290px !important;

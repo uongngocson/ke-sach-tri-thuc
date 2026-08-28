@@ -1,7 +1,7 @@
 /**
  * components/SkyCanvas.js
  * Three.js WebGL Scene, Camera, Render Loop, and Celestial Component Coordinator
- * Includes Integrated 3D Procedural Tree System (Tree.js)
+ * Includes Integrated 3D Procedural Tree System (Tree.js) and Realistic Procedural Soil Terrain (Ground.js)
  */
 import { Atmosphere } from './Atmosphere.js';
 import { Sun } from './Sun.js';
@@ -12,6 +12,7 @@ import { AtmosphericPost } from './AtmosphericPost.js';
 import { calculateCelestialState } from '../lib/astronomy.js';
 import { detectQualitySettings } from '../lib/quality.js';
 import { TreeManager } from '../../tree/TreeManager.js';
+import { Ground } from '../../ground/Ground.js';
 
 export class SkyCanvas {
   constructor(container, options = {}) {
@@ -36,6 +37,7 @@ export class SkyCanvas {
     this.moon = null;
     this.clouds = null;
     this.stars = null;
+    this.ground = null;
     this.atmosphericPost = null;
     this.treeManager = null;
 
@@ -89,7 +91,14 @@ export class SkyCanvas {
     this.clouds = new Clouds(this.THREE);
     this.scene.add(this.clouds.mesh);
 
-    // 4. Initialize 3D Procedural Tree (Tree.js)
+    // 4. Initialize Procedural Ground Terrain
+    try {
+      this.ground = new Ground(this.THREE, this.scene, this.camera);
+    } catch (err) {
+      console.warn('Failed to initialize Ground Terrain:', err);
+    }
+
+    // 5. Initialize 3D Procedural Tree (Tree.js)
     try {
       this.treeManager = new TreeManager(this.THREE, this.scene, this.camera);
     } catch (err) {
@@ -98,7 +107,7 @@ export class SkyCanvas {
 
     this.atmosphericPost = new AtmosphericPost();
 
-    // 5. Listeners
+    // 6. Listeners
     window.addEventListener('resize', this.onResize.bind(this), { passive: true });
     document.addEventListener('visibilitychange', this.onVisibilityChange.bind(this));
   }
@@ -139,9 +148,19 @@ export class SkyCanvas {
     this.moon.update(celestialState, elapsedTime, this.camera);
     this.clouds.update(celestialState, elapsedTime);
 
-    // 3. Update 3D Procedural Tree
+    // 3. Update 3D Procedural Tree & Ground Terrain
     if (this.treeManager) {
       this.treeManager.update(celestialState, elapsedTime, delta);
+      if (this.ground) {
+        this.ground.updatePosition(
+          this.treeManager.treeAnchor.position.y,
+          this.treeManager.treeAnchor.position.z
+        );
+      }
+    }
+
+    if (this.ground) {
+      this.ground.update(celestialState, elapsedTime);
     }
 
     // 4. Subtle ambient light broadcast to DOM
@@ -163,6 +182,7 @@ export class SkyCanvas {
     if (this.moon) this.moon.dispose();
     if (this.clouds) this.clouds.dispose();
     if (this.stars) this.stars.dispose();
+    if (this.ground) this.ground.dispose();
     if (this.treeManager) this.treeManager.dispose();
 
     if (this.renderer) {

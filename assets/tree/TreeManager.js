@@ -18,7 +18,7 @@ export class TreeManager {
       seed: 9999,
       maturity: 1.0,
       animateGrowth: false,
-      autoRotate: false,
+      autoRotate: true,   // Default 360° rotation enabled
       windSway: true,
       lockToGroundBorder: true, // 100% Mathematically Locked to Ground Border
 
