@@ -25,15 +25,11 @@ export class Tree {
     this.barkTexture.wrapS = THREE.RepeatWrapping;
     this.barkTexture.wrapT = THREE.RepeatWrapping;
 
-    this.leafTextures = [
-      this.loader.load('./assets/tree/textures/leaves/ash.png'),
-      this.loader.load('./assets/tree/textures/leaves/aspen.png'),
-      this.loader.load('./assets/tree/textures/leaves/oak.png'),
-      this.loader.load('./assets/tree/textures/leaves/flowers.png')
-    ];
-    this.leafTextures.forEach(t => {
-      t.colorSpace = THREE.SRGBColorSpace;
-    });
+    this.leafTextures = [null, null, null, null];
+    // Preload primary Oak texture (index 2)
+    const oakTex = this.loader.load('./assets/tree/textures/leaves/oak.png');
+    oakTex.colorSpace = THREE.SRGBColorSpace;
+    this.leafTextures[LeafType.Oak] = oakTex;
 
     this.branchesMesh = new THREE.Mesh();
     this.leavesMesh = new THREE.Mesh();
@@ -130,7 +126,21 @@ export class Tree {
       side: THREE.DoubleSide
     });
 
-    const leafTex = this.leafTextures[this.params.leaves.type];
+    let leafTex = this.leafTextures[this.params.leaves.type];
+    if (!leafTex) {
+      const paths = [
+        './assets/tree/textures/leaves/ash.png',
+        './assets/tree/textures/leaves/aspen.png',
+        './assets/tree/textures/leaves/oak.png',
+        './assets/tree/textures/leaves/flowers.png'
+      ];
+      const p = paths[this.params.leaves.type];
+      if (p) {
+        leafTex = this.loader.load(p);
+        leafTex.colorSpace = THREE.SRGBColorSpace;
+        this.leafTextures[this.params.leaves.type] = leafTex;
+      }
+    }
     if (leafTex) {
       mat.map = leafTex;
     }
