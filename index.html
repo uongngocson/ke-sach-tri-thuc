@@ -3290,6 +3290,9 @@
       cursor: pointer !important;
       pointer-events: auto !important;
       user-select: none !important;
+      white-space: nowrap !important;
+      width: max-content !important;
+      max-width: calc(100vw - 24px) !important;
       transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
     }
 
@@ -3302,27 +3305,35 @@
     }
 
     .ground-hint-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 20px;
-      border-radius: 9999px;
-      background: rgba(15, 23, 42, 0.86);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 2px solid rgba(255, 255, 255, 0.85);
-      color: #ffffff;
-      font-weight: 900;
-      font-size: 13px;
-      letter-spacing: 0.02em;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 20px rgba(245, 206, 66, 0.25);
-      animation: hintPillPulse 2.5s ease-in-out infinite;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 7px !important;
+      padding: 8px 18px !important;
+      border-radius: 9999px !important;
+      background: rgba(15, 23, 42, 0.86) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      border: 2px solid rgba(255, 255, 255, 0.85) !important;
+      color: #ffffff !important;
+      font-weight: 900 !important;
+      font-size: 13px !important;
+      letter-spacing: 0.01em !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 20px rgba(245, 206, 66, 0.25) !important;
+      animation: hintPillPulse 2.5s ease-in-out infinite !important;
+    }
+
+    #ground-action-hint-text {
+      white-space: nowrap !important;
+      display: inline-block !important;
     }
 
     html.dark .ground-hint-pill {
-      background: rgba(15, 23, 42, 0.92);
-      border-color: #38bdf8;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), 0 0 20px rgba(56, 189, 248, 0.35);
+      background: rgba(15, 23, 42, 0.92) !important;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), 0 0 20px rgba(56, 189, 248, 0.35) !important;
     }
 
     @keyframes hintPillPulse {
@@ -3334,14 +3345,50 @@
       }
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 768px) {
+      /* Mobile Tester Button repositioning - Clean floating button top right */
+      .tester-toggle-btn {
+        bottom: auto !important;
+        top: 62px !important;
+        right: 12px !important;
+        left: auto !important;
+        padding: 6px 12px !important;
+        font-size: 11px !important;
+        border-radius: 12px !important;
+        gap: 5px !important;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45) !important;
+      }
+
+      .tester-panel-card {
+        top: 104px !important;
+        bottom: auto !important;
+        right: 12px !important;
+        left: auto !important;
+        width: calc(100vw - 24px) !important;
+        max-width: 320px !important;
+      }
+
+      /* Compact Ground Action Hint on Mobile - Strictly Single-line 100% */
       #ground-action-hint {
-        bottom: 16px !important;
+        bottom: 14px !important;
+        max-width: calc(100vw - 20px) !important;
+        white-space: nowrap !important;
       }
       .ground-hint-pill {
-        padding: 7px 15px;
-        font-size: 11.5px;
-        gap: 6px;
+        padding: 6px 12px !important;
+        font-size: 10.5px !important;
+        gap: 5px !important;
+        border-width: 1.5px !important;
+        white-space: nowrap !important;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45) !important;
+      }
+      .ground-hint-pill span {
+        font-size: 10.5px !important;
+        white-space: nowrap !important;
+      }
+      #ground-action-hint-text {
+        font-size: 10.5px !important;
+        white-space: nowrap !important;
       }
     }
 </style>
@@ -4620,25 +4667,40 @@
       display: none !important;
     }
 
-    /* Ground section positioning - flattened and lowered */
+    /* Ground section positioning - Responsive & Touch-Optimized */
     div[class*="z-15"] {
       margin-top: auto !important;
-      transform: translateY(105px) !important;
+      transform: none !important;
+      width: 100% !important;
+      position: relative !important;
+      z-index: 25 !important;
+      pointer-events: auto !important;
       overflow: visible !important;
-      transition: transform 0.3s ease !important;
     }
 
     .fpt-ground-arc {
-      border-top-left-radius: 50% 16px !important;
-      border-top-right-radius: 50% 16px !important;
+      border-top-left-radius: 50% 20px !important;
+      border-top-right-radius: 50% 20px !important;
     }
 
     .fpt-ground-container {
-      min-height: 170px !important;
-      padding-bottom: 3.5rem !important;
+      min-height: 190px !important;
+      height: 28vh !important;
+      max-height: 250px !important;
+      width: 100% !important;
+      cursor: pointer !important;
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
+      -webkit-tap-highlight-color: transparent !important;
+      position: relative !important;
     }
+
     .fpt-ground-inner {
-      min-height: 170px !important;
+      min-height: 190px !important;
+      height: 100% !important;
+      width: 100% !important;
+      pointer-events: auto !important;
+      position: relative !important;
     }
 
     @media (max-width: 1024px) {
@@ -4649,22 +4711,29 @@
     }
 
     @media (max-width: 768px) {
-      /* Lower ground on mobile screens */
       div[class*="z-15"] {
-        transform: translateY(125px) !important;
+        transform: none !important;
+        z-index: 30 !important;
       }
       .fpt-ground-container {
-        min-height: 150px !important;
-        padding-bottom: 4rem !important;
+        min-height: 210px !important;
+        height: 32vh !important;
+        max-height: 270px !important;
+        padding-bottom: 2rem !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
       }
       .fpt-ground-inner {
-        min-height: 150px !important;
+        min-height: 210px !important;
+        height: 100% !important;
+        pointer-events: auto !important;
       }
     }
 
     @media (min-width: 769px) {
       .fpt-ground-container, .fpt-ground-inner {
-        min-height: 180px !important;
+        min-height: 200px !important;
+        height: 28vh !important;
       }
     }
 
@@ -5801,19 +5870,48 @@ async function renderGroundSeeds() {
         openContributeModal();
       });
 
-      const groundContainerEl = document.querySelector('.fpt-ground-container');
-      if (groundContainerEl) groundContainerEl.addEventListener('click', (e) => {
-        if (e.target.closest && e.target.closest('.ground-seed-item')) return;
-        e.preventDefault();
-        openContributeModal();
-      });
+      // Robust Touch & Click Handlers for Ground Container and Bottom Hint
+      function bindGroundModalTrigger(el) {
+        if (!el) return;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isTouchMoved = false;
 
-      const groundActionHintBtn = document.getElementById('ground-action-hint');
-      if (groundActionHintBtn) groundActionHintBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openContributeModal();
-      });
+        el.addEventListener('touchstart', (e) => {
+          if (e.touches && e.touches[0]) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            isTouchMoved = false;
+          }
+        }, { passive: true });
+
+        el.addEventListener('touchmove', (e) => {
+          if (e.touches && e.touches[0]) {
+            const dx = Math.abs(e.touches[0].clientX - touchStartX);
+            const dy = Math.abs(e.touches[0].clientY - touchStartY);
+            if (dx > 10 || dy > 10) isTouchMoved = true;
+          }
+        }, { passive: true });
+
+        el.addEventListener('touchend', (e) => {
+          if (isTouchMoved) return;
+          if (e.target.closest && e.target.closest('.ground-seed-item')) return;
+          e.preventDefault();
+          e.stopPropagation();
+          openContributeModal();
+        }, { passive: false });
+
+        el.addEventListener('click', (e) => {
+          if (e.target.closest && e.target.closest('.ground-seed-item')) return;
+          e.preventDefault();
+          e.stopPropagation();
+          openContributeModal();
+        });
+      }
+
+      bindGroundModalTrigger(document.querySelector('.fpt-ground-container'));
+      bindGroundModalTrigger(document.querySelector('.fpt-ground-inner'));
+      bindGroundModalTrigger(document.getElementById('ground-action-hint'));
 
       
       // RULES MODAL LOGIC
