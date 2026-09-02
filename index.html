@@ -3314,6 +3314,12 @@
                     <span>🌱</span>
                   </button>
                   <button
+                    id="fpt-mobile-rules-btn"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-white/90 dark:bg-slate-800 border border-[#0054A6]/30 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-slate-200 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
+                    title="Xem thể lệ chương trình" type="button">
+                    <span>📜</span>
+                  </button>
+                  <button
                     _ngcontent-ng-c4179040905=""
                     class="w-9 h-9 flex items-center justify-center rounded-xl bg-white/90 dark:bg-slate-800 border border-[#0054A6]/30 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-slate-200 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
                     title="Chuyển sang chế độ Đọc Ban Đêm"><span _ngcontent-ng-c4179040905="">🌙</span></button>
@@ -3326,6 +3332,13 @@
                   title="Gieo mầm tri thức ngay" type="button">
                   <span class="text-sm leading-none">🌱</span>
                   <span>Gieo Mầm Ngay</span>
+                </button>
+                <button
+                  id="fpt-main-rules-btn"
+                  class="h-9 flex items-center justify-center gap-1.5 px-4 rounded-xl bg-white/90 hover:bg-white dark:bg-slate-800 dark:hover:bg-slate-700 border border-[#0054A6]/30 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-200 transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
+                  title="Xem thể lệ chương trình Cây Sách Tri Thức" type="button">
+                  <span class="text-sm leading-none">📜</span>
+                  <span>Thể Lệ</span>
                 </button>
                 <button
                   _ngcontent-ng-c4179040905=""
@@ -3394,15 +3407,12 @@
                     </div>
 
                     <!-- Sharer / Reader Footer -->
-                    <div class="aside-quote-footer flex items-center justify-between text-[11px]">
-                      <div class="flex items-center gap-1.5 truncate max-w-[210px]">
+                    <div class="aside-quote-footer flex items-center text-[11px]">
+                      <div class="flex items-center gap-1.5 truncate">
                         <span class="text-xs">👤</span>
                         <span class="aside-quote-sharer-label opacity-75 text-[10.5px]">Người chia sẻ:</span>
                         <strong class="aside-quote-sharer font-black truncate text-[11px]" id="aside-quote-reader">Độc giả yêu sách</strong>
                       </div>
-                      <span class="aside-quote-category-tag text-[9.5px] font-bold px-2 py-0.5 rounded-md shrink-0" id="aside-quote-tag">
-                        Triết Học
-                      </span>
                     </div>
                   </div>
 
@@ -3425,6 +3435,16 @@
                       class="absolute inset-0 rounded-t-[50%_14px] sm:rounded-t-[50%_18px] fpt-ground-arc shadow-2xl overflow-hidden pointer-events-none">
                       <!-- Organic root ambient occlusion shadow -->
                       <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-24 bg-black/40 blur-2xl rounded-full pointer-events-none"></div>
+                    </div>
+                    <!-- Action Hint Floating Pill -->
+                    <div id="ground-action-hint"
+                      class="absolute top-3.5 left-1/2 -translate-x-1/2 pointer-events-none select-none z-30 transition-all duration-300 opacity-95 group-hover:opacity-100 group-hover:scale-105">
+                      <div
+                        class="px-4 py-1.5 rounded-full bg-black/75 dark:bg-slate-900/90 backdrop-blur-md border-2 border-white/80 dark:border-amber-400/80 text-white text-xs sm:text-sm font-extrabold shadow-2xl flex items-center gap-2 animate-pulse tracking-wide drop-shadow-md">
+                        <span class="text-sm sm:text-base leading-none">🌰</span>
+                        <span id="ground-action-hint-text" class="text-white font-black drop-shadow">Chạm vào mặt đất để gieo hạt tri thức</span>
+                        <span class="text-xs text-amber-300 font-black">✨</span>
+                      </div>
                     </div>
                     <div _ngcontent-ng-c4179040905=""
                       class="relative w-full min-h-[170px] md:min-h-[180px] fpt-ground-inner overflow-visible z-20">
@@ -3454,10 +3474,6 @@
   <!-- TOAST POPUP -->
   <!-- BOOK QUOTE MODAL -->
   <!-- ON-CHAIN TRANSPARENCY MODAL -->
-  <!-- TOAST POPUP -->
-  <!-- 1. CONTRIBUTE NEW BOOK MODAL (GÓP SÁCH NGAY) -->
-  <!-- 2. BOOK QUOTE MODAL (HIỂN THỊ CHI TIẾT TRÍCH DẪN) -->
-  <!-- 3. ON-CHAIN TRANSPARENCY MODAL -->
   <!-- TOAST POPUP -->
   <style id="book-modal-styles">
     :root {
@@ -3546,6 +3562,200 @@
       background-color: #1e293b !important;
       color: #f8fafc !important;
       border: 1px solid #334155 !important;
+    }
+
+    
+        /* 4. RULES MODAL (LUXURY GLASSMORPHISM) */
+    #rules-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #rules-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #rules-card {
+      background: #ffffff;
+      border: 2px solid #0054A6;
+      border-radius: 24px;
+      box-shadow: 0 25px 60px -12px rgba(0, 84, 166, 0.4), 0 0 0 1px rgba(0, 84, 166, 0.1);
+      width: 100%;
+      max-width: 620px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px 28px;
+      position: relative;
+      transform: scale(0.92) translateY(16px);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    html.dark #rules-card {
+      background: #0f172a;
+      border-color: #38bdf8;
+      box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(56, 189, 248, 0.2);
+      color: #f8fafc;
+    }
+
+    #rules-modal-overlay.active #rules-card {
+      transform: scale(1) translateY(0);
+    }
+
+    .rules-section-card {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 14px 16px;
+      transition: border-color 0.2s;
+    }
+
+    html.dark .rules-section-card {
+      background: #1e293b;
+      border-color: #334155;
+    }
+
+    .rules-section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .rules-icon-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .rules-heading {
+      font-size: 13.5px;
+      font-weight: 900;
+      color: #0054A6;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+
+    html.dark .rules-heading {
+      color: #38bdf8;
+    }
+
+    .rules-desc {
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: #475569;
+      margin: 0;
+    }
+
+    html.dark .rules-desc {
+      color: #cbd5e1;
+    }
+
+    .rules-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .rules-timeline-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: #334155;
+    }
+
+    html.dark .rules-timeline-item {
+      color: #cbd5e1;
+    }
+
+    .rules-timeline-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #0054A6;
+      color: #ffffff;
+      font-size: 10.5px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .rules-timeline-dot.active {
+      background: #70B928;
+      box-shadow: 0 0 10px rgba(112, 185, 40, 0.6);
+    }
+
+    html.dark .rules-timeline-dot {
+      background: #38bdf8;
+      color: #0f172a;
+    }
+
+    html.dark .rules-timeline-dot.active {
+      background: #4ade80;
+      color: #0f172a;
+      box-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
+    }
+
+    .rules-rewards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .rules-reward-box {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    html.dark .rules-reward-box {
+      background: #0f172a;
+      border-color: #334155;
+    }
+
+    .rules-reward-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #F36F21;
+      margin-bottom: 2px;
+    }
+
+    html.dark .rules-reward-title {
+      color: #ff8a3d;
+    }
+
+    .rules-reward-detail {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    html.dark .rules-reward-detail {
+      color: #94a3b8;
     }
 
     /* Aside Quote Widget (Trích Dẫn Tâm Đắc - Tự động đổi 10s) */
@@ -4822,6 +5032,109 @@
     }
 
   </style>
+      </div>
+
+      <div style="margin-top:16px; display:flex; justify-content:flex-end;">
+        <button id="rules-dismiss-btn" class="fpt-btn-cta" style="padding:8px 24px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer;" type="button">
+          Đã Hiểu & Gieo Mầm Ngay
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. RULES & GUIDELINES MODAL (THỂ LỆ CHƯƠNG TRÌNH) -->
+  <div id="rules-modal-overlay">
+    <div id="rules-card">
+      <div class="bq-glow-1"></div>
+      <div class="bq-glow-2"></div>
+      
+      <!-- Header -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; position:relative; z-index:2;">
+        <div class="bq-badge">
+          <span>📜</span>
+          <span>THỂ LỆ & QUY TRÌNH CÂY SÁCH TRI THỨC</span>
+        </div>
+        <button class="bq-close" id="rules-close-btn" title="Đóng (Esc)">✕</button>
+      </div>
+
+      <!-- Body Content -->
+      <div style="display:flex; flex-direction:column; gap:12px; position:relative; z-index:2;">
+        
+        <!-- 1. Mục Đích & Ý Nghĩa -->
+        <div class="rules-section-card">
+          <div class="rules-section-header">
+            <span class="rules-icon-badge" style="background:rgba(0,84,166,0.12); color:#0054A6;">🌟</span>
+            <h4 class="rules-heading">Mục Đích & Ý Nghĩa</h4>
+          </div>
+          <p class="rules-desc">
+            <strong>Cây Sách Tri Thức</strong> là không gian lan tỏa văn hóa đọc. Mỗi cuốn sách, trích dẫn hay suy ngẫm bạn đóng góp chính là một hạt mầm tiếp thêm dinh dưỡng để cùng nhau nuôi dưỡng Cây Tri Thức phát triển sum sê từ lòng đất.
+          </p>
+        </div>
+
+        <!-- 2. Quy Trình Sinh Trưởng Sinh Học -->
+        <div class="rules-section-card">
+          <div class="rules-section-header">
+            <span class="rules-icon-badge" style="background:rgba(112,185,40,0.15); color:#15803d;">🌱</span>
+            <h4 class="rules-heading">Vòng Đời Sinh Học (Mốc 50 Hạt Giống)</h4>
+          </div>
+          <div class="rules-timeline">
+            <div class="rules-timeline-item">
+              <div class="rules-timeline-dot">0</div>
+              <div class="rules-timeline-content">
+                <strong>Giai đoạn Gieo Hạt (0 - 49 Hạt):</strong> Mỗi cuốn sách đóng góp là 1 hạt giống <strong>🌰</strong> nằm trên mặt đất. Cần đủ <strong>50 hạt giống</strong> để đánh thức nguồn sống.
+              </div>
+            </div>
+            <div class="rules-timeline-item">
+              <div class="rules-timeline-dot active">1</div>
+              <div class="rules-timeline-content">
+                <strong>Nảy Mầm Non (Đủ 50 Hạt):</strong> Đủ 50 hạt, toàn bộ hạt trên đất chuyển hóa dinh dưỡng và <strong>Cây Mầm Non 3D (~150px)</strong> chính thức nhú lên!
+              </div>
+            </div>
+            <div class="rules-timeline-item">
+              <div class="rules-timeline-dot">2</div>
+              <div class="rules-timeline-content">
+                <strong>Đâm Chồi & Vươn Cành (150 - 400 EXP):</strong> Cây tơ định hình thân gỗ vững chãi, xòe rộng 2 tầng cành nhánh tươi tốt.
+              </div>
+            </div>
+            <div class="rules-timeline-item">
+              <div class="rules-timeline-dot">3</div>
+              <div class="rules-timeline-content">
+                <strong>Trưởng Thành & Đại Cổ Thụ (1000 - 2500+ EXP):</strong> Cây cổ thụ 4 tầng cành sum sê, phát sáng đom đóm tri thức rực rỡ.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Cơ Chế Điểm EXP -->
+        <div class="rules-section-card">
+          <div class="rules-section-header">
+            <span class="rules-icon-badge" style="background:rgba(243,111,33,0.12); color:#F36F21;">🎮</span>
+            <h4 class="rules-heading">Cơ Chế Điểm EXP & Lan Tỏa</h4>
+          </div>
+          <div class="rules-rewards-grid">
+            <div class="rules-reward-box">
+              <div class="rules-reward-title">🌱 Gieo 1 Cuốn Sách</div>
+              <div class="rules-reward-detail">+1 Hạt Giống (Giai đoạn gieo) / +5 EXP</div>
+            </div>
+            <div class="rules-reward-box">
+              <div class="rules-reward-title">💖 Thả Tim Trích Dẫn</div>
+              <div class="rules-reward-detail">+2 EXP / mỗi lượt yêu thích</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="margin-top:16px; display:flex; align-items:center; justify-content:flex-end; gap:10px; position:relative; z-index:2;">
+        <button id="rules-dismiss-btn" class="cb-submit-btn" type="button">
+          <span>✨</span>
+          <span>Đã Hiểu & Gieo Mầm Ngay</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- 1. CONTRIBUTE NEW BOOK MODAL (GÓP SÁCH NGAY) -->
   <div id="contribute-book-modal-overlay">
     <div id="contribute-book-card">
@@ -5040,11 +5353,12 @@
           if (hudPercentBadge) hudPercentBadge.textContent = `${growth.progressPercent}%`;
           if (hudProgressFill) hudProgressFill.style.width = `${growth.progressPercent}%`;
 
-          if (hudGrowthHint) {
-            if (growth.isMaxLevel) {
-              hudGrowthHint.innerHTML = '✨ Cây Tri Thức đã đạt cấp độ <strong>Cổ Thụ Tối Thượng</strong>!';
+          const hintTextEl = document.getElementById('ground-action-hint-text');
+          if (hintTextEl) {
+            if (growth.level === 0) {
+              hintTextEl.textContent = `Chạm vào mặt đất để gieo hạt tri thức (${growth.totalEXP}/50)`;
             } else {
-              hudGrowthHint.innerHTML = `Gieo thêm <strong>${growth.seedsNeeded} hạt mầm</strong> hoặc <strong>${growth.likesNeeded} tim</strong> để đạt <strong>Level ${growth.level + 1}</strong>`;
+              hintTextEl.textContent = 'Chạm vào mặt đất để gieo thêm sách nuôi cây';
             }
           }
         }
@@ -5422,6 +5736,50 @@ async function renderGroundSeeds() {
         e.stopPropagation();
         openContributeModal();
       });
+
+      const groundContainerEl = document.querySelector('.fpt-ground-container');
+      if (groundContainerEl) groundContainerEl.addEventListener('click', (e) => {
+        if (e.target.closest && e.target.closest('.ground-seed-item')) return;
+        e.preventDefault();
+        openContributeModal();
+      });
+
+      
+      // RULES MODAL LOGIC
+      const rulesOverlay = document.getElementById('rules-modal-overlay');
+      const rulesCloseBtn = document.getElementById('rules-close-btn');
+      const rulesDismissBtn = document.getElementById('rules-dismiss-btn');
+      const mainRulesBtn = document.getElementById('fpt-main-rules-btn');
+      const mobileRulesBtn = document.getElementById('fpt-mobile-rules-btn');
+
+      function openRulesModal() {
+        if (rulesOverlay) rulesOverlay.classList.add('active');
+      }
+
+      function closeRulesModal() {
+        if (rulesOverlay) rulesOverlay.classList.remove('active');
+      }
+
+      if (mainRulesBtn) mainRulesBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openRulesModal();
+      });
+
+      if (mobileRulesBtn) mobileRulesBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openRulesModal();
+      });
+
+      if (rulesCloseBtn) rulesCloseBtn.addEventListener('click', closeRulesModal);
+      if (rulesDismissBtn) rulesDismissBtn.addEventListener('click', () => {
+        closeRulesModal();
+        openContributeModal();
+      });
+
+      window.openRulesModal = openRulesModal;
+      window.closeRulesModal = closeRulesModal;
 
       window.openContributeModal = openContributeModal;
       window.closeContributeModal = closeContributeModal;
