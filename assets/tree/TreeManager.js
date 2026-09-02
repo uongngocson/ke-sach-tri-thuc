@@ -7,6 +7,7 @@
 import { Tree, LeafStyle, LeafType } from './tree.js';
 import GUI from './lil-gui.module.min.js';
 import { TreeGrowthController } from './TreeGrowthController.js';
+import { WisdomFruitManager } from './WisdomFruitManager.js';
 
 export class TreeManager {
   constructor(THREE, scene, camera) {
@@ -97,6 +98,7 @@ export class TreeManager {
 
     // Initialize Master 3D Growth Controller
     this.growthController = new TreeGrowthController(this);
+    this.fruitManager = new WisdomFruitManager(THREE, scene, camera, this.treeAnchor, this);
 
     // Resize listener for continuous grounding
     window.addEventListener('resize', () => this.updateAnchorTransform(), { passive: true });
@@ -117,6 +119,7 @@ export class TreeManager {
     this.tree = new Tree(THREE, this.treeParams);
     this.treeAnchor.add(this.tree.group);
     this.updateAnchorTransform();
+    if (this.fruitManager) this.fruitManager.syncWithTreeGeometry();
   }
 
   updateAnchorTransform() {
@@ -388,6 +391,11 @@ export class TreeManager {
       this.treeDirLight.intensity = 0.45;
     }
 
+    // 2. Interactive 3D Wisdom Fruits Update
+    if (this.fruitManager) {
+      this.fruitManager.update(elapsedTime, delta, factors.daylight);
+    }
+
     // 2. Wind Sway Physics & Auto-Rotation
     if (this.treeParams.windSway) {
       const swayZ = Math.sin(elapsedTime * 0.75) * 0.018 + Math.cos(elapsedTime * 1.3) * 0.008;
@@ -423,6 +431,7 @@ export class TreeManager {
   }
 
   dispose() {
+    if (this.fruitManager) this.fruitManager.dispose();
     if (this.tree) this.tree.dispose();
     if (this.treeAnchor) this.scene.remove(this.treeAnchor);
   }

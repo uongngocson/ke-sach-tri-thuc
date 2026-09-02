@@ -66,6 +66,7 @@ export class Tree {
       indices: [],
       uvs: []
     };
+    this.leafClusterOrigins = [];
 
     const rng = new RNG(this.params.seed);
 
@@ -337,6 +338,11 @@ export class Tree {
         rng.random(this.params.branch.lengthVariance, -this.params.branch.lengthVariance));
 
       if (level === this.params.branch.levels) {
+        this.leafClusterOrigins.push({
+          origin: section.origin.clone(),
+          orientation: section.orientation.clone(),
+          radius: childBranchRadius
+        });
         this.#generateLeaf(
           rng,
           section.origin,
