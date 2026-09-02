@@ -25,12 +25,12 @@
       <form id="login-form" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">Tên Đăng Nhập</label>
-          <input type="text" id="login-username" value="admin" required
+          <input type="text" id="login-username" placeholder="Nhập tên tài khoản quản trị..." autocomplete="username" required
             class="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:outline-none focus:border-sky-400">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">Mật Khẩu</label>
-          <input type="password" id="login-password" value="admin123" required
+          <input type="password" id="login-password" placeholder="Nhập mật khẩu..." autocomplete="current-password" required
             class="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:outline-none focus:border-sky-400">
         </div>
         <div id="login-error" class="text-xs text-red-400 font-bold hidden"></div>
@@ -38,9 +38,6 @@
           <span>🔐</span><span>Đăng Nhập Quản Trị</span>
         </button>
       </form>
-      <div class="mt-4 text-center text-slate-500 text-xs font-bold">
-        Tài khoản mặc định: <code class="text-sky-400 font-mono">admin</code> / <code class="text-sky-400 font-mono">admin123</code>
-      </div>
     </div>
   </div>
 
