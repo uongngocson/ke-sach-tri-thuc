@@ -3730,6 +3730,7 @@
       top: -99999px !important;
     }
   </style>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 
 <body class="">
@@ -4921,77 +4922,102 @@
       gap: 4px;
       padding: 3px 10px;
       border-radius: 9999px;
-      background: rgba(244, 63, 94, 0.12);
-      color: #e11d48;
-      border: 1px solid rgba(244, 63, 94, 0.28);
+      background: #ffffff;
+      color: #475569;
+      border: 1px solid #cbd5e1;
       font-size: 11px;
       font-weight: 800;
       cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       user-select: none;
     }
 
     .aside-quote-like-btn:hover {
-      background: rgba(244, 63, 94, 0.22);
-      transform: scale(1.08);
+      background: #f8fafc;
+      color: #e11d48;
+      border-color: #fecdd3;
+      transform: scale(1.06);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .aside-quote-like-btn.liked {
-      background: #e11d48;
-      color: #ffffff;
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      color: #ffffff !important;
       border-color: #e11d48;
-      box-shadow: 0 2px 8px rgba(225, 29, 72, 0.4);
+      box-shadow: 0 3px 12px rgba(225, 29, 72, 0.45);
     }
 
     html.dark .aside-quote-like-btn {
-      background: rgba(244, 63, 94, 0.2);
-      color: #fb7185;
-      border-color: rgba(244, 63, 94, 0.45);
+      background: rgba(30, 41, 59, 0.85);
+      color: #cbd5e1;
+      border-color: rgba(255, 255, 255, 0.16);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    html.dark .aside-quote-like-btn:hover {
+      background: rgba(51, 65, 85, 0.95);
+      color: #fda4af;
+      border-color: rgba(244, 63, 94, 0.4);
     }
 
     html.dark .aside-quote-like-btn.liked {
-      background: #e11d48;
-      color: #ffffff;
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      color: #ffffff !important;
+      border-color: #e11d48;
+      box-shadow: 0 3px 12px rgba(225, 29, 72, 0.55);
     }
 
     .bq-bubble-like-btn {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 4px 12px;
+      gap: 6px;
+      padding: 5px 14px;
       border-radius: 9999px;
-      background: rgba(244, 63, 94, 0.12);
-      color: #e11d48;
-      border: 1.5px solid rgba(244, 63, 94, 0.3);
+      background: #ffffff;
+      color: #334155;
+      border: 1.5px solid #cbd5e1;
       font-size: 12px;
       font-weight: 800;
       cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       user-select: none;
     }
 
     .bq-bubble-like-btn:hover {
-      background: rgba(244, 63, 94, 0.22);
-      transform: scale(1.08);
-      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.35);
+      background: #f8fafc;
+      color: #e11d48;
+      border-color: #fecdd3;
+      transform: scale(1.06);
+      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2);
     }
 
     .bq-bubble-like-btn.liked {
       background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-      color: #ffffff;
+      color: #ffffff !important;
       border-color: #e11d48;
-      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.45);
+      box-shadow: 0 4px 16px rgba(225, 29, 72, 0.45);
     }
 
     html.dark .bq-bubble-like-btn {
-      background: rgba(244, 63, 94, 0.2);
-      color: #fb7185;
-      border-color: rgba(244, 63, 94, 0.45);
+      background: rgba(30, 41, 59, 0.85);
+      color: #e2e8f0;
+      border-color: rgba(255, 255, 255, 0.16);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    }
+
+    html.dark .bq-bubble-like-btn:hover {
+      background: rgba(51, 65, 85, 0.95);
+      color: #fda4af;
+      border-color: rgba(244, 63, 94, 0.4);
     }
 
     html.dark .bq-bubble-like-btn.liked {
       background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-      color: #ffffff;
+      color: #ffffff !important;
+      border-color: #e11d48;
+      box-shadow: 0 4px 16px rgba(225, 29, 72, 0.55);
     }
 
     /* Floating Heart Micro-animation */

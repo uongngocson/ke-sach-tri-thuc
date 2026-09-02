@@ -91,138 +91,134 @@ export class TesterPanel {
       }
     });
 
+    // 1. Stage Jumpers (0, 15, 30, 45, 50, Lvl 2, 3, 4, 5)
     panel.querySelector('#stage-btn-0-seeds').addEventListener('click', async () => {
       await MockDataStore.setTesterLevel(0);
       this.updateTesterUI();
     });
 
     panel.querySelector('#stage-btn-15-seeds').addEventListener('click', async () => {
-      await MockDataStore.setTesterEXP(15);
+      await MockDataStore.setTesterEXP(15, 15);
       this.updateTesterUI();
     });
 
     panel.querySelector('#stage-btn-30-seeds').addEventListener('click', async () => {
-      await MockDataStore.setTesterEXP(30);
+      await MockDataStore.setTesterEXP(30, 30);
       this.updateTesterUI();
     });
 
     panel.querySelector('#stage-btn-45-seeds').addEventListener('click', async () => {
-      await MockDataStore.setTesterEXP(45);
+      await MockDataStore.setTesterEXP(45, 45);
       this.updateTesterUI();
     });
 
     panel.querySelector('#stage-btn-50-sprout').addEventListener('click', async () => {
-      await MockDataStore.setTesterEXP(50);
+      await MockDataStore.setTesterLevel(1);
       this.updateTesterUI();
     });
 
     panel.querySelectorAll('.stage-btn[data-level]').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const lvl = parseInt(e.currentTarget.getAttribute('data-level'));
+      btn.addEventListener('click', async () => {
+        const lvl = parseInt(btn.getAttribute('data-level'), 10);
         await MockDataStore.setTesterLevel(lvl);
         this.updateTesterUI();
       });
     });
 
+    // 2. Slider
     const slider = panel.querySelector('#tester-exp-slider');
-    const expVal = panel.querySelector('#tester-exp-val');
-    slider.addEventListener('input', async (e) => {
-      const val = parseInt(e.target.value);
-      if (expVal) expVal.textContent = val + ' EXP';
-      await MockDataStore.setTesterEXP(val);
+    slider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      this.updateSliderLabel(val);
     });
 
+    slider.addEventListener('change', async (e) => {
+      const val = parseInt(e.target.value, 10);
+      await MockDataStore.setTesterEXP(val);
+      this.updateTesterUI();
+    });
+
+    // 3. Simulators (+1 seed, +10 seeds, +50 seeds, +10 likes)
     panel.querySelector('#sim-add-1-seed').addEventListener('click', async () => {
-      await MockDataStore.plantSeed({
-        book: 'Hạt Giống Tâm Hồn',
-        author: 'First News',
-        quote: 'Một hạt giống gieo xuống sẽ nuôi dưỡng mầm non.',
-        category: 'Sách Tinh Hoa'
-      });
+      await MockDataStore.simulateSeedContribution(1);
       this.updateTesterUI();
     });
 
     panel.querySelector('#sim-add-10-seeds').addEventListener('click', async () => {
-      for (let i = 0; i < 10; i++) {
-        await MockDataStore.plantSeed({
-          book: 'Tủ Sách Tri Thức ' + (i + 1),
-          author: 'Cộng đồng',
-          quote: 'Tri thức là sức mạnh.',
-          category: 'Sách Tư Duy'
-        });
-      }
+      await MockDataStore.simulateSeedContribution(10);
       this.updateTesterUI();
     });
 
     panel.querySelector('#sim-add-50-seeds').addEventListener('click', async () => {
-      await MockDataStore.setTesterEXP(50);
+      await MockDataStore.simulateSeedContribution(50);
       this.updateTesterUI();
     });
 
     panel.querySelector('#sim-add-20-likes').addEventListener('click', async () => {
-      await MockDataStore.simulateAddEXP(20);
+      const curGrowth = await MockDataStore.getCommunityGrowth();
+      await MockDataStore.setTesterEXP(curGrowth.totalEXP + 20);
       this.updateTesterUI();
     });
 
+    // 4. Reset
     panel.querySelector('#tester-reset-btn').addEventListener('click', async () => {
-      await MockDataStore.resetAllData();
+      await MockDataStore.resetToInitialState();
       this.updateTesterUI();
     });
 
-    MockDataStore.subscribe('growth:updated', (growth) => {
-      this.syncGrowthToTesterUI(growth);
+    // Sync on growth events
+    MockDataStore.subscribe('growth:updated', () => {
+      this.updateTesterUI();
     });
 
-    const initialGrowth = await MockDataStore.getCommunityGrowth();
-    this.syncGrowthToTesterUI(initialGrowth);
+    this.updateTesterUI();
   }
 
   togglePanel(forceState) {
     const panel = document.getElementById('tester-panel-card');
-    const toggleBtn = document.getElementById('tester-panel-toggle-btn');
     if (!panel) return;
-
-    this.isOpen = (forceState !== undefined) ? forceState : !this.isOpen;
-    if (this.isOpen) {
-      panel.style.display = 'block';
-      toggleBtn?.classList.add('active');
-    } else {
-      panel.style.display = 'none';
-      toggleBtn?.classList.remove('active');
-    }
-  }
-
-  syncGrowthToTesterUI(growth) {
-    const slider = document.getElementById('tester-exp-slider');
-    const expVal = document.getElementById('tester-exp-val');
-    if (slider) slider.value = growth.totalEXP;
-    if (expVal) {
-      if (growth.level === 0) {
-        expVal.textContent = `${growth.totalEXP}/50 Hạt (Gieo Hạt)`;
-      } else {
-        expVal.textContent = `${growth.totalEXP} EXP (Lvl ${growth.level}: ${growth.levelName})`;
-      }
-    }
-
-    document.querySelectorAll('.stage-btn').forEach(btn => btn.classList.remove('active-stage'));
-
-    if (growth.totalEXP === 0) {
-      document.getElementById('stage-btn-0-seeds')?.classList.add('active-stage');
-    } else if (growth.totalEXP >= 10 && growth.totalEXP < 20) {
-      document.getElementById('stage-btn-15-seeds')?.classList.add('active-stage');
-    } else if (growth.totalEXP >= 25 && growth.totalEXP < 35) {
-      document.getElementById('stage-btn-30-seeds')?.classList.add('active-stage');
-    } else if (growth.totalEXP >= 40 && growth.totalEXP < 50) {
-      document.getElementById('stage-btn-45-seeds')?.classList.add('active-stage');
-    } else if (growth.level === 1) {
-      document.getElementById('stage-btn-50-sprout')?.classList.add('active-stage');
-    } else if (growth.level >= 2) {
-      document.querySelector(`.stage-btn[data-level="${growth.level}"]`)?.classList.add('active-stage');
-    }
+    this.isOpen = forceState !== undefined ? forceState : !this.isOpen;
+    panel.style.display = this.isOpen ? 'block' : 'none';
+    if (this.isOpen) this.updateTesterUI();
   }
 
   async updateTesterUI() {
+    const panel = document.getElementById('tester-panel-card');
+    if (!panel) return;
+
     const growth = await MockDataStore.getCommunityGrowth();
-    this.syncGrowthToTesterUI(growth);
+    const slider = panel.querySelector('#tester-exp-slider');
+    if (slider) slider.value = growth.totalEXP;
+
+    this.updateSliderLabel(growth.totalEXP, growth);
+
+    // Active button highlight
+    panel.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active-stage'));
+
+    if (growth.level === 0) {
+      if (growth.totalEXP === 0) panel.querySelector('#stage-btn-0-seeds')?.classList.add('active-stage');
+      else if (growth.totalEXP === 15) panel.querySelector('#stage-btn-15-seeds')?.classList.add('active-stage');
+      else if (growth.totalEXP === 30) panel.querySelector('#stage-btn-30-seeds')?.classList.add('active-stage');
+      else if (growth.totalEXP === 45) panel.querySelector('#stage-btn-45-seeds')?.classList.add('active-stage');
+    } else if (growth.level === 1) {
+      panel.querySelector('#stage-btn-50-sprout')?.classList.add('active-stage');
+    } else {
+      const targetBtn = panel.querySelector(`.stage-btn[data-level="${growth.level}"]`);
+      if (targetBtn) targetBtn.classList.add('active-stage');
+    }
+  }
+
+  updateSliderLabel(val, growthData) {
+    const label = document.getElementById('tester-exp-val');
+    if (!label) return;
+
+    if (val < 50) {
+      label.textContent = `${val} Hạt (Giai Đoạn Gieo Mầm)`;
+      label.style.color = '#38bdf8';
+    } else {
+      const level = val >= 2500 ? 5 : (val >= 1000 ? 4 : (val >= 400 ? 3 : (val >= 150 ? 2 : 1)));
+      label.textContent = `${val} EXP (Lvl ${level})`;
+      label.style.color = '#70B928';
+    }
   }
 }
