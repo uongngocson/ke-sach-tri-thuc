@@ -4087,7 +4087,7 @@
 
     .rules-rewards-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 10px;
     }
 
@@ -5449,7 +5449,7 @@
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; position:relative; z-index:2;">
         <div class="bq-badge">
           <span>📜</span>
-          <span>THỂ LỆ & QUY TRÌNH CÂY SÁCH TRI THỨC</span>
+          <span>THỂ LỆ & QUY TRÌNH NUÔI DƯỠNG CÂY TRI THỨC</span>
         </div>
         <button class="bq-close" id="rules-close-btn" title="Đóng (Esc)">✕</button>
       </div>
@@ -5457,65 +5457,75 @@
       <!-- Body Content -->
       <div style="display:flex; flex-direction:column; gap:12px; position:relative; z-index:2;">
         
-        <!-- 1. Mục Đích & Ý Nghĩa -->
+        <!-- 1. Mục Đích & Sứ Mệnh Sinh Thái -->
         <div class="rules-section-card">
           <div class="rules-section-header">
             <span class="rules-icon-badge" style="background:rgba(0,84,166,0.12); color:#0054A6;">🌟</span>
-            <h4 class="rules-heading">Mục Đích & Ý Nghĩa</h4>
+            <h4 class="rules-heading">Sứ Mệnh & Ý Nghĩa Nuôi Dưỡng Cây</h4>
           </div>
           <p class="rules-desc">
-            <strong>Cây Sách Tri Thức</strong> là không gian lan tỏa văn hóa đọc. Mỗi cuốn sách, trích dẫn hay suy ngẫm bạn đóng góp chính là một hạt mầm tiếp thêm dinh dưỡng để cùng nhau nuôi dưỡng Cây Tri Thức phát triển sum sê từ lòng đất.
+            <strong>Cây Sách Tri Thức</strong> là không gian sinh thái số kết nối và tôn vinh văn hóa đọc. Mỗi cuốn sách đóng góp, mỗi trích dẫn đắt giá của bạn chính là <strong>nguồn phù sa màu mỡ, hạt giống tương lai và giọt nước tinh khiết</strong> trực tiếp bón phân, tưới mát để cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn mình từ lòng đất trở thành đại cổ thụ ngàn năm.
           </p>
         </div>
 
-        <!-- 2. Quy Trình Sinh Trưởng Sinh Học -->
+        <!-- 2. Quy Trình 5 Giai Đoạn Sinh Trưởng Sinh Học -->
         <div class="rules-section-card">
           <div class="rules-section-header">
             <span class="rules-icon-badge" style="background:rgba(112,185,40,0.15); color:#15803d;">🌱</span>
-            <h4 class="rules-heading">Vòng Đời Sinh Học (Mốc 50 Hạt Giống)</h4>
+            <h4 class="rules-heading">5 Giai Đoạn Sinh Trưởng Sinh Học</h4>
           </div>
           <div class="rules-timeline">
             <div class="rules-timeline-item">
               <div class="rules-timeline-dot">0</div>
               <div class="rules-timeline-content">
-                <strong>Giai đoạn Gieo Hạt (0 - 49 Hạt):</strong> Mỗi cuốn sách đóng góp là 1 hạt giống <strong>🌰</strong> nằm trên mặt đất. Cần đủ <strong>50 hạt giống</strong> để đánh thức nguồn sống.
+                <strong>Giai đoạn Tích Lũy Hạt Mầm (0 – 49 Hạt Giống 🌰):</strong> Mỗi cuốn sách bạn gieo sẽ hóa thành 1 hạt giống hữu cơ nằm ủ mình dưới lòng đất. Cần sự chung sức của cộng đồng tích lũy đủ <strong>50 hạt giống</strong> đầu tiên để đánh thức mầm sống.
               </div>
             </div>
             <div class="rules-timeline-item">
               <div class="rules-timeline-dot active">1</div>
               <div class="rules-timeline-content">
-                <strong>Nảy Mầm Non (Đủ 50 Hạt):</strong> Đủ 50 hạt, toàn bộ hạt trên đất chuyển hóa dinh dưỡng và <strong>Cây Mầm Non 3D (~150px)</strong> chính thức nhú lên!
+                <strong>Nảy Mầm Non (Cột mốc Đủ 50 Hạt 🌱):</strong> Đủ 50 hạt giống, toàn bộ phù sa chuyển hóa dinh dưỡng nuôi rễ và <strong>Cây Mầm Non 3D (~150px)</strong> chính thức phá đất vươn lên đón ánh dương!
               </div>
             </div>
             <div class="rules-timeline-item">
               <div class="rules-timeline-dot">2</div>
               <div class="rules-timeline-content">
-                <strong>Đâm Chồi & Vươn Cành (150 - 400 EXP):</strong> Cây tơ định hình thân gỗ vững chãi, xòe rộng 2 tầng cành nhánh tươi tốt.
+                <strong>Bón Phân & Đâm Chồi (150 – 400 EXP 🌿):</strong> Mỗi cuốn sách đóng góp mới tiếp thêm phân bón dinh dưỡng. Thân cây bắt đầu hóa gỗ vững chãi, xòe rộng 2 tầng cành lá tươi xanh.
               </div>
             </div>
             <div class="rules-timeline-item">
               <div class="rules-timeline-dot">3</div>
               <div class="rules-timeline-content">
-                <strong>Trưởng Thành & Đại Cổ Thụ (1000 - 2500+ EXP):</strong> Cây cổ thụ 4 tầng cành sum sê, phát sáng đom đóm tri thức rực rỡ.
+                <strong>Tưới Nước & Vươn Tán Rộng (400 – 1,000 EXP 🌳):</strong> Cây tơ vươn mình rợp bóng với 3 tầng cành nhánh sum sê, quang hợp tự nhiên theo chu kỳ thời gian ngày đêm.
+              </div>
+            </div>
+            <div class="rules-timeline-item">
+              <div class="rules-timeline-dot">4</div>
+              <div class="rules-timeline-content">
+                <strong>Đại Cổ Thụ Tri Thức Ngàn Năm (1,000 – 2,500+ EXP 👑✨):</strong> Cây đại thụ 4 tầng cành khổng lồ, tỏa hào quang đom đóm tri thức lung linh về đêm, trở thành di sản văn hóa đọc bất tận.
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 3. Cơ Chế Điểm EXP -->
+        <!-- 3. Cơ Chế Tích Lũy EXP & Dưỡng Cây -->
         <div class="rules-section-card">
           <div class="rules-section-header">
             <span class="rules-icon-badge" style="background:rgba(243,111,33,0.12); color:#F36F21;">🎮</span>
-            <h4 class="rules-heading">Cơ Chế Điểm EXP & Lan Tỏa</h4>
+            <h4 class="rules-heading">Cơ Chế Tương Tác & Điểm EXP Nuôi Cây</h4>
           </div>
           <div class="rules-rewards-grid">
             <div class="rules-reward-box">
-              <div class="rules-reward-title">🌱 Gieo 1 Cuốn Sách</div>
-              <div class="rules-reward-detail">+1 Hạt Giống (Giai đoạn gieo) / +5 EXP</div>
+              <div class="rules-reward-title">🌱 Gieo Sách Nuôi Cây</div>
+              <div class="rules-reward-detail"><strong>+1 Hạt Mầm</strong> (giai đoạn gieo) hoặc <strong>+5 EXP</strong> Bón Phân Dưỡng Rễ</div>
             </div>
             <div class="rules-reward-box">
               <div class="rules-reward-title">💖 Thả Tim Trích Dẫn</div>
-              <div class="rules-reward-detail">+2 EXP / mỗi lượt yêu thích</div>
+              <div class="rules-reward-detail"><strong>+2 EXP</strong> / lượt yêu thích — Tiếp thêm giọt nước tưới mát quang hợp</div>
+            </div>
+            <div class="rules-reward-box">
+              <div class="rules-reward-title">🔗 Minh Bạch On-Chain</div>
+              <div class="rules-reward-detail">Mọi lượt gieo mầm được khắc ghi vĩnh viễn vào Sổ Cái Nhật Ký Tri Thức</div>
             </div>
           </div>
         </div>
@@ -5525,8 +5535,8 @@
       <!-- Footer Buttons -->
       <div style="margin-top:16px; display:flex; align-items:center; justify-content:flex-end; gap:10px; position:relative; z-index:2;">
         <button id="rules-dismiss-btn" class="cb-submit-btn" type="button">
-          <span>✨</span>
-          <span>Đã Hiểu & Gieo Mầm Ngay</span>
+          <span>🌱</span>
+          <span>Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây</span>
         </button>
       </div>
     </div>
