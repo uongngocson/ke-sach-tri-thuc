@@ -1,6 +1,6 @@
 /**
  * lib/quality.js
- * Hardware detection, DPR clamping, performance tiering, and motion preferences.
+ * Hardware detection, High-DPI Retina Clamping, performance tiering, and motion preferences.
  */
 
 export const QUALITY_TIERS = {
@@ -18,26 +18,25 @@ export function detectQualitySettings() {
   const memory = navigator.deviceMemory || 4;
   
   let tier = QUALITY_TIERS.HIGH;
-  let maxDPR = 1.5;
   let cloudOctaves = 4;
   let starCount = 900;
   let cloudParticles = true;
   
   if (isMobile || cores <= 4 || memory <= 4) {
     tier = QUALITY_TIERS.MEDIUM;
-    maxDPR = 1.0;
     cloudOctaves = 3;
     starCount = 450;
   }
   
   if (isMobile && (cores <= 2 || memory <= 2)) {
     tier = QUALITY_TIERS.LOW;
-    maxDPR = 1.0;
     cloudOctaves = 2;
     starCount = 250;
     cloudParticles = false;
   }
 
+  // Crisp Retina / High-DPI support on both Mobile and Desktop (capped at 2.0 for 60fps & razor-sharp visuals)
+  const maxDPR = 2.0;
   const dpr = Math.min(window.devicePixelRatio || 1, maxDPR);
 
   return {

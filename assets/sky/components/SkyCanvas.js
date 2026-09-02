@@ -59,13 +59,17 @@ export class SkyCanvas {
     this.camera = new this.THREE.PerspectiveCamera(60, width / height, 1, 3000);
     this.camera.position.set(0, 0, 0);
 
-    // 2. WebGL Renderer
+    // 2. WebGL Renderer - Crisp Ultra-HD with MSAA Antialiasing
     this.renderer = new this.THREE.WebGLRenderer({
       alpha: true,
-      antialias: this.quality.tier === 'HIGH',
+      antialias: true,
       powerPreference: 'high-performance',
-      stencil: false
+      stencil: false,
+      precision: 'highp'
     });
+    if (this.THREE.SRGBColorSpace) {
+      this.renderer.outputColorSpace = this.THREE.SRGBColorSpace;
+    }
 
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(this.quality.dpr);

@@ -3940,10 +3940,33 @@
       max-width: 620px;
       max-height: 90vh;
       overflow-y: auto;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
       padding: 24px 28px;
       position: relative;
       transform: scale(0.92) translateY(16px);
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #rules-card::-webkit-scrollbar,
+    #contribute-book-card::-webkit-scrollbar,
+    #book-quote-card::-webkit-scrollbar,
+    #onchain-card::-webkit-scrollbar,
+    .tester-panel-card::-webkit-scrollbar,
+    .tester-content-body::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+
+    #rules-card,
+    #contribute-book-card,
+    #book-quote-card,
+    #onchain-card,
+    .tester-panel-card,
+    .tester-content-body {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
     }
 
     html.dark #rules-card {

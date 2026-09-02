@@ -24,11 +24,19 @@ export class Tree {
     this.barkTexture.colorSpace = THREE.SRGBColorSpace;
     this.barkTexture.wrapS = THREE.RepeatWrapping;
     this.barkTexture.wrapT = THREE.RepeatWrapping;
+    this.barkTexture.generateMipmaps = true;
+    this.barkTexture.minFilter = THREE.LinearMipmapLinearFilter;
+    this.barkTexture.magFilter = THREE.LinearFilter;
+    this.barkTexture.anisotropy = 4;
 
     this.leafTextures = [null, null, null, null];
     // Preload primary Oak texture (index 2)
     const oakTex = this.loader.load('./assets/tree/textures/leaves/oak.png');
     oakTex.colorSpace = THREE.SRGBColorSpace;
+    oakTex.generateMipmaps = true;
+    oakTex.minFilter = THREE.LinearMipmapLinearFilter;
+    oakTex.magFilter = THREE.LinearFilter;
+    oakTex.anisotropy = 4;
     this.leafTextures[LeafType.Oak] = oakTex;
 
     this.branchesMesh = new THREE.Mesh();
@@ -121,8 +129,9 @@ export class Tree {
       color: this.params.leaves.color,
       emissive: new THREE.Color(this.params.leaves.color).multiplyScalar(this.params.leaves.emissive || 0.05),
       opacity: this.params.leaves.opacity,
-      alphaTest: this.params.leaves.alphaTest,
+      alphaTest: this.params.leaves.alphaTest || 0.35,
       transparent: true,
+      depthWrite: true,
       side: THREE.DoubleSide
     });
 
@@ -138,6 +147,10 @@ export class Tree {
       if (p) {
         leafTex = this.loader.load(p);
         leafTex.colorSpace = THREE.SRGBColorSpace;
+        leafTex.generateMipmaps = true;
+        leafTex.minFilter = THREE.LinearMipmapLinearFilter;
+        leafTex.magFilter = THREE.LinearFilter;
+        leafTex.anisotropy = 4;
         this.leafTextures[this.params.leaves.type] = leafTex;
       }
     }
