@@ -74,8 +74,9 @@ export class TesterPanel {
         </div>
 
         <!-- 4. Reset & Cache Control -->
-        <div class="tester-section" style="margin-bottom:0;">
+        <div class="tester-section" style="margin-bottom:0; display:flex; flex-direction:column; gap:6px;">
           <button class="tester-btn-reset" id="tester-reset-btn">↺ Reset Về Ban Đầu (0 Hạt, Mặt Đất Trống)</button>
+          <button class="tester-btn-reset" id="tester-wipe-db-btn" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;">🧹 Dọn Sạch CSDL (Empty CSDL - Giữ Tài Khoản)</button>
         </div>
       </div>
     `;
@@ -164,6 +165,16 @@ export class TesterPanel {
     panel.querySelector('#tester-reset-btn').addEventListener('click', async () => {
       await MockDataStore.resetToInitialState();
       this.updateTesterUI();
+    });
+
+    panel.querySelector('#tester-wipe-db-btn').addEventListener('click', async () => {
+      if (confirm('Bạn có chắc chắn muốn xóa sạch toàn bộ sách và dữ liệu về Empty (Vẫn giữ nguyên tài khoản Admin)?')) {
+        await MockDataStore.wipeDatabaseExceptAccounts();
+        this.updateTesterUI();
+        if (typeof window.showToast === 'function') {
+          window.showToast('🧹 Đã dọn sạch cơ sở dữ liệu về Empty (Giữ nguyên tài khoản Admin)!');
+        }
+      }
     });
 
     // Sync on growth events

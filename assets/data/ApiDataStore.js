@@ -454,6 +454,28 @@ class ApiDataStoreManager {
     return this.getCommunityGrowth();
   }
 
+    async wipeDatabaseExceptAccounts() {
+    try {
+      const res = await fetch(`${getApiBase()}/tester/wipe-database`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (data.success) {
+        this.cachedQuotes = [];
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('caosach_cached_quotes');
+          localStorage.removeItem('caosach_liked_quotes');
+        }
+        this.emit('growth:updated', data.data);
+        return data.data;
+      }
+    } catch (err) {
+      console.error('Error wiping database in tester:', err);
+    }
+    return null;
+  }
+
   async resetToInitialState() {
     try {
       const res = await fetch(`${getApiBase()}/tester/reset`, {
