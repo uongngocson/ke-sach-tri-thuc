@@ -3126,419 +3126,9 @@
 
   </style>
 
-  <!-- CUSTOM STYLES FOR CÂY TRI THỨC (HUD, TESTER & ANIMATIONS) -->
-  <style id="fpt-tree-custom-enhancements">
-    /* ==========================================================================
-       COMMUNITY GROWTH PROGRESS HUD BAR
-       ========================================================================== */
-    .community-growth-hud {
-      width: 100%;
-      max-width: 820px;
-      margin: 0 auto 10px auto;
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1.5px solid rgba(0, 84, 166, 0.25);
-      border-radius: 18px;
-      padding: 10px 18px;
-      box-shadow: 0 10px 30px -8px rgba(0, 84, 166, 0.18);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      z-index: 35;
-      position: relative;
-    }
-
-    html.dark .community-growth-hud {
-      background: rgba(15, 23, 42, 0.9);
-      border-color: rgba(56, 189, 248, 0.3);
-      box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.65);
-    }
-
-    .hud-content {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .hud-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-      min-width: 240px;
-    }
-
-    .hud-icon {
-      font-size: 24px;
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      background: rgba(112, 185, 40, 0.15);
-      border: 1.5px solid rgba(112, 185, 40, 0.35);
-      flex-shrink: 0;
-    }
-
-    .hud-text-block {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .hud-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .hud-badge {
-      font-size: 11px;
-      font-weight: 900;
-      padding: 2px 8px;
-      border-radius: 8px;
-      background: #0054A6;
-      color: #ffffff;
-      letter-spacing: 0.04em;
-    }
-
-    .hud-name {
-      font-size: 13px;
-      font-weight: 900;
-      color: #0f172a;
-    }
-
-    html.dark .hud-name {
-      color: #f8fafc;
-    }
-
-    .hud-hint {
-      font-size: 11px;
-      font-weight: 700;
-      color: #64748b;
-    }
-
-    html.dark .hud-hint {
-      color: #94a3b8;
-    }
-
-    .hud-right {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      width: 260px;
-    }
-
-    @media (max-width: 640px) {
-      .hud-right {
-        width: 100%;
-      }
-    }
-
-    .hud-stats {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      font-weight: 800;
-    }
-
-    .hud-exp {
-      color: #0054A6;
-    }
-
-    html.dark .hud-exp {
-      color: #38bdf8;
-    }
-
-    .hud-percent {
-      color: #F36F21;
-    }
-
-    .hud-progress-track {
-      width: 100%;
-      height: 8px;
-      border-radius: 9999px;
-      background: rgba(0, 84, 166, 0.12);
-      overflow: hidden;
-      position: relative;
-    }
-
-    html.dark .hud-progress-track {
-      background: rgba(255, 255, 255, 0.12);
-    }
-
-    .hud-progress-fill {
-      height: 100%;
-      border-radius: 9999px;
-      background: linear-gradient(90deg, #70B928 0%, #0054A6 50%, #F36F21 100%);
-      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 0 10px rgba(112, 185, 40, 0.5);
-    }
-
-    /* ==========================================================================
-       TESTER CONTROL PANEL STYLES
-       ========================================================================== */
-        .tester-text-mobile {
-      display: none;
-    }
-    .tester-text-full {
-      display: inline;
-    }
-
-    .tester-toggle-btn {
-      position: fixed;
-      bottom: 24px;
-      left: 24px;
-      z-index: 999999;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      border-radius: 9999px;
-      background: #0f172a;
-      color: #38bdf8;
-      border: 1.5px solid rgba(56, 189, 248, 0.4);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      user-select: none;
-    }
-
-    .tester-toggle-btn:hover {
-      transform: translateY(-2px) scale(1.04);
-      background: #1e293b;
-      border-color: #38bdf8;
-      box-shadow: 0 12px 30px rgba(56, 189, 248, 0.3);
-    }
-
-    .tester-toggle-btn.active {
-      background: #0284c7;
-      color: #ffffff;
-      border-color: #ffffff;
-    }
-
-    .tester-panel-card {
-      position: fixed;
-      bottom: 75px;
-      left: 24px;
-      z-index: 999999;
-      width: 330px;
-      max-width: calc(100vw - 48px);
-      background: rgba(15, 23, 42, 0.94);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      color: #f8fafc;
-      border: 1.5px solid rgba(56, 189, 248, 0.35);
-      border-radius: 20px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65);
-      overflow: hidden;
-      font-family: inherit;
-      animation: testerFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    @keyframes testerFadeIn {
-      from { opacity: 0; transform: translateY(10px) scale(0.96); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .tester-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      background: rgba(30, 41, 59, 0.6);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .tester-title {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 11px;
-      font-weight: 900;
-      color: #38bdf8;
-      letter-spacing: 0.05em;
-    }
-
-    .tester-close-btn {
-      width: 24px;
-      height: 24px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      color: #94a3b8;
-      font-size: 12px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-    }
-
-    .tester-close-btn:hover {
-      background: rgba(239, 68, 68, 0.2);
-      color: #ef4444;
-    }
-
-    .tester-body {
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .tester-section-label {
-      display: block;
-      font-size: 11px;
-      font-weight: 800;
-      color: #94a3b8;
-      margin-bottom: 6px;
-    }
-
-    .tester-grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-    }
-
-    .tester-btn {
-      padding: 8px 10px;
-      border-radius: 10px;
-      background: rgba(30, 41, 59, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #f1f5f9;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: left;
-    }
-
-    .tester-btn:hover {
-      background: #0284c7;
-      border-color: #38bdf8;
-      transform: translateY(-1px);
-    }
-
-    .tester-btn.active-stage {
-      background: #0284c7;
-      border-color: #38bdf8;
-      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3);
-    }
-
-    .tester-exp-val {
-      font-size: 11px;
-      font-weight: 900;
-      color: #38bdf8;
-    }
-
-    .tester-slider {
-      width: 100%;
-      height: 6px;
-      border-radius: 9999px;
-      background: #334155;
-      outline: none;
-      -webkit-appearance: none;
-      cursor: pointer;
-    }
-
-    .tester-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #38bdf8;
-      box-shadow: 0 0 8px #0284c7;
-      cursor: pointer;
-    }
-
-    .tester-slider-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 9px;
-      font-weight: 700;
-      color: #64748b;
-      margin-top: 4px;
-    }
-
-    .tester-btn-reset {
-      width: 100%;
-      padding: 8px;
-      border-radius: 10px;
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      color: #fca5a5;
-      font-size: 11px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .tester-btn-reset:hover {
-      background: #dc2626;
-      color: #ffffff;
-    }
-
-    /* ==========================================================================
-       LEVEL UP CELEBRATION TOAST
-       ========================================================================== */
-    .tree-level-up-toast {
-      position: fixed;
-      top: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2147483647;
-      background: linear-gradient(135deg, #0054A6 0%, #0d9488 50%, #70B928 100%);
-      color: #ffffff;
-      border: 2px solid #ffffff;
-      padding: 16px 28px;
-      border-radius: 22px;
-      box-shadow: 0 20px 50px rgba(0, 84, 166, 0.55);
-      text-align: center;
-      animation: toastPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      pointer-events: none;
-      font-family: inherit;
-    }
-
-    @keyframes toastPop {
-      0% { opacity: 0; transform: translateX(-50%) translateY(-30px) scale(0.85); }
-      100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-    }
-
-    .tree-level-up-toast.fade-out {
-      opacity: 0;
-      transform: translateX(-50%) translateY(-20px) scale(0.9);
-      transition: all 0.5s ease;
-    }
-
-    .level-up-icon {
-      font-size: 28px;
-      margin-bottom: 4px;
-    }
-
-    .level-up-title {
-      font-size: 15px;
-      font-weight: 900;
-      letter-spacing: 0.05em;
-    }
-
-    .level-up-sub {
-      font-size: 12px;
-      font-weight: 700;
-      opacity: 0.95;
-      margin-top: 3px;
-    }
-  </style>
-
-<style id="fpt-single-screen-master-styles">
-    /* 5. GLOBAL FIXED GROUND ACTION HINT & SINGLE-SCREEN LOCK (100% ZERO-SCROLL FOR IOS & MOBILE) */
+    <!-- CÁO SÁCH MASTER PRODUCTION STYLES (CONSOLIDATED & ZERO DUPLICATION) -->
+  <style id="cao-sach-production-master-styles">
+    /* 1. ZERO-SCROLL SINGLE SCREEN MASTER LOCK */
     html, body {
       position: fixed !important;
       top: 0 !important;
@@ -3596,6 +3186,118 @@
       flex-shrink: 0 !important;
     }
 
+    /* 2. HIGH-CONTRAST HEADER TEXT & BUTTONS (DAY & NIGHT VISIBILITY) */
+    .header-brand-title {
+      color: #0054A6;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+    .header-brand-sub {
+      color: #0054A6;
+      transition: color 0.3s ease;
+    }
+
+    html.dark .header-brand-title,
+    html.sky-night-active .header-brand-title {
+      color: #ffffff !important;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.5) !important;
+    }
+
+    html.dark .header-brand-sub,
+    html.sky-night-active .header-brand-sub {
+      color: #cbd5e1 !important;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9) !important;
+    }
+
+    /* Dew Button Styling */
+    #fpt-main-dew-btn,
+    #fpt-mobile-dew-btn {
+      transition: all 0.25s ease !important;
+    }
+    html.dark #fpt-main-dew-btn,
+    html.sky-night-active #fpt-main-dew-btn {
+      background: rgba(14, 165, 233, 0.22) !important;
+      border-color: rgba(56, 189, 248, 0.6) !important;
+      color: #38bdf8 !important;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8) !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 12px rgba(56, 189, 248, 0.3) !important;
+    }
+
+    /* Rules Button Styling */
+    #fpt-main-rules-btn,
+    #fpt-mobile-rules-btn {
+      transition: all 0.25s ease !important;
+    }
+    html.dark #fpt-main-rules-btn,
+    html.sky-night-active #fpt-main-rules-btn {
+      background: rgba(30, 41, 59, 0.85) !important;
+      border-color: rgba(255, 255, 255, 0.35) !important;
+      color: #ffffff !important;
+      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8) !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    /* Primary CTA Gieo Mầm Button */
+    .fpt-btn-cta,
+    #fpt-main-gieo-mam-btn,
+    #fpt-mobile-gieo-mam-btn {
+      background: linear-gradient(135deg, #F36F21 0%, #FF8A3D 100%) !important;
+      border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+      box-shadow: 0 4px 14px rgba(243, 111, 33, 0.35) !important;
+      color: #ffffff !important;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+    }
+    .fpt-btn-cta:hover,
+    #fpt-main-gieo-mam-btn:hover {
+      background: linear-gradient(135deg, #e05e10 0%, #F36F21 100%) !important;
+      box-shadow: 0 6px 20px rgba(243, 111, 33, 0.45) !important;
+    }
+
+    /* 3. GROUND CONTAINER & SEED INTERACTION */
+    .fpt-ground-arc {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border-top-left-radius: 50% 20px !important;
+      border-top-right-radius: 50% 20px !important;
+    }
+
+    .group\/note,
+    button[class*="group/note"] {
+      display: none !important;
+    }
+
+    div[class*="z-15"] {
+      margin-top: auto !important;
+      transform: none !important;
+      width: 100% !important;
+      position: relative !important;
+      z-index: 25 !important;
+      pointer-events: auto !important;
+      overflow: visible !important;
+    }
+
+    .fpt-ground-container {
+      min-height: 160px !important;
+      height: 20vh !important;
+      max-height: 210px !important;
+      width: 100% !important;
+      cursor: pointer !important;
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
+      position: relative !important;
+    }
+
+    .fpt-ground-inner {
+      min-height: 160px !important;
+      height: 100% !important;
+      width: 100% !important;
+      pointer-events: auto !important;
+      position: relative !important;
+    }
+
+    /* 4. DESKTOP TESTER & ACTION HINT DOCK */
     .tester-text-mobile {
       display: none;
     }
@@ -3603,7 +3305,6 @@
       display: inline;
     }
 
-    /* Desktop Tester Button (Bottom Left) */
     .tester-toggle-btn {
       position: fixed !important;
       bottom: 24px !important;
@@ -3663,7 +3364,127 @@
       animation: testerFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
-    /* Desktop Ground Action Hint (Bottom Center) */
+    @keyframes testerFadeIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .tester-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(30, 41, 59, 0.6);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .tester-title {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 900;
+      color: #38bdf8;
+      letter-spacing: 0.05em;
+    }
+    .tester-close-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #94a3b8;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .tester-body {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .tester-section-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+    .tester-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .tester-btn {
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f1f5f9;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+    .tester-btn:hover {
+      background: #0284c7;
+      border-color: #38bdf8;
+      transform: translateY(-1px);
+    }
+    .tester-btn.active-stage {
+      background: #0284c7;
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3);
+    }
+    .tester-exp-val {
+      font-size: 11px;
+      font-weight: 900;
+      color: #38bdf8;
+    }
+    .tester-slider {
+      width: 100%;
+      height: 6px;
+      border-radius: 9999px;
+      background: #334155;
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+    .tester-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 8px #0284c7;
+      cursor: pointer;
+    }
+    .tester-slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      font-weight: 700;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    .tester-btn-reset {
+      width: 100%;
+      padding: 8px;
+      border-radius: 10px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    /* Ground Action Hint (Bottom Center) */
     #ground-action-hint {
       position: fixed !important;
       bottom: 22px !important;
@@ -3680,11 +3501,9 @@
       max-width: calc(100vw - 24px) !important;
       transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
     }
-
     #ground-action-hint:hover {
       transform: translateX(-50%) scale(1.05) !important;
     }
-
     #ground-action-hint:active {
       transform: translateX(-50%) scale(0.96) !important;
     }
@@ -3710,11 +3529,6 @@
       animation: hintPillPulse 2.5s ease-in-out infinite !important;
     }
 
-    #ground-action-hint-text {
-      white-space: nowrap !important;
-      display: inline-block !important;
-    }
-
     html.dark .ground-hint-pill {
       background: rgba(15, 23, 42, 0.92) !important;
       border-color: #38bdf8 !important;
@@ -3730,9 +3544,39 @@
       }
     }
 
-    /* MOBILE RESPONSIVE RULES (<= 768px) */
+    /* Level Up Celebration Toast */
+    .tree-level-up-toast {
+      position: fixed;
+      top: calc(56px + env(safe-area-inset-top, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2147483647;
+      background: linear-gradient(135deg, #0054A6 0%, #0d9488 50%, #70B928 100%);
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      padding: 14px 24px;
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 84, 166, 0.55);
+      text-align: center;
+      animation: toastPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      font-family: inherit;
+    }
+    @keyframes toastPop {
+      0% { opacity: 0; transform: translateX(-50%) translateY(-30px) scale(0.85); }
+      100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    }
+    .tree-level-up-toast.fade-out {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-20px) scale(0.9);
+      transition: all 0.5s ease;
+    }
+    .level-up-icon { font-size: 26px; margin-bottom: 3px; }
+    .level-up-title { font-size: 14px; font-weight: 900; letter-spacing: 0.05em; }
+    .level-up-sub { font-size: 11px; font-weight: 700; opacity: 0.95; margin-top: 2px; }
+
+    /* 5. MOBILE RESPONSIVE RULES (<= 768px) */
     @media (max-width: 768px) {
-      /* Mobile text switcher: show 'Tester', hide 'Tester Option' */
       .tester-text-mobile {
         display: inline !important;
       }
@@ -3740,39 +3584,26 @@
         display: none !important;
       }
 
-      /* Compact Luxury Aside Quote Widget on Mobile */
       .aside-quote-widget {
-        width: calc(100vw - 28px) !important;
-        max-width: 320px !important;
-        padding: 9px 12px !important;
-        border-radius: 16px !important;
+        width: calc(100vw - 24px) !important;
+        max-width: 310px !important;
+        padding: 8px 10px !important;
+        border-radius: 14px !important;
         border-width: 1.5px !important;
-        box-shadow: 0 10px 30px rgba(0, 84, 166, 0.18) !important;
+        box-shadow: 0 8px 24px rgba(0, 84, 166, 0.16) !important;
       }
 
       .aside-quote-header {
         padding-bottom: 4px !important;
         margin-bottom: 5px !important;
       }
-
-      .aside-quote-badge {
-        font-size: 9px !important;
-      }
-
-      .aside-quote-live-tag {
-        font-size: 8px !important;
-        padding: 0px 4px !important;
-        border-radius: 4px !important;
-      }
-
-      .aside-quote-nav-btn,
-      .aside-quote-close-btn {
+      .aside-quote-badge { font-size: 9px !important; }
+      .aside-quote-nav-btn, .aside-quote-close-btn {
         width: 20px !important;
         height: 20px !important;
         font-size: 11px !important;
         border-radius: 5px !important;
       }
-
       .aside-quote-book {
         font-size: 12px !important;
         font-weight: 900 !important;
@@ -3782,25 +3613,17 @@
         overflow: hidden !important;
         text-overflow: ellipsis !important;
       }
-
       .aside-quote-author {
         font-size: 10px !important;
         font-weight: 700 !important;
         margin-bottom: 4px !important;
       }
-
       .aside-quote-bubble {
         padding: 6px 9px !important;
         margin-bottom: 4px !important;
         border-radius: 10px !important;
         border-left-width: 2.5px !important;
       }
-
-      .aside-quote-quotemark {
-        font-size: 13px !important;
-        line-height: 1 !important;
-      }
-
       .aside-quote-text {
         font-size: 10.5px !important;
         line-height: 1.42 !important;
@@ -3810,31 +3633,14 @@
         -webkit-box-orient: vertical !important;
         overflow: hidden !important;
       }
-
       .aside-quote-like-btn {
         padding: 2px 7px !important;
         font-size: 9.5px !important;
         height: 20px !important;
         gap: 3px !important;
       }
-
-      .aside-quote-footer {
-        font-size: 9.5px !important;
-        margin-top: 2px !important;
-      }
-
-      .aside-quote-sharer-label {
-        font-size: 9px !important;
-      }
-
-      .aside-quote-sharer {
-        font-size: 9.5px !important;
-      }
-
-      .aside-timer-track {
-        height: 2px !important;
-        margin-top: 4px !important;
-      }
+      .aside-quote-footer { font-size: 9.5px !important; margin-top: 2px !important; }
+      .aside-timer-track { height: 2px !important; margin-top: 4px !important; }
 
       /* Mobile Tester Button: Fixed Bottom-Left with Safe Area Inset */
       .tester-toggle-btn {
@@ -3871,15 +3677,6 @@
         max-width: calc(100vw - 20px) !important;
         white-space: nowrap !important;
       }
-
-      #ground-action-hint:hover {
-        transform: translateX(-50%) scale(1.04) !important;
-      }
-
-      #ground-action-hint:active {
-        transform: translateX(-50%) scale(0.96) !important;
-      }
-
       .ground-hint-pill {
         padding: 5px 11px !important;
         font-size: 10.5px !important;
@@ -3896,8 +3693,29 @@
         font-size: 10.5px !important;
         white-space: nowrap !important;
       }
+
+      .fpt-ground-container {
+        min-height: 110px !important;
+        height: 16dvh !important;
+        max-height: 140px !important;
+        padding-bottom: calc(44px + env(safe-area-inset-bottom, 0px)) !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+        position: relative !important;
+      }
+      .fpt-ground-inner {
+        min-height: 110px !important;
+        height: 100% !important;
+        pointer-events: auto !important;
+        position: relative !important;
+      }
+
+      #tree3d-gui-container {
+        display: none !important;
+      }
     }
-    /* Permanently hide and neutralize any sky dev controls */
+
+    /* 6. NEUTRALIZE ANY SKY DEV BUTTONS */
     #realistic-sky-dev-control,
     #sky-dev-panel,
     #sky-dev-toggle-btn,
@@ -3911,67 +3729,7 @@
       left: -99999px !important;
       top: -99999px !important;
     }
-
-    /* ==========================================================================
-       HIGH-CONTRAST HEADER TEXT & BUTTONS (PERFECT READABILITY IN DAY & NIGHT)
-       ========================================================================== */
-    .header-brand-title {
-      color: #0054A6;
-      transition: color 0.3s ease, text-shadow 0.3s ease;
-    }
-    .header-brand-sub {
-      color: #0054A6;
-      transition: color 0.3s ease;
-    }
-
-    html.dark .header-brand-title,
-    html.sky-night-active .header-brand-title {
-      color: #ffffff !important;
-      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.5) !important;
-    }
-
-    html.dark .header-brand-sub,
-    html.sky-night-active .header-brand-sub {
-      color: #cbd5e1 !important;
-      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9) !important;
-    }
-
-    /* Dew Button High Contrast */
-    #fpt-main-dew-btn,
-    #fpt-mobile-dew-btn {
-      transition: all 0.25s ease !important;
-    }
-    html.dark #fpt-main-dew-btn,
-    html.sky-night-active #fpt-main-dew-btn {
-      background: rgba(14, 165, 233, 0.22) !important;
-      border-color: rgba(56, 189, 248, 0.6) !important;
-      color: #38bdf8 !important;
-      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8) !important;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 12px rgba(56, 189, 248, 0.3) !important;
-    }
-
-    /* Rules Button High Contrast */
-    #fpt-main-rules-btn,
-    #fpt-mobile-rules-btn {
-      transition: all 0.25s ease !important;
-    }
-    html.dark #fpt-main-rules-btn,
-    html.sky-night-active #fpt-main-rules-btn {
-      background: rgba(30, 41, 59, 0.85) !important;
-      border-color: rgba(255, 255, 255, 0.35) !important;
-      color: #ffffff !important;
-      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8) !important;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
-    }
-
-    /* CTA Gieo Mầm Button High Contrast */
-    #fpt-main-gieo-mam-btn,
-    #fpt-mobile-gieo-mam-btn {
-      color: #ffffff !important;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
-    }
-
-</style>
+  </style>
 </head>
 
 <body class="">
