@@ -7,7 +7,7 @@
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     name="viewport" />
-  <title>Cây Sách Tri Thức</title>
+  <title>Cáo Sách</title>
   <!--<base href="/">-->
   <base href="." />
   <link href="./assets/logo.svg" rel="icon" type="image/svg+xml" />
@@ -3538,13 +3538,62 @@
   </style>
 
 <style id="fpt-single-screen-master-styles">
-    /* 5. GLOBAL FIXED GROUND ACTION HINT & SINGLE-SCREEN LOCK */
+    /* 5. GLOBAL FIXED GROUND ACTION HINT & SINGLE-SCREEN LOCK (100% ZERO-SCROLL FOR IOS & MOBILE) */
     html, body {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100% !important;
+      width: 100vw !important;
       height: 100% !important;
-      max-height: 100vh !important;
+      height: 100dvh !important;
+      max-height: 100dvh !important;
       overflow: hidden !important;
-      margin: 0;
-      padding: 0;
+      overscroll-behavior: none !important;
+      touch-action: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    app-root,
+    app-home,
+    .min-h-screen,
+    div[class*="min-h-screen"] {
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      height: 100dvh !important;
+      max-height: 100dvh !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+    }
+
+    main,
+    main[class*="flex-1"] {
+      position: relative !important;
+      flex: 1 1 0% !important;
+      width: 100% !important;
+      min-height: 0 !important;
+      height: auto !important;
+      max-height: 100% !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+    }
+
+    header {
+      padding-top: env(safe-area-inset-top, 0px) !important;
+      flex-shrink: 0 !important;
     }
 
     .tester-text-mobile {
@@ -3787,9 +3836,9 @@
         margin-top: 4px !important;
       }
 
-      /* Mobile Tester Button: Fixed Bottom-Left */
+      /* Mobile Tester Button: Fixed Bottom-Left with Safe Area Inset */
       .tester-toggle-btn {
-        bottom: 14px !important;
+        bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
         left: 10px !important;
         top: auto !important;
         right: auto !important;
@@ -3803,7 +3852,7 @@
       }
 
       .tester-panel-card {
-        bottom: 56px !important;
+        bottom: calc(50px + env(safe-area-inset-bottom, 0px)) !important;
         top: auto !important;
         left: 10px !important;
         right: auto !important;
@@ -3811,9 +3860,9 @@
         max-width: 320px !important;
       }
 
-      /* Mobile Ground Action Hint: Fixed Bottom-Center (Always Centered & Single Line) */
+      /* Mobile Ground Action Hint: Fixed Bottom-Center with Safe Area Inset */
       #ground-action-hint {
-        bottom: 14px !important;
+        bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
         top: auto !important;
@@ -3848,6 +3897,80 @@
         white-space: nowrap !important;
       }
     }
+    /* Permanently hide and neutralize any sky dev controls */
+    #realistic-sky-dev-control,
+    #sky-dev-panel,
+    #sky-dev-toggle-btn,
+    [id*="sky-dev"],
+    [class*="sky-dev"] {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      position: absolute !important;
+      left: -99999px !important;
+      top: -99999px !important;
+    }
+
+    /* ==========================================================================
+       HIGH-CONTRAST HEADER TEXT & BUTTONS (PERFECT READABILITY IN DAY & NIGHT)
+       ========================================================================== */
+    .header-brand-title {
+      color: #0054A6;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+    .header-brand-sub {
+      color: #0054A6;
+      transition: color 0.3s ease;
+    }
+
+    html.dark .header-brand-title,
+    html.sky-night-active .header-brand-title {
+      color: #ffffff !important;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.5) !important;
+    }
+
+    html.dark .header-brand-sub,
+    html.sky-night-active .header-brand-sub {
+      color: #cbd5e1 !important;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9) !important;
+    }
+
+    /* Dew Button High Contrast */
+    #fpt-main-dew-btn,
+    #fpt-mobile-dew-btn {
+      transition: all 0.25s ease !important;
+    }
+    html.dark #fpt-main-dew-btn,
+    html.sky-night-active #fpt-main-dew-btn {
+      background: rgba(14, 165, 233, 0.22) !important;
+      border-color: rgba(56, 189, 248, 0.6) !important;
+      color: #38bdf8 !important;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8) !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 12px rgba(56, 189, 248, 0.3) !important;
+    }
+
+    /* Rules Button High Contrast */
+    #fpt-main-rules-btn,
+    #fpt-mobile-rules-btn {
+      transition: all 0.25s ease !important;
+    }
+    html.dark #fpt-main-rules-btn,
+    html.sky-night-active #fpt-main-rules-btn {
+      background: rgba(30, 41, 59, 0.85) !important;
+      border-color: rgba(255, 255, 255, 0.35) !important;
+      color: #ffffff !important;
+      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8) !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    /* CTA Gieo Mầm Button High Contrast */
+    #fpt-main-gieo-mam-btn,
+    #fpt-mobile-gieo-mam-btn {
+      color: #ffffff !important;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+    }
+
 </style>
 </head>
 
@@ -3867,18 +3990,18 @@
               <div _ngcontent-ng-c4179040905=""
                 class="flex items-center justify-between w-full lg:w-auto gap-2 shrink-0"><a
                   _ngcontent-ng-c4179040905="" class="flex items-center gap-2 group shrink-0"
-                  href="javascript:void(0);"><img _ngcontent-ng-c4179040905="" alt="Cây Sách Tri Thức"
+                  href="javascript:void(0);"><img _ngcontent-ng-c4179040905="" alt="Cáo Sách"
                     class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl shadow-md group-hover:scale-105 transition-transform duration-300 shrink-0"
                     src="./assets/logo.svg" />
                   <div _ngcontent-ng-c4179040905="">
                     <h1 _ngcontent-ng-c4179040905=""
-                      class="text-sm sm:text-base font-black tracking-tight text-[#0054A6] dark:text-sky-400 flex items-center gap-1.5">
-                      <span _ngcontent-ng-c4179040905="">CÂY SÁCH TRI THỨC</span><span _ngcontent-ng-c4179040905=""
+                      class="header-brand-title text-sm sm:text-base font-black tracking-tight flex items-center gap-1.5">
+                      <span _ngcontent-ng-c4179040905="">CÁO SÁCH</span><span _ngcontent-ng-c4179040905=""
                         class="px-1.5 py-0.5 rounded-md bg-[#0054A6] text-white dark:bg-[#f5ce42] dark:text-[#121620] font-black text-[10px] sm:text-xs shadow-xs">
                         📖 </span>
                     </h1>
                     <p _ngcontent-ng-c4179040905=""
-                      class="text-[10px] sm:text-[11px] text-[#0054A6] dark:text-slate-400 font-bold flex items-center gap-1 leading-tight">
+                      class="header-brand-sub text-[10px] sm:text-[11px] font-bold flex items-center gap-1 leading-tight">
                       <span _ngcontent-ng-c4179040905="">📚</span><span
                         _ngcontent-ng-c4179040905=""><strong>2,735</strong> độc giả ghé thăm</span>
                     </p>
@@ -3927,7 +4050,7 @@
                 <button
                   id="fpt-main-rules-btn"
                   class="h-9 flex items-center justify-center gap-1.5 px-4 rounded-xl bg-white/90 hover:bg-white dark:bg-slate-800 dark:hover:bg-slate-700 border border-[#0054A6]/30 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-200 transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
-                  title="Xem thể lệ chương trình Cây Sách Tri Thức" type="button">
+                  title="Xem thể lệ chương trình Cáo Sách" type="button">
                   <span class="text-sm leading-none">📜</span>
                   <span>Thể Lệ</span>
                 </button>
@@ -4080,7 +4203,7 @@
       <div class="welcome-quote-box" style="position: relative; z-index: 2;">
         <p class="welcome-metaphor-text">
           “Tri thức nhân loại tựa như đại cổ thụ vươn bóng ngàn năm, bắt đầu từ những hạt mầm khiêm nhường ủ mình trong lòng đất.
-          Tại <strong>Cây Sách Tri Thức</strong>, mỗi cuốn sách bạn gieo, mỗi dòng trích dẫn bạn sẻ chia chính là nguồn phù sa màu mỡ và dòng nước tưới mát — cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn cành rợp bóng.”
+          Tại <strong>Cáo Sách</strong>, mỗi cuốn sách bạn gieo, mỗi dòng trích dẫn bạn sẻ chia chính là nguồn phù sa màu mỡ và dòng nước tưới mát — cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn cành rợp bóng.”
         </p>
       </div>
 
@@ -4154,7 +4277,7 @@
       <div class="welcome-quote-box" style="position: relative; z-index: 2;">
         <p class="welcome-metaphor-text">
           “Tri thức nhân loại tựa như đại cổ thụ vươn bóng ngàn năm, bắt đầu từ những hạt mầm khiêm nhường ủ mình trong lòng đất.
-          Tại <strong>Cây Sách Tri Thức</strong>, mỗi cuốn sách bạn gieo, mỗi dòng trích dẫn bạn sẻ chia chính là nguồn phù sa màu mỡ và dòng nước tưới mát — cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn cành rợp bóng.”
+          Tại <strong>Cáo Sách</strong>, mỗi cuốn sách bạn gieo, mỗi dòng trích dẫn bạn sẻ chia chính là nguồn phù sa màu mỡ và dòng nước tưới mát — cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn cành rợp bóng.”
         </p>
       </div>
 
@@ -5351,17 +5474,19 @@
         z-index: 30 !important;
       }
       .fpt-ground-container {
-        min-height: 95px !important;
-        height: 14vh !important;
-        max-height: 125px !important;
-        padding-bottom: 0.5rem !important;
+        min-height: 110px !important;
+        height: 16dvh !important;
+        max-height: 140px !important;
+        padding-bottom: calc(44px + env(safe-area-inset-bottom, 0px)) !important;
         pointer-events: auto !important;
         touch-action: manipulation !important;
+        position: relative !important;
       }
       .fpt-ground-inner {
-        min-height: 95px !important;
+        min-height: 110px !important;
         height: 100% !important;
         pointer-events: auto !important;
+        position: relative !important;
       }
     }
 
@@ -5843,7 +5968,7 @@
             <h4 class="rules-heading">Sứ Mệnh & Ý Nghĩa Nuôi Dưỡng Cây</h4>
           </div>
           <p class="rules-desc">
-            <strong>Cây Sách Tri Thức</strong> là không gian sinh thái số kết nối và tôn vinh văn hóa đọc. Mỗi cuốn sách đóng góp, mỗi trích dẫn đắt giá của bạn chính là <strong>nguồn phù sa màu mỡ, hạt giống tương lai và giọt nước tinh khiết</strong> trực tiếp bón phân, tưới mát để cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn mình từ lòng đất trở thành đại cổ thụ ngàn năm.
+            <strong>Cáo Sách</strong> là không gian sinh thái số kết nối và tôn vinh văn hóa đọc. Mỗi cuốn sách đóng góp, mỗi trích dẫn đắt giá của bạn chính là <strong>nguồn phù sa màu mỡ, hạt giống tương lai và giọt nước tinh khiết</strong> trực tiếp bón phân, tưới mát để cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn mình từ lòng đất trở thành đại cổ thụ ngàn năm.
           </p>
         </div>
 
@@ -6099,7 +6224,7 @@
       <div class="welcome-quote-box" style="position: relative; z-index: 2;">
         <p class="welcome-metaphor-text">
           “Tri thức nhân loại tựa như đại cổ thụ vươn bóng ngàn năm, bắt đầu từ những hạt mầm khiêm nhường ủ mình trong lòng đất.
-          Tại <strong>Cây Sách Tri Thức</strong>, mỗi cuốn sách bạn gieo, mỗi dòng trích dẫn bạn sẻ chia chính là nguồn phù sa màu mỡ và dòng nước tưới mát — cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn cành rợp bóng.”
+          Tại <strong>Cáo Sách</strong>, mỗi cuốn sách bạn gieo, mỗi dòng trích dẫn bạn sẻ chia chính là nguồn phù sa màu mỡ và dòng nước tưới mát — cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn cành rợp bóng.”
         </p>
       </div>
 
@@ -6216,7 +6341,7 @@
           const elLikes = document.getElementById('aside-quote-like-count');
 
           quoteData = {
-            book: elTitle ? elTitle.textContent.trim() : 'Cây Sách Tri Thức',
+            book: elTitle ? elTitle.textContent.trim() : 'Cáo Sách',
             author: elAuthor ? elAuthor.textContent.replace('✍️', '').trim() : 'Tác Giả Tri Thức',
             quote: elQuote ? elQuote.textContent.trim() : 'Mỗi cuốn sách bạn đọc là một hạt mầm nuôi dưỡng Cây Tri Thức.',
             reader: elReader ? elReader.textContent.trim() : 'Độc giả yêu sách',
@@ -6920,6 +7045,10 @@ async function renderGroundSeeds() {
       }
       window.showToast = showToast;
 
+            // Force remove any leftover sky-dev elements immediately
+      const skyDevEl = document.getElementById('realistic-sky-dev-control');
+      if (skyDevEl) skyDevEl.remove();
+      document.querySelectorAll('[id*="sky-dev"]').forEach(el => el.remove());
       // Start all subsystems
       initTheme();
       initGrowthHUD();
@@ -6929,7 +7058,7 @@ async function renderGroundSeeds() {
   </script>
   <!-- REALISTIC DAY/NIGHT SKY SYSTEM (THREE.JS + PROCEDURAL GLSL SHADERS) -->
   <script src="./assets/sky/three.min.js"></script>
-  <script type="module" src="./assets/sky/RealisticSky.js"></script>
+  <script type="module" src="./assets/sky/RealisticSky.js?v=3.0"></script>
 </body>
 
 </html>

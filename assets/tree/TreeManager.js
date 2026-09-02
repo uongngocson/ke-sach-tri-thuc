@@ -1,6 +1,6 @@
 /**
  * assets/tree/TreeManager.js
- * Master 3D Procedural Tree Coordinator for Cây Sách Tri Thức
+ * Master 3D Procedural Tree Coordinator for Cáo Sách
  * Features 100% "Cây Cổ Thụ Lâu Năm" (Ancient Thousand-Year Tree)
  * Dynamically Locks Tree Root directly to the DOM Ground Horizon Border
  */
@@ -102,6 +102,9 @@ export class TreeManager {
 
     // Resize listener for continuous grounding
     window.addEventListener('resize', () => this.updateAnchorTransform(), { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => this.updateAnchorTransform(), { passive: true });
+    }
   }
 
   /**
@@ -132,8 +135,9 @@ export class TreeManager {
       if (groundEl) {
         const rect = groundEl.getBoundingClientRect();
         // The top edge of the ground dome arc
+        const vpHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
         const groundTopPx = rect.top;
-        const ndcY = 1.0 - (groundTopPx / window.innerHeight) * 2.0;
+        const ndcY = 1.0 - (groundTopPx / vpHeight) * 2.0;
 
         const distance = Math.abs(this.camera.position.z - t.posZ);
         const vFovRad = THREE.MathUtils.degToRad(this.camera.fov);
@@ -144,10 +148,13 @@ export class TreeManager {
       }
     }
 
-    // Responsive scale adjustment for narrow mobile screens
+    // Ergonomic Mobile Framing (Lifts tree & ground cleanly above Safari toolbar)
     const isMobile = window.innerWidth < 768;
     const isSmallMobile = window.innerWidth < 480;
-    const responsiveScale = isSmallMobile ? t.scale * 0.72 : (isMobile ? t.scale * 0.82 : t.scale);
+    if (isMobile) {
+      computedY += isSmallMobile ? 16.0 : 12.0;
+    }
+    const responsiveScale = isSmallMobile ? t.scale * 0.85 : (isMobile ? t.scale * 0.90 : t.scale);
 
     this.treeAnchor.position.set(0, computedY, t.posZ);
     this.treeAnchor.scale.set(responsiveScale, responsiveScale, responsiveScale);

@@ -51,8 +51,8 @@ export class SkyCanvas {
   }
 
   init() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const width = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
     // 1. Scene & Perspective Camera
     this.scene = new this.THREE.Scene();
@@ -119,8 +119,8 @@ export class SkyCanvas {
 
   onResize() {
     if (!this.renderer || !this.camera) return;
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const width = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();

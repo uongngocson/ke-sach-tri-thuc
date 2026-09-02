@@ -1,6 +1,6 @@
 /**
  * assets/data/MockDataStore.js
- * Master Mock Data & State Management Service for Cây Sách Tri Thức
+ * Master Mock Data & State Management Service for Cáo Sách
  */
 
 export class MockDataStore {

@@ -5,7 +5,7 @@
  */
 export class QuoteCardExporter {
   static async exportQuoteImage({
-    book = 'Cây Sách Tri Thức',
+    book = 'Cáo Sách',
     author = 'Tác Giả Tri Thức',
     quote = 'Mỗi cuốn sách bạn đọc là một hạt mầm tiếp thêm dinh dưỡng cho Cây Tri Thức vươn cao.',
     reader = 'Độc giả yêu sách',
@@ -150,7 +150,7 @@ export class QuoteCardExporter {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#38bdf8';
     ctx.font = '900 24px "Quicksand", sans-serif';
-    ctx.fillText('✨ CÂY SÁCH TRI THỨC ✨', width / 2, cursorY + 35);
+    ctx.fillText('✨ CÁO SÁCH ✨', width / 2, cursorY + 35);
     ctx.restore();
 
     cursorY += 80;

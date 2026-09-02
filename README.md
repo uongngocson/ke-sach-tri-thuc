@@ -1,7 +1,7 @@
-# 🌳 Cây Sách Tri Thức — The Knowledge Tree
+# 🌳 Cáo Sách — The Knowledge Tree
 
 <p align="center">
-  <img src="./assets/logo.svg" alt="Cây Sách Tri Thức Logo" width="100" height="100" />
+  <img src="./assets/logo.svg" alt="Cáo Sách Logo" width="100" height="100" />
 </p>
 
 <p align="center">
@@ -21,7 +21,7 @@
 
 ## 📖 Giới thiệu Dự Án
 
-**Cây Sách Tri Thức** là một nền tảng trải nghiệm web 3D nghệ thuật và tương tác, lấy cảm hứng từ hình tượng cây đại thụ trăm năm – nơi mỗi nhánh cây, chiếc lá đại diện cho một cuốn sách tinh hoa, một trích dẫn đắt giá hay một bài học nhân sinh sâu sắc.
+**Cáo Sách** là một nền tảng trải nghiệm web 3D nghệ thuật và tương tác, lấy cảm hứng từ hình tượng cây đại thụ trăm năm – nơi mỗi nhánh cây, chiếc lá đại diện cho một cuốn sách tinh hoa, một trích dẫn đắt giá hay một bài học nhân sinh sâu sắc.
 
 Dự án kết hợp đồ họa không gian ba chiều thời gian thực (**Three.js & WebGL**) cùng hệ thống bầu trời thiên văn mô phỏng 24 giờ (**Procedural Sky Shaders**), mang đến một không gian đọc sách tĩnh lặng, giàu cảm xúc và truyền cảm hứng.
 

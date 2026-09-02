@@ -1,21 +1,25 @@
 /**
  * RealisticSky.js
  * Master Entry Point for the Realistic Day/Night Celestial Sky System
+ * Runs 100% automatically in background with ZERO UI buttons/overlays.
  */
 import { SkyCanvas } from './components/SkyCanvas.js';
-import { DevScrubber } from './components/DevScrubber.js';
 
 class RealisticSkySystem {
   constructor() {
     this.canvasContainer = null;
     this.skyCanvas = null;
-    this.devScrubber = null;
-    this.currentHour = 12.0;
-    this.targetHour = 12.0;
+    this.currentHour = this.getLocalDecimalHour();
+    this.targetHour = this.currentHour;
     this.isTransitioning = false;
     this.lastTime = performance.now();
 
     this.init();
+  }
+
+  getLocalDecimalHour() {
+    const now = new Date();
+    return now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
   }
 
   init() {
@@ -29,51 +33,36 @@ class RealisticSkySystem {
     }
     this.canvasContainer = container;
 
-    // 2. Initialize Sky Canvas & Dev Scrubber
+    // 2. Initialize Sky Canvas
     this.skyCanvas = new SkyCanvas(this.canvasContainer);
-    this.devScrubber = new DevScrubber({
-      onTimeChange: (newHour) => {
-        this.currentHour = newHour;
-        this.targetHour = newHour;
-        this.isTransitioning = false;
-      }
-    });
 
     // Check if initial theme is dark
     const isDarkInitial = document.documentElement.classList.contains('dark');
-    if (isDarkInitial && this.devScrubber.isRealTime) {
-      const realH = this.devScrubber.getLocalDecimalHour();
+    if (isDarkInitial) {
+      const realH = this.getLocalDecimalHour();
       if (realH >= 6 && realH < 18) {
-        // If user explicitly saved dark theme, start in night mode (22:00)
         this.currentHour = 22.0;
         this.targetHour = 22.0;
-        this.devScrubber.currentHour = 22.0;
-        this.devScrubber.isRealTime = false;
-        if (this.devScrubber.slider) this.devScrubber.slider.value = 22.0;
       } else {
         this.currentHour = realH;
         this.targetHour = realH;
       }
     } else {
-      this.currentHour = this.devScrubber.getLocalDecimalHour();
+      this.currentHour = this.getLocalDecimalHour();
       this.targetHour = this.currentHour;
     }
 
-    // 3. Listen to Theme Changes (Ban Đêm / Ban Ngày buttons)
+    // 3. Listen to Theme Changes (Ban Đêm / Ban Ngày)
     const observer = new MutationObserver((mutations) => {
       for (const m of mutations) {
         if (m.attributeName === 'class') {
           const isDark = document.documentElement.classList.contains('dark');
           if (isDark && (this.currentHour >= 6.0 && this.currentHour <= 18.0)) {
-            // Smoothly shift to night
             this.targetHour = 22.0;
             this.isTransitioning = true;
-            this.devScrubber.isRealTime = false;
           } else if (!isDark && (this.currentHour < 6.0 || this.currentHour > 18.0)) {
-            // Smoothly shift to day
             this.targetHour = 12.0;
             this.isTransitioning = true;
-            this.devScrubber.isRealTime = false;
           }
         }
       }
@@ -84,7 +73,7 @@ class RealisticSkySystem {
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
 
-    console.log('🌌 Realistic Sky System Initialized (24h Day/Night Cycle Active)');
+    console.log('🌌 Realistic Sky System Initialized (Zero UI, 100% Background Execution)');
   }
 
   loop(currentTime) {
@@ -102,30 +91,35 @@ class RealisticSkySystem {
         this.currentHour = this.targetHour;
         this.isTransitioning = false;
       }
-      if (this.devScrubber) {
-        this.devScrubber.currentHour = this.currentHour;
-        if (this.devScrubber.slider && document.activeElement !== this.devScrubber.slider) {
-          this.devScrubber.slider.value = this.currentHour;
-        }
+    } else {
+      // Advance by real-time progression
+      this.currentHour = (this.currentHour + (deltaSec / 3600)) % 24;
+    }
+
+    // Broadcast night state to documentElement for crystal-clear UI contrast
+    const isNightNow = (this.currentHour < 6.0 || this.currentHour > 18.0);
+    if (document.documentElement) {
+      if (isNightNow && !document.documentElement.classList.contains('sky-night-active')) {
+        document.documentElement.classList.add('sky-night-active');
+      } else if (!isNightNow && document.documentElement.classList.contains('sky-night-active')) {
+        document.documentElement.classList.remove('sky-night-active');
       }
-    } else if (this.devScrubber) {
-      this.currentHour = this.devScrubber.tick(deltaSec);
     }
 
     // Render WebGL frame
     if (this.skyCanvas) {
-      const state = this.skyCanvas.render(this.currentHour);
-      if (state && this.devScrubber) {
-        this.devScrubber.updateState(state);
-      }
+      this.skyCanvas.render(this.currentHour);
     }
 
     requestAnimationFrame(this.loop);
   }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => new RealisticSkySystem());
-} else {
-  new RealisticSkySystem();
+// Auto-initialize when DOM is ready
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => new RealisticSkySystem());
+  } else {
+    new RealisticSkySystem();
+  }
 }

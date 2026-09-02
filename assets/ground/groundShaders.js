@@ -1,6 +1,6 @@
 /**
  * assets/ground/groundShaders.js
- * High-End Photorealistic Procedural Forest Soil & Terrain Shader for Cây Sách Tri Thức
+ * High-End Photorealistic Procedural Forest Soil & Terrain Shader for Cáo Sách
  */
 
 export const groundVertexShader = /* glsl */ `
