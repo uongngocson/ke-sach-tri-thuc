@@ -239,6 +239,8 @@ class ApiDataStoreManager {
       author: q.author,
       quote: q.quote,
       reader: q.reader,
+      category: q.category,
+      likes: q.likes || 0,
       x: 18 + ((idx * 27) % 64),
       y: 38 + ((idx * 19) % 38)
     }));

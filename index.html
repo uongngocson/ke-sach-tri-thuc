@@ -6559,7 +6559,8 @@ async function renderGroundSeeds() {
         if (reader) reader.textContent = q.reader || 'Độc giả yêu sách';
 
         if (quoteLikeBtn && quoteLikeCount) {
-          quoteLikeCount.textContent = (q.likes || 0).toLocaleString();
+          const likesCount = (q.likes !== undefined && q.likes !== null) ? q.likes : 0;
+          quoteLikeCount.textContent = likesCount.toLocaleString();
           const isLiked = MockDataStore.isLikedByUser(q.id);
           if (isLiked) {
             quoteLikeBtn.classList.add('liked');
