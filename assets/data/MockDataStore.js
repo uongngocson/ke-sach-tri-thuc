@@ -84,6 +84,21 @@ export class MockDataStore {
     }
   }
 
+  static emitEvent(event, data) {
+    this.#emit(event, data);
+  }
+
+  static async addEXP(amount = 1) {
+    this.init();
+    const currentExp = parseInt(localStorage.getItem(this.STORAGE_KEY_USER_EXP) || '0', 10);
+    const newExp = currentExp + amount;
+    localStorage.setItem(this.STORAGE_KEY_USER_EXP, newExp.toString());
+    sessionStorage.removeItem('fpt_tester_exp_override');
+    const growth = await this.getCommunityGrowth();
+    this.#emit('growth:updated', growth);
+    return growth;
+  }
+
   static async getSeeds() {
     this.init();
     try {
@@ -142,6 +157,7 @@ export class MockDataStore {
     const growth = await this.getCommunityGrowth();
     this.#emit('seeds:updated', { seeds, newSeed });
     this.#emit('growth:updated', growth);
+    this.#emit('book:contributed', { seed: newSeed, growth });
 
     return { success: true, seed: newSeed, growth };
   }
@@ -180,6 +196,9 @@ export class MockDataStore {
     const growth = await this.getCommunityGrowth();
     if (seed) this.#emit('seeds:updated', { seeds, updatedSeed: seed });
     this.#emit('growth:updated', growth);
+    if (!isCurrentlyLiked) {
+      this.#emit('quote:liked', { quoteOrSeedId, growth });
+    }
 
     return {
       success: true,

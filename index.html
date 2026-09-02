@@ -3660,7 +3660,13 @@
                     </p>
                   </div>
                 </a>
-                <div _ngcontent-ng-c4179040905="" class="flex lg:hidden items-center gap-2 shrink-0">
+                <div _ngcontent-ng-c4179040905="" class="flex lg:hidden items-center gap-1.5 shrink-0">
+                  <button
+                    id="fpt-mobile-dew-btn"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-500/15 border border-sky-500/40 text-sm font-bold text-sky-600 dark:text-sky-300 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
+                    title="Nhận giọt sương sớm hằng ngày (+1 EXP)" type="button">
+                    <span>💧</span>
+                  </button>
                   <button
                     id="fpt-mobile-gieo-mam-btn"
                     class="w-9 h-9 flex items-center justify-center rounded-xl fpt-btn-cta text-sm font-bold text-white transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
@@ -3680,6 +3686,13 @@
                 </div>
               </div>
               <div _ngcontent-ng-c4179040905="" class="hidden lg:flex items-center gap-2.5 shrink-0">
+                <button
+                  id="fpt-main-dew-btn"
+                  class="h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/40 text-sky-700 dark:text-sky-300 text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
+                  title="Nhận giọt sương sớm hằng ngày (+1 EXP)" type="button">
+                  <span class="text-sm leading-none">💧</span>
+                  <span id="fpt-main-dew-text">Tưới Sương</span>
+                </button>
                 <button
                   id="fpt-main-gieo-mam-btn"
                   class="h-9 flex items-center justify-center gap-1.5 px-4 rounded-xl fpt-btn-cta text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
@@ -3724,9 +3737,9 @@
                     <div class="flex items-center gap-1.5">
                       <span class="text-xs">✨</span>
                       <span class="aside-quote-badge text-[10px] font-black tracking-wider uppercase">TRÍCH DẪN TÂM ĐẮC</span>
-                      <span class="aside-quote-live-tag text-[9px] font-extrabold px-1.5 py-0.5 rounded-md">10s</span>
                     </div>
                     <div class="flex items-center gap-1">
+                      <button class="aside-quote-nav-btn" id="aside-export-img-btn" title="Tải ảnh trích dẫn này để chia sẻ Story/Facebook/Zalo">📸</button>
                       <button class="aside-quote-nav-btn" id="aside-prev-quote-btn" title="Câu trước đó">‹</button>
                       <button class="aside-quote-nav-btn" id="aside-next-quote-btn" title="Đổi câu mới ngay">›</button>
                       <button class="aside-quote-close-btn" id="aside-close-btn" title="Thu gọn widget">—</button>
@@ -5700,11 +5713,96 @@
   <script id="book-tree-master-script" type="module">
     import { MockDataStore } from './assets/data/MockDataStore.js';
     import { TesterPanel } from './assets/tester/TesterPanel.js';
+    import { NourishmentFX } from './assets/effects/NourishmentFX.js';
+    import { DailyDewService } from './assets/services/DailyDewService.js';
+    import { QuoteCardExporter } from './assets/services/QuoteCardExporter.js';
 
     (async function () {
-      // Initialize Mock Store & Tester Panel
+      // Initialize Mock Store, Tester Panel & Nourishment Particle FX
       MockDataStore.init();
       new TesterPanel();
+      const nourishmentFX = new NourishmentFX();
+
+      // DAILY DEW CHECK-IN SERVICE BINDINGS
+      async function updateDewButtonState() {
+        const hasClaimed = await DailyDewService.hasCheckedInToday();
+        const mainDewText = document.getElementById('fpt-main-dew-text');
+        const mainDewBtn = document.getElementById('fpt-main-dew-btn');
+        const mobileDewBtn = document.getElementById('fpt-mobile-dew-btn');
+
+        if (hasClaimed) {
+          if (mainDewText) mainDewText.textContent = 'Đã Tưới Sương';
+          if (mainDewBtn) {
+            mainDewBtn.classList.add('opacity-75');
+            mainDewBtn.title = 'Hôm nay bạn đã nhận sương rồi. Hẹn gặp lại ngày mai!';
+          }
+          if (mobileDewBtn) {
+            mobileDewBtn.classList.add('opacity-75');
+            mobileDewBtn.title = 'Hôm nay bạn đã nhận sương rồi!';
+          }
+        }
+      }
+      updateDewButtonState();
+
+      async function handleDailyDewClaim(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        const result = await DailyDewService.claimDailyDew();
+        if (result.success) {
+          showToast(`💧 Bạn đã tưới 1 Giọt Sương (+1 EXP)! Chuỗi chăm sóc: ${result.streak} ngày liên tiếp 🌱`);
+          updateDewButtonState();
+        } else {
+          showToast(result.message || 'Hôm nay bạn đã nhận sương rồi 🌱');
+        }
+      }
+
+      const mainDewBtn = document.getElementById('fpt-main-dew-btn');
+      if (mainDewBtn) mainDewBtn.addEventListener('click', handleDailyDewClaim);
+      const mobileDewBtn = document.getElementById('fpt-mobile-dew-btn');
+      if (mobileDewBtn) mobileDewBtn.addEventListener('click', handleDailyDewClaim);
+
+      // QUOTE CARD EXPORTER BINDINGS
+      async function handleExportQuoteImage(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        let quoteData = currentActiveQuoteData;
+        if (!quoteData) {
+          const elTitle = document.getElementById('aside-book-title');
+          const elAuthor = document.getElementById('aside-book-author');
+          const elQuote = document.getElementById('aside-quote-text');
+          const elReader = document.getElementById('aside-quote-reader');
+          const elLikes = document.getElementById('aside-quote-like-count');
+
+          quoteData = {
+            book: elTitle ? elTitle.textContent.trim() : 'Cây Sách Tri Thức',
+            author: elAuthor ? elAuthor.textContent.replace('✍️', '').trim() : 'Tác Giả Tri Thức',
+            quote: elQuote ? elQuote.textContent.trim() : 'Mỗi cuốn sách bạn đọc là một hạt mầm nuôi dưỡng Cây Tri Thức.',
+            reader: elReader ? elReader.textContent.trim() : 'Độc giả yêu sách',
+            likes: elLikes ? parseInt(elLikes.textContent.replace(/,/g, ''), 10) || 120 : 120
+          };
+        }
+
+        showToast('🎨 Đang kết xuất ảnh trích dẫn độ nét cao...');
+        await QuoteCardExporter.exportQuoteImage({
+          book: quoteData.book,
+          author: quoteData.author,
+          quote: quoteData.quote,
+          reader: quoteData.reader,
+          likes: quoteData.likes || 120,
+          format: 'story'
+        });
+        showToast('✨ Đã tải ảnh trích dẫn thành công! Hãy chia sẻ để lan tỏa văn hóa đọc nhé.');
+      }
+
+      const asideExportBtn = document.getElementById('aside-export-img-btn');
+      if (asideExportBtn) asideExportBtn.addEventListener('click', handleExportQuoteImage);
+      const bqExportBtn = document.getElementById('bq-export-img-btn');
+      if (bqExportBtn) bqExportBtn.addEventListener('click', handleExportQuoteImage);
 
       /* 1. THEME SWITCHER - DEFAULTS TO DAY (BAN NGÀY) */
       function initTheme() {
