@@ -101,6 +101,7 @@ export class SkyCanvas {
     // 5. Initialize 3D Procedural Tree (Tree.js)
     try {
       this.treeManager = new TreeManager(this.THREE, this.scene, this.camera);
+        window.treeManagerInstance = this.treeManager;
     } catch (err) {
       console.warn('Failed to initialize 3D TreeManager:', err);
     }

@@ -37,15 +37,15 @@ export class Ground {
       const x = pos.getX(i);
       const z = pos.getZ(i);
       
-      // Natural dome curve centered at the tree root (z = 0 relative to anchor)
-      const rX = x * 0.42;
-      const rZ = (z + 20.0) * 0.65;
+      // Natural gentle dome curve centered at the tree root (flattened for elegant horizon)
+      const rX = x * 0.35;
+      const rZ = (z + 20.0) * 0.5;
       const distSq = rX * rX + rZ * rZ;
-      const slope = distSq * 0.0014;
+      const slope = distSq * 0.0006;
       
-      // Multi-frequency organic earth undulation
-      const bump1 = Math.sin(x * 0.028) * Math.cos(z * 0.032) * 2.8;
-      const bump2 = Math.sin(x * 0.065 + 1.2) * Math.sin(z * 0.055) * 1.2;
+      // Multi-frequency organic earth undulation (gentle and smooth)
+      const bump1 = Math.sin(x * 0.028) * Math.cos(z * 0.032) * 1.2;
+      const bump2 = Math.sin(x * 0.065 + 1.2) * Math.sin(z * 0.055) * 0.6;
       
       pos.setY(i, -slope + bump1 + bump2);
     }

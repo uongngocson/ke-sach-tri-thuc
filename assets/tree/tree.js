@@ -226,7 +226,7 @@ export class Tree {
       sectionLength *= Math.min(1.0, sectionLength * (this.params.maturity));
 
       if (level > 1 && i < this.params.geometry.sections - 1) {
-        sectionLength = Math.max(0, sectionLength * (this.params.maturity - 0.5) * 2.0);
+        sectionLength = sectionLength * Math.max(0.4, this.params.maturity);
       }
 
       sectionOrigin.add(new THREE.Vector3(0, sectionLength, 0).applyEuler(sectionOrientation));
@@ -256,7 +256,7 @@ export class Tree {
 
     let leafSize = this.params.leaves.size *
       (1 + rng.random(this.params.leaves.sizeVariance, -this.params.leaves.sizeVariance));
-    leafSize = Math.max(0, leafSize * (this.params.maturity - 0.75) * 4.0);
+    leafSize = leafSize * Math.max(0.35, this.params.maturity);
 
     const W = leafSize;
     const L = 1.5 * leafSize;

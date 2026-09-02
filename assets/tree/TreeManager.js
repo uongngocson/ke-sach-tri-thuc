@@ -6,6 +6,7 @@
  */
 import { Tree, LeafStyle, LeafType } from './tree.js';
 import GUI from './lil-gui.module.min.js';
+import { TreeGrowthController } from './TreeGrowthController.js';
 
 export class TreeManager {
   constructor(THREE, scene, camera) {
@@ -15,7 +16,7 @@ export class TreeManager {
 
     // Cây Cổ Thụ Lâu Năm Parameters (Ancient Majestic Oak)
     this.treeParams = {
-      seed: 44402,
+      seed: 12345,
       maturity: 1.0,
       animateGrowth: false,
       autoRotate: false,  // 360° auto-rotation disabled
@@ -24,9 +25,9 @@ export class TreeManager {
 
       // Placement & Height
       transform: {
-        groundOffset: 2.0,      // Fine adjustment above ground border
+        groundOffset: -6.0,      // Fine adjustment into ground terrain
         posZ: -260,
-        scale: 6.2
+        scale: 4.6
       },
 
       trunk: {
@@ -40,7 +41,7 @@ export class TreeManager {
 
       branch: {
         levels: 4,
-        start: 0.42,
+        start: 0.38,
         stop: 0.95,
         sweepAngle: 2.5,
         minChildren: 4,
@@ -49,8 +50,8 @@ export class TreeManager {
         lengthMultiplier: 0.72,
         radiusMultiplier: 0.88,
         taper: 0.72,
-        gnarliness: 0.24,
-        gnarliness1_R: 0.04,
+        gnarliness: 0.16,
+        gnarliness1_R: 0.02,
         twist: 0.0
       },
 
@@ -94,8 +95,8 @@ export class TreeManager {
     this.tree = new Tree(THREE, this.treeParams);
     this.treeAnchor.add(this.tree.group);
 
-    // Setup GUI option panel
-    this.#setupGUI();
+    // Initialize Master 3D Growth Controller
+    this.growthController = new TreeGrowthController(this);
 
     // Resize listener for continuous grounding
     window.addEventListener('resize', () => this.updateAnchorTransform(), { passive: true });
@@ -104,6 +105,20 @@ export class TreeManager {
   /**
    * Mathematically lock the base of the tree to the exact pixel top border of the ground dome
    */
+  /**
+   * Rebuild the entire 3D Tree Mesh with current treeParams (levels, maturity, trunk, leaves)
+   */
+  regenerateTree() {
+    const THREE = this.THREE;
+    if (this.tree && this.tree.group) {
+      this.treeAnchor.remove(this.tree.group);
+      try { this.tree.dispose(); } catch (e) { }
+    }
+    this.tree = new Tree(THREE, this.treeParams);
+    this.treeAnchor.add(this.tree.group);
+    this.updateAnchorTransform();
+  }
+
   updateAnchorTransform() {
     const THREE = this.THREE;
     const t = this.treeParams.transform;
@@ -222,7 +237,7 @@ export class TreeManager {
     gui.add({
       reset: () => {
         Object.assign(this.treeParams.trunk, { color: 0x3d2716, length: 19.0, radius: 2.2, flare: 2.0 });
-        Object.assign(this.treeParams.branch, { levels: 4, start: 0.42, sweepAngle: 2.5, minChildren: 4, maxChildren: 6, gnarliness: 0.24 });
+        Object.assign(this.treeParams.branch, { levels: 4, start: 0.38, sweepAngle: 2.5, minChildren: 4, maxChildren: 6, gnarliness: 0.24 });
         Object.assign(this.treeParams.leaves, { style: LeafStyle.Double, type: LeafType.Oak, size: 2.5, color: 0x386b12, emissive: 0.06 });
         this.treeParams.seed = 44402;
         this.treeParams.lockToGroundBorder = true;
