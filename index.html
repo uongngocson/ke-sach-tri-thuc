@@ -6304,13 +6304,40 @@ async function renderGroundSeeds() {
         const elTag = document.getElementById('aside-quote-tag');
         const timerBar = document.getElementById('aside-quote-timer-bar');
 
-        const quotes = await MockDataStore.getMasterQuotes();
+        let quotes = await MockDataStore.getMasterQuotes();
         let currentIdx = 0;
         let rotateTimer = null;
         let isPaused = false;
 
+        async function reloadQuotes() {
+          quotes = await MockDataStore.getMasterQuotes();
+          if (!quotes || quotes.length === 0) {
+            renderEmptyState();
+          } else {
+            updateQuote(0, false);
+            startAutoRotate();
+          }
+        }
+
+        function renderEmptyState() {
+          stopAutoRotate();
+          if (elTitle) elTitle.textContent = 'Vườn Tri Thức Đang Chờ Hạt Mầm';
+          if (elAuthor) elAuthor.innerHTML = '<span>🌱</span> <span>Chưa có trích dẫn nào</span>';
+          if (elQuote) elQuote.textContent = 'Cơ sở dữ liệu đang trống. Hãy nhấn nút "Gieo Mầm" để gieo cuốn sách đầu tiên vào Cây nhé!';
+          if (elReader) elReader.textContent = 'Cộng đồng Cáo Sách';
+          if (elTag) elTag.textContent = 'Vườn Trống';
+          if (asideLikeCount) asideLikeCount.textContent = '0';
+          if (timerBar) {
+            timerBar.style.transition = 'none';
+            timerBar.style.width = '0%';
+          }
+        }
+
         function updateQuote(idx, animate = true) {
-          if (!quotes.length) return;
+          if (!quotes || !quotes.length) {
+            renderEmptyState();
+            return;
+          }
           if (idx < 0) idx = quotes.length - 1;
           if (idx >= quotes.length) idx = 0;
           currentIdx = idx;
@@ -6475,6 +6502,8 @@ async function renderGroundSeeds() {
 
         updateQuote(0, false);
         startAutoRotate();
+        MockDataStore.subscribe('growth:updated', reloadQuotes);
+        MockDataStore.subscribe('book:created', reloadQuotes);
       }
 
       /* 5. MODALS CONTROLLER & POPUPS */

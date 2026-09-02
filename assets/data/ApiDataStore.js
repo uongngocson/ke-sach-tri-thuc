@@ -203,7 +203,7 @@ class ApiDataStoreManager {
     try {
       const res = await fetch(`${getApiBase()}/quotes?page=1&limit=50`);
       const data = await res.json();
-      if (data.success && data.data.quotes) {
+      if (data.success && data.data && Array.isArray(data.data.quotes)) {
         const formatted = data.data.quotes.map(q => ({
           id: q.id,
           book: q.title,
@@ -225,20 +225,10 @@ class ApiDataStoreManager {
 
     if (typeof localStorage !== 'undefined') {
       const cached = JSON.parse(localStorage.getItem('caosach_cached_quotes') || '[]');
-      if (cached.length > 0) return cached;
+      return cached;
     }
 
-    return [
-      {
-        id: '1',
-        book: 'Hoàng Tử Bé (Le Petit Prince)',
-        author: 'Antoine de Saint-Exupéry',
-        quote: 'Người ta chỉ thấy rõ bằng trái tim. Điều cốt lõi thì vô hình trong mắt trần.',
-        category: 'Văn Học Kinh Điển',
-        reader: 'Bạn đọc Vườn Tri Thức',
-        likes: 128
-      }
-    ];
+    return [];
   }
 
   async getSeeds() {
