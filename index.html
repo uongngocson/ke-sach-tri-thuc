@@ -3271,6 +3271,80 @@
     }
   </style>
 
+<style>
+    /* 5. GLOBAL FIXED GROUND ACTION HINT & SINGLE-SCREEN LOCK */
+    html, body {
+      height: 100% !important;
+      max-height: 100vh !important;
+      overflow: hidden !important;
+      margin: 0;
+      padding: 0;
+    }
+
+    #ground-action-hint {
+      position: fixed !important;
+      bottom: 22px !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      z-index: 99999 !important;
+      cursor: pointer !important;
+      pointer-events: auto !important;
+      user-select: none !important;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
+    }
+
+    #ground-action-hint:hover {
+      transform: translateX(-50%) scale(1.06) !important;
+    }
+
+    #ground-action-hint:active {
+      transform: translateX(-50%) scale(0.96) !important;
+    }
+
+    .ground-hint-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 20px;
+      border-radius: 9999px;
+      background: rgba(15, 23, 42, 0.86);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 2px solid rgba(255, 255, 255, 0.85);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 20px rgba(245, 206, 66, 0.25);
+      animation: hintPillPulse 2.5s ease-in-out infinite;
+    }
+
+    html.dark .ground-hint-pill {
+      background: rgba(15, 23, 42, 0.92);
+      border-color: #38bdf8;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), 0 0 20px rgba(56, 189, 248, 0.35);
+    }
+
+    @keyframes hintPillPulse {
+      0%, 100% {
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 15px rgba(245, 206, 66, 0.2);
+      }
+      50% {
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(245, 206, 66, 0.5);
+      }
+    }
+
+    @media (max-width: 640px) {
+      #ground-action-hint {
+        bottom: 16px !important;
+      }
+      .ground-hint-pill {
+        padding: 7px 15px;
+        font-size: 11.5px;
+        gap: 6px;
+      }
+    }
+</style>
 </head>
 
 <body class="">
@@ -3435,16 +3509,6 @@
                       class="absolute inset-0 rounded-t-[50%_14px] sm:rounded-t-[50%_18px] fpt-ground-arc shadow-2xl overflow-hidden pointer-events-none">
                       <!-- Organic root ambient occlusion shadow -->
                       <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-24 bg-black/40 blur-2xl rounded-full pointer-events-none"></div>
-                    </div>
-                    <!-- Action Hint Floating Pill -->
-                    <div id="ground-action-hint"
-                      class="absolute top-3.5 left-1/2 -translate-x-1/2 pointer-events-none select-none z-30 transition-all duration-300 opacity-95 group-hover:opacity-100 group-hover:scale-105">
-                      <div
-                        class="px-4 py-1.5 rounded-full bg-black/75 dark:bg-slate-900/90 backdrop-blur-md border-2 border-white/80 dark:border-amber-400/80 text-white text-xs sm:text-sm font-extrabold shadow-2xl flex items-center gap-2 animate-pulse tracking-wide drop-shadow-md">
-                        <span class="text-sm sm:text-base leading-none">🌰</span>
-                        <span id="ground-action-hint-text" class="text-white font-black drop-shadow">Chạm vào mặt đất để gieo hạt tri thức</span>
-                        <span class="text-xs text-amber-300 font-black">✨</span>
-                      </div>
                     </div>
                     <div _ngcontent-ng-c4179040905=""
                       class="relative w-full min-h-[170px] md:min-h-[180px] fpt-ground-inner overflow-visible z-20">
@@ -5032,13 +5096,13 @@
     }
 
   </style>
-      </div>
 
-      <div style="margin-top:16px; display:flex; justify-content:flex-end;">
-        <button id="rules-dismiss-btn" class="fpt-btn-cta" style="padding:8px 24px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer;" type="button">
-          Đã Hiểu & Gieo Mầm Ngay
-        </button>
-      </div>
+  <!-- GLOBAL FIXED GROUND ACTION HINT (ALWAYS VISIBLE AT BOTTOM OF SCREEN) -->
+  <div id="ground-action-hint" title="Bấm vào để gieo mầm tri thức ngay">
+    <div class="ground-hint-pill">
+      <span class="text-base sm:text-lg leading-none">🌰</span>
+      <span id="ground-action-hint-text">Chạm vào mặt đất để gieo hạt tri thức</span>
+      <span class="text-xs text-amber-300 font-black">✨</span>
     </div>
   </div>
 
@@ -5741,6 +5805,13 @@ async function renderGroundSeeds() {
       if (groundContainerEl) groundContainerEl.addEventListener('click', (e) => {
         if (e.target.closest && e.target.closest('.ground-seed-item')) return;
         e.preventDefault();
+        openContributeModal();
+      });
+
+      const groundActionHintBtn = document.getElementById('ground-action-hint');
+      if (groundActionHintBtn) groundActionHintBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         openContributeModal();
       });
 
