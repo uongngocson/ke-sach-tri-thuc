@@ -552,6 +552,230 @@
       margin-top: 3px;
     }
 
+  
+    /* -------------------------------------------------------------------------
+       WELCOME SLOGAN & METAPHOR HERO MODAL STYLES
+       ------------------------------------------------------------------------- */
+    #welcome-slogan-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      background: rgba(4, 9, 24, 0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #welcome-slogan-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #welcome-slogan-card {
+      width: 100%;
+      max-width: 580px;
+      background: rgba(15, 23, 42, 0.94);
+      border: 1.5px solid rgba(56, 189, 248, 0.35);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 45px rgba(0, 84, 166, 0.3);
+      border-radius: 28px;
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+      transform: scale(0.92) translateY(16px);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+
+    #welcome-slogan-modal-overlay.active #welcome-slogan-card {
+      transform: scale(1) translateY(0);
+    }
+
+    .welcome-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .welcome-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.28;
+      margin: 8px 0 4px 0;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .welcome-subtitle {
+      font-size: 15px;
+      font-weight: 800;
+      color: #F36F21;
+      line-height: 1.35;
+      margin: 0;
+      text-shadow: 0 2px 10px rgba(243, 111, 33, 0.25);
+    }
+
+    .welcome-quote-box {
+      background: rgba(0, 84, 166, 0.12);
+      border-left: 3.5px solid #F36F21;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin: 16px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .welcome-metaphor-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.9);
+      font-style: italic;
+      margin: 0;
+    }
+
+    .welcome-pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .welcome-pillar-item {
+      background: rgba(30, 41, 59, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 10px 8px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .welcome-pillar-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .welcome-pillar-item strong {
+      font-size: 11px;
+      font-weight: 800;
+      color: #38bdf8;
+      display: block;
+    }
+
+    .welcome-pillar-item p {
+      font-size: 9.5px;
+      line-height: 1.35;
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0;
+    }
+
+    .welcome-action-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .welcome-btn-secondary {
+      padding: 10px 18px;
+      border-radius: 14px;
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .welcome-btn-secondary:hover {
+      background: rgba(51, 65, 85, 0.95);
+      transform: translateY(-1px);
+    }
+
+    .welcome-btn-primary {
+      padding: 10px 22px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #F36F21 0%, #d85c13 100%);
+      border: none;
+      color: #ffffff;
+      font-size: 12.5px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 16px rgba(243, 111, 33, 0.35);
+      transition: all 0.2s;
+    }
+
+    .welcome-btn-primary:hover {
+      background: linear-gradient(135deg, #ff7e33 0%, #e66518 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(243, 111, 33, 0.45);
+    }
+
+    @media (max-width: 640px) {
+      #welcome-slogan-card {
+        padding: 22px 18px;
+        border-radius: 22px;
+      }
+      .welcome-title {
+        font-size: 18px;
+      }
+      .welcome-subtitle {
+        font-size: 13.5px;
+      }
+      .welcome-metaphor-text {
+        font-size: 11.5px;
+        line-height: 1.5;
+      }
+      .welcome-pillars-grid {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+      .welcome-pillar-item {
+        flex-direction: row;
+        text-align: left;
+        padding: 8px 12px;
+        gap: 10px;
+      }
+      .welcome-pillar-icon {
+        font-size: 18px;
+      }
+      .welcome-action-footer {
+        flex-direction: column;
+        width: 100%;
+      }
+      .welcome-btn-secondary, .welcome-btn-primary {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 14px;
+      }
+    }
+
   </style>
   <script>
     (function () {
@@ -3828,10 +4052,152 @@
   <!-- BOOK QUOTE MODAL HTML -->
   <!-- TOAST NOTIFICATION -->
   <!-- MODAL OVERLAY -->
-  <!-- TOAST POPUP -->
+  <!-- 5. WELCOME SLOGAN & METAPHOR HERO MODAL -->
+  <div id="welcome-slogan-modal-overlay">
+    <div id="welcome-slogan-card">
+      <div class="bq-glow-1"></div>
+      <div class="bq-glow-2"></div>
+      
+      <!-- Top Icon & Badge -->
+      <div style="text-align: center; margin-bottom: 6px; position: relative; z-index: 2;">
+        <div class="welcome-badge">
+          <span>✨</span>
+          <span>SINH THÁI TRI THỨC SỐ</span>
+        </div>
+      </div>
+
+      <!-- Main Slogan Title -->
+      <div style="text-align: center; margin-bottom: 10px; position: relative; z-index: 2;">
+        <h2 class="welcome-title">
+          Mỗi Cuốn Sách Là Một Hạt Mầm
+        </h2>
+        <h3 class="welcome-subtitle">
+          Mỗi Độc Giả Là Một Người Vun Đắp Phù Sa
+        </h3>
+      </div>
+
+      <!-- Metaphor Quote Box -->
+      <div class="welcome-quote-box" style="position: relative; z-index: 2;">
+        <p class="welcome-metaphor-text">
+          “Tri thức nhân loại tựa như đại cổ thụ vươn bóng ngàn năm, bắt đầu từ những hạt mầm khiêm nhường ủ mình trong lòng đất.
+          Tại <strong>Cây Sách Tri Thức</strong>, mỗi cuốn sách bạn gieo, mỗi dòng trích dẫn bạn sẻ chia chính là nguồn phù sa màu mỡ và dòng nước tưới mát — cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn cành rợp bóng.”
+        </p>
+      </div>
+
+      <!-- 3 Ecological Pillars -->
+      <div class="welcome-pillars-grid" style="position: relative; z-index: 2;">
+        <div class="welcome-pillar-item">
+          <span class="welcome-pillar-icon">🌰</span>
+          <div>
+            <strong>Gieo Mầm Sách</strong>
+            <p>Mỗi tác phẩm là 1 hạt giống nguồn cội</p>
+          </div>
+        </div>
+        <div class="welcome-pillar-item">
+          <span class="welcome-pillar-icon">💧</span>
+          <div>
+            <strong>Tưới Mát & Bón Phân</strong>
+            <p>Mỗi lượt thả tim tiếp thêm dinh dưỡng</p>
+          </div>
+        </div>
+        <div class="welcome-pillar-item">
+          <span class="welcome-pillar-icon">👑</span>
+          <div>
+            <strong>Đại Thụ Tri Thức</strong>
+            <p>Cùng nhau kiến tạo di sản đọc tương lai</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="welcome-action-footer" style="position: relative; z-index: 2;">
+        <button id="welcome-explore-btn" class="welcome-btn-secondary" type="button">
+          <span>🌿</span>
+          <span>Khám Phá Vườn Cây</span>
+        </button>
+        <button id="welcome-plant-btn" class="welcome-btn-primary" type="button">
+          <span>🌱</span>
+          <span>Gieo Mầm Nuôi Cây Ngay</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+    <!-- TOAST POPUP -->
   <!-- BOOK QUOTE MODAL -->
   <!-- ON-CHAIN TRANSPARENCY MODAL -->
-  <!-- TOAST POPUP -->
+  <!-- 5. WELCOME SLOGAN & METAPHOR HERO MODAL -->
+  <div id="welcome-slogan-modal-overlay">
+    <div id="welcome-slogan-card">
+      <div class="bq-glow-1"></div>
+      <div class="bq-glow-2"></div>
+      
+      <!-- Top Icon & Badge -->
+      <div style="text-align: center; margin-bottom: 6px; position: relative; z-index: 2;">
+        <div class="welcome-badge">
+          <span>✨</span>
+          <span>SINH THÁI TRI THỨC SỐ</span>
+        </div>
+      </div>
+
+      <!-- Main Slogan Title -->
+      <div style="text-align: center; margin-bottom: 10px; position: relative; z-index: 2;">
+        <h2 class="welcome-title">
+          Mỗi Cuốn Sách Là Một Hạt Mầm
+        </h2>
+        <h3 class="welcome-subtitle">
+          Mỗi Độc Giả Là Một Người Vun Đắp Phù Sa
+        </h3>
+      </div>
+
+      <!-- Metaphor Quote Box -->
+      <div class="welcome-quote-box" style="position: relative; z-index: 2;">
+        <p class="welcome-metaphor-text">
+          “Tri thức nhân loại tựa như đại cổ thụ vươn bóng ngàn năm, bắt đầu từ những hạt mầm khiêm nhường ủ mình trong lòng đất.
+          Tại <strong>Cây Sách Tri Thức</strong>, mỗi cuốn sách bạn gieo, mỗi dòng trích dẫn bạn sẻ chia chính là nguồn phù sa màu mỡ và dòng nước tưới mát — cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn cành rợp bóng.”
+        </p>
+      </div>
+
+      <!-- 3 Ecological Pillars -->
+      <div class="welcome-pillars-grid" style="position: relative; z-index: 2;">
+        <div class="welcome-pillar-item">
+          <span class="welcome-pillar-icon">🌰</span>
+          <div>
+            <strong>Gieo Mầm Sách</strong>
+            <p>Mỗi tác phẩm là 1 hạt giống nguồn cội</p>
+          </div>
+        </div>
+        <div class="welcome-pillar-item">
+          <span class="welcome-pillar-icon">💧</span>
+          <div>
+            <strong>Tưới Mát & Bón Phân</strong>
+            <p>Mỗi lượt thả tim tiếp thêm dinh dưỡng</p>
+          </div>
+        </div>
+        <div class="welcome-pillar-item">
+          <span class="welcome-pillar-icon">👑</span>
+          <div>
+            <strong>Đại Thụ Tri Thức</strong>
+            <p>Cùng nhau kiến tạo di sản đọc tương lai</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="welcome-action-footer" style="position: relative; z-index: 2;">
+        <button id="welcome-explore-btn" class="welcome-btn-secondary" type="button">
+          <span>🌿</span>
+          <span>Khám Phá Vườn Cây</span>
+        </button>
+        <button id="welcome-plant-btn" class="welcome-btn-primary" type="button">
+          <span>🌱</span>
+          <span>Gieo Mầm Nuôi Cây Ngay</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+    <!-- TOAST POPUP -->
   <style id="book-modal-styles">
     :root {
       --fpt-orange: #F36F21;
@@ -5705,7 +6071,78 @@
       </div>
     </div>
   </div>
-  <!-- TOAST POPUP -->
+  <!-- 5. WELCOME SLOGAN & METAPHOR HERO MODAL -->
+  <div id="welcome-slogan-modal-overlay">
+    <div id="welcome-slogan-card">
+      <div class="bq-glow-1"></div>
+      <div class="bq-glow-2"></div>
+      
+      <!-- Top Icon & Badge -->
+      <div style="text-align: center; margin-bottom: 6px; position: relative; z-index: 2;">
+        <div class="welcome-badge">
+          <span>✨</span>
+          <span>SINH THÁI TRI THỨC SỐ</span>
+        </div>
+      </div>
+
+      <!-- Main Slogan Title -->
+      <div style="text-align: center; margin-bottom: 10px; position: relative; z-index: 2;">
+        <h2 class="welcome-title">
+          Mỗi Cuốn Sách Là Một Hạt Mầm
+        </h2>
+        <h3 class="welcome-subtitle">
+          Mỗi Độc Giả Là Một Người Vun Đắp Phù Sa
+        </h3>
+      </div>
+
+      <!-- Metaphor Quote Box -->
+      <div class="welcome-quote-box" style="position: relative; z-index: 2;">
+        <p class="welcome-metaphor-text">
+          “Tri thức nhân loại tựa như đại cổ thụ vươn bóng ngàn năm, bắt đầu từ những hạt mầm khiêm nhường ủ mình trong lòng đất.
+          Tại <strong>Cây Sách Tri Thức</strong>, mỗi cuốn sách bạn gieo, mỗi dòng trích dẫn bạn sẻ chia chính là nguồn phù sa màu mỡ và dòng nước tưới mát — cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn cành rợp bóng.”
+        </p>
+      </div>
+
+      <!-- 3 Ecological Pillars -->
+      <div class="welcome-pillars-grid" style="position: relative; z-index: 2;">
+        <div class="welcome-pillar-item">
+          <span class="welcome-pillar-icon">🌰</span>
+          <div>
+            <strong>Gieo Mầm Sách</strong>
+            <p>Mỗi tác phẩm là 1 hạt giống nguồn cội</p>
+          </div>
+        </div>
+        <div class="welcome-pillar-item">
+          <span class="welcome-pillar-icon">💧</span>
+          <div>
+            <strong>Tưới Mát & Bón Phân</strong>
+            <p>Mỗi lượt thả tim tiếp thêm dinh dưỡng</p>
+          </div>
+        </div>
+        <div class="welcome-pillar-item">
+          <span class="welcome-pillar-icon">👑</span>
+          <div>
+            <strong>Đại Thụ Tri Thức</strong>
+            <p>Cùng nhau kiến tạo di sản đọc tương lai</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="welcome-action-footer" style="position: relative; z-index: 2;">
+        <button id="welcome-explore-btn" class="welcome-btn-secondary" type="button">
+          <span>🌿</span>
+          <span>Khám Phá Vườn Cây</span>
+        </button>
+        <button id="welcome-plant-btn" class="welcome-btn-primary" type="button">
+          <span>🌱</span>
+          <span>Gieo Mầm Nuôi Cây Ngay</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+    <!-- TOAST POPUP -->
   <div id="book-toast-popup">
     <span style="font-size:16px;">✨</span>
     <span id="book-toast-text">Đã sao chép trích dẫn hay!</span>
@@ -6286,6 +6723,46 @@ async function renderGroundSeeds() {
       bindGroundModalTrigger(document.getElementById('ground-action-hint'));
 
       
+      // WELCOME SLOGAN MODAL LOGIC
+      const welcomeOverlay = document.getElementById('welcome-slogan-modal-overlay');
+      const welcomeExploreBtn = document.getElementById('welcome-explore-btn');
+      const welcomePlantBtn = document.getElementById('welcome-plant-btn');
+
+      function openWelcomeModal() {
+        if (welcomeOverlay) welcomeOverlay.classList.add('active');
+      }
+
+      function closeWelcomeModal() {
+        if (welcomeOverlay) welcomeOverlay.classList.remove('active');
+      }
+
+      if (welcomeExploreBtn) {
+        welcomeExploreBtn.addEventListener('click', () => {
+          closeWelcomeModal();
+        });
+      }
+
+      if (welcomePlantBtn) {
+        welcomePlantBtn.addEventListener('click', () => {
+          closeWelcomeModal();
+          openContributeModal();
+        });
+      }
+
+      if (welcomeOverlay) {
+        welcomeOverlay.addEventListener('click', (e) => {
+          if (e.target === welcomeOverlay) closeWelcomeModal();
+        });
+      }
+
+      // Automatically show welcome modal on page entry
+      setTimeout(() => {
+        openWelcomeModal();
+      }, 500);
+
+      window.openWelcomeModal = openWelcomeModal;
+      window.closeWelcomeModal = closeWelcomeModal;
+
       // RULES MODAL LOGIC
       const rulesOverlay = document.getElementById('rules-modal-overlay');
       const rulesCloseBtn = document.getElementById('rules-close-btn');
