@@ -300,6 +300,13 @@
     }
 
     */
+        .tester-text-mobile {
+      display: none;
+    }
+    .tester-text-full {
+      display: inline;
+    }
+
     .tester-toggle-btn {
       position: fixed;
       bottom: 24px;
@@ -1338,6 +1345,13 @@
     }
 
     */
+        .tester-text-mobile {
+      display: none;
+    }
+    .tester-text-full {
+      display: inline;
+    }
+
     .tester-toggle-btn {
       position: fixed;
       bottom: 24px;
@@ -1742,6 +1756,13 @@
     }
 
     */
+        .tester-text-mobile {
+      display: none;
+    }
+    .tester-text-full {
+      display: inline;
+    }
+
     .tester-toggle-btn {
       position: fixed;
       bottom: 24px;
@@ -2161,6 +2182,13 @@
     }
 
     */
+        .tester-text-mobile {
+      display: none;
+    }
+    .tester-text-full {
+      display: inline;
+    }
+
     .tester-toggle-btn {
       position: fixed;
       bottom: 24px;
@@ -2620,6 +2648,13 @@
     }
 
     */
+        .tester-text-mobile {
+      display: none;
+    }
+    .tester-text-full {
+      display: inline;
+    }
+
     .tester-toggle-btn {
       position: fixed;
       bottom: 24px;
@@ -3023,6 +3058,13 @@
     /* ==========================================================================
        TESTER CONTROL PANEL STYLES
        ========================================================================== */
+        .tester-text-mobile {
+      display: none;
+    }
+    .tester-text-full {
+      display: inline;
+    }
+
     .tester-toggle-btn {
       position: fixed;
       bottom: 24px;
@@ -3271,7 +3313,7 @@
     }
   </style>
 
-<style>
+<style id="fpt-single-screen-master-styles">
     /* 5. GLOBAL FIXED GROUND ACTION HINT & SINGLE-SCREEN LOCK */
     html, body {
       height: 100% !important;
@@ -3281,11 +3323,81 @@
       padding: 0;
     }
 
+    .tester-text-mobile {
+      display: none;
+    }
+    .tester-text-full {
+      display: inline;
+    }
+
+    /* Desktop Tester Button (Bottom Left) */
+    .tester-toggle-btn {
+      position: fixed !important;
+      bottom: 24px !important;
+      left: 24px !important;
+      top: auto !important;
+      right: auto !important;
+      z-index: 999999 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 10px 18px !important;
+      border-radius: 9999px !important;
+      background: #0f172a !important;
+      color: #38bdf8 !important;
+      border: 1.5px solid rgba(56, 189, 248, 0.4) !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+      font-family: inherit !important;
+      font-size: 12px !important;
+      font-weight: 800 !important;
+      cursor: pointer !important;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      user-select: none !important;
+      white-space: nowrap !important;
+    }
+
+    .tester-toggle-btn:hover {
+      transform: translateY(-2px) scale(1.04) !important;
+      background: #1e293b !important;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 12px 30px rgba(56, 189, 248, 0.3) !important;
+    }
+
+    .tester-toggle-btn.active {
+      background: #0284c7 !important;
+      color: #ffffff !important;
+      border-color: #ffffff !important;
+    }
+
+    .tester-panel-card {
+      position: fixed !important;
+      bottom: 75px !important;
+      left: 24px !important;
+      top: auto !important;
+      right: auto !important;
+      z-index: 999999 !important;
+      width: 330px !important;
+      max-width: calc(100vw - 48px) !important;
+      background: rgba(15, 23, 42, 0.94) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      color: #f8fafc !important;
+      border: 1.5px solid rgba(56, 189, 248, 0.35) !important;
+      border-radius: 20px !important;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65) !important;
+      overflow: hidden !important;
+      font-family: inherit !important;
+      animation: testerFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    /* Desktop Ground Action Hint (Bottom Center) */
     #ground-action-hint {
       position: fixed !important;
       bottom: 22px !important;
       left: 50% !important;
       transform: translateX(-50%) !important;
+      top: auto !important;
+      right: auto !important;
       z-index: 99999 !important;
       cursor: pointer !important;
       pointer-events: auto !important;
@@ -3297,7 +3409,7 @@
     }
 
     #ground-action-hint:hover {
-      transform: translateX(-50%) scale(1.06) !important;
+      transform: translateX(-50%) scale(1.05) !important;
     }
 
     #ground-action-hint:active {
@@ -3345,39 +3457,160 @@
       }
     }
 
+    /* MOBILE RESPONSIVE RULES (<= 768px) */
     @media (max-width: 768px) {
-      /* Mobile Tester Button repositioning - Clean floating button top right */
-      .tester-toggle-btn {
-        bottom: auto !important;
-        top: 62px !important;
-        right: 12px !important;
-        left: auto !important;
-        padding: 6px 12px !important;
+      /* Mobile text switcher: show 'Tester', hide 'Tester Option' */
+      .tester-text-mobile {
+        display: inline !important;
+      }
+      .tester-text-full {
+        display: none !important;
+      }
+
+      /* Compact Luxury Aside Quote Widget on Mobile */
+      .aside-quote-widget {
+        width: calc(100vw - 28px) !important;
+        max-width: 320px !important;
+        padding: 9px 12px !important;
+        border-radius: 16px !important;
+        border-width: 1.5px !important;
+        box-shadow: 0 10px 30px rgba(0, 84, 166, 0.18) !important;
+      }
+
+      .aside-quote-header {
+        padding-bottom: 4px !important;
+        margin-bottom: 5px !important;
+      }
+
+      .aside-quote-badge {
+        font-size: 9px !important;
+      }
+
+      .aside-quote-live-tag {
+        font-size: 8px !important;
+        padding: 0px 4px !important;
+        border-radius: 4px !important;
+      }
+
+      .aside-quote-nav-btn,
+      .aside-quote-close-btn {
+        width: 20px !important;
+        height: 20px !important;
         font-size: 11px !important;
-        border-radius: 12px !important;
-        gap: 5px !important;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45) !important;
+        border-radius: 5px !important;
+      }
+
+      .aside-quote-book {
+        font-size: 12px !important;
+        font-weight: 900 !important;
+        line-height: 1.25 !important;
+        margin-bottom: 1px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      .aside-quote-author {
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        margin-bottom: 4px !important;
+      }
+
+      .aside-quote-bubble {
+        padding: 6px 9px !important;
+        margin-bottom: 4px !important;
+        border-radius: 10px !important;
+        border-left-width: 2.5px !important;
+      }
+
+      .aside-quote-quotemark {
+        font-size: 13px !important;
+        line-height: 1 !important;
+      }
+
+      .aside-quote-text {
+        font-size: 10.5px !important;
+        line-height: 1.42 !important;
+        margin: 2px 0 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 3 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+      }
+
+      .aside-quote-like-btn {
+        padding: 2px 7px !important;
+        font-size: 9.5px !important;
+        height: 20px !important;
+        gap: 3px !important;
+      }
+
+      .aside-quote-footer {
+        font-size: 9.5px !important;
+        margin-top: 2px !important;
+      }
+
+      .aside-quote-sharer-label {
+        font-size: 9px !important;
+      }
+
+      .aside-quote-sharer {
+        font-size: 9.5px !important;
+      }
+
+      .aside-timer-track {
+        height: 2px !important;
+        margin-top: 4px !important;
+      }
+
+      /* Mobile Tester Button: Fixed Bottom-Left */
+      .tester-toggle-btn {
+        bottom: 14px !important;
+        left: 10px !important;
+        top: auto !important;
+        right: auto !important;
+        padding: 5px 10px !important;
+        font-size: 10.5px !important;
+        font-weight: 800 !important;
+        border-radius: 9999px !important;
+        gap: 4px !important;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5) !important;
+        z-index: 999999 !important;
       }
 
       .tester-panel-card {
-        top: 104px !important;
-        bottom: auto !important;
-        right: 12px !important;
-        left: auto !important;
-        width: calc(100vw - 24px) !important;
+        bottom: 56px !important;
+        top: auto !important;
+        left: 10px !important;
+        right: auto !important;
+        width: calc(100vw - 20px) !important;
         max-width: 320px !important;
       }
 
-      /* Compact Ground Action Hint on Mobile - Strictly Single-line 100% */
+      /* Mobile Ground Action Hint: Fixed Bottom-Center (Always Centered & Single Line) */
       #ground-action-hint {
         bottom: 14px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        top: auto !important;
+        right: auto !important;
+        width: max-content !important;
         max-width: calc(100vw - 20px) !important;
         white-space: nowrap !important;
       }
+
+      #ground-action-hint:hover {
+        transform: translateX(-50%) scale(1.04) !important;
+      }
+
+      #ground-action-hint:active {
+        transform: translateX(-50%) scale(0.96) !important;
+      }
+
       .ground-hint-pill {
-        padding: 6px 12px !important;
+        padding: 5px 11px !important;
         font-size: 10.5px !important;
-        gap: 5px !important;
+        gap: 4px !important;
         border-width: 1.5px !important;
         white-space: nowrap !important;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45) !important;
@@ -4716,15 +4949,15 @@
         z-index: 30 !important;
       }
       .fpt-ground-container {
-        min-height: 210px !important;
-        height: 32vh !important;
-        max-height: 270px !important;
-        padding-bottom: 2rem !important;
+        min-height: 95px !important;
+        height: 14vh !important;
+        max-height: 125px !important;
+        padding-bottom: 0.5rem !important;
         pointer-events: auto !important;
         touch-action: manipulation !important;
       }
       .fpt-ground-inner {
-        min-height: 210px !important;
+        min-height: 95px !important;
         height: 100% !important;
         pointer-events: auto !important;
       }
@@ -4732,8 +4965,9 @@
 
     @media (min-width: 769px) {
       .fpt-ground-container, .fpt-ground-inner {
-        min-height: 200px !important;
-        height: 28vh !important;
+        min-height: 160px !important;
+        height: 20vh !important;
+        max-height: 200px !important;
       }
     }
 
@@ -4919,6 +5153,13 @@
     }
 
     */
+        .tester-text-mobile {
+      display: none;
+    }
+    .tester-text-full {
+      display: inline;
+    }
+
     .tester-toggle-btn {
       position: fixed;
       bottom: 24px;
@@ -5489,9 +5730,9 @@
           const hintTextEl = document.getElementById('ground-action-hint-text');
           if (hintTextEl) {
             if (growth.level === 0) {
-              hintTextEl.textContent = `Chạm vào mặt đất để gieo hạt tri thức (${growth.totalEXP}/50)`;
+              hintTextEl.textContent = `Chạm vào đất để gieo hạt (${growth.totalEXP}/50)`;
             } else {
-              hintTextEl.textContent = 'Chạm vào mặt đất để gieo thêm sách nuôi cây';
+              hintTextEl.textContent = 'Chạm vào đất để gieo thêm sách';
             }
           }
         }

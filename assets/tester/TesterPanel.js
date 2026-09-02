@@ -10,7 +10,7 @@ export class TesterPanel {
     const toggleBtn = document.createElement('button');
     toggleBtn.id = 'tester-panel-toggle-btn';
     toggleBtn.className = 'tester-toggle-btn';
-    toggleBtn.innerHTML = '<span>🧪</span><span>Tester Option</span>';
+    toggleBtn.innerHTML = '<span>🧪</span><span class="tester-text-full">Tester Option</span><span class="tester-text-mobile">Tester</span>';
     toggleBtn.title = 'Mở Bảng Điều Khiển Tester (Phím tắt: T)';
     document.body.appendChild(toggleBtn);
 
