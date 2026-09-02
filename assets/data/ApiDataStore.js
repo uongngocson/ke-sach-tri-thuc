@@ -201,7 +201,7 @@ class ApiDataStoreManager {
 
   async getMasterQuotes() {
     try {
-      const res = await fetch(`${getApiBase()}/quotes?page=1&limit=50`);
+      const res = await fetch(`${getApiBase()}/quotes?page=1&limit=100`);
       const data = await res.json();
       if (data.success && data.data && Array.isArray(data.data.quotes)) {
         const formatted = data.data.quotes.map(q => ({

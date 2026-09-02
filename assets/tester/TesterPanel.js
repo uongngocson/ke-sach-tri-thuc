@@ -94,7 +94,7 @@ export class TesterPanel {
 
     // 1. Stage Jumpers (0, 15, 30, 45, 50, Lvl 2, 3, 4, 5)
     panel.querySelector('#stage-btn-0-seeds').addEventListener('click', async () => {
-      await MockDataStore.setTesterLevel(0);
+      await MockDataStore.setTesterEXP(0, 0);
       this.updateTesterUI();
     });
 
@@ -114,14 +114,16 @@ export class TesterPanel {
     });
 
     panel.querySelector('#stage-btn-50-sprout').addEventListener('click', async () => {
-      await MockDataStore.setTesterLevel(1);
+      await MockDataStore.setTesterEXP(50, 50);
       this.updateTesterUI();
     });
 
     panel.querySelectorAll('.stage-btn[data-level]').forEach(btn => {
       btn.addEventListener('click', async () => {
         const lvl = parseInt(btn.getAttribute('data-level'), 10);
-        await MockDataStore.setTesterLevel(lvl);
+        const expMap = { 2: 150, 3: 400, 4: 1000, 5: 2500 };
+        const seedsMap = { 2: 60, 3: 80, 4: 120, 5: 200 };
+        await MockDataStore.setTesterEXP(expMap[lvl] || 150, seedsMap[lvl] || 60);
         this.updateTesterUI();
       });
     });
