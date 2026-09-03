@@ -1,0 +1,67 @@
+services:
+  caosach-db:
+    image: postgres:16-alpine
+    container_name: caosach-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: caosach_db
+      POSTGRES_USER: caosach_user
+      POSTGRES_PASSWORD: caosach_secure_password_2026
+    ports:
+      - "127.0.0.1:5436:5432"
+    volumes:
+      - caosach_prod_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U caosach_user -d caosach_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - caosach-net
+
+  caosach-backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: caosach-backend-prod
+    restart: unless-stopped
+    depends_on:
+      caosach-db:
+        condition: service_healthy
+    environment:
+      PORT: 5000
+      NODE_ENV: production
+      CLIENT_ORIGIN: "https://caosach.soninfra.cloud,http://caosach.soninfra.cloud,http://100.101.27.107:5500,http://localhost:5500"
+      DB_HOST: caosach-db
+      DB_PORT: 5432
+      DB_NAME: caosach_db
+      DB_USER: caosach_user
+      DB_PASSWORD: caosach_secure_password_2026
+      JWT_SECRET: caosach_super_secret_jwt_key_2026_production
+      BCRYPT_ROUNDS: 10
+      ADMIN_DEFAULT_PASSWORD: admin123
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 300
+    ports:
+      - "127.0.0.1:5005:5000"
+    networks:
+      - caosach-net
+
+  caosach-frontend:
+    image: nginx:alpine
+    container_name: caosach-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5505:80"
+    volumes:
+      - ./:/usr/share/nginx/html:ro
+      - ./nginx.frontend.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - caosach-net
+
+volumes:
+  caosach_prod_pgdata:
+
+networks:
+  caosach-net:
+    driver: bridge

@@ -1,14 +1,16 @@
 function getApiBase() {
   const hostname = window.location.hostname || 'localhost';
   const protocol = window.location.protocol || 'http:';
-  if (window.location.port === '5000') return '/api/v1';
+  const port = window.location.port;
+  if (!port || port === '80' || port === '443' || port === '5000') return '/api/v1';
   return `${protocol}//${hostname}:5000/api/v1`;
 }
 
 function getSocketUrl() {
   const hostname = window.location.hostname || 'localhost';
   const protocol = window.location.protocol || 'http:';
-  if (window.location.port === '5000') return undefined;
+  const port = window.location.port;
+  if (!port || port === '80' || port === '443' || port === '5000') return undefined;
   return `${protocol}//${hostname}:5000`;
 }
 

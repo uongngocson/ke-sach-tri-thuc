@@ -9,6 +9,10 @@ function getApiBase() {
   if (typeof window === 'undefined') return 'http://127.0.0.1:5000/api/v1';
   const hostname = window.location.hostname || 'localhost';
   const protocol = window.location.protocol || 'http:';
+  const port = window.location.port;
+  if (!port || port === '80' || port === '443') {
+    return `${protocol}//${window.location.host}/api/v1`;
+  }
   return `${protocol}//${hostname}:5000/api/v1`;
 }
 
@@ -16,6 +20,10 @@ function getSocketUrl() {
   if (typeof window === 'undefined') return 'http://127.0.0.1:5000';
   const hostname = window.location.hostname || 'localhost';
   const protocol = window.location.protocol || 'http:';
+  const port = window.location.port;
+  if (!port || port === '80' || port === '443') {
+    return `${protocol}//${window.location.host}`;
+  }
   return `${protocol}//${hostname}:5000`;
 }
 
