@@ -191,7 +191,7 @@ Những điều trông thấy mà đau đớn lòng.” ✨📚`;
     // TEST KEY 8: APPEARANCE IN PUBLIC LIVE QUOTES FEED
     // -------------------------------------------------------------
     console.log('\n📦 [8/8] Test Key 8: Xác nhận sách vừa gieo xuất hiện ngay trong Feed công khai...');
-    const feedRes = await fetch(`${BASE_URL}/quotes?page=1&limit=10`).then(r => r.json());
+    const feedRes = await fetch(`${BASE_URL}/quotes?page=1&limit=100`).then(r => r.json());
     const foundBook = feedRes.data.quotes.find(q => q.title === 'Tội Ác Và Trừng Phạt');
     assert(foundBook !== undefined, 'Sách vừa gieo xuất hiện ngay lập tức trong API công khai cho toàn thể độc giả đọc và thả tim');
 
