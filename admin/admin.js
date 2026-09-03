@@ -262,7 +262,7 @@ function updateGrowthUI(growth) {
   if (likesEl) likesEl.textContent = (growth.totalLikes || 0).toLocaleString();
   
   const readersEl = document.getElementById('stat-active-readers');
-  if (readersEl) readersEl.textContent = (growth.activeReaders || 2735).toLocaleString();
+  if (readersEl) readersEl.textContent = (growth.activeReaders || 1).toLocaleString();
 }
 
 async function loadBooks() {

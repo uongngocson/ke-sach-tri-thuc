@@ -559,7 +559,11 @@
     #welcome-slogan-modal-overlay {
       position: fixed;
       inset: 0;
-      z-index: 999999;
+      width: 100vw;
+      width: 100dvw;
+      height: 100vh;
+      height: 100dvh;
+      z-index: 2147483640;
       background: rgba(4, 9, 24, 0.82);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
@@ -569,7 +573,13 @@
       padding: 16px;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      box-sizing: border-box;
     }
 
     #welcome-slogan-modal-overlay.active {
@@ -580,17 +590,25 @@
     #welcome-slogan-card {
       width: 100%;
       max-width: 580px;
+      max-height: 90vh;
+      max-height: 90dvh;
       background: rgba(15, 23, 42, 0.94);
       border: 1.5px solid rgba(56, 189, 248, 0.35);
       box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 45px rgba(0, 84, 166, 0.3);
       border-radius: 28px;
       padding: 28px 24px;
       position: relative;
-      overflow: hidden;
-      transform: scale(0.92) translateY(16px);
-      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      transform: scale(0.95) translateY(12px);
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       scrollbar-width: none !important;
       -ms-overflow-style: none !important;
+      box-sizing: border-box;
+      margin: auto;
     }
 
     #welcome-slogan-modal-overlay.active #welcome-slogan-card {
@@ -3762,7 +3780,7 @@
                     <p _ngcontent-ng-c4179040905=""
                       class="header-brand-sub text-[10px] sm:text-[11px] font-bold flex items-center gap-1 leading-tight">
                       <span _ngcontent-ng-c4179040905="">📚</span><span
-                        _ngcontent-ng-c4179040905=""><strong>2,735</strong> độc giả ghé thăm</span>
+                        _ngcontent-ng-c4179040905=""><strong id="header-active-readers">1</strong> độc giả ghé thăm</span>
                     </p>
                   </div>
                 </a>
