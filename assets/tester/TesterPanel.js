@@ -1,14 +1,21 @@
 import { MockDataStore } from '../data/MockDataStore.js';
+import { APP_CONFIG } from '../config/appEnv.js';
 
 export class TesterPanel {
   constructor() {
     this.isOpen = false;
 
-    // Hide completely on Production (caosach.soninfra.cloud - main branch)
-    const isProduction = window.location.hostname === 'caosach.soninfra.cloud' && 
-                         !window.location.search.includes('tester=true');
-    if (isProduction) {
-      return;
+    // Check if Tester is allowed:
+    // - If on main branch OR production domain -> HIDDEN by default
+    // - Only accessible if explicitly forced via URL param (?tester=true)
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceTester = urlParams.get('tester') === 'true' || urlParams.get('dev') === 'true';
+
+    const isProductionDomain = window.location.hostname === 'caosach.soninfra.cloud';
+    const isMainBranch = APP_CONFIG.BRANCH === 'main' || !APP_CONFIG.SHOW_TESTER;
+
+    if ((isMainBranch || isProductionDomain) && !forceTester) {
+      return; // Completely hidden on main branch and production
     }
 
     this.initUI();
@@ -70,176 +77,137 @@ export class TesterPanel {
           </div>
         </div>
 
-        <!-- 3. Simulate Live Community Events -->
+        <!-- 3. Direct Live Interactivity Simulations -->
         <div class="tester-section">
           <label class="tester-section-label">🎮 Mô Phỏng Tương Tác Trực Tiếp</label>
           <div class="tester-grid-2">
-            <button class="tester-btn sim-btn" id="sim-add-1-seed">🌰 +1 Hạt Giống</button>
-            <button class="tester-btn sim-btn" id="sim-add-10-seeds">🌰 +10 Hạt Giống</button>
-            <button class="tester-btn sim-btn" id="sim-add-50-seeds" style="color:#70B928; font-weight:800;">🌱 +50 Hạt (Nảy Mầm Ngay)</button>
-            <button class="tester-btn sim-btn" id="sim-add-20-likes">❤️ +10 Tim (+20 EXP)</button>
+            <button class="tester-btn" id="tester-sim-1-seed">🌰 +1 Hạt Giống</button>
+            <button class="tester-btn" id="tester-sim-10-seeds">🌰 +10 Hạt Giống</button>
+            <button class="tester-btn" id="tester-sim-50-seeds" style="color:#70B928; font-weight:bold;">🌱 +50 Hạt (Nảy Mầm Ngay)</button>
+            <button class="tester-btn" id="tester-sim-heart">❤️ +10 Tim (+20 EXP)</button>
           </div>
-        </div>
-
-        <!-- 4. Reset & Cache Control -->
-        <div class="tester-section" style="margin-bottom:0; display:flex; flex-direction:column; gap:6px;">
-          <button class="tester-btn-reset" id="tester-reset-btn">↺ Reset Về Ban Đầu (0 Hạt, Mặt Đất Trống)</button>
-          <button class="tester-btn-reset" id="tester-wipe-db-btn" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;">🧹 Dọn Sạch CSDL (Empty CSDL - Giữ Tài Khoản)</button>
+          <button class="tester-btn-reset" id="tester-sim-reset-all" style="margin-top:6px;">↺ Reset Về Ban Đầu (0 Hạt, Mặt Đất Trống)</button>
+          <button class="tester-btn-reset" id="tester-db-empty" style="margin-top:6px; background:#7f1d1d; border-color:#ef4444; color:#fca5a5;">🧹 Dọn Sạch CSDL (Empty CSDL - Giữ Tài Khoản)</button>
         </div>
       </div>
     `;
 
     document.body.appendChild(panel);
+    this.bindEvents(toggleBtn, panel);
+  }
 
-    toggleBtn.addEventListener('click', () => this.togglePanel());
-    panel.querySelector('#tester-close-btn').addEventListener('click', () => this.togglePanel(false));
-
-    window.addEventListener('keydown', (e) => {
-      if ((e.key === 't' || e.key === 'T') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-        this.togglePanel();
-      }
-    });
-
-    // 1. Stage Jumpers (0, 15, 30, 45, 50, Lvl 2, 3, 4, 5)
-    panel.querySelector('#stage-btn-0-seeds').addEventListener('click', async () => {
-      await MockDataStore.setTesterEXP(0, 0);
-      this.updateTesterUI();
-    });
-
-    panel.querySelector('#stage-btn-15-seeds').addEventListener('click', async () => {
-      await MockDataStore.setTesterEXP(15, 15);
-      this.updateTesterUI();
-    });
-
-    panel.querySelector('#stage-btn-30-seeds').addEventListener('click', async () => {
-      await MockDataStore.setTesterEXP(30, 30);
-      this.updateTesterUI();
-    });
-
-    panel.querySelector('#stage-btn-45-seeds').addEventListener('click', async () => {
-      await MockDataStore.setTesterEXP(45, 45);
-      this.updateTesterUI();
-    });
-
-    panel.querySelector('#stage-btn-50-sprout').addEventListener('click', async () => {
-      await MockDataStore.setTesterEXP(50, 50);
-      this.updateTesterUI();
-    });
-
-    panel.querySelectorAll('.stage-btn[data-level]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const lvl = parseInt(btn.getAttribute('data-level'), 10);
-        const expMap = { 2: 150, 3: 400, 4: 1000, 5: 2500 };
-        const seedsMap = { 2: 60, 3: 80, 4: 120, 5: 200 };
-        await MockDataStore.setTesterEXP(expMap[lvl] || 150, seedsMap[lvl] || 60);
-        this.updateTesterUI();
-      });
-    });
-
-    // 2. Slider
+  bindEvents(toggleBtn, panel) {
+    const closeBtn = panel.querySelector('#tester-close-btn');
     const slider = panel.querySelector('#tester-exp-slider');
-    slider.addEventListener('input', (e) => {
-      const val = parseInt(e.target.value, 10);
-      this.updateSliderLabel(val);
-    });
+    const expVal = panel.querySelector('#tester-exp-val');
 
-    slider.addEventListener('change', async (e) => {
-      const val = parseInt(e.target.value, 10);
-      await MockDataStore.setTesterEXP(val);
-      this.updateTesterUI();
-    });
+    const toggle = () => {
+      this.isOpen = !this.isOpen;
+      panel.style.display = this.isOpen ? 'block' : 'none';
+      toggleBtn.classList.toggle('active', this.isOpen);
+      if (this.isOpen) {
+        this.syncCurrentState();
+      }
+    };
 
-    // 3. Simulators (+1 seed, +10 seeds, +50 seeds, +10 likes)
-    panel.querySelector('#sim-add-1-seed').addEventListener('click', async () => {
-      await MockDataStore.simulateSeedContribution(1);
-      this.updateTesterUI();
-    });
+    toggleBtn.addEventListener('click', toggle);
+    if (closeBtn) closeBtn.addEventListener('click', toggle);
 
-    panel.querySelector('#sim-add-10-seeds').addEventListener('click', async () => {
-      await MockDataStore.simulateSeedContribution(10);
-      this.updateTesterUI();
-    });
-
-    panel.querySelector('#sim-add-50-seeds').addEventListener('click', async () => {
-      await MockDataStore.simulateSeedContribution(50);
-      this.updateTesterUI();
-    });
-
-    panel.querySelector('#sim-add-20-likes').addEventListener('click', async () => {
-      const curGrowth = await MockDataStore.getCommunityGrowth();
-      await MockDataStore.setTesterEXP(curGrowth.totalEXP + 20);
-      this.updateTesterUI();
-    });
-
-    // 4. Reset
-    panel.querySelector('#tester-reset-btn').addEventListener('click', async () => {
-      await MockDataStore.resetToInitialState();
-      this.updateTesterUI();
-    });
-
-    panel.querySelector('#tester-wipe-db-btn').addEventListener('click', async () => {
-      if (confirm('Bạn có chắc chắn muốn xóa sạch toàn bộ sách và dữ liệu về Empty (Vẫn giữ nguyên tài khoản Admin)?')) {
-        await MockDataStore.wipeDatabaseExceptAccounts();
-        this.updateTesterUI();
-        if (typeof window.showToast === 'function') {
-          window.showToast('🧹 Đã dọn sạch cơ sở dữ liệu về Empty (Giữ nguyên tài khoản Admin)!');
+    // Keyboard shortcut: Press 'T' or 't'
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 't' || e.key === 'T') {
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        if (activeTag !== 'INPUT' && activeTag !== 'TEXTAREA') {
+          e.preventDefault();
+          toggle();
         }
       }
     });
 
-    // Sync on growth events
-    MockDataStore.subscribe('growth:updated', () => {
-      this.updateTesterUI();
+    // Slider
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        this.updateExpLabel(val, expVal);
+        MockDataStore.setExp(val);
+      });
+    }
+
+    // Stage buttons
+    panel.querySelectorAll('.stage-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        let targetExp = 0;
+        if (btn.id === 'stage-btn-0-seeds') targetExp = 0;
+        else if (btn.id === 'stage-btn-15-seeds') targetExp = 15;
+        else if (btn.id === 'stage-btn-30-seeds') targetExp = 30;
+        else if (btn.id === 'stage-btn-45-seeds') targetExp = 45;
+        else if (btn.id === 'stage-btn-50-sprout') targetExp = 50;
+        else if (btn.dataset.level) {
+          const lvl = parseInt(btn.dataset.level, 10);
+          const map = { 1: 50, 2: 150, 3: 400, 4: 1000, 5: 2500 };
+          targetExp = map[lvl] || 0;
+        }
+        if (slider) slider.value = targetExp;
+        this.updateExpLabel(targetExp, expVal);
+        MockDataStore.setExp(targetExp);
+      });
     });
 
-    this.updateTesterUI();
+    // Sim buttons
+    const btnSim1 = panel.querySelector('#tester-sim-1-seed');
+    if (btnSim1) btnSim1.addEventListener('click', () => MockDataStore.addSeeds(1));
+
+    const btnSim10 = panel.querySelector('#tester-sim-10-seeds');
+    if (btnSim10) btnSim10.addEventListener('click', () => MockDataStore.addSeeds(10));
+
+    const btnSim50 = panel.querySelector('#tester-sim-50-seeds');
+    if (btnSim50) btnSim50.addEventListener('click', () => MockDataStore.addSeeds(50));
+
+    const btnSimHeart = panel.querySelector('#tester-sim-heart');
+    if (btnSimHeart) btnSimHeart.addEventListener('click', () => MockDataStore.addHeart());
+
+    const btnResetAll = panel.querySelector('#tester-sim-reset-all');
+    if (btnResetAll) btnResetAll.addEventListener('click', () => {
+      MockDataStore.setExp(0);
+      if (slider) slider.value = 0;
+      this.updateExpLabel(0, expVal);
+    });
+
+    const btnDbEmpty = panel.querySelector('#tester-db-empty');
+    if (btnDbEmpty) btnDbEmpty.addEventListener('click', async () => {
+      if (confirm('Bạn có chắc chắn muốn dọn sạch dữ liệu CSDL? (Giữ lại tài khoản Admin)')) {
+        await MockDataStore.resetDatabase();
+        if (slider) slider.value = 0;
+        this.updateExpLabel(0, expVal);
+      }
+    });
+
+    // Listen to changes from MockDataStore
+    window.addEventListener('fpt-growth-updated', (e) => {
+      if (e.detail && typeof e.detail.totalEXP === 'number') {
+        const exp = e.detail.totalEXP;
+        if (slider) slider.value = exp;
+        this.updateExpLabel(exp, expVal);
+      }
+    });
   }
 
-  togglePanel(forceState) {
-    const panel = document.getElementById('tester-panel-card');
-    if (!panel) return;
-    this.isOpen = forceState !== undefined ? forceState : !this.isOpen;
-    panel.style.display = this.isOpen ? 'block' : 'none';
-    if (this.isOpen) this.updateTesterUI();
-  }
-
-  async updateTesterUI() {
-    const panel = document.getElementById('tester-panel-card');
-    if (!panel) return;
-
-    const growth = await MockDataStore.getCommunityGrowth();
-    const slider = panel.querySelector('#tester-exp-slider');
-    if (slider) slider.value = growth.totalEXP;
-
-    this.updateSliderLabel(growth.totalEXP, growth);
-
-    // Active button highlight
-    panel.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active-stage'));
-
-    if (growth.level === 0) {
-      if (growth.totalEXP === 0) panel.querySelector('#stage-btn-0-seeds')?.classList.add('active-stage');
-      else if (growth.totalEXP === 15) panel.querySelector('#stage-btn-15-seeds')?.classList.add('active-stage');
-      else if (growth.totalEXP === 30) panel.querySelector('#stage-btn-30-seeds')?.classList.add('active-stage');
-      else if (growth.totalEXP === 45) panel.querySelector('#stage-btn-45-seeds')?.classList.add('active-stage');
-    } else if (growth.level === 1) {
-      panel.querySelector('#stage-btn-50-sprout')?.classList.add('active-stage');
-    } else {
-      const targetBtn = panel.querySelector(`.stage-btn[data-level="${growth.level}"]`);
-      if (targetBtn) targetBtn.classList.add('active-stage');
+  syncCurrentState() {
+    const current = MockDataStore.getState();
+    const slider = document.getElementById('tester-exp-slider');
+    const expVal = document.getElementById('tester-exp-val');
+    if (slider && current) {
+      slider.value = current.totalEXP || 0;
+      this.updateExpLabel(current.totalEXP || 0, expVal);
     }
   }
 
-  updateSliderLabel(val, growthData) {
-    const label = document.getElementById('tester-exp-val');
-    if (!label) return;
-
+  updateExpLabel(val, expValEl) {
+    if (!expValEl) return;
     if (val < 50) {
-      label.textContent = `${val} Hạt (Giai Đoạn Gieo Mầm)`;
-      label.style.color = '#38bdf8';
+      expValEl.textContent = `${val} Hạt (Giai Đoạn Gieo Mầm)`;
     } else {
-      const level = val >= 2500 ? 5 : (val >= 1000 ? 4 : (val >= 400 ? 3 : (val >= 150 ? 2 : 1)));
-      label.textContent = `${val} EXP (Lvl ${level})`;
-      label.style.color = '#70B928';
+      expValEl.textContent = `${val} EXP`;
     }
   }
 }
