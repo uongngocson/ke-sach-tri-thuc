@@ -75,16 +75,35 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/development' && github.event_name == 'push'
     steps:
+      - name: Check Secrets Availability
+        id: check_secrets
+        run: |
+          if [ -z "${{ secrets.SERVER_HOST }}" ]; then
+            echo "has_host=false" >> $GITHUB_OUTPUT
+            echo "::warning ::SERVER_HOST is not set in GitHub Repository Secrets. Skipping remote SSH deploy."
+          else
+            echo "has_host=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Connect Tailscale (if authkey provided)
+        if: steps.check_secrets.outputs.has_host == 'true' && env.HAS_TS_KEY == 'true'
+        uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+        env:
+          HAS_TS_KEY: ${{ secrets.TAILSCALE_AUTHKEY != '' }}
+
       - name: Deploy to Staging Server via SSH
+        if: steps.check_secrets.outputs.has_host == 'true'
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
+          username: ${{ secrets.SERVER_USER || 'sonun' }}
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            mkdir -p /home/${{ secrets.SERVER_USER }}/deployments/caosach-staging
-            cd /home/${{ secrets.SERVER_USER }}/deployments/caosach-staging
+            mkdir -p /home/sonun/deployments/caosach-staging
+            cd /home/sonun/deployments/caosach-staging
             if [ -d .git ]; then
               git fetch origin
               git checkout development
@@ -100,16 +119,35 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
+      - name: Check Secrets Availability
+        id: check_secrets
+        run: |
+          if [ -z "${{ secrets.SERVER_HOST }}" ]; then
+            echo "has_host=false" >> $GITHUB_OUTPUT
+            echo "::warning ::SERVER_HOST is not set in GitHub Repository Secrets. Skipping remote SSH deploy."
+          else
+            echo "has_host=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Connect Tailscale (if authkey provided)
+        if: steps.check_secrets.outputs.has_host == 'true' && env.HAS_TS_KEY == 'true'
+        uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+        env:
+          HAS_TS_KEY: ${{ secrets.TAILSCALE_AUTHKEY != '' }}
+
       - name: Deploy to Production Server via SSH
+        if: steps.check_secrets.outputs.has_host == 'true'
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
+          username: ${{ secrets.SERVER_USER || 'sonun' }}
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            mkdir -p /home/${{ secrets.SERVER_USER }}/deployments/caosach-prod
-            cd /home/${{ secrets.SERVER_USER }}/deployments/caosach-prod
+            mkdir -p /home/sonun/deployments/caosach-prod
+            cd /home/sonun/deployments/caosach-prod
             if [ -d .git ]; then
               git fetch origin
               git checkout main
