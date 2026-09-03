@@ -33,7 +33,7 @@ async function migrate() {
 
     -- Insert default community growth row if not exists
     INSERT INTO community_growth (id, total_exp, level, total_books, total_dews, total_likes, active_readers)
-    VALUES (1, 0, 0, 0, 0, 0, 2735)
+    VALUES (1, 0, 0, 0, 0, 0, 1)
     ON CONFLICT (id) DO NOTHING;
 
     -- 3. Books & Quotes Table
@@ -119,11 +119,24 @@ async function migrate() {
       ip_address VARCHAR(45),
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+
+    -- 10. Site Visitors Table (Real Unique Device Visitor Tracking)
+    CREATE TABLE IF NOT EXISTS site_visitors (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_fingerprint VARCHAR(100) UNIQUE NOT NULL,
+      ip_address VARCHAR(45),
+      user_agent TEXT,
+      visit_count INT DEFAULT 1,
+      first_visited_at TIMESTAMPTZ DEFAULT NOW(),
+      last_visited_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_site_visitors_fingerprint ON site_visitors(user_fingerprint);
   `;
 
   try {
     await db.query(migrationSql);
-    console.log('✅ PostgreSQL Schema migrations completed successfully (9 tables ready)!');
+    console.log('✅ PostgreSQL Schema migrations completed successfully (10 tables ready)!');
   } catch (err) {
     console.error('❌ Migration failed:', err);
     process.exit(1);

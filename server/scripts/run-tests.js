@@ -4,6 +4,7 @@ import BookService from '../services/book.service.js';
 import DewService from '../services/dew.service.js';
 import QuoteService from '../services/quote.service.js';
 import ModerationService from '../services/moderation.service.js';
+import GrowthService from '../services/growth.service.js';
 import { v4 as uuidv4 } from 'uuid';
 
 async function runAllTests() {
@@ -130,6 +131,22 @@ async function runAllTests() {
     // Admin Bonus EXP
     const bonusRes = await ModerationService.grantAdminBonus(100, 'Tặng EXP Sự Kiện', adminUser, '127.0.0.1');
     assert(bonusRes.amount === 100, 'Admin Control: Special event EXP bonus (+100 EXP) successfully credited');
+
+    // -------------------------------------------------------------
+    // INTEGRATION TESTS: REAL VISITOR TRACKING
+    // -------------------------------------------------------------
+    console.log('\n📦 [5/5] Running Integration Tests: Real Visitor Tracking & DB Sync...');
+
+    const visitorFp = `fp_test_runner_${Date.now()}`;
+    const vVisit1 = await GrowthService.recordVisitor(visitorFp, '127.0.0.1', 'Node-Test-Runner');
+    assert(vVisit1.isNewVisitor === true, 'Visitor Tracking: First visit from new device recognized as new');
+
+    const vVisit1Repeat = await GrowthService.recordVisitor(visitorFp, '127.0.0.1', 'Node-Test-Runner');
+    assert(vVisit1Repeat.isNewVisitor === false, 'Visitor Tracking: Repeat visit from same device not counted twice');
+
+    const growthCheck = await GrowthService.getCommunityGrowth();
+    assert(growthCheck.activeReaders >= 1, 'Visitor Tracking: community_growth.active_readers synced with PostgreSQL site_visitors count');
+
 
   } catch (err) {
     console.error('💥 Test suite encountered fatal error:', err);

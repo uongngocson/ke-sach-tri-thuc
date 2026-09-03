@@ -332,6 +332,7 @@ export class TesterService {
       await client.query('DELETE FROM exp_ledger');
       await client.query('DELETE FROM idempotency_keys');
       await client.query('DELETE FROM audit_logs');
+      await client.query('DELETE FROM site_visitors');
 
       // 2. Delete all books to return to clean baseline
       await client.query('DELETE FROM books');
@@ -380,6 +381,7 @@ export class TesterService {
       await client.query('DELETE FROM exp_ledger');
       await client.query('DELETE FROM idempotency_keys');
       await client.query('DELETE FROM audit_logs');
+      await client.query('DELETE FROM site_visitors');
 
       // 2. Delete ALL books to make CSDL completely EMPTY
       await client.query('DELETE FROM books');

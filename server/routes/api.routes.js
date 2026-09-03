@@ -1,5 +1,5 @@
 import express from 'express';
-import { contributeBook, getQuotes, getGrowth, claimDew, getDewStatus, likeQuote, unlikeQuote, harvestFruit } from '../controllers/index.js';
+import { contributeBook, getQuotes, getGrowth, recordVisit, claimDew, getDewStatus, likeQuote, unlikeQuote, harvestFruit } from '../controllers/index.js';
 import { validateBody, contributeBookSchema, likeQuoteSchema, claimDewSchema, harvestFruitSchema } from '../middlewares/validator.js';
 import { idempotencyMiddleware } from '../middlewares/idempotency.js';
 
@@ -7,6 +7,7 @@ const router = express.Router();
 
 // Public Community Tree Endpoints
 router.get('/growth', getGrowth);
+router.post('/growth/visit', recordVisit);
 router.get('/quotes', getQuotes);
 router.get('/dew/status', getDewStatus);
 

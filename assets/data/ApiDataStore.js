@@ -124,7 +124,7 @@ class ApiDataStoreManager {
       progressPercent: raw.progressPercent || 0,
       totalEXP: totalExp,
       nextLevelEXP: raw.nextLevelExp || (level === 0 ? 50 : 150),
-      activeReaders: raw.activeReaders || 2735
+      activeReaders: raw.activeReaders || 1
     };
   }
 
@@ -160,7 +160,7 @@ class ApiDataStoreManager {
       totalBooks: 0,
       totalDews: 0,
       totalLikes: 0,
-      activeReaders: 2735
+      activeReaders: 1
     });
   }
 

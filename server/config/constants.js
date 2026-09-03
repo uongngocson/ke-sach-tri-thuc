@@ -31,9 +31,14 @@ export function calculateLevelFromExp(totalExp) {
       return {
         level: current.level,
         name: current.name,
+        levelName: current.name,
         desc: current.desc,
+        levelDescription: current.desc,
+        levelDesc: current.desc,
         currentExp: exp,
         nextLevelExp: next ? next.minExp : current.minExp,
+        nextThreshold: next ? next.minExp : current.minExp,
+        currentFloor: current.minExp,
         progressPercent
       };
     }

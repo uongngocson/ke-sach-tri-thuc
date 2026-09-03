@@ -34,6 +34,23 @@ export async function getQuotes(req, res, next) {
 }
 
 // --- GROWTH CONTROLLER ---
+export async function recordVisit(req, res, next) {
+  try {
+    const { userFingerprint } = req.body;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const userAgent = req.headers['user-agent'] || '';
+
+    const result = await GrowthService.recordVisitor(userFingerprint, ip, userAgent);
+    res.json({
+      success: true,
+      message: 'Đã ghi nhận lượt ghé thăm của độc giả',
+      data: result
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getGrowth(req, res, next) {
   try {
     const growth = await GrowthService.getCommunityGrowth();
