@@ -1,7 +1,22 @@
-.vercel
+# Dependencies
 node_modules
 server/node_modules
+
+# Environment & Secrets
 server/.env
+*.env
+*.env.*
+*.pem
+*.key
+
+# Deployment & Remote Helpers (NEVER PUSH TO GIT)
+remote-helper.*
+deploy-remote.*
+deploy.*
+scripts/deploy.*
+
+# Logs & System
 *.log
+.vercel
 .DS_Store
 Thumbs.db
