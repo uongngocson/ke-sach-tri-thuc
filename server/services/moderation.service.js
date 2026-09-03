@@ -28,7 +28,7 @@ export class ModerationService {
             deletion_reason = COALESCE($5, deletion_reason)
         WHERE id = $6
         RETURNING *
-      `, [visibility_status, moderation_status, adminUser.id, moderation_notes, deletion_reason, bookId]);
+      `, [visibility_status, moderation_status, adminUser?.id || null, moderation_notes, deletion_reason, bookId]);
 
       const updatedBook = updateRes.rows[0];
 
@@ -53,7 +53,7 @@ export class ModerationService {
         INSERT INTO audit_logs (admin_id, action, target_type, target_id, metadata, ip_address)
         VALUES ($1, $2, 'books', $3, $4, $5)
       `, [
-        adminUser.id,
+        adminUser?.id || null,
         visibility_status === 'deleted' ? 'HIDE_BOOK' : 'REVIEW_BOOK',
         bookId,
         JSON.stringify({ previous: currentBook, updated: updatedBook, deductExp }),
@@ -79,7 +79,7 @@ export class ModerationService {
       await client.query(`
         INSERT INTO exp_ledger (user_fingerprint, amount, type, reference_type, reference_id)
         VALUES ($1, $2, 'ADMIN_BONUS', 'admin', $3)
-      `, [adminUser.username, amount, adminUser.id]);
+      `, [adminUser?.username || 'admin', amount, adminUser?.id || null]);
 
       // 2. Update community growth
       const growthRes = await client.query(`
@@ -98,7 +98,7 @@ export class ModerationService {
         INSERT INTO audit_logs (admin_id, action, target_type, target_id, metadata, ip_address)
         VALUES ($1, 'OVERRIDE_EXP', 'community_growth', NULL, $2, $3)
       `, [
-        adminUser.id,
+        adminUser?.id || null,
         JSON.stringify({ amount, reason, newTotalExp, newLevel: levelInfo.level }),
         ipAddress
       ]);

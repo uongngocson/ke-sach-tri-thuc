@@ -112,8 +112,16 @@ async function runAllTests() {
     // -------------------------------------------------------------
     console.log('\n📦 [4/4] Running Integration Tests: Admin Moderation & Audit Logs...');
 
-    const adminRow = await db.query("SELECT id, username FROM admin_users WHERE username = 'admin'");
-    const adminUser = adminRow.rows[0];
+    let adminRow = await db.query("SELECT id, username FROM admin_users WHERE username = 'admin'");
+    let adminUser = adminRow.rows[0];
+    if (!adminUser) {
+      const insertAdmin = await db.query(`
+        INSERT INTO admin_users (username, password_hash, role)
+        VALUES ('admin', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'super_admin')
+        RETURNING id, username
+      `);
+      adminUser = insertAdmin.rows[0];
+    }
     
     // Admin marks reviewed
     const reviewedBook = await ModerationService.updateBookStatus(

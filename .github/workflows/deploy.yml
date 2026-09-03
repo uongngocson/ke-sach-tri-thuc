@@ -34,10 +34,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: 'npm'
           cache-dependency-path: server/package-lock.json
 
@@ -45,7 +45,7 @@ jobs:
         working-directory: ./server
         run: npm ci || npm install
 
-      - name: Run Database Migrations
+      - name: Run Database Migrations & Seeds
         working-directory: ./server
         env:
           DB_HOST: 127.0.0.1
@@ -53,7 +53,9 @@ jobs:
           DB_NAME: caosach_ci_test_db
           DB_USER: test_runner_user
           DB_PASSWORD: test_runner_ephemeral_pw
-        run: node scripts/migrate.js
+        run: |
+          node scripts/migrate.js
+          node scripts/seed.js
 
       - name: Run Comprehensive Test Suite
         working-directory: ./server
