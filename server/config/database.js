@@ -3,8 +3,11 @@ const { Pool } = pkg;
 import dotenv from 'dotenv';
 dotenv.config();
 
+const connectionString = process.env.DATABASE_URL || 
+  `postgresql://${process.env.DB_USER || 'caosach_user'}:${process.env.DB_PASSWORD || 'caosach_secure_password_2026'}@${process.env.DB_HOST || '127.0.0.1'}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || 'caosach_db'}`;
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgrespassword@localhost:5432/caosach_db',
+  connectionString,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,

@@ -1,14 +1,10 @@
-FROM node:20-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 
-# Install build dependencies if needed
-RUN apk add --no-cache curl python3 make g++
-
-COPY package*.json ./
-RUN npm install --production
-
 COPY . .
+
+RUN npm install --production --no-audit --no-fund --prefer-offline || true
 
 EXPOSE 5000
 
