@@ -75,25 +75,22 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/development' && github.event_name == 'push'
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Connect to Tailscale
         uses: tailscale/github-action@v3
         with:
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
 
-      - name: Deploy to Staging via Tailscale SSH
+      - name: Sync Code to Staging Directory
         run: |
-          ssh -o StrictHostKeyChecking=no sonun@${{ secrets.SERVER_HOST }} << 'EOF'
-            mkdir -p /home/sonun/deployments/caosach-staging
-            cd /home/sonun/deployments/caosach-staging
-            if [ -d .git ]; then
-              git fetch origin
-              git checkout development
-              git reset --hard origin/development
-            else
-              git clone -b development https://github.com/uongngocson/ke-sach-tri-thuc.git .
-            fi
-            docker compose -f docker-compose.staging.yml up -d --build
-          EOF
+          ssh -o StrictHostKeyChecking=no sonun@${{ secrets.SERVER_HOST }} "mkdir -p /home/sonun/deployments/caosach-staging"
+          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" --exclude '.git' --exclude 'node_modules' ./ sonun@${{ secrets.SERVER_HOST }}:/home/sonun/deployments/caosach-staging/
+
+      - name: Deploy Staging Docker Containers
+        run: |
+          ssh -o StrictHostKeyChecking=no sonun@${{ secrets.SERVER_HOST }} "cd /home/sonun/deployments/caosach-staging && docker compose -f docker-compose.staging.yml up -d --build"
 
   deploy-prod:
     name: Deploy to Production (https://caosach.soninfra.cloud)
@@ -101,22 +98,19 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Connect to Tailscale
         uses: tailscale/github-action@v3
         with:
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
 
-      - name: Deploy to Production via Tailscale SSH
+      - name: Sync Code to Production Directory
         run: |
-          ssh -o StrictHostKeyChecking=no sonun@${{ secrets.SERVER_HOST }} << 'EOF'
-            mkdir -p /home/sonun/deployments/caosach-prod
-            cd /home/sonun/deployments/caosach-prod
-            if [ -d .git ]; then
-              git fetch origin
-              git checkout main
-              git reset --hard origin/main
-            else
-              git clone -b main https://github.com/uongngocson/ke-sach-tri-thuc.git .
-            fi
-            docker compose -f docker-compose.prod.yml up -d --build
-          EOF
+          ssh -o StrictHostKeyChecking=no sonun@${{ secrets.SERVER_HOST }} "mkdir -p /home/sonun/deployments/caosach-prod"
+          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" --exclude '.git' --exclude 'node_modules' ./ sonun@${{ secrets.SERVER_HOST }}:/home/sonun/deployments/caosach-prod/
+
+      - name: Deploy Production Docker Containers
+        run: |
+          ssh -o StrictHostKeyChecking=no sonun@${{ secrets.SERVER_HOST }} "cd /home/sonun/deployments/caosach-prod && docker compose -f docker-compose.prod.yml up -d --build"
