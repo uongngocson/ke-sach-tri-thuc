@@ -6013,6 +6013,7 @@
   <script id="book-tree-master-script" type="module">
     import { MockDataStore } from './assets/data/MockDataStore.js';
     import { TesterPanel } from './assets/tester/TesterPanel.js';
+    import { APP_CONFIG } from './assets/config/appEnv.js';
     import { NourishmentFX } from './assets/effects/NourishmentFX.js';
     import { DailyDewService } from './assets/services/DailyDewService.js';
     import { QuoteCardExporter } from './assets/services/QuoteCardExporter.js';
@@ -6020,7 +6021,11 @@
     (async function () {
       // Initialize Mock Store, Tester Panel & Nourishment Particle FX
       MockDataStore.init();
-      new TesterPanel();
+      const isForceTester = new URLSearchParams(window.location.search).get('tester') === 'true';
+      const isAllowedTester = APP_CONFIG && APP_CONFIG.SHOW_TESTER && window.location.hostname !== 'caosach.soninfra.cloud';
+      if (isAllowedTester || isForceTester) {
+        new TesterPanel();
+      }
       const nourishmentFX = new NourishmentFX();
 
       // DAILY DEW CHECK-IN SERVICE BINDINGS
