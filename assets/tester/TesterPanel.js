@@ -3,6 +3,14 @@ import { MockDataStore } from '../data/MockDataStore.js';
 export class TesterPanel {
   constructor() {
     this.isOpen = false;
+
+    // Hide completely on Production (caosach.soninfra.cloud - main branch)
+    const isProduction = window.location.hostname === 'caosach.soninfra.cloud' && 
+                         !window.location.search.includes('tester=true');
+    if (isProduction) {
+      return;
+    }
+
     this.initUI();
   }
 
