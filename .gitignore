@@ -12,7 +12,9 @@ server/.env
 # Deployment & Remote Helpers (NEVER PUSH TO GIT)
 remote-helper.*
 deploy-remote.*
-deploy.*
+/deploy.ps1
+/deploy.sh
+/deploy.js
 scripts/deploy.*
 
 # Logs & System
