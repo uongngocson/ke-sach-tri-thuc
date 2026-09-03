@@ -12,10 +12,11 @@ services:
     volumes:
       - caosach_staging_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-caosach_staging_user} -d ${DB_NAME:-caosach_staging_db}"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 3s
       timeout: 5s
-      retries: 10
+      retries: 15
+      start_period: 10s
     networks:
       - caosach-staging-net
 
