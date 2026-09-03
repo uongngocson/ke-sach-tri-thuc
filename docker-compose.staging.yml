@@ -4,15 +4,15 @@ services:
     container_name: caosach-staging-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: caosach_staging_db
-      POSTGRES_USER: caosach_staging_user
-      POSTGRES_PASSWORD: caosach_secure_password_2026_staging
+      POSTGRES_DB: ${DB_NAME:-caosach_staging_db}
+      POSTGRES_USER: ${DB_USER:-caosach_staging_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "127.0.0.1:5437:5432"
     volumes:
       - caosach_staging_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U caosach_staging_user -d caosach_staging_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-caosach_staging_user} -d ${DB_NAME:-caosach_staging_db}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -30,19 +30,19 @@ services:
     volumes:
       - ./server:/app
     environment:
-      PORT: 5006
-      NODE_ENV: staging
-      CLIENT_ORIGIN: "https://stagcaosach.soninfra.cloud,http://stagcaosach.soninfra.cloud,http://localhost:5506"
+      PORT: ${PORT:-5006}
+      NODE_ENV: ${NODE_ENV:-staging}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-https://stagcaosach.soninfra.cloud}
       DB_HOST: 127.0.0.1
-      DB_PORT: 5437
-      DB_NAME: caosach_staging_db
-      DB_USER: caosach_staging_user
-      DB_PASSWORD: caosach_secure_password_2026_staging
-      JWT_SECRET: caosach_staging_jwt_key_2026
-      BCRYPT_ROUNDS: 10
-      ADMIN_DEFAULT_PASSWORD: admin123
-      RATE_LIMIT_WINDOW_MS: 900000
-      RATE_LIMIT_MAX_REQUESTS: 5000
+      DB_PORT: ${DB_PORT:-5437}
+      DB_NAME: ${DB_NAME:-caosach_staging_db}
+      DB_USER: ${DB_USER:-caosach_staging_user}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-10}
+      ADMIN_DEFAULT_PASSWORD: ${ADMIN_DEFAULT_PASSWORD}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-5000}
     network_mode: host
     command: sh -c "npm install --production --no-audit --no-fund && node scripts/migrate.js && node scripts/seed.js && node server.js"
 

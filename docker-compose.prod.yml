@@ -4,15 +4,15 @@ services:
     container_name: caosach-prod-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: caosach_db
-      POSTGRES_USER: caosach_user
-      POSTGRES_PASSWORD: caosach_secure_password_2026
+      POSTGRES_DB: ${DB_NAME:-caosach_db}
+      POSTGRES_USER: ${DB_USER:-caosach_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "127.0.0.1:5436:5432"
     volumes:
       - caosach_prod_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U caosach_user -d caosach_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-caosach_user} -d ${DB_NAME:-caosach_db}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -30,19 +30,19 @@ services:
     volumes:
       - ./server:/app
     environment:
-      PORT: 5005
-      NODE_ENV: production
-      CLIENT_ORIGIN: "https://caosach.soninfra.cloud,http://caosach.soninfra.cloud,http://localhost:5505"
+      PORT: ${PORT:-5005}
+      NODE_ENV: ${NODE_ENV:-production}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-https://caosach.soninfra.cloud}
       DB_HOST: 127.0.0.1
-      DB_PORT: 5436
-      DB_NAME: caosach_db
-      DB_USER: caosach_user
-      DB_PASSWORD: caosach_secure_password_2026
-      JWT_SECRET: caosach_super_secret_jwt_key_2026_production
-      BCRYPT_ROUNDS: 10
-      ADMIN_DEFAULT_PASSWORD: admin123
-      RATE_LIMIT_WINDOW_MS: 900000
-      RATE_LIMIT_MAX_REQUESTS: 5000
+      DB_PORT: ${DB_PORT:-5436}
+      DB_NAME: ${DB_NAME:-caosach_db}
+      DB_USER: ${DB_USER:-caosach_user}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-10}
+      ADMIN_DEFAULT_PASSWORD: ${ADMIN_DEFAULT_PASSWORD}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-5000}
     network_mode: host
     command: sh -c "npm install --production --no-audit --no-fund && node scripts/migrate.js && node scripts/seed.js && node server.js"
 

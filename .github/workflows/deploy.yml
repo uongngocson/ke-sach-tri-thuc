@@ -14,6 +14,22 @@ jobs:
   test:
     name: Run Automated Test Suite
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: caosach_ci_test_db
+          POSTGRES_USER: test_runner_user
+          POSTGRES_PASSWORD: test_runner_ephemeral_pw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -29,8 +45,26 @@ jobs:
         working-directory: ./server
         run: npm ci || npm install
 
-      - name: Run Test Suite
+      - name: Run Database Migrations
         working-directory: ./server
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_NAME: caosach_ci_test_db
+          DB_USER: test_runner_user
+          DB_PASSWORD: test_runner_ephemeral_pw
+        run: node scripts/migrate.js
+
+      - name: Run Comprehensive Test Suite
+        working-directory: ./server
+        env:
+          NODE_ENV: test
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_NAME: caosach_ci_test_db
+          DB_USER: test_runner_user
+          DB_PASSWORD: test_runner_ephemeral_pw
+          JWT_SECRET: test_runner_ephemeral_jwt_secret
         run: npm test
 
   deploy-staging:
@@ -39,19 +73,16 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/development' && github.event_name == 'push'
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Tailscale Auth & Deploy to Staging Server
+      - name: Deploy to Staging Server via SSH
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SERVER_HOST || '100.101.27.107' }}
-          username: ${{ secrets.SERVER_USER || 'sonun' }}
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            mkdir -p /home/sonun/deployments/caosach-staging
-            cd /home/sonun/deployments/caosach-staging
+            mkdir -p /home/${{ secrets.SERVER_USER }}/deployments/caosach-staging
+            cd /home/${{ secrets.SERVER_USER }}/deployments/caosach-staging
             if [ -d .git ]; then
               git fetch origin
               git checkout development
@@ -67,19 +98,16 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Tailscale Auth & Deploy to Production Server
+      - name: Deploy to Production Server via SSH
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SERVER_HOST || '100.101.27.107' }}
-          username: ${{ secrets.SERVER_USER || 'sonun' }}
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            mkdir -p /home/sonun/deployments/caosach-prod
-            cd /home/sonun/deployments/caosach-prod
+            mkdir -p /home/${{ secrets.SERVER_USER }}/deployments/caosach-prod
+            cd /home/${{ secrets.SERVER_USER }}/deployments/caosach-prod
             if [ -d .git ]; then
               git fetch origin
               git checkout main
