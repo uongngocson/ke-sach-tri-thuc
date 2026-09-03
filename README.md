@@ -74,7 +74,7 @@ Hệ thống sử dụng **PostgreSQL 16 Alpine** chạy trong Docker container 
    - `visibility_status`: `visible` (hiển thị), `hidden` (tạm ẩn), `deleted` (đã xóa).
    - `moderation_status`: `pending_review` (chờ hậu kiểm), `reviewed` (đã duyệt an toàn), `flagged` (bị báo cáo), `rejected` (bị từ chối).
 4. **`exp_ledger`**: Sổ cái kép ghi vết toàn bộ biến động EXP (`BOOK_CONTRIBUTION`, `QUOTE_LIKE`, `DAILY_DEW`, `FRUIT_HARVEST`, `ADMIN_BONUS`, `MODERATION_PENALTY`).
-5. **`daily_dews`**: Lưu lượt nhận sương mai mỗi ngày với ràng buộc `UNIQUE(user_fingerprint, claim_date)` chống spam.
+5. **`daily_dews`**: Lưu lượt tưới cây mỗi ngày với ràng buộc `UNIQUE(user_fingerprint, claim_date)` chống spam.
 6. **`quote_likes`**: Lưu lượt thả tim trích dẫn với ràng buộc `UNIQUE(user_fingerprint, book_id)`.
 7. **`fruit_harvests`**: Lưu lượt hái quả tri thức với ràng buộc `UNIQUE(user_fingerprint, fruit_index, harvest_date)`.
 8. **`idempotency_keys`**: Lưu cache phản hồi theo `Idempotency-Key` header để chống trùng lặp request khi mạng lag hoặc bấm đúp.
@@ -191,7 +191,7 @@ npm test
 ### Kết quả kiểm thử:
 - ✅ **Unit Tests**: Kiểm tra công thức toán học và ngưỡng phần trăm thăng hạng Level 0–5.
 - ✅ **Integration Tests**: Kiểm tra Transaction gieo sách, auto-approve và ghi sổ kép `exp_ledger`.
-- ✅ **Anti-Spam Constraints**: Kiểm tra ràng buộc `UNIQUE` chống spam tưới sương và like trích dẫn ở tầng DB.
+- ✅ **Anti-Spam Constraints**: Kiểm tra ràng buộc `UNIQUE` chống spam tưới cây và like trích dẫn ở tầng DB.
 - ✅ **Admin Moderation & Audit**: Kiểm tra xác thực JWT, phân quyền và ghi nhật ký `audit_logs`.
 
 ---

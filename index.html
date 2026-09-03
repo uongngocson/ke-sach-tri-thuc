@@ -3791,7 +3791,7 @@
                   <button
                     id="fpt-mobile-dew-btn"
                     class="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-500/15 border border-sky-500/40 text-sm font-bold text-sky-600 dark:text-sky-300 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
-                    title="Nhận giọt sương sớm hằng ngày (+1 EXP)" type="button">
+                    title="Tưới nước cho cây hằng ngày (+1 EXP)" type="button">
                     <span>💧</span>
                   </button>
                   <button
@@ -3816,9 +3816,9 @@
                 <button
                   id="fpt-main-dew-btn"
                   class="h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/40 text-sky-700 dark:text-sky-300 text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
-                  title="Nhận giọt sương sớm hằng ngày (+1 EXP)" type="button">
+                  title="Tưới nước cho cây hằng ngày (+1 EXP)" type="button">
                   <span class="text-sm leading-none">💧</span>
-                  <span id="fpt-main-dew-text">Tưới Sương</span>
+                  <span id="fpt-main-dew-text">Tưới Cây</span>
                 </button>
                 <button
                   id="fpt-main-gieo-mam-btn"
@@ -5706,7 +5706,7 @@
             <h4 class="rules-heading">Sứ Mệnh & Ý Nghĩa Nuôi Dưỡng Cây</h4>
           </div>
           <p class="rules-desc">
-            <strong>Cáo Sách</strong> là không gian sinh thái số kết nối và tôn vinh văn hóa đọc. Mỗi cuốn sách đóng góp, mỗi trích dẫn đắt giá của bạn chính là <strong>nguồn phù sa màu mỡ, hạt giống tương lai và giọt nước tinh khiết</strong> trực tiếp bón phân, tưới mát để cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn mình từ lòng đất trở thành đại cổ thụ ngàn năm.
+            <strong>Cáo Sách</strong> là không gian sinh thái số kết nối và tôn vinh văn hóa đọc. Mỗi cuốn sách đóng góp, mỗi trích dẫn đắt giá của bạn chính là <strong>nguồn phù sa màu mỡ, hạt giống tương lai và giọt nước tinh khiết</strong> trực tiếp bón phân, tưới cây để cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn mình từ lòng đất trở thành đại cổ thụ ngàn năm.
           </p>
         </div>
 
@@ -5763,7 +5763,7 @@
             </div>
             <div class="rules-reward-box">
               <div class="rules-reward-title">💖 Thả Tim Trích Dẫn</div>
-              <div class="rules-reward-detail"><strong>+2 EXP</strong> / lượt yêu thích — Tiếp thêm giọt nước tưới mát quang hợp</div>
+              <div class="rules-reward-detail"><strong>+2 EXP</strong> / lượt yêu thích — Tiếp thêm dòng nước tưới cây quang hợp</div>
             </div>
             <div class="rules-reward-box">
               <div class="rules-reward-title">🔗 Minh Bạch On-Chain</div>
@@ -5962,7 +5962,7 @@
       <div class="welcome-quote-box" style="position: relative; z-index: 2;">
         <p class="welcome-metaphor-text">
           “Tri thức nhân loại tựa như đại cổ thụ vươn bóng ngàn năm, bắt đầu từ những hạt mầm khiêm nhường ủ mình trong lòng đất.
-          Tại <strong>Cáo Sách</strong>, mỗi cuốn sách bạn gieo, mỗi dòng trích dẫn bạn sẻ chia chính là nguồn phù sa màu mỡ và dòng nước tưới mát — cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn cành rợp bóng.”
+          Tại <strong>Cáo Sách</strong>, mỗi cuốn sách bạn gieo, mỗi dòng trích dẫn bạn sẻ chia chính là nguồn phù sa màu mỡ và dòng nước tưới cây — cùng cộng đồng nuôi dưỡng Cây Tri Thức vươn cành rợp bóng.”
         </p>
       </div>
 
@@ -5978,7 +5978,7 @@
         <div class="welcome-pillar-item">
           <span class="welcome-pillar-icon">💧</span>
           <div>
-            <strong>Tưới Mát & Bón Phân</strong>
+            <strong>Tưới Cây & Bón Phân</strong>
             <p>Mỗi lượt thả tim tiếp thêm dinh dưỡng</p>
           </div>
         </div>
@@ -6036,14 +6036,14 @@
         const mobileDewBtn = document.getElementById('fpt-mobile-dew-btn');
 
         if (hasClaimed) {
-          if (mainDewText) mainDewText.textContent = 'Đã Tưới Sương';
+          if (mainDewText) mainDewText.textContent = 'Đã Tưới Cây';
           if (mainDewBtn) {
             mainDewBtn.classList.add('opacity-75');
-            mainDewBtn.title = 'Hôm nay bạn đã nhận sương rồi. Hẹn gặp lại ngày mai!';
+            mainDewBtn.title = 'Hôm nay bạn đã tưới cây rồi. Hẹn gặp lại ngày mai!';
           }
           if (mobileDewBtn) {
             mobileDewBtn.classList.add('opacity-75');
-            mobileDewBtn.title = 'Hôm nay bạn đã nhận sương rồi!';
+            mobileDewBtn.title = 'Hôm nay bạn đã tưới cây rồi!';
           }
         }
       }
@@ -6056,10 +6056,10 @@
         }
         const result = await DailyDewService.claimDailyDew();
         if (result.success) {
-          showToast(`💧 Bạn đã tưới 1 Giọt Sương (+1 EXP)! Chuỗi chăm sóc: ${result.streak} ngày liên tiếp 🌱`);
+          showToast(`💧 Bạn đã tưới nước cho cây thành công (+1 EXP)! Chuỗi chăm sóc: ${result.streak} ngày liên tiếp 🌱`);
           updateDewButtonState();
         } else {
-          showToast(result.message || 'Hôm nay bạn đã nhận sương rồi 🌱');
+          showToast(result.message || 'Hôm nay bạn đã tưới cây rồi 🌱');
         }
       }
 

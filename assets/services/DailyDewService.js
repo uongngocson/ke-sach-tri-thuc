@@ -39,7 +39,7 @@ export class DailyDewService {
     const today = this.getTodayDateString();
     const already = await this.hasCheckedInToday();
     if (already) {
-      return { success: false, message: 'Hôm nay bạn đã nhận giọt sương tri thức rồi! Hãy quay lại vào ngày mai nhé. 🌱' };
+      return { success: false, message: 'Hôm nay bạn đã tưới cây rồi! Hãy quay lại vào ngày mai nhé. 🌱' };
     }
 
     let currentStreak = await this.getStreak();

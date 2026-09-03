@@ -7,7 +7,7 @@ export function errorHandler(err, req, res, next) {
       return res.status(409).json({
         success: false,
         error: 'DUPLICATE_DEW_CLAIM',
-        message: 'Bạn đã nhận giọt sương hôm nay rồi. Hãy quay lại vào ngày mai nhé!'
+        message: 'Bạn đã tưới cây hôm nay rồi. Hãy quay lại vào ngày mai nhé!'
       });
     }
     if (err.constraint === 'unq_user_quote_like') {

@@ -69,7 +69,7 @@ export async function claimDew(req, res, next) {
     const result = await DewService.claimDew(req.body.userFingerprint);
     res.status(201).json({
       success: true,
-      message: 'Nhận giọt sương mai thành công (+1 EXP)!',
+      message: 'Tưới cây thành công (+1 EXP)!',
       data: result
     });
   } catch (err) {
