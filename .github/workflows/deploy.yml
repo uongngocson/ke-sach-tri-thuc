@@ -1,103 +1,90 @@
-name: CI/CD Production Deployment (Cáo Sách)
+name: CI/CD Pipeline - Cáo Sách Multi-Environment
 
 on:
   push:
     branches:
       - main
       - development
+  pull_request:
+    branches:
+      - main
+      - development
 
 jobs:
   test:
-    name: Run Automated Tests
+    name: Run Automated Test Suite
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: caosach_db
-          POSTGRES_USER: caosach_user
-          POSTGRES_PASSWORD: caosach_secure_password_2026
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-      - name: Checkout Source Code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20 LTS
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: 'server/package-lock.json'
+          cache-dependency-path: server/package-lock.json
 
-      - name: Install Server Dependencies
-        run: |
-          cd server
-          npm ci
+      - name: Install Dependencies
+        working-directory: ./server
+        run: npm ci || npm install
 
-      - name: Run Schema Migrations
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_NAME: caosach_db
-          DB_USER: caosach_user
-          DB_PASSWORD: caosach_secure_password_2026
-          JWT_SECRET: caosach_test_secret_2026
-        run: |
-          cd server
-          npm run migrate
+      - name: Run Test Suite
+        working-directory: ./server
+        run: npm test
 
-      - name: Run Full Test Suite (Unit, Integration, Anti-Spam, Visitor Tracking)
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_NAME: caosach_db
-          DB_USER: caosach_user
-          DB_PASSWORD: caosach_secure_password_2026
-          JWT_SECRET: caosach_test_secret_2026
-        run: |
-          cd server
-          npm test
-
-  deploy:
-    name: Deploy to Production Server (https://caosach.soninfra.cloud)
-    needs: test
+  deploy-staging:
+    name: Deploy to Staging (https://stagcaosach.soninfra.cloud)
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development'
-
+    needs: test
+    if: github.ref == 'refs/heads/development' && github.event_name == 'push'
     steps:
-      - name: Deploy to Remote Ubuntu Server via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Tailscale Auth & Deploy to Staging Server
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST || '100.101.27.107' }}
           username: ${{ secrets.SERVER_USER || 'sonun' }}
-          password: ${{ secrets.SERVER_PASSWORD || 'Soncute@123' }}
-          port: 22
+          password: ${{ secrets.SERVER_PASSWORD }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            TARGET_DIR="/home/sonun/ke-sach-tri-thuc"
-            BRANCH="${{ github.ref_name }}"
-            echo "🚀 Deploying branch $BRANCH to $TARGET_DIR..."
-
-            if [ ! -d "$TARGET_DIR" ]; then
-              git clone https://github.com/uongngocson/ke-sach-tri-thuc.git "$TARGET_DIR"
+            mkdir -p /home/sonun/deployments/caosach-staging
+            cd /home/sonun/deployments/caosach-staging
+            if [ -d .git ]; then
+              git fetch origin
+              git checkout development
+              git reset --hard origin/development
+            else
+              git clone -b development https://github.com/uongngocson/ke-sach-tri-thuc.git .
             fi
+            docker compose -f docker-compose.staging.yml up -d --build
 
-            cd "$TARGET_DIR"
-            git fetch origin "$BRANCH"
-            git checkout "$BRANCH"
-            git reset --hard "origin/$BRANCH"
+  deploy-prod:
+    name: Deploy to Production (https://caosach.soninfra.cloud)
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-            # Build and start isolated containers
-            docker compose -f docker-compose.prod.yml up -d --build --remove-orphans
-
-            # Verify health
-            sleep 5
-            curl -s http://127.0.0.1:5005/health || echo "Starting..."
-            echo "✅ Deployment of $BRANCH completed successfully!"
+      - name: Tailscale Auth & Deploy to Production Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST || '100.101.27.107' }}
+          username: ${{ secrets.SERVER_USER || 'sonun' }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            mkdir -p /home/sonun/deployments/caosach-prod
+            cd /home/sonun/deployments/caosach-prod
+            if [ -d .git ]; then
+              git fetch origin
+              git checkout main
+              git reset --hard origin/main
+            else
+              git clone -b main https://github.com/uongngocson/ke-sach-tri-thuc.git .
+            fi
+            docker compose -f docker-compose.prod.yml up -d --build
