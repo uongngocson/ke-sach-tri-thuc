@@ -141,22 +141,24 @@ export class TesterPanel {
     panel.querySelectorAll('.stage-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         let targetExp = 0;
-        if (btn.id === 'stage-btn-0-seeds') targetExp = 0;
-        else if (btn.id === 'stage-btn-15-seeds') targetExp = 15;
-        else if (btn.id === 'stage-btn-30-seeds') targetExp = 30;
-        else if (btn.id === 'stage-btn-45-seeds') targetExp = 45;
-        else if (btn.id === 'stage-btn-50-sprout') targetExp = 50;
+        let seedsCount = 0;
+        if (btn.id === 'stage-btn-0-seeds') { targetExp = 0; seedsCount = 0; }
+        else if (btn.id === 'stage-btn-15-seeds') { targetExp = 15; seedsCount = 15; }
+        else if (btn.id === 'stage-btn-30-seeds') { targetExp = 30; seedsCount = 30; }
+        else if (btn.id === 'stage-btn-45-seeds') { targetExp = 45; seedsCount = 45; }
+        else if (btn.id === 'stage-btn-50-sprout') { targetExp = 50; seedsCount = 0; }
         else if (btn.dataset.level) {
           const lvl = parseInt(btn.dataset.level, 10);
           const map = { 1: 50, 2: 150, 3: 400, 4: 1000, 5: 2500 };
           targetExp = map[lvl] || 0;
+          seedsCount = 0;
         }
         if (slider) slider.value = targetExp;
         this.updateExpLabel(targetExp, expVal);
         if (typeof MockDataStore.setExp === 'function') {
-          await MockDataStore.setExp(targetExp);
+          await MockDataStore.setExp(targetExp, seedsCount);
         } else if (typeof MockDataStore.setTesterEXP === 'function') {
-          await MockDataStore.setTesterEXP(targetExp);
+          await MockDataStore.setTesterEXP(targetExp, seedsCount);
         }
       });
     });

@@ -47,6 +47,12 @@ class SocketService {
       this.io.emit(`admin:book:${event}`, data);
     }
   }
+
+  broadcastSeedsUpdated() {
+    if (this.io) {
+      this.io.emit('seeds:updated');
+    }
+  }
 }
 
 export default new SocketService();

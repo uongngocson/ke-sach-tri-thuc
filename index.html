@@ -6263,7 +6263,13 @@ async function renderGroundSeeds() {
         groundContainer.appendChild(fragment);
       }
 
+      window.renderGroundSeeds = renderGroundSeeds;
+
       MockDataStore.subscribe('seeds:updated', () => {
+        renderGroundSeeds();
+      });
+
+      MockDataStore.subscribe('growth:updated', () => {
         renderGroundSeeds();
       });
 

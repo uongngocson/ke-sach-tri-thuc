@@ -212,9 +212,9 @@ class ApiDataStoreManager {
     }
   }
 
-  async getMasterQuotes() {
+  async getMasterQuotes(forceRefresh = false) {
     try {
-      const res = await fetch(`${getApiBase()}/quotes?page=1&limit=100`);
+      const res = await fetch(`${getApiBase()}/quotes?page=1&limit=100&_t=${Date.now()}`);
       const data = await res.json();
       if (data.success && data.data && Array.isArray(data.data.quotes)) {
         const formatted = data.data.quotes.map(q => ({
@@ -246,17 +246,25 @@ class ApiDataStoreManager {
 
   async getSeeds() {
     const quotes = await this.getMasterQuotes();
-    return quotes.map((q, idx) => ({
-      id: q.id,
-      book: q.book,
-      author: q.author,
-      quote: q.quote,
-      reader: q.reader,
-      category: q.category,
-      likes: q.likes || 0,
-      x: 18 + ((idx * 27) % 64),
-      y: 38 + ((idx * 19) % 38)
-    }));
+    return quotes.map((q, idx) => {
+      const row = Math.floor(idx / 8);
+      const col = idx % 8;
+      const baseX = 10 + col * 10.5;
+      const baseY = 25 + (row % 4) * 16;
+      const jitterX = ((idx * 17) % 7) - 3;
+      const jitterY = ((idx * 23) % 9) - 4;
+      return {
+        id: q.id,
+        book: q.book,
+        author: q.author,
+        quote: q.quote,
+        reader: q.reader,
+        category: q.category,
+        likes: q.likes || 0,
+        x: Math.max(6, Math.min(94, baseX + jitterX)),
+        y: Math.max(15, Math.min(88, baseY + jitterY))
+      };
+    });
   }
 
   isLikedByUser(id) {
@@ -428,6 +436,10 @@ class ApiDataStoreManager {
       if (data.success) {
         const formatted = this.formatGrowthResponse(data.data);
         this.cachedGrowth = data.data;
+        this.cachedQuotes = [];
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('caosach_cached_quotes');
+        }
         this.emit('growth:updated', formatted);
         this.emit('seeds:updated');
         return formatted;
@@ -449,6 +461,10 @@ class ApiDataStoreManager {
       if (data.success) {
         const formatted = this.formatGrowthResponse(data.data);
         this.cachedGrowth = data.data;
+        this.cachedQuotes = [];
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('caosach_cached_quotes');
+        }
         this.emit('growth:updated', formatted);
         this.emit('seeds:updated');
         return formatted;
@@ -473,6 +489,7 @@ class ApiDataStoreManager {
           localStorage.removeItem('caosach_liked_quotes');
         }
         this.emit('growth:updated', data.data);
+        this.emit('seeds:updated');
         return data.data;
       }
     } catch (err) {
@@ -491,6 +508,10 @@ class ApiDataStoreManager {
       if (data.success) {
         const formatted = this.formatGrowthResponse(data.data);
         this.cachedGrowth = data.data;
+        this.cachedQuotes = [];
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('caosach_cached_quotes');
+        }
         this.emit('growth:updated', formatted);
         this.emit('seeds:updated');
         return formatted;
@@ -564,6 +585,16 @@ class ApiDataStoreManager {
   }
 }
 
-export const ApiDataStore = new ApiDataStoreManager();
+if (typeof window !== 'undefined') {
+  if (!window.__CAOSACH_DATASTORE__) {
+    window.__CAOSACH_DATASTORE__ = new ApiDataStoreManager();
+  }
+  window.ApiDataStore = window.__CAOSACH_DATASTORE__;
+  window.MockDataStore = window.__CAOSACH_DATASTORE__;
+}
+
+export const ApiDataStore = (typeof window !== 'undefined' && window.__CAOSACH_DATASTORE__) 
+  ? window.__CAOSACH_DATASTORE__ 
+  : new ApiDataStoreManager();
 export const MockDataStore = ApiDataStore;
 export default ApiDataStore;

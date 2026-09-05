@@ -220,24 +220,24 @@ export class TesterService {
 
     const result = await db.transaction(async (client) => {
       // 1. Sync real books in PostgreSQL
-      if (customSeedsCount !== null && customSeedsCount >= 0) {
-        const countRes = await client.query('SELECT COUNT(*) FROM books');
+      if (targetSeeds !== null && targetSeeds >= 0) {
+        const countRes = await client.query("SELECT COUNT(*) FROM books WHERE visibility_status = 'visible'");
         const currentCount = parseInt(countRes.rows[0].count, 10);
 
-        if (currentCount < customSeedsCount) {
-          await this.insertMockBooks(client, customSeedsCount - currentCount);
-        } else if (currentCount > customSeedsCount) {
+        if (currentCount < targetSeeds) {
+          await this.insertMockBooks(client, targetSeeds - currentCount);
+        } else if (currentCount > targetSeeds) {
           await client.query(`
             DELETE FROM books 
             WHERE id IN (
-              SELECT id FROM books ORDER BY created_at DESC LIMIT $1
+              SELECT id FROM books WHERE visibility_status = 'visible' ORDER BY created_at DESC LIMIT $1
             )
-          `, [currentCount - customSeedsCount]);
+          `, [currentCount - targetSeeds]);
         }
       }
 
       // 2. Count final books
-      const finalCountRes = await client.query('SELECT COUNT(*) FROM books');
+      const finalCountRes = await client.query("SELECT COUNT(*) FROM books WHERE visibility_status = 'visible'");
       const totalBooks = parseInt(finalCountRes.rows[0].count, 10);
 
       // 3. Update community_growth
@@ -269,6 +269,7 @@ export class TesterService {
       };
 
       socketService.broadcastGrowthUpdated(fullGrowth);
+      socketService.broadcastSeedsUpdated();
 
       return fullGrowth;
     });
