@@ -3626,28 +3626,34 @@
         border-radius: 5px !important;
       }
       .aside-quote-book {
-        font-size: 12px !important;
-        font-weight: 900 !important;
+        font-size: 11.5px !important;
+        font-weight: 800 !important;
         line-height: 1.25 !important;
-        margin-bottom: 1px !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
       }
       .aside-quote-author {
-        font-size: 10px !important;
+        font-size: 9.5px !important;
         font-weight: 700 !important;
-        margin-bottom: 4px !important;
       }
       .aside-quote-bubble {
-        padding: 6px 9px !important;
-        margin-bottom: 4px !important;
+        padding: 6px 8px !important;
+        margin-bottom: 0 !important;
         border-radius: 10px !important;
         border-left-width: 2.5px !important;
       }
+      .aside-quote-top-meta {
+        padding-bottom: 3px !important;
+        margin-bottom: 3px !important;
+      }
+      .aside-quote-bottom-meta {
+        padding-top: 3px !important;
+        margin-top: 3px !important;
+      }
       .aside-quote-text {
         font-size: 10.5px !important;
-        line-height: 1.42 !important;
+        line-height: 1.4 !important;
         margin: 2px 0 !important;
         display: -webkit-box !important;
         -webkit-line-clamp: 3 !important;
@@ -3655,12 +3661,12 @@
         overflow: hidden !important;
       }
       .aside-quote-like-btn {
-        padding: 2px 7px !important;
+        padding: 2px 6px !important;
         font-size: 9.5px !important;
-        height: 20px !important;
-        gap: 3px !important;
+        height: 19px !important;
+        gap: 2.5px !important;
       }
-      .aside-quote-footer { font-size: 9.5px !important; margin-top: 2px !important; }
+      .aside-quote-footer { font-size: 9.5px !important; }
       .aside-timer-track { height: 2px !important; margin-top: 4px !important; }
 
       /* Mobile Tester Button: Fixed Bottom-Left with Safe Area Inset */
@@ -3857,12 +3863,12 @@
                 </button>
                 <!-- Expanded Quote Widget Card -->
                 <div
-                  class="aside-quote-widget absolute top-0 left-0 w-80 sm:w-[340px] backdrop-blur-md rounded-2xl border-2 p-3.5 sm:p-4 shadow-2xl z-40 transition-all duration-300 pointer-events-auto"
+                  class="aside-quote-widget absolute top-0 left-0 w-80 sm:w-[330px] backdrop-blur-md rounded-2xl border p-3 shadow-xl z-40 transition-all duration-300 pointer-events-auto"
                   id="aside-content-box">
                   <!-- Header Bar -->
-                  <div class="aside-quote-header flex items-center justify-between pb-2 mb-2 border-b">
+                  <div class="aside-quote-header flex items-center justify-between pb-1.5 mb-2 border-b">
                     <div class="flex items-center gap-1.5">
-                      <span class="text-xs">✨</span>
+                      <span class="text-xs leading-none">✨</span>
                       <span class="aside-quote-badge text-[10px] font-black tracking-wider uppercase">TRÍCH DẪN TÂM ĐẮC</span>
                     </div>
                     <div class="flex items-center gap-1">
@@ -3875,43 +3881,43 @@
 
                   <!-- Quote Body Card -->
                   <div class="aside-quote-body cursor-pointer" id="aside-quote-body" title="Click để xem chi tiết hoặc sao chép">
-                    <!-- Book Title & Author -->
-                    <div class="mb-2">
-                      <h4 class="aside-quote-book font-black text-[13px] sm:text-[14px] leading-tight line-clamp-1" id="aside-book-title">
-                        Bàn Về Tự Do (On Liberty)
-                      </h4>
-                      <div class="aside-quote-author flex items-center gap-1 text-[11px] font-bold mt-0.5" id="aside-book-author">
-                        <span>✍️</span> <span>John Stuart Mill</span>
+                    <!-- Unified Content Bubble -->
+                    <div class="aside-quote-bubble rounded-xl p-2.5 sm:p-3 relative transition-all duration-200">
+                      <!-- Top Header inside Content: Book Title & Author -->
+                      <div class="aside-quote-top-meta flex items-start justify-between gap-2 pb-1.5 mb-1.5 border-b border-slate-200/50 dark:border-slate-700/50">
+                        <div class="min-w-0 flex-1">
+                          <h4 class="aside-quote-book font-black text-[12.5px] sm:text-[13px] leading-snug truncate" id="aside-book-title">
+                            Hành Trình Về Phương Đông
+                          </h4>
+                          <div class="aside-quote-author flex items-center gap-1 text-[10.5px] sm:text-[11px] font-bold mt-0.5 truncate" id="aside-book-author">
+                            <span>✍️</span> <span>Baird T. Spalding</span>
+                          </div>
+                        </div>
+                        <span class="aside-quote-quotemark text-base leading-none select-none opacity-40 shrink-0">“</span>
                       </div>
-                    </div>
 
-                    <!-- Quote Content -->
-                    <div class="aside-quote-bubble rounded-xl p-2.5 sm:p-3 relative mb-2">
-                      <div class="aside-quote-quotemark text-base leading-none select-none">“</div>
-                      <p class="aside-quote-text text-[12px] sm:text-[12.5px] font-semibold italic leading-relaxed my-1" id="aside-quote-text">
-                        Nếu toàn thể nhân loại cùng một ý kiến và chỉ có một người có ý kiến ngược lại, nhân loại cũng không có quyền bắt người ấy im lặng.
+                      <!-- Middle: Quote Text -->
+                      <p class="aside-quote-text text-[11.5px] sm:text-[12px] font-semibold italic leading-relaxed my-1.5 line-clamp-4" id="aside-quote-text">
+                        Khoa học và tâm linh là hai cánh của một con chim, cùng nâng con người bay lên.
                       </p>
-                      <div class="flex items-center justify-between mt-1 pt-1.5 border-t border-slate-200/50 dark:border-slate-700/50">
-                        <div class="aside-quote-quotemark text-base leading-none select-none">”</div>
-                        <button class="aside-quote-like-btn" id="aside-like-btn" title="Thả tim trích dẫn này">
-                          <span class="aside-like-icon" id="aside-like-icon">❤️</span>
-                          <span class="aside-like-count" id="aside-quote-like-count">128</span>
-                        </button>
-                      </div>
-                    </div>
 
-                    <!-- Sharer / Reader Footer -->
-                    <div class="aside-quote-footer flex items-center text-[11px]">
-                      <div class="flex items-center gap-1.5 truncate">
-                        <span class="text-xs">👤</span>
-                        <span class="aside-quote-sharer-label opacity-75 text-[10.5px]">Người chia sẻ:</span>
-                        <strong class="aside-quote-sharer font-black truncate text-[11px]" id="aside-quote-reader">Độc giả yêu sách</strong>
+                      <!-- Bottom Footer inside Content: Sharer & Like Button -->
+                      <div class="aside-quote-bottom-meta flex items-center justify-between gap-2 pt-1.5 mt-1.5 border-t border-slate-200/50 dark:border-slate-700/50">
+                        <div class="aside-quote-footer flex items-center gap-1 min-w-0 truncate text-[10.5px] sm:text-[11px]">
+                          <span class="text-xs shrink-0">👤</span>
+                          <span class="aside-quote-sharer-label opacity-70 text-[10px] sm:text-[10.5px] shrink-0">Chia sẻ:</span>
+                          <strong class="aside-quote-sharer font-bold truncate" id="aside-quote-reader">Độc giả Tri Thức</strong>
+                        </div>
+                        <button class="aside-quote-like-btn shrink-0" id="aside-like-btn" title="Thả tim trích dẫn này">
+                          <span class="aside-like-icon" id="aside-like-icon">❤️</span>
+                          <span class="aside-like-count" id="aside-quote-like-count">1</span>
+                        </button>
                       </div>
                     </div>
                   </div>
 
                   <!-- 10s Timer Progress Bar -->
-                  <div class="aside-timer-track w-full h-[2.5px] rounded-full overflow-hidden mt-2.5">
+                  <div class="aside-timer-track w-full h-[2px] rounded-full overflow-hidden mt-2">
                     <div class="aside-timer-bar h-full rounded-full" id="aside-quote-timer-bar"></div>
                   </div>
                 </div>
@@ -4290,25 +4296,25 @@
     }
 
     .aside-quote-widget {
-      background: #ffffff !important;
-      border: 2px solid #0054A6 !important;
-      box-shadow: 0 20px 45px -8px rgba(0, 84, 166, 0.22) !important;
+      background: rgba(255, 255, 255, 0.96) !important;
+      border: 1.5px solid rgba(0, 84, 166, 0.18) !important;
+      box-shadow: 0 16px 36px -6px rgba(0, 84, 166, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.8) inset !important;
       color: #0f172a !important;
     }
 
     html.dark .aside-quote-widget {
-      background: #111c38 !important;
-      border: 2px solid #0054A6 !important;
-      box-shadow: 0 20px 45px -8px rgba(0, 0, 0, 0.75) !important;
+      background: rgba(17, 28, 56, 0.94) !important;
+      border: 1.5px solid rgba(0, 84, 166, 0.4) !important;
+      box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
       color: #f8fafc !important;
     }
 
     .aside-quote-header {
-      border-color: rgba(0, 84, 166, 0.15) !important;
+      border-color: rgba(0, 84, 166, 0.1) !important;
     }
 
     html.dark .aside-quote-header {
-      border-color: rgba(51, 65, 85, 0.6) !important;
+      border-color: rgba(51, 65, 85, 0.5) !important;
     }
 
     .aside-quote-badge {
@@ -4372,10 +4378,6 @@
       transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .aside-quote-body:hover {
-      opacity: 0.96;
-    }
-
     .aside-quote-book {
       color: #0054A6 !important;
     }
@@ -4393,15 +4395,32 @@
     }
 
     .aside-quote-bubble {
-      background: linear-gradient(135deg, rgba(0, 84, 166, 0.05) 0%, rgba(243, 111, 33, 0.04) 100%) !important;
-      border-left: 3.5px solid #F36F21 !important;
-      box-shadow: inset 0 0 0 1px rgba(0, 84, 166, 0.08);
+      background: linear-gradient(145deg, rgba(0, 84, 166, 0.035) 0%, rgba(243, 111, 33, 0.025) 100%) !important;
+      border: 1px solid rgba(0, 84, 166, 0.12) !important;
+      border-left: 3px solid #F36F21 !important;
+      box-shadow: 0 2px 8px rgba(0, 84, 166, 0.04);
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     html.dark .aside-quote-bubble {
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.7) 100%) !important;
-      border-left: 3.5px solid #F36F21 !important;
-      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.15);
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.75) 0%, rgba(30, 41, 59, 0.55) 100%) !important;
+      border: 1px solid rgba(56, 189, 248, 0.14) !important;
+      border-left: 3px solid #F36F21 !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    }
+
+    .aside-quote-body:hover .aside-quote-bubble {
+      border-color: rgba(0, 84, 166, 0.28) !important;
+      border-left-color: #F36F21 !important;
+      box-shadow: 0 6px 18px rgba(0, 84, 166, 0.08);
+      transform: translateY(-1px);
+    }
+
+    html.dark .aside-quote-body:hover .aside-quote-bubble {
+      border-color: rgba(56, 189, 248, 0.35) !important;
+      border-left-color: #ff8a3d !important;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+      transform: translateY(-1px);
     }
 
     .aside-quote-quotemark {
@@ -4415,7 +4434,7 @@
     }
 
     html.dark .aside-quote-text {
-      color: #f1f5f9 !important;
+      color: #e2e8f0 !important;
     }
 
     .aside-quote-sharer-label {
@@ -4832,16 +4851,17 @@
     .aside-quote-like-btn {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 3px 10px;
+      gap: 3.5px;
+      padding: 2px 8px;
       border-radius: 9999px;
       background: #ffffff;
       color: #475569;
       border: 1px solid #cbd5e1;
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 800;
+      line-height: 1.2;
       cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       user-select: none;
     }
