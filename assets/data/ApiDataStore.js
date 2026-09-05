@@ -109,6 +109,11 @@ class ApiDataStoreManager {
         }
       }
     }
+    if (typeof window !== 'undefined') {
+      if (event === 'growth:updated') {
+        window.dispatchEvent(new CustomEvent('fpt-growth-updated', { detail: data }));
+      }
+    }
   }
 
   emitEvent(event, data) {
@@ -503,6 +508,59 @@ class ApiDataStoreManager {
       await this.harvestFruit(0);
     }
     return this.getCommunityGrowth();
+  }
+
+  getState() {
+    if (this.cachedGrowth) {
+      return this.formatGrowthResponse(this.cachedGrowth);
+    }
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const cached = JSON.parse(localStorage.getItem('caosach_cached_growth') || 'null');
+        if (cached) return this.formatGrowthResponse(cached);
+      } catch (e) {}
+    }
+    return this.formatGrowthResponse({
+      totalEXP: 0,
+      level: 0,
+      levelName: 'Hạt Mầm Tri Thức',
+      progressPercent: 0,
+      totalBooks: 0,
+      totalDews: 0,
+      totalLikes: 0,
+      activeReaders: 1
+    });
+  }
+
+  async setExp(exp, seedsCount = null) {
+    return this.setTesterEXP(exp, seedsCount);
+  }
+
+  async addSeeds(count = 1) {
+    return this.simulateSeedContribution(count);
+  }
+
+  async addHeart() {
+    try {
+      const quotes = await this.getMasterQuotes();
+      if (quotes && quotes.length > 0) {
+        await this.likeQuote(quotes[0].id);
+      } else {
+        const current = this.getState();
+        await this.setTesterEXP((current.totalEXP || 0) + 20);
+      }
+    } catch (e) {
+      console.warn('addHeart error:', e);
+    }
+    return this.getCommunityGrowth();
+  }
+
+  async resetDatabase() {
+    return this.wipeDatabaseExceptAccounts();
+  }
+
+  async resetAll() {
+    return this.resetToInitialState();
   }
 }
 

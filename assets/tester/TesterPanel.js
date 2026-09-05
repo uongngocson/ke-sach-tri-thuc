@@ -126,16 +126,20 @@ export class TesterPanel {
 
     // Slider
     if (slider) {
-      slider.addEventListener('input', (e) => {
+      slider.addEventListener('input', async (e) => {
         const val = parseInt(e.target.value, 10);
         this.updateExpLabel(val, expVal);
-        MockDataStore.setExp(val);
+        if (typeof MockDataStore.setExp === 'function') {
+          await MockDataStore.setExp(val);
+        } else if (typeof MockDataStore.setTesterEXP === 'function') {
+          await MockDataStore.setTesterEXP(val);
+        }
       });
     }
 
     // Stage buttons
     panel.querySelectorAll('.stage-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         let targetExp = 0;
         if (btn.id === 'stage-btn-0-seeds') targetExp = 0;
         else if (btn.id === 'stage-btn-15-seeds') targetExp = 15;
@@ -149,26 +153,42 @@ export class TesterPanel {
         }
         if (slider) slider.value = targetExp;
         this.updateExpLabel(targetExp, expVal);
-        MockDataStore.setExp(targetExp);
+        if (typeof MockDataStore.setExp === 'function') {
+          await MockDataStore.setExp(targetExp);
+        } else if (typeof MockDataStore.setTesterEXP === 'function') {
+          await MockDataStore.setTesterEXP(targetExp);
+        }
       });
     });
 
     // Sim buttons
     const btnSim1 = panel.querySelector('#tester-sim-1-seed');
-    if (btnSim1) btnSim1.addEventListener('click', () => MockDataStore.addSeeds(1));
+    if (btnSim1) btnSim1.addEventListener('click', async () => {
+      if (typeof MockDataStore.addSeeds === 'function') await MockDataStore.addSeeds(1);
+      else if (typeof MockDataStore.simulateSeedContribution === 'function') await MockDataStore.simulateSeedContribution(1);
+    });
 
     const btnSim10 = panel.querySelector('#tester-sim-10-seeds');
-    if (btnSim10) btnSim10.addEventListener('click', () => MockDataStore.addSeeds(10));
+    if (btnSim10) btnSim10.addEventListener('click', async () => {
+      if (typeof MockDataStore.addSeeds === 'function') await MockDataStore.addSeeds(10);
+      else if (typeof MockDataStore.simulateSeedContribution === 'function') await MockDataStore.simulateSeedContribution(10);
+    });
 
     const btnSim50 = panel.querySelector('#tester-sim-50-seeds');
-    if (btnSim50) btnSim50.addEventListener('click', () => MockDataStore.addSeeds(50));
+    if (btnSim50) btnSim50.addEventListener('click', async () => {
+      if (typeof MockDataStore.addSeeds === 'function') await MockDataStore.addSeeds(50);
+      else if (typeof MockDataStore.simulateSeedContribution === 'function') await MockDataStore.simulateSeedContribution(50);
+    });
 
     const btnSimHeart = panel.querySelector('#tester-sim-heart');
-    if (btnSimHeart) btnSimHeart.addEventListener('click', () => MockDataStore.addHeart());
+    if (btnSimHeart) btnSimHeart.addEventListener('click', async () => {
+      if (typeof MockDataStore.addHeart === 'function') await MockDataStore.addHeart();
+    });
 
     const btnResetAll = panel.querySelector('#tester-sim-reset-all');
-    if (btnResetAll) btnResetAll.addEventListener('click', () => {
-      MockDataStore.setExp(0);
+    if (btnResetAll) btnResetAll.addEventListener('click', async () => {
+      if (typeof MockDataStore.resetToInitialState === 'function') await MockDataStore.resetToInitialState();
+      else if (typeof MockDataStore.setExp === 'function') await MockDataStore.setExp(0);
       if (slider) slider.value = 0;
       this.updateExpLabel(0, expVal);
     });
@@ -176,29 +196,52 @@ export class TesterPanel {
     const btnDbEmpty = panel.querySelector('#tester-db-empty');
     if (btnDbEmpty) btnDbEmpty.addEventListener('click', async () => {
       if (confirm('Bạn có chắc chắn muốn dọn sạch dữ liệu CSDL? (Giữ lại tài khoản Admin)')) {
-        await MockDataStore.resetDatabase();
+        if (typeof MockDataStore.resetDatabase === 'function') {
+          await MockDataStore.resetDatabase();
+        } else if (typeof MockDataStore.wipeDatabaseExceptAccounts === 'function') {
+          await MockDataStore.wipeDatabaseExceptAccounts();
+        }
         if (slider) slider.value = 0;
         this.updateExpLabel(0, expVal);
       }
     });
 
-    // Listen to changes from MockDataStore
-    window.addEventListener('fpt-growth-updated', (e) => {
-      if (e.detail && typeof e.detail.totalEXP === 'number') {
-        const exp = e.detail.totalEXP;
+    // Listen to changes from MockDataStore PubSub & CustomEvent
+    const updateUiFromGrowth = (detail) => {
+      if (detail && typeof detail.totalEXP === 'number') {
+        const exp = detail.totalEXP;
         if (slider) slider.value = exp;
         this.updateExpLabel(exp, expVal);
       }
+    };
+
+    window.addEventListener('fpt-growth-updated', (e) => {
+      if (e.detail) updateUiFromGrowth(e.detail);
     });
+
+    if (typeof MockDataStore.subscribe === 'function') {
+      MockDataStore.subscribe('growth:updated', (data) => {
+        updateUiFromGrowth(data);
+      });
+    }
   }
 
-  syncCurrentState() {
-    const current = MockDataStore.getState();
+  async syncCurrentState() {
+    let current = null;
+    if (typeof MockDataStore.getState === 'function') {
+      current = MockDataStore.getState();
+    }
+    if (!current || typeof current.totalEXP === 'undefined') {
+      if (typeof MockDataStore.getCommunityGrowth === 'function') {
+        current = await MockDataStore.getCommunityGrowth();
+      }
+    }
     const slider = document.getElementById('tester-exp-slider');
     const expVal = document.getElementById('tester-exp-val');
     if (slider && current) {
-      slider.value = current.totalEXP || 0;
-      this.updateExpLabel(current.totalEXP || 0, expVal);
+      const exp = typeof current.totalEXP === 'number' ? current.totalEXP : (current.totalSeeds || 0);
+      slider.value = exp;
+      this.updateExpLabel(exp, expVal);
     }
   }
 
