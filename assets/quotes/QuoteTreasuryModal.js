@@ -1,7 +1,7 @@
 /**
  * QuoteTreasuryModal.js
  * Modal Kho Tàng Tri Thức - Thư viện trích dẫn số toàn diện từ 8 Đội Thi & Độc Giả
- * Giao diện Clean White Full-Screen hiện đại, Responsive chuẩn Production, Lọc trực tiếp từ CSDL
+ * Đồng bộ 100% dữ liệu thật từ Cơ sở dữ liệu PostgreSQL (books & users & teams)
  */
 
 function getApiBase() {
@@ -63,7 +63,7 @@ export class QuoteTreasuryModal {
         position: fixed;
         inset: 0;
         z-index: 2147483641 !important;
-        background: rgba(15, 23, 42, 0.72);
+        background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         display: none;
@@ -539,7 +539,7 @@ export class QuoteTreasuryModal {
       .qtm-contributor {
         font-size: 11.5px;
         color: #94a3b8;
-        max-width: 125px;
+        max-width: 140px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -758,7 +758,7 @@ export class QuoteTreasuryModal {
           <div id="treasury-loading" class="qtm-loading">
             <div class="qtm-spinner"></div>
             <p style="font-weight:700; font-size:15px; color:#1e293b; margin:0 0 4px 0;">Đang mở Kho Tàng Tri Thức...</p>
-            <p style="font-size:13px; color:#64748b; margin:0;">Đang kết xuất dữ liệu trích dẫn & xếp hạng yêu thích</p>
+            <p style="font-size:13px; color:#64748b; margin:0;">Đang kết xuất dữ liệu trích dẫn từ Cơ sở dữ liệu Cáo Sách</p>
           </div>
 
           <!-- Quotes Grid -->
@@ -899,9 +899,11 @@ export class QuoteTreasuryModal {
         this.handleExportStory(quote);
       } else if (action === 'inspect-team') {
         const teamId = target.dataset.teamId;
-        this.close();
-        if (typeof this.onInspectTeam === 'function') {
-          this.onInspectTeam(teamId);
+        if (teamId && teamId !== 'null' && teamId !== 'undefined') {
+          this.close();
+          if (typeof this.onInspectTeam === 'function') {
+            this.onInspectTeam(teamId);
+          }
         }
       }
     });
@@ -1013,8 +1015,13 @@ export class QuoteTreasuryModal {
       }
 
       const newQuotes = (result && result.quotes) ? result.quotes : [];
-      this.totalQuotes = (result && typeof result.total === 'number') ? result.total : newQuotes.length;
-      this.hasMore = result ? !!result.hasMore : false;
+      this.totalQuotes = (result && typeof result.total === 'number') 
+        ? result.total 
+        : ((result && result.pagination && typeof result.pagination.total === 'number') ? result.pagination.total : newQuotes.length);
+      
+      this.hasMore = (result && typeof result.hasMore === 'boolean')
+        ? result.hasMore
+        : (result && result.pagination ? (result.pagination.page < result.pagination.totalPages) : false);
 
       if (badge) {
         badge.innerHTML = `<span>📖</span> ${this.totalQuotes} Trích dẫn tinh hoa`;
@@ -1065,26 +1072,51 @@ export class QuoteTreasuryModal {
   }
 
   buildQuoteCardHtml(quote) {
-    const teamId = quote.teamId || quote.team_id || 1;
-    const teamInfo = TEAMS_INFO[teamId] || { name: `Đội ${teamId}` };
-    const likesCount = quote.likesCount || quote.likes || 0;
+    // 100% DB Exact Mapping:
+    const rawTeamId = quote.team_id || quote.teamId;
+    const teamId = rawTeamId ? parseInt(rawTeamId, 10) : null;
+    const teamInfo = (teamId && TEAMS_INFO[teamId]) 
+      ? TEAMS_INFO[teamId] 
+      : (quote.team_name ? { name: quote.team_name, color: quote.team_color || '#0054A6' } : { name: 'Cộng Đồng Độc Giả', color: '#0054A6' });
+
+    const likesCount = (quote.likes_count !== undefined && quote.likes_count !== null)
+      ? parseInt(quote.likes_count, 10)
+      : (quote.likesCount !== undefined ? parseInt(quote.likesCount, 10) : (quote.likes || 0));
+
     const isLiked = (window.MockDataStore && window.MockDataStore.isQuoteLiked) 
       ? window.MockDataStore.isQuoteLiked(quote.id) 
       : false;
+
+    // Direct DB column fields:
+    const bookTitle = quote.title || quote.book_title || quote.bookTitle || quote.book || 'Sách Tri Thức';
+    const authorName = quote.author || 'Khuyết danh';
+    const readerName = quote.reader_name || quote.reader || quote.contributor || 'Độc giả Cáo Sách';
+    const quoteContent = quote.quote || quote.content || '';
+
+    const teamButtonHtml = teamId 
+      ? `
+        <button 
+          class="qtm-team-tag" 
+          data-action="inspect-team" 
+          data-team-id="${teamId}"
+          title="Ghé thăm Cây Tri Thức của ${teamInfo.name}"
+        >
+          <span>🌱</span>
+          <span>${teamInfo.name}</span>
+        </button>
+      `
+      : `
+        <span class="qtm-team-tag" style="background:#f1f5f9; color:#475569; border-color:#e2e8f0; cursor:default;">
+          <span>🌐</span>
+          <span>${teamInfo.name}</span>
+        </span>
+      `;
 
     return `
       <div class="qtm-quote-card" data-quote-id="${quote.id}">
         <div>
           <div class="qtm-card-top">
-            <button 
-              class="qtm-team-tag" 
-              data-action="inspect-team" 
-              data-team-id="${teamId}"
-              title="Ghé thăm Cây Tri Thức của ${teamInfo.name}"
-            >
-              <span>🌱</span>
-              <span>${teamInfo.name}</span>
-            </button>
+            ${teamButtonHtml}
             <span class="qtm-seed-badge">
               <span>🌰</span>
               <span>Đã Gieo Mầm</span>
@@ -1093,25 +1125,25 @@ export class QuoteTreasuryModal {
 
           <div class="qtm-quote-body">
             <span class="qtm-quote-quote-icon">“</span>
-            <p class="qtm-quote-text">${this.escapeHtml(quote.quote)}</p>
+            <p class="qtm-quote-text">${this.escapeHtml(quoteContent)}</p>
           </div>
 
           <div class="qtm-book-meta">
             <div class="qtm-book-icon">📖</div>
             <div class="qtm-book-info">
-              <h4 class="qtm-book-title" title="${this.escapeHtml(quote.bookTitle || '')}">
-                ${this.escapeHtml(quote.bookTitle || 'Sách Tinh Hoa')}
+              <h4 class="qtm-book-title" title="${this.escapeHtml(bookTitle)}">
+                ${this.escapeHtml(bookTitle)}
               </h4>
-              <p class="qtm-book-author" title="${this.escapeHtml(quote.author || '')}">
-                ✍️ ${this.escapeHtml(quote.author || 'Khuyết danh')}
+              <p class="qtm-book-author" title="${this.escapeHtml(authorName)}">
+                ✍️ ${this.escapeHtml(authorName)}
               </p>
             </div>
           </div>
         </div>
 
         <div class="qtm-card-footer">
-          <div class="qtm-contributor" title="Gieo bởi: ${this.escapeHtml(quote.contributor || 'Thành viên')}">
-            Gieo bởi <strong>${this.escapeHtml(quote.contributor || 'Thành viên')}</strong>
+          <div class="qtm-contributor" title="Gieo bởi: ${this.escapeHtml(readerName)}">
+            Gieo bởi <strong>${this.escapeHtml(readerName)}</strong>
           </div>
 
           <div class="qtm-actions">
@@ -1164,6 +1196,7 @@ export class QuoteTreasuryModal {
       btn.classList.remove('liked');
       if (heartSpan) heartSpan.textContent = '🤍';
       if (numSpan) numSpan.textContent = currentCount;
+      quote.likes_count = currentCount;
       quote.likesCount = currentCount;
       if (store?.unlikeQuote) await store.unlikeQuote(quote.id);
     } else {
@@ -1171,6 +1204,7 @@ export class QuoteTreasuryModal {
       btn.classList.add('liked');
       if (heartSpan) heartSpan.textContent = '❤️';
       if (numSpan) numSpan.textContent = currentCount;
+      quote.likes_count = currentCount;
       quote.likesCount = currentCount;
       this.showToast('❤️ Đã thả tim trích dẫn (+2 EXP cho Cây Tri Thức)!');
       if (store?.likeQuote) await store.likeQuote(quote.id);
@@ -1179,7 +1213,12 @@ export class QuoteTreasuryModal {
 
   handleCopyQuote(btn, quote) {
     if (!quote) return;
-    const text = `“${quote.quote}”\n— Trích từ sách "${quote.bookTitle}" (Tác giả: ${quote.author || 'Khuyết danh'}) • Gieo bởi ${quote.contributor || 'Độc giả Cáo Sách'}`;
+    const bookTitle = quote.title || quote.book_title || quote.bookTitle || quote.book || 'Sách Tri Thức';
+    const authorName = quote.author || 'Khuyết danh';
+    const readerName = quote.reader_name || quote.reader || quote.contributor || 'Độc giả Cáo Sách';
+    const quoteContent = quote.quote || quote.content || '';
+
+    const text = `“${quoteContent}”\n— Trích từ sách "${bookTitle}" (Tác giả: ${authorName}) • Gieo bởi ${readerName}`;
     
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(() => {
@@ -1210,15 +1249,23 @@ export class QuoteTreasuryModal {
 
   handleExportStory(quote) {
     if (!quote) return;
+    const bookTitle = quote.title || quote.book_title || quote.bookTitle || quote.book || 'Sách Tri Thức';
+    const authorName = quote.author || 'Khuyết danh';
+    const readerName = quote.reader_name || quote.reader || quote.contributor || 'Độc giả Cáo Sách';
+    const quoteContent = quote.quote || quote.content || '';
+    const likesCount = (quote.likes_count !== undefined && quote.likes_count !== null)
+      ? parseInt(quote.likes_count, 10)
+      : (quote.likesCount !== undefined ? parseInt(quote.likesCount, 10) : (quote.likes || 0));
+
     const exporter = window.QuoteCardExporter;
     if (exporter && typeof exporter.exportQuoteImage === 'function') {
       this.showToast('🎨 Đang kết xuất ảnh Story độ nét cao...');
       exporter.exportQuoteImage({
-        book: quote.bookTitle || quote.book,
-        author: quote.author,
-        quote: quote.quote,
-        reader: quote.contributor || quote.reader,
-        likes: quote.likesCount || quote.likes || 120,
+        book: bookTitle,
+        author: authorName,
+        quote: quoteContent,
+        reader: readerName,
+        likes: likesCount,
         format: 'story'
       });
     } else {
@@ -1226,11 +1273,11 @@ export class QuoteTreasuryModal {
         if (module.QuoteCardExporter && typeof module.QuoteCardExporter.exportQuoteImage === 'function') {
           this.showToast('🎨 Đang kết xuất ảnh Story độ nét cao...');
           module.QuoteCardExporter.exportQuoteImage({
-            book: quote.bookTitle || quote.book,
-            author: quote.author,
-            quote: quote.quote,
-            reader: quote.contributor || quote.reader,
-            likes: quote.likesCount || quote.likes || 120,
+            book: bookTitle,
+            author: authorName,
+            quote: quoteContent,
+            reader: readerName,
+            likes: likesCount,
             format: 'story'
           });
         }

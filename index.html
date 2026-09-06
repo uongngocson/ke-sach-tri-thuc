@@ -385,11 +385,20 @@
       padding: 7px 8px !important;
     }
 
-    /* Single-card mode: bg màu trắng w bằng card đó thôi */
+    /* Đồng bộ chiều rộng 100% của 2 UI bên trái: Team Single Dock và Quote Widget */
+    :root {
+      --left-hud-widget-width: 340px;
+    }
+
+    .team-timeline-dock.is-single-mode,
+    .aside-quote-widget {
+      width: var(--left-hud-widget-width) !important;
+      min-width: var(--left-hud-widget-width) !important;
+      max-width: var(--left-hud-widget-width) !important;
+      box-sizing: border-box !important;
+    }
+
     .team-timeline-dock.is-single-mode {
-      width: fit-content !important;
-      min-width: 270px !important;
-      max-width: 300px !important;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -3752,9 +3761,14 @@
         display: none !important;
       }
 
+      .team-timeline-dock.is-single-mode,
       .aside-quote-widget {
         width: calc(100vw - 24px) !important;
-        max-width: 310px !important;
+        max-width: calc(100vw - 24px) !important;
+        min-width: 0 !important;
+      }
+
+      .aside-quote-widget {
         padding: 8px 10px !important;
         border-radius: 14px !important;
         border-width: 1.5px !important;
@@ -4107,7 +4121,7 @@
                 </button>
                 <!-- Expanded Quote Widget Card -->
                 <div
-                  class="aside-quote-widget absolute top-0 left-0 w-80 sm:w-[330px] backdrop-blur-md rounded-2xl border p-3 shadow-xl z-40 transition-all duration-300 pointer-events-auto"
+                  class="aside-quote-widget absolute top-0 left-0 w-[340px] backdrop-blur-md rounded-2xl border p-3 shadow-xl z-40 transition-all duration-300 pointer-events-auto"
                   id="aside-content-box">
                   <!-- Header Bar -->
                   <div class="aside-quote-header flex items-center justify-between pb-1.5 mb-2 border-b">
@@ -6275,7 +6289,7 @@
     import { QuoteCardExporter } from './assets/services/QuoteCardExporter.js?v=20260906_v7';
     import { UserIdentityModal } from './assets/auth/UserIdentityModal.js?v=20260906_v6';
     import { TeamArenaModal } from './assets/teams/TeamArenaModal.js?v=20260906_v6';
-    import { QuoteTreasuryModal } from './assets/quotes/QuoteTreasuryModal.js?v=20260906_v11';
+    import { QuoteTreasuryModal } from './assets/quotes/QuoteTreasuryModal.js?v=20260906_v12';
 
     (async function () {
       // Initialize Mock Store, Tester Panel & Nourishment Particle FX
