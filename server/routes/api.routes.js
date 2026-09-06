@@ -1,6 +1,6 @@
 import express from 'express';
 import { 
-  contributeBook, getQuotes, getGrowth, recordVisit, claimDew, 
+  contributeBook, getDailyQuoteStatus, getQuotes, getGrowth, recordVisit, claimDew, 
   getDewStatus, likeQuote, unlikeQuote, harvestFruit,
   getTeams, getTeamById, getTeamMembers,
   getUsers, lookupUser, suggestUsers, getUserById,
@@ -15,6 +15,7 @@ const router = express.Router();
 router.get('/growth', getGrowth);
 router.post('/growth/visit', recordVisit);
 router.get('/quotes', getQuotes);
+router.get('/books/daily-status', getDailyQuoteStatus);
 router.get('/dew/status', getDewStatus);
 router.get('/content/settings', getPublicContentSettings);
 

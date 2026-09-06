@@ -2,34 +2,122 @@ import db from '../config/database.js';
 import { EXP_CONFIG } from '../config/constants.js';
 import GrowthService from './growth.service.js';
 import socketService from './socket.service.js';
-import { RoundService } from './round.service.js';
 
 export class BookService {
+  /**
+   * Check if a user/device has already contributed a quote today
+   */
+  static async getDailyQuoteStatus({ userId, email, userFingerprint }) {
+    let resolvedUserId = userId || null;
+    if (!resolvedUserId && email) {
+      const u = await db.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [email.trim()]);
+      if (u.rows.length > 0) resolvedUserId = u.rows[0].id;
+    }
+
+    if (resolvedUserId) {
+      const res = await db.query(`
+        SELECT dq.id, dq.quote_date, b.id as book_id, b.title, b.author, b.quote, b.created_at
+        FROM daily_quotes dq
+        LEFT JOIN books b ON dq.book_id = b.id
+        WHERE dq.user_id = $1 AND dq.quote_date = CURRENT_DATE
+        LIMIT 1
+      `, [resolvedUserId]);
+
+      const hasContributed = res.rows.length > 0;
+      return {
+        hasContributedToday: hasContributed,
+        remainingToday: hasContributed ? 0 : 1,
+        quote: res.rows[0] || null
+      };
+    } else if (userFingerprint) {
+      const res = await db.query(`
+        SELECT dq.id, dq.quote_date, b.id as book_id, b.title, b.author, b.quote, b.created_at
+        FROM daily_quotes dq
+        LEFT JOIN books b ON dq.book_id = b.id
+        WHERE dq.user_fingerprint = $1 AND dq.quote_date = CURRENT_DATE
+        LIMIT 1
+      `, [userFingerprint]);
+
+      const hasContributed = res.rows.length > 0;
+      return {
+        hasContributedToday: hasContributed,
+        remainingToday: hasContributed ? 0 : 1,
+        quote: res.rows[0] || null
+      };
+    }
+
+    return { hasContributedToday: false, remainingToday: 1, quote: null };
+  }
+
   static async contributeBook(payload) {
-    const { title, author, quote, category, reader, email, userFingerprint } = payload;
+    const { title, author, quote, category, reader, userFingerprint } = payload;
+    let email = payload.email;
 
     // ACID Database Transaction: Insert Book + Insert Ledger + Update Community Growth
     const result = await db.transaction(async (client) => {
-      // 0. Auto-detect user and team if email provided
-      let userId = null;
-      let teamId = null;
+      // 0. Auto-detect user and team
+      let userId = payload.userId || null;
+      let teamId = payload.teamId ? parseInt(payload.teamId, 10) : null;
 
-      if (email) {
+      if (email && email.trim()) {
         const userRes = await client.query('SELECT id, team_id FROM users WHERE LOWER(email) = LOWER($1)', [email.trim()]);
         if (userRes.rows.length > 0) {
           userId = userRes.rows[0].id;
-          teamId = userRes.rows[0].team_id;
+          if (!teamId) teamId = userRes.rows[0].team_id;
+        }
+      } else if (userId) {
+        const userRes = await client.query('SELECT id, team_id, email FROM users WHERE id = $1', [userId]);
+        if (userRes.rows.length > 0) {
+          if (!teamId) teamId = userRes.rows[0].team_id;
+          if (!email) email = userRes.rows[0].email;
+        }
+      }
+
+      // 0.1 STRICT CONSTRAINT: Mỗi ngày mỗi userid chỉ được 1 câu quote
+      if (userId) {
+        const dailyCheck = await client.query(`
+          SELECT id, book_id, created_at
+          FROM daily_quotes
+          WHERE user_id = $1 AND quote_date = CURRENT_DATE
+          LIMIT 1
+        `, [userId]);
+
+        if (dailyCheck.rows.length > 0) {
+          const err = new Error('Mỗi ngày mỗi thành viên chỉ được gieo 1 câu trích dẫn sách. Bạn đã gieo trích dẫn cho ngày hôm nay rồi, vui lòng quay lại vào ngày mai!');
+          err.statusCode = 409;
+          err.code = 'DAILY_QUOTE_LIMIT_EXCEEDED';
+          throw err;
+        }
+      } else if (userFingerprint) {
+        // Fallback constraint for anonymous / fingerprint
+        const fpCheck = await client.query(`
+          SELECT id FROM daily_quotes
+          WHERE user_fingerprint = $1 AND quote_date = CURRENT_DATE
+          LIMIT 1
+        `, [userFingerprint]);
+
+        if (fpCheck.rows.length > 0) {
+          const err = new Error('Mỗi ngày mỗi độc giả chỉ được gieo 1 câu trích dẫn sách. Bạn đã gieo trích dẫn cho ngày hôm nay rồi, vui lòng quay lại vào ngày mai!');
+          err.statusCode = 409;
+          err.code = 'DAILY_QUOTE_LIMIT_EXCEEDED';
+          throw err;
         }
       }
 
       // 1. Insert book with publication: visible, moderation: pending_review (Auto-Approve 100%)
       const bookInsert = await client.query(`
-        INSERT INTO books (title, author, quote, category, reader_name, reader_email, visibility_status, moderation_status, user_id, team_id)
-        VALUES ($1, $2, $3, $4, $5, $6, 'visible', 'pending_review', $7, $8)
+        INSERT INTO books (title, author, quote, category, reader_name, reader_email, visibility_status, moderation_status, user_id, team_id, user_fingerprint)
+        VALUES ($1, $2, $3, $4, $5, $6, 'visible', 'pending_review', $7, $8, $9)
         RETURNING *
-      `, [title, author, quote, category, reader, email ? email.trim() : null, userId, teamId]);
+      `, [title, author, quote, category, reader, email ? email.trim() : null, userId, teamId, userFingerprint]);
 
       const newBook = bookInsert.rows[0];
+
+      // 1.1 Record in daily_quotes table
+      await client.query(`
+        INSERT INTO daily_quotes (user_id, user_fingerprint, book_id, quote_date, team_id)
+        VALUES ($1, $2, $3, CURRENT_DATE, $4)
+      `, [userId, userFingerprint, newBook.id, teamId]);
 
       // 2. Insert into EXP Ledger (+15 EXP)
       await client.query(`
@@ -37,23 +125,24 @@ export class BookService {
         VALUES ($1, $2, 'BOOK_CONTRIBUTION', 'books', $3, $4)
       `, [userFingerprint, EXP_CONFIG.BOOK_CONTRIBUTION, newBook.id, teamId]);
 
-      // 3. Record Round Contribution & Update Team Normalized EXP / Seeds
-      let roundResult = null;
-      if (userId && teamId) {
-        roundResult = await RoundService.recordContribution(client, { userId, teamId, bookId: newBook.id });
+      // 3. Update Team EXP and Level directly (No rounds concept)
+      if (teamId) {
         await client.query(`
           UPDATE teams
           SET total_books = total_books + 1,
+              tree_seeds = CASE WHEN tree_seeds < 50 THEN tree_seeds + 1 ELSE tree_seeds END,
+              total_exp = total_exp + $1,
+              tree_level = CASE 
+                WHEN total_exp + $1 >= 2500 THEN 5
+                WHEN total_exp + $1 >= 1000 THEN 4
+                WHEN total_exp + $1 >= 400 THEN 3
+                WHEN total_exp + $1 >= 150 THEN 2
+                WHEN tree_seeds + 1 >= 50 OR total_exp + $1 >= 50 THEN 1
+                ELSE 0
+              END,
               updated_at = NOW()
-          WHERE id = $1
-        `, [teamId]);
-      } else if (teamId) {
-        await client.query(`
-          UPDATE teams
-          SET total_books = total_books + 1,
-              updated_at = NOW()
-          WHERE id = $1
-        `, [teamId]);
+          WHERE id = $2
+        `, [EXP_CONFIG.BOOK_CONTRIBUTION, teamId]);
       }
 
       // 4. Update user stats if matched

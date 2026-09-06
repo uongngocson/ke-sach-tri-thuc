@@ -102,7 +102,6 @@ function bindSidebarEvents() {
     'analytics': '📈 Tổng Quan & Biểu Đồ Phân Tích',
     'teams': '🏆 Bảng Xếp Hạng & Phân Tích 8 Đội Thi Đua',
     'users': '👥 Danh Bạ & Trạng Thái 288 Nhân Sự',
-    'rounds': '⏱️ Tiến Trình 15 Chặng Thi Đấu',
     'moderation': '📚 Trung Tâm Hậu Kiểm Sách & Trích Dẫn',
     'ledger': '📑 Sổ Cái EXP Minh Bạch Toàn Giải',
     'content-rules': '🎨 Tùy Biến Thể Lệ & Giao Diện Chào Mừng',
@@ -134,7 +133,6 @@ function bindSidebarEvents() {
       // Lazy load tab data
       if (tab === 'teams') renderTeamsTable();
       if (tab === 'users') loadUsers();
-      if (tab === 'rounds') renderRoundsTimeline();
       if (tab === 'moderation') loadBooks();
       if (tab === 'ledger') loadLedger();
       if (tab === 'content-rules') loadContentSettings();
@@ -399,14 +397,14 @@ function updateKPICards(kpi) {
   // KPI 5: Site Visitors
   document.getElementById('kpi-site-visitors').textContent = (kpi.siteVisitors || 1).toLocaleString();
 
-  // KPI 6: Round Rate
-  document.getElementById('kpi-round-rate').textContent = `${kpi.overallParticipationRate || 0}%`;
-  document.getElementById('kpi-round-users').textContent = `${kpi.activeRoundUsers || 0}/${kpi.totalMembers || 288}`;
+  // KPI 6: Today Participation Rate (1 quote/day)
+  document.getElementById('kpi-round-rate').textContent = `${kpi.todayParticipationRate ?? kpi.overallParticipationRate ?? 0}%`;
+  document.getElementById('kpi-round-users').textContent = `${kpi.todayActiveUsers ?? kpi.activeRoundUsers ?? 0}/${kpi.totalMembers || 288}`;
 
-  // Current Round Pill
+  // Mode Pill
   const pill = document.getElementById('top-round-pill');
-  if (pill && kpi.currentRound) {
-    pill.textContent = `🎯 ${kpi.currentRound.label} (${kpi.currentRound.stage_type})`;
+  if (pill) {
+    pill.textContent = `🌱 Vườn Tri Thức • 1 Quote / Ngày / Thành Viên`;
   }
 }
 
@@ -700,8 +698,8 @@ function renderTeamsTable() {
           ${t.actual_members || 0} / ${t.target_members || 40}
         </td>
         <td class="p-3.5">
-          <div class="font-extrabold text-white">${t.current_participation_rate || 0}%</div>
-          <div class="text-[10px] text-slate-400">${t.current_round_participants || 0} cán bộ</div>
+          <div class="font-extrabold text-white">${t.today_participation_rate ?? t.current_participation_rate ?? 0}%</div>
+          <div class="text-[10px] text-slate-400">${t.today_participants ?? t.current_round_participants ?? 0} cán bộ hôm nay</div>
         </td>
         <td class="p-3.5 font-bold text-slate-400">
           ${parseFloat(t.avg_participation_rate || 0).toFixed(1)}%
@@ -833,8 +831,8 @@ function renderUsersTable(users) {
         </span>
       </td>
       <td class="p-3">
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${u.participated_current_round ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/15 text-rose-400'}">
-          ${u.participated_current_round ? '✅ Đã gieo' : '⏳ Chưa gieo'}
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${(u.participated_today || u.participated_current_round) ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/15 text-rose-400'}">
+          ${(u.participated_today || u.participated_current_round) ? '✅ Đã gieo' : '⏳ Chưa gieo'}
         </span>
       </td>
       <td class="p-3 font-bold text-emerald-400">${u.contributed_books_count || 0}</td>
@@ -852,7 +850,7 @@ async function exportUsersCSV() {
     if (!data.success || !data.data.users) return;
 
     const rows = [
-      ['Mã Nhân Viên', 'Họ Tên', 'Email', 'Giới Tính', 'Chi Nhánh / Khối', 'Phòng Ban', 'Chức Danh', 'Đội Thi Đua', 'Gieo Vòng Này', 'Sách Đã Gieo', 'EXP Kiếm Được']
+      ['Mã Nhân Viên', 'Họ Tên', 'Email', 'Giới Tính', 'Chi Nhánh / Khối', 'Phòng Ban', 'Chức Danh', 'Đội Thi Đua', 'Gieo Hôm Nay', 'Sách Đã Gieo', 'EXP Kiếm Được']
     ];
 
     data.data.users.forEach(u => {
@@ -865,7 +863,7 @@ async function exportUsersCSV() {
         `"${u.parent_department || ''}"`,
         `"${u.job_title || ''}"`,
         `"${u.team_display_name || ('Đội ' + u.team_id)}"`,
-        `"${u.participated_current_round ? 'Đã tham gia' : 'Chưa tham gia'}"`,
+        `"${(u.participated_today || u.participated_current_round) ? 'Đã gieo hôm nay' : 'Chưa gieo hôm nay'}"`,
         u.contributed_books_count || 0,
         u.total_exp_earned || 0
       ]);
@@ -1395,11 +1393,11 @@ function renderMilestonesEditor(milestones) {
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-xs flex items-center justify-center">${m.level}</span>
-          <input type="text" class="m-label px-2.5 py-1 rounded bg-slate-900 border border-slate-700 text-white font-bold text-xs w-72" value="${escapeHtml(m.title || m.label || ('Level ' + m.level))}">
+          <input type="text" class="m-label px-2.5 py-1 rounded bg-slate-900 border border-slate-700 text-white font-bold text-xs w-72" value="${escapeHtml(m.label || m.title || ('Giai đoạn ' + m.level))}">
         </div>
         <input type="text" class="m-range px-2.5 py-1 rounded bg-slate-900 border border-slate-700 text-sky-400 text-xs w-48 text-right font-mono" value="${escapeHtml(m.range || '')}" placeholder="Mốc EXP / Hạt">
       </div>
-      <textarea class="m-effect w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-300 text-xs" rows="2">${escapeHtml(m.desc || m.effect || '')}</textarea>
+      <textarea class="m-effect w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-300 text-xs" rows="2">${escapeHtml(m.effect || m.desc || '')}</textarea>
     </div>
   `).join('');
 }
@@ -1411,10 +1409,10 @@ function renderInteractionsEditor(interactions) {
   container.innerHTML = interactions.map((item, idx) => `
     <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1.5 interaction-item" data-index="${idx}">
       <div class="flex items-center justify-between gap-2">
-        <input type="text" class="i-action px-2 py-1 rounded bg-slate-900 border border-slate-700 text-white font-bold text-xs flex-1" value="${escapeHtml((item.icon ? item.icon + ' ' : '') + (item.title || item.action || ''))}">
+        <input type="text" class="i-action px-2 py-1 rounded bg-slate-900 border border-slate-700 text-white font-bold text-xs flex-1" value="${escapeHtml(item.action || (item.icon ? item.icon + ' ' : '') + (item.title || ''))}">
         <input type="text" class="i-exp px-2 py-1 rounded bg-slate-900 border border-slate-700 text-amber-400 font-bold text-xs flex-1 text-right" value="${escapeHtml(item.exp || '+5 EXP')}">
       </div>
-      <textarea class="i-note w-full px-2 py-1 rounded bg-slate-900 border border-slate-700 text-slate-400 text-xs" rows="2">${escapeHtml(item.desc || item.note || '')}</textarea>
+      <textarea class="i-note w-full px-2 py-1 rounded bg-slate-900 border border-slate-700 text-slate-400 text-xs" rows="2">${escapeHtml(item.note || item.desc || '')}</textarea>
     </div>
   `).join('');
 }

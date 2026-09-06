@@ -309,6 +309,21 @@ class ApiDataStoreManager {
     return null;
   }
 
+  async getDailyQuoteStatus({ userId, email, userFingerprint } = {}) {
+    try {
+      const params = new URLSearchParams();
+      if (userId) params.append('userId', userId);
+      if (email) params.append('email', email);
+      if (userFingerprint || this.fingerprint) params.append('userFingerprint', userFingerprint || this.fingerprint);
+      const res = await fetch(`${getApiBase()}/books/daily-status?${params.toString()}`);
+      const data = await res.json();
+      if (data.success) return data.data;
+    } catch (e) {
+      console.warn('Error fetching daily quote status:', e);
+    }
+    return { hasContributedToday: false, remainingToday: 1 };
+  }
+
   async getCurrentRound() {
     try {
       const res = await fetch(`${getApiBase()}/rounds/current`);

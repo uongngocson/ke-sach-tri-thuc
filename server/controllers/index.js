@@ -21,6 +21,19 @@ export async function contributeBook(req, res, next) {
   }
 }
 
+export async function getDailyQuoteStatus(req, res, next) {
+  try {
+    const { userId, email, userFingerprint } = req.query;
+    const status = await BookService.getDailyQuoteStatus({ userId, email, userFingerprint });
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getQuotes(req, res, next) {
   try {
     const result = await BookService.getPublicQuotes(req.query);

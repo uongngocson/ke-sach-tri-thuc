@@ -190,10 +190,59 @@ Những điều trông thấy mà đau đớn lòng.” ✨📚`;
     // -------------------------------------------------------------
     // TEST KEY 8: APPEARANCE IN PUBLIC LIVE QUOTES FEED
     // -------------------------------------------------------------
-    console.log('\n📦 [8/8] Test Key 8: Xác nhận sách vừa gieo xuất hiện ngay trong Feed công khai...');
+    console.log('\n📦 [8/10] Test Key 8: Xác nhận sách vừa gieo xuất hiện ngay trong Feed công khai...');
     const feedRes = await fetch(`${BASE_URL}/quotes?page=1&limit=100`).then(r => r.json());
     const foundBook = feedRes.data.quotes.find(q => q.title === 'Tội Ác Và Trừng Phạt');
     assert(foundBook !== undefined, 'Sách vừa gieo xuất hiện ngay lập tức trong API công khai cho toàn thể độc giả đọc và thả tim');
+
+    // -------------------------------------------------------------
+    // TEST KEY 9: DAILY QUOTE LIMIT (1 QUOTE / DAY / USER)
+    // -------------------------------------------------------------
+    console.log('\n📦 [9/10] Test Key 9: Kiểm tra giới hạn 1 Quote / Ngày / UserID...');
+    const testDailyEmail = `test_daily_${Date.now()}@caosach.vn`;
+    const testDailyFp = `fp_daily_${Date.now()}`;
+
+    // Lần 1: Thành công
+    const resDaily1 = await fetch(`${BASE_URL}/books/contribute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Đắc Nhân Tâm',
+        author: 'Dale Carnegie',
+        quote: 'Cách duy nhất để đạt được điều tốt nhất trong một cuộc tranh cãi là tránh nó.',
+        reader: 'Độc giả Test Daily',
+        email: testDailyEmail,
+        userFingerprint: testDailyFp
+      })
+    });
+    const dataDaily1 = await resDaily1.json();
+    assert(resDaily1.status === 201 && dataDaily1.success === true, 'Lần 1 gieo quote trong ngày thành công (HTTP 201)');
+
+    // Lần 2: Cùng user gieo tiếp trong cùng ngày -> Bị chặn 409
+    const resDaily2 = await fetch(`${BASE_URL}/books/contribute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Quẳng Gánh Lo Đi Và Vui Sống',
+        author: 'Dale Carnegie',
+        quote: 'Hãy sống trong những ngăn kín của từng ngày.',
+        reader: 'Độc giả Test Daily',
+        email: testDailyEmail,
+        userFingerprint: testDailyFp
+      })
+    });
+    const dataDaily2 = await resDaily2.json();
+    assert(resDaily2.status === 409 && dataDaily2.success === false, 'Chặn thành công lượt gieo thứ 2 trong ngày (HTTP 409 DAILY_QUOTE_LIMIT_EXCEEDED)', `Message: ${dataDaily2.message}`);
+
+    // -------------------------------------------------------------
+    // TEST KEY 10: GET DAILY QUOTE STATUS ENDPOINT
+    // -------------------------------------------------------------
+    console.log('\n📦 [10/10] Test Key 10: Kiểm tra API GET /books/daily-status...');
+    const statusRes = await fetch(`${BASE_URL}/books/daily-status?email=${encodeURIComponent(testDailyEmail)}&userFingerprint=${encodeURIComponent(testDailyFp)}`);
+    const statusData = await statusRes.json();
+    assert(statusRes.status === 200 && statusData.success === true, 'API /books/daily-status phản hồi HTTP 200');
+    assert(statusData.data.hasContributedToday === true, 'hasContributedToday = true xác nhận đã gieo hôm nay');
+    assert(statusData.data.remainingToday === 0, 'remainingToday = 0 xác nhận không thể gieo thêm câu quote nào hôm nay');
 
   } catch (err) {
     console.error('💥 Lỗi ngoài dự kiến trong quá trình test:', err);

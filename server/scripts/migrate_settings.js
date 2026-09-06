@@ -40,50 +40,50 @@ export const DEFAULT_RULES_SETTINGS = {
   milestones: [
     {
       level: 0,
-      title: 'Ủ Mầm Lòng Đất (0 – 49 Hạt Giống 🌰)',
-      desc: 'Các hạt giống hữu cơ nằm ủ mình dưới bề mặt đất. Cần đủ 50 hạt giống đầu tiên để đánh thức mầm sống.'
+      label: 'Giai đoạn 0 – Hạt giống tri thức 🌰',
+      range: '0–49 hạt giống',
+      effect: 'Mỗi câu quote được chia sẻ sẽ gieo một hạt giống tri thức xuống lòng đất, góp phần hình thành nền móng cho Cây Tri Thức. Cần tích lũy đủ 50 hạt giống để đánh thức mầm sống.'
     },
     {
       level: 1,
-      title: 'Nảy Mầm Non (Cột mốc Đủ 50 Hạt 🌱)',
-      desc: 'Cây mầm non 3D vươn lên đón nắng với chồi xanh tươi mát.'
+      label: 'Giai đoạn 1 – Mầm non 🌱',
+      range: '50 hạt – dưới 150 EXP',
+      effect: 'Khi đủ 50 hạt giống, Cây Tri Thức chính thức nảy mầm và chuyển sang giai đoạn nuôi dưỡng bằng EXP. Từ thời điểm này, mỗi câu quote tham gia hợp lệ sẽ tiếp tục cung cấp dưỡng chất EXP giúp cây phát triển. Những điều hay từ sách được tiếp nhận, ghi nhớ và lan tỏa, tạo nên nguồn dưỡng chất tri thức đầu tiên cho Cây Mầm Non.'
     },
     {
       level: 2,
-      title: 'Đâm Chồi (150 – 400 EXP 🌿)',
-      desc: 'Thân cây hóa gỗ non, bung nở 2 tầng cành rợp sắc xanh.'
+      label: 'Giai đoạn 2 – Cây con 🌿',
+      range: '150–400 EXP',
+      effect: 'Mỗi câu quote mới tiếp thêm phân bón dinh dưỡng, cây bắt đầu bén rễ và vươn chồi, mỗi lượt tương tác tiếp tục bổ sung EXP, đều góp thêm dưỡng chất, giúp Cây Tri Thức ngày càng vươn cao và phát triển.'
     },
     {
       level: 3,
-      title: 'Cây Tơ Vươn Cành (400 – 1.000 EXP 🌳)',
-      desc: '3 tầng cành sum sê, bóng mát rợp cả một góc vườn.'
+      label: 'Giai đoạn 3 – Cây trưởng thành 🌳',
+      range: '400–1.000 EXP',
+      effect: 'Cây vươn mình rộng lớn với những tầng cành sum sê, quang hợp tự nhiên theo chu kỳ ngày đêm, tạo nên một hệ sinh thái tri thức ngày càng phong phú. Tri thức bắt đầu “đơm hoa”, tạo ra những giá trị và thành quả rõ nét.'
     },
     {
       level: 4,
-      title: 'Trưởng Thành Rợp Bóng (1.000 – 2.500 EXP 🌲)',
-      desc: 'Thân đại mộc vững chắc, tán lá tầng tầng lớp lớp.'
-    },
-    {
-      level: 5,
-      title: 'Đại Cổ Thụ Ngàn Năm (2.500+ EXP ✨👑)',
-      desc: 'Cây đại thụ ngàn năm vĩ đại, tỏa đom đóm tri thức lung linh về đêm.'
+      label: 'Giai đoạn 4 – Cây cổ thụ 🌲',
+      range: '1.000–2.500+ EXP',
+      effect: 'Cây đã trưởng thành vững chãi, tỏa bóng mát và trở thành biểu tượng cho hành trình tích lũy, lan tỏa tri thức của cả đội. Mỗi giá trị được chia sẻ góp phần tạo nên một di sản văn hóa đọc bền vững.'
     }
   ],
   interactions: [
     {
-      icon: '📖',
-      title: 'Gieo Sách Nuôi Cây',
-      desc: 'Mỗi thành viên gieo mầm trong lượt giúp đội tăng tỷ lệ tham gia và cộng dồn điểm EXP'
+      action: '🌱 Gieo Hạt Tri Thức',
+      exp: '+1 Hạt giống Tri Thức khi Cây chưa đủ 50 hạt\nhoặc +5 EXP khi Cây đã Nảy Mầm.',
+      note: 'Mỗi câu quote được chia sẻ hợp lệ là một hạt giống góp phần nuôi dưỡng Cây Tri Thức.'
     },
     {
-      icon: '💖',
-      title: 'Thả Tim Liên Đội',
-      desc: 'Đội nào cũng có thể đọc và thả tim trích dẫn của đội khác — mỗi tim tặng +2 EXP cho cây của đội bạn!'
+      action: '💖 Lan Tỏa Tri Thức',
+      exp: '+2 EXP / lượt thả tim',
+      note: 'Mỗi lượt yêu thích dành cho một câu quote bất kỳ trong vườn Tri Thức là một lần tiếp thêm dưỡng chất, giúp Cây Tri Thức của đội được lan tỏa và phát triển.'
     },
     {
-      icon: '👁️',
-      title: 'Thăm Cây 8 Đội',
-      desc: 'Ghé thăm toàn cảnh 8 Cây Tri Thức bất cứ lúc nào qua nút Toàn Cảnh 8 Cây'
+      action: '🔗 Nhật Ký Tri Thức',
+      exp: 'Ghi nhận minh bạch & chuẩn hóa',
+      note: 'Mỗi lượt tham gia và tương tác được ghi nhận minh bạch trên hệ thống, tạo thành nhật ký hành trình phát triển của từng Cây Tri Thức của mỗi đội trong vườn.'
     }
   ],
   tieBreakers: {
@@ -120,14 +120,14 @@ async function migrateSettings() {
   await db.query(`
     INSERT INTO system_settings (key, value)
     VALUES ('welcome_content', $1)
-    ON CONFLICT (key) DO NOTHING;
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
   `, [JSON.stringify(DEFAULT_WELCOME_SETTINGS)]);
 
   // Seed default rules_content
   await db.query(`
     INSERT INTO system_settings (key, value)
     VALUES ('rules_content', $1)
-    ON CONFLICT (key) DO NOTHING;
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
   `, [JSON.stringify(DEFAULT_RULES_SETTINGS)]);
 
   console.log('✅ System Settings migration & seeding completed successfully!');

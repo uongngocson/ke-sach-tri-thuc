@@ -4036,10 +4036,10 @@
                   <div class="flex items-center gap-2 min-w-0">
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 font-black text-[10px] sm:text-[10.5px] shrink-0 border border-emerald-500/30">
                       <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span id="hud-round-label">Lượt 1 (05/09 - 07/09): Gieo Hạt</span>
+                      <span id="hud-round-label">🌱 Mỗi Ngày 1 Câu Quote</span>
                     </span>
                     <span class="font-bold text-slate-700 dark:text-slate-300 truncate hidden md:inline" id="timeline-stage-desc">
-                      Giai đoạn 1: Gieo Hạt Mầm (Mục tiêu 50 Hạt để Cây Nảy Mầm 🌱)
+                      Nuôi Dưỡng Cây Tri Thức (Mục tiêu 50 Hạt để Cây Nảy Mầm 🌱)
                     </span>
                     <div class="timeline-subbar-detail hidden sm:flex items-center gap-1.5 shrink-0 ml-1">
                       <span class="text-slate-400 dark:text-slate-500 hidden sm:inline">•</span>
@@ -6804,13 +6804,11 @@
         if (hudInspectingTag) hudInspectingTag.style.display = isInspecting ? 'inline-block' : 'none';
         if (hudReturnBtn) hudReturnBtn.style.display = (isInspecting && myTeam) ? 'inline-flex' : 'none';
 
-        if (hudRoundLabel && currentRound) {
-          const dateTxt = currentRound.date_label || '05/09 - 07/09';
-          const stageTxt = currentRound.stage_type === 'SEEDING' ? 'Gieo Hạt' : 'Nuôi Cây';
-          hudRoundLabel.textContent = `Lượt ${currentRound.round_number || 1} (${dateTxt}): ${stageTxt}`;
+        if (hudRoundLabel) {
+          hudRoundLabel.textContent = `🌱 Mỗi Ngày 1 Câu Quote`;
         }
         if (hudParticipation) {
-          hudParticipation.textContent = `Tham gia: ${team.participation_rate || 0}%`;
+          hudParticipation.textContent = `Hôm nay: ${team.today_participation_rate || team.participation_rate || 0}%`;
         }
 
         const isSprouted = team.is_sprouted || team.level >= 1;
@@ -7699,6 +7697,8 @@
             contributeForm.reset();
             closeContributeModal();
             showToast(`🎉 Gieo mầm thành công: "${bookTitleVal}" đã được gieo mầm (+15 EXP)!`);
+          } else {
+            showToast(`⚠️ ${res.message || 'Mỗi ngày mỗi thành viên chỉ được gieo đúng 1 câu quote!'}`);
           }
         });
       }
@@ -7879,14 +7879,19 @@
             if (Array.isArray(r.milestones) && r.milestones.length > 0) {
               const tl = sections[3].querySelector('.rules-timeline');
               if (tl) {
-                tl.innerHTML = r.milestones.map(m => `
-                  <div class="rules-timeline-item">
-                    <div class="rules-timeline-dot ${m.level === 1 ? 'active' : ''}">${m.level}</div>
-                    <div class="rules-timeline-content">
-                      <strong>${escapeHtml(m.label)} (${escapeHtml(m.range)}):</strong> ${escapeHtml(m.effect)}
+                tl.innerHTML = r.milestones.map(m => {
+                  const label = m.label || m.title || `Giai đoạn ${m.level}`;
+                  const range = m.range ? ` (${escapeHtml(m.range)})` : '';
+                  const effect = m.effect || m.desc || '';
+                  return `
+                    <div class="rules-timeline-item">
+                      <div class="rules-timeline-dot ${m.level === 1 ? 'active' : ''}">${m.level}</div>
+                      <div class="rules-timeline-content">
+                        <strong>${escapeHtml(label)}${range}:</strong> ${escapeHtml(effect)}
+                      </div>
                     </div>
-                  </div>
-                `).join('');
+                  `;
+                }).join('');
               }
             }
 
@@ -7895,15 +7900,18 @@
               const grid = sections[4].querySelector('.rules-rewards-grid');
               if (grid) {
                 const colors = ['#15803d', '#e11d48', '#0054A6'];
-                grid.innerHTML = r.interactions.map((act, i) => `
-                  <div class="rules-reward-box">
-                    <div class="rules-reward-title">${escapeHtml(act.action)}</div>
-                    <div style="font-size:11px; font-weight:800; color:${colors[i % 3]}; margin-bottom:4px; line-height:1.4;">
-                      ${escapeHtml(act.exp).replace(/\n/g, '<br/>')}
+                grid.innerHTML = r.interactions.map((act, i) => {
+                  const action = act.action || act.title || '';
+                  const expText = act.exp ? `<div style="font-size:11px; font-weight:800; color:${colors[i % 3]}; margin-bottom:4px; line-height:1.4;">${escapeHtml(act.exp).replace(/\n/g, '<br/>')}</div>` : '';
+                  const note = act.note || act.desc || '';
+                  return `
+                    <div class="rules-reward-box">
+                      <div class="rules-reward-title">${escapeHtml(action)}</div>
+                      ${expText}
+                      <div class="rules-reward-detail">${escapeHtml(note)}</div>
                     </div>
-                    <div class="rules-reward-detail">${escapeHtml(act.note)}</div>
-                  </div>
-                `).join('');
+                  `;
+                }).join('');
               }
             }
 

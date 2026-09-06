@@ -77,10 +77,6 @@
             <span class="text-base">👥</span>
             <span>288 Nhân Sự</span>
           </div>
-          <div class="nav-item" data-tab="rounds">
-            <span class="text-base">⏱️</span>
-            <span>15 Chặng Thi Đấu</span>
-          </div>
           <div class="nav-item flex items-center justify-between" data-tab="moderation">
             <div class="flex items-center gap-2.5">
               <span class="text-base">📚</span>
@@ -131,8 +127,8 @@
           <h2 id="page-title" class="text-base font-black text-white flex items-center gap-2">
             <span>📈 Tổng Quan & Biểu Đồ Phân Tích</span>
           </h2>
-          <span id="top-round-pill" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-500/15 border border-sky-400/30 text-sky-300">
-            🌱 Chặng 1: Khởi Động Vườn Tri Thức
+          <span id="top-round-pill" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 border border-emerald-400/30 text-emerald-300">
+            🌱 Vườn Tri Thức • 1 Quote / Ngày / Thành Viên
           </span>
         </div>
 
@@ -224,16 +220,16 @@
               </div>
             </div>
 
-            <!-- KPI 6: Round Participation -->
+            <!-- KPI 6: Today Participation -->
             <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #F36F21, #ea580c);">
               <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
-                <span>Tham Gia Vòng Này</span>
+                <span>Tham Gia Hôm Nay</span>
                 <span class="text-base">🎯</span>
               </div>
               <div class="text-2xl font-black text-white" id="kpi-round-rate">0%</div>
               <div class="text-[10.5px] text-orange-400 font-extrabold flex items-center gap-1 mt-1">
                 <span id="kpi-round-users">0/288</span>
-                <span class="text-slate-400 font-semibold">cán bộ</span>
+                <span class="text-slate-400 font-semibold">cán bộ (1 quote/ngày)</span>
               </div>
             </div>
 
@@ -339,7 +335,7 @@
                 <h3 class="text-sm font-black text-white flex items-center gap-2">
                   <span>🏆</span><span>BẢNG XẾP HẠNG THỜI GIAN THỰC 8 ĐỘI THI ĐUA</span>
                 </h3>
-                <p class="text-xs text-slate-400 font-bold">Chi tiết Cây Tri Thức, điểm số chặng, chỉ tiêu thành viên và các mốc vươn cấp</p>
+                <p class="text-xs text-slate-400 font-bold">Chi tiết Cây Tri Thức, tỷ lệ tham gia mỗi ngày, chỉ tiêu thành viên và các mốc vươn cấp</p>
               </div>
               <div class="flex items-center gap-2">
                 <button id="btn-export-teams" class="btn btn-ghost text-xs">
@@ -358,8 +354,8 @@
                     <th>Tổng EXP</th>
                     <th>Hạt Giống</th>
                     <th>Thành Viên (Thực Tế/Chỉ Tiêu)</th>
-                    <th>Tham Gia Vòng Này</th>
-                    <th>Tỷ Lệ TB Giải</th>
+                    <th>Tham Gia Hôm Nay</th>
+                    <th>Tỷ Lệ Trung Bình</th>
                     <th>Sách Gieo</th>
                     <th>Lượt Tưới</th>
                     <th class="text-right">Thao Tác</th>
@@ -408,9 +404,9 @@
               </select>
 
               <select id="users-filter-status" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
-                <option value="">Tất cả trạng thái vòng này</option>
-                <option value="participated">✅ Đã gieo sách vòng này</option>
-                <option value="not_participated">⏳ Chưa gieo sách vòng này</option>
+                <option value="">Tất cả trạng thái hôm nay</option>
+                <option value="participated">✅ Đã gieo sách hôm nay</option>
+                <option value="not_participated">⏳ Chưa gieo sách hôm nay</option>
               </select>
 
               <div class="flex items-center gap-2">
@@ -433,7 +429,7 @@
                     <th>Email</th>
                     <th>Khối / Chi Nhánh</th>
                     <th>Đội Thi Đua</th>
-                    <th>Vòng Này</th>
+                    <th>Hôm Nay (1 Quote)</th>
                     <th>Sách Đã Gieo</th>
                     <th>EXP Cá Nhân</th>
                   </tr>
@@ -457,60 +453,7 @@
           </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- TAB 4: 15-ROUND TRACKER & MATCH SCHEDULE       -->
-        <!-- ============================================== -->
-        <div id="tab-pane-rounds" class="tab-content space-y-6">
-          <div class="glass-panel p-5 space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h3 class="text-sm font-black text-white flex items-center gap-2">
-                  <span>⏱️</span><span>TIẾN TRÌNH 15 CHẶNG THI ĐẤU TOÀN GIẢI</span>
-                </h3>
-                <p class="text-xs text-slate-400 font-bold">3 Giai đoạn: Ủ Mầm (1-3) ➔ Vươn Mình (4-12) ➔ Về Đích (13-15)</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-300">Chuyển chặng thử nghiệm:</span>
-                <select id="select-advance-round" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs">
-                  <!-- Generated via JS -->
-                </select>
-                <button id="btn-advance-round" class="btn btn-warning text-xs">
-                  <span>⚡</span><span>Kích Hoạt Chặng</span>
-                </button>
-              </div>
-            </div>
 
-            <!-- 15-Round Timeline Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="rounds-stages-container">
-              <!-- Rendered via JS -->
-            </div>
-
-            <!-- Rounds Detail Table -->
-            <div>
-              <h4 class="text-xs font-black text-slate-300 uppercase tracking-wider mb-3">Ma Trận Điểm Số & Tỷ Lệ Tham Gia 15 Chặng</h4>
-              <div class="overflow-x-auto rounded-xl border border-slate-800">
-                <table class="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Chặng</th>
-                      <th>Tên Chặng</th>
-                      <th>Giai Đoạn</th>
-                      <th>Thời Gian</th>
-                      <th>Tổng Lượt Tham Gia</th>
-                      <th>Tỷ Lệ TB</th>
-                      <th>Tổng EXP Gieo</th>
-                      <th>Trạng Thái</th>
-                    </tr>
-                  </thead>
-                  <tbody id="rounds-table-body">
-                    <tr><td colspan="8" class="p-6 text-center text-slate-500">Đang tải ma trận 15 chặng...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-          </div>
-        </div>
 
         <!-- ============================================== -->
         <!-- TAB 5: BOOKS MODERATION HUB                    -->

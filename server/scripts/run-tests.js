@@ -225,6 +225,53 @@ async function runAllTests() {
     const codeLookup = await UserService.lookupUser('00000295');
     assert(codeLookup && codeLookup.email === 'thuhuong@fpt.com', 'Users: Lookup by code 00000295 returns correct user profile');
 
+    // -------------------------------------------------------------
+    // INTEGRATION TESTS: DAILY QUOTE CONSTRAINT (1 QUOTE / USER / DAY)
+    // -------------------------------------------------------------
+    console.log('\n📦 [7/7] Running Integration Tests: Daily Quote Limit (1 quote/day/user)...');
+
+    // Clean any daily quotes today for validUser
+    await db.query('DELETE FROM daily_quotes WHERE user_id = $1 AND quote_date = CURRENT_DATE', [validUser.id]);
+
+    const dailyTestFp = `fp_daily_run_${Date.now()}`;
+    const dailyBook1 = await BookService.contributeBook({
+      title: 'Tư Duy Nhanh Và Chậm',
+      author: 'Daniel Kahneman',
+      quote: 'Chúng ta có xu hướng phóng đại khả năng hiểu thế giới của mình.',
+      category: 'Tâm Lý Học',
+      reader: validUser.full_name,
+      email: validUser.email,
+      userId: validUser.id,
+      teamId: validUser.team_id,
+      userFingerprint: dailyTestFp
+    });
+
+    assert(dailyBook1 && dailyBook1.book && dailyBook1.book.id, 'Daily Quote: 1st contribution today succeeds');
+
+    const dqStatus = await BookService.getDailyQuoteStatus({ userId: validUser.id });
+    assert(dqStatus.hasContributedToday === true && dqStatus.remainingToday === 0, 'Daily Quote: Status correctly reflects hasContributedToday = true and remainingToday = 0');
+
+    // 2nd contribution in same day by same user -> Must be blocked (409)
+    let dailyBlocked = false;
+    try {
+      await BookService.contributeBook({
+        title: 'Blink - Trong Chớp Mắt',
+        author: 'Malcolm Gladwell',
+        quote: 'Quyết định nhanh chóng có thể tốt như những quyết định thận trọng.',
+        category: 'Tâm Lý Học',
+        reader: validUser.full_name,
+        email: validUser.email,
+        userId: validUser.id,
+        teamId: validUser.team_id,
+        userFingerprint: dailyTestFp
+      });
+    } catch (err) {
+      if (err.statusCode === 409 || err.code === 'DAILY_QUOTE_LIMIT_EXCEEDED') {
+        dailyBlocked = true;
+      }
+    }
+    assert(dailyBlocked, 'Daily Quote: 2nd contribution on same day strictly blocked (HTTP 409 DAILY_QUOTE_LIMIT_EXCEEDED)');
+
 
   } catch (err) {
     console.error('💥 Test suite encountered fatal error:', err);

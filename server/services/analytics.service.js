@@ -98,6 +98,7 @@ export class AnalyticsService {
         t.milestone_150_at, t.milestone_400_at, t.milestone_1000_at, t.milestone_2500_at,
         (SELECT COUNT(*) FROM books b WHERE b.team_id = t.id) as books_count,
         (SELECT COUNT(*) FROM daily_dews d WHERE d.team_id = t.id) as dews_count,
+        (SELECT COUNT(DISTINCT dq.user_id) FROM daily_quotes dq WHERE dq.team_id = t.id AND dq.quote_date = CURRENT_DATE) as today_participants,
         (SELECT COUNT(DISTINCT rc.user_id) FROM round_contributions rc WHERE rc.team_id = t.id AND rc.round_number = $1) as current_round_participants
       FROM teams t
       ORDER BY t.tree_exp DESC, t.id ASC
@@ -110,8 +111,8 @@ export class AnalyticsService {
 
     const teams = teamsRes.rows.map((team, index) => {
       const target = team.target_members || 40;
-      const participants = parseInt(team.current_round_participants || 0, 10);
-      const currentRate = target > 0 ? parseFloat(((participants / target) * 100).toFixed(1)) : 0;
+      const todayParticipants = parseInt(team.today_participants || team.current_round_participants || 0, 10);
+      const currentRate = target > 0 ? parseFloat(((todayParticipants / target) * 100).toFixed(1)) : 0;
       const isSprouted = (team.tree_seeds >= 50) || (team.tree_level >= 1);
       const levelNames = ['Ủ Mầm (Hạt)', 'Cây Nảy Mầm', 'Cây Con', 'Cây Phát Triển', 'Cây Cổ Thụ', 'Đại Cổ Thụ'];
 
@@ -123,8 +124,10 @@ export class AnalyticsService {
         isSprouted,
         books_count: parseInt(team.books_count || 0, 10),
         dews_count: parseInt(team.dews_count || 0, 10),
-        current_round_participants: participants,
-        current_participation_rate: currentRate
+        today_participants: todayParticipants,
+        current_round_participants: todayParticipants,
+        current_participation_rate: currentRate,
+        today_participation_rate: currentRate
       };
     });
 
@@ -146,14 +149,15 @@ export class AnalyticsService {
         COUNT(*) as total_members,
         COALESCE(SUM(u.total_exp_earned), 0) as total_exp,
         COALESCE(SUM(u.contributed_books_count), 0) as total_books,
-        COUNT(DISTINCT rc.user_id) as active_round_members
+        COUNT(DISTINCT dq.user_id) as active_round_members,
+        COUNT(DISTINCT dq.user_id) as today_active_members
       FROM users u
-      LEFT JOIN round_contributions rc ON u.id = rc.user_id AND rc.round_number = $1
+      LEFT JOIN daily_quotes dq ON u.id = dq.user_id AND dq.quote_date = CURRENT_DATE
       GROUP BY branch
       ORDER BY total_members DESC
-    `, [currentRound.round_number]);
+    `);
 
-    // 7. 15 Rounds Matrix
+    // 7. 15 Rounds Matrix (Preserved for compatibility)
     const roundsRes = await db.query(`
       SELECT 
         r.round_number, r.label, r.stage_type, r.start_date, r.end_date, r.is_active,
@@ -166,15 +170,15 @@ export class AnalyticsService {
       ORDER BY r.round_number ASC
     `);
 
-    // 8. Calculate Overall Participation Rate for Active Round
+    // 8. Calculate Overall Daily Participation Rate (1 quote / user / day)
     const totalUsers = parseInt(usersCountRes.rows[0]?.total || 288, 10);
-    const activeRoundUsersRes = await db.query(`
+    const todayActiveUsersRes = await db.query(`
       SELECT COUNT(DISTINCT user_id) as active_count
-      FROM round_contributions
-      WHERE round_number = $1
-    `, [currentRound.round_number]);
-    const activeRoundUsers = parseInt(activeRoundUsersRes.rows[0]?.active_count || 0, 10);
-    const overallParticipationRate = totalUsers > 0 ? parseFloat(((activeRoundUsers / totalUsers) * 100).toFixed(1)) : 0;
+      FROM daily_quotes
+      WHERE quote_date = CURRENT_DATE
+    `);
+    const todayActiveUsers = parseInt(todayActiveUsersRes.rows[0]?.active_count || 0, 10);
+    const todayParticipationRate = totalUsers > 0 ? parseFloat(((todayActiveUsers / totalUsers) * 100).toFixed(1)) : 0;
 
     return {
       kpi: {
@@ -192,8 +196,10 @@ export class AnalyticsService {
         totalHarvests: parseInt(harvestsRes.rows[0]?.total || 0, 10),
         siteVisitors: parseInt(visitorsRes.rows[0]?.total || 0, 10),
         totalMembers: totalUsers,
-        activeRoundUsers,
-        overallParticipationRate,
+        todayActiveUsers,
+        todayParticipationRate,
+        activeRoundUsers: todayActiveUsers,
+        overallParticipationRate: todayParticipationRate,
         currentRound
       },
       timeline,
@@ -277,14 +283,15 @@ export class AnalyticsService {
         u.job_title, u.team_id, u.role, u.avatar_url,
         u.contributed_books_count, u.total_exp_earned, u.created_at,
         t.display_name as team_display_name, t.color_code as team_color,
-        CASE WHEN rc.id IS NOT NULL THEN true ELSE false END as participated_current_round,
-        rc.contributed_at as round_contribution_time
+        CASE WHEN dq.id IS NOT NULL THEN true ELSE false END as participated_today,
+        CASE WHEN dq.id IS NOT NULL THEN true ELSE false END as participated_current_round,
+        dq.created_at as today_contribution_time
       FROM users u
       LEFT JOIN teams t ON u.team_id = t.id
-      LEFT JOIN round_contributions rc ON u.id = rc.user_id AND rc.round_number = $1
+      LEFT JOIN daily_quotes dq ON u.id = dq.user_id AND dq.quote_date = CURRENT_DATE
       WHERE 1=1
     `;
-    const params = [currentRoundNum];
+    const params = [];
 
     if (teamId) {
       params.push(parseInt(teamId, 10));
@@ -295,9 +302,9 @@ export class AnalyticsService {
       query += ` AND u.branch = $${params.length}`;
     }
     if (status === 'participated') {
-      query += ' AND rc.id IS NOT NULL';
+      query += ' AND dq.id IS NOT NULL';
     } else if (status === 'not_participated') {
-      query += ' AND rc.id IS NULL';
+      query += ' AND dq.id IS NULL';
     }
     if (search) {
       params.push(`%${search}%`);
