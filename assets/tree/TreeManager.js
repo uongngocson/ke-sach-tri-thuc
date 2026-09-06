@@ -4,10 +4,10 @@
  * Features 100% "Cây Cổ Thụ Lâu Năm" (Ancient Thousand-Year Tree)
  * Dynamically Locks Tree Root directly to the DOM Ground Horizon Border
  */
-import { Tree, LeafStyle, LeafType } from './tree.js';
-import GUI from './lil-gui.module.min.js';
-import { TreeGrowthController } from './TreeGrowthController.js';
-import { WisdomFruitManager } from './WisdomFruitManager.js';
+import { Tree, LeafStyle, LeafType } from './tree.js?v=20260907_v1';
+import GUI from './lil-gui.module.min.js?v=20260907_v1';
+import { TreeGrowthController } from './TreeGrowthController.js?v=20260907_v1';
+import { WisdomFruitManager } from './WisdomFruitManager.js?v=20260907_v1';
 
 const DEFAULT_TEAM_COLORS = [
   '#F36F21', // Đội 1: Cam FPT

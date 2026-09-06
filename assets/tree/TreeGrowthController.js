@@ -7,7 +7,7 @@
  * - Level 2-5: Progressively grows into compact, majestic oak trees scaled to 0.8.
  * - Manages all 8 teams concurrently across the grand landscape.
  */
-import { MockDataStore } from '../data/MockDataStore.js';
+import { MockDataStore } from '../data/MockDataStore.js?v=20260907_v1';
 
 export class TreeGrowthController {
   constructor(treeManager) {
@@ -68,30 +68,45 @@ export class TreeGrowthController {
     this.init();
   }
 
-  async init() {
-    MockDataStore.subscribe('growth:updated', (growth) => {
-      this.handleGrowthUpdated(growth);
-    });
+  getStore() {
+    return (typeof window !== 'undefined' && (window.MockDataStore || window.ApiDataStore)) || MockDataStore;
+  }
 
-    MockDataStore.subscribe('teams:updated', (teams) => {
-      if (teams && Array.isArray(teams)) {
-        this.syncAllTeams(teams);
-      }
-    });
+  async init() {
+    const store = this.getStore();
+    if (store && typeof store.subscribe === 'function') {
+      store.subscribe('growth:updated', (growth) => {
+        this.handleGrowthUpdated(growth);
+      });
+
+      store.subscribe('teams:updated', (teams) => {
+        if (teams && Array.isArray(teams)) {
+          this.syncAllTeams(teams);
+        }
+      });
+    }
 
     // Initial load: sync all 8 teams into the panorama
     try {
-      const teams = await MockDataStore.getTeams(true);
-      if (teams && teams.length) {
-        this.syncAllTeams(teams);
+      if (store && typeof store.getTeams === 'function') {
+        const teams = await store.getTeams(true);
+        if (teams && teams.length) {
+          this.syncAllTeams(teams);
+        }
       }
     } catch (e) {
       console.warn('TreeGrowthController: Failed initial teams load:', e);
     }
 
-    const initialGrowth = await MockDataStore.getCommunityGrowth();
-    if (initialGrowth) {
-      this.applyGrowth(initialGrowth, true);
+    try {
+      if (store && typeof store.getCommunityGrowth === 'function') {
+        const initialGrowth = await store.getCommunityGrowth();
+        if (initialGrowth) {
+          this.applyGrowth(initialGrowth, true);
+        }
+      }
+    } catch (e) {
+      console.warn('TreeGrowthController: Failed initial community growth:', e);
     }
   }
 
@@ -146,9 +161,12 @@ export class TreeGrowthController {
       }
     } else {
       // Global growth: sync all teams
-      MockDataStore.getTeams(true).then(teams => {
-        if (teams && teams.length) this.syncAllTeams(teams);
-      }).catch(() => {});
+      const store = this.getStore();
+      if (store && typeof store.getTeams === 'function') {
+        store.getTeams(true).then(teams => {
+          if (teams && teams.length) this.syncAllTeams(teams);
+        }).catch(() => {});
+      }
     }
 
     // Apply active growth to primary focus
