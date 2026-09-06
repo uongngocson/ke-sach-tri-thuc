@@ -33,6 +33,9 @@ export class GrowthService {
   static async recordVisitor(userFingerprint, ip = '', userAgent = '') {
     if (!userFingerprint) return null;
 
+    const safeIp = String(ip || '').split(',')[0].trim().slice(0, 45);
+    const safeUserAgent = String(userAgent || '').slice(0, 255);
+
     const result = await db.transaction(async (client) => {
       // 1. Upsert into site_visitors
       const visitRes = await client.query(`
@@ -45,7 +48,7 @@ export class GrowthService {
           ip_address = COALESCE($2, site_visitors.ip_address),
           user_agent = COALESCE($3, site_visitors.user_agent)
         RETURNING (xmax = 0) AS is_new_visitor
-      `, [userFingerprint, ip, userAgent]);
+      `, [userFingerprint, safeIp, safeUserAgent]);
 
       const isNewVisitor = visitRes.rows[0]?.is_new_visitor || false;
 
