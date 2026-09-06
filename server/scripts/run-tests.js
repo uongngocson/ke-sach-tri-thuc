@@ -33,6 +33,17 @@ async function runAllTests() {
       console.log('📦 Auto-seeding 8 Teams and 288 Users for testing...');
       await seedTeamsAndUsers();
     }
+
+    // Ensure admin user exists before tests
+    const adminCountRes = await db.query("SELECT COUNT(*) FROM admin_users WHERE username = 'admin'");
+    if (parseInt(adminCountRes.rows[0].count, 10) === 0) {
+      console.log('📦 Auto-seeding Admin user for testing...');
+      await db.query(`
+        INSERT INTO admin_users (id, username, password_hash, full_name, role)
+        VALUES ('be07a95b-c197-4f8a-8830-b4c60bebe7b9', 'admin', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'Super Admin Cáo Sách', 'admin')
+        ON CONFLICT (username) DO NOTHING
+      `);
+    }
     // -------------------------------------------------------------
     // UNIT TESTS
     // -------------------------------------------------------------
@@ -163,8 +174,11 @@ async function runAllTests() {
     let adminUser = adminRow.rows[0];
     if (!adminUser) {
       const insertAdmin = await db.query(`
-        INSERT INTO admin_users (username, password_hash, role)
-        VALUES ('admin', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'super_admin')
+        INSERT INTO admin_users (id, username, password_hash, full_name, role)
+        VALUES ('be07a95b-c197-4f8a-8830-b4c60bebe7b9', 'admin', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'Super Admin Cáo Sách', 'admin')
+        ON CONFLICT (username) DO UPDATE SET
+          full_name = EXCLUDED.full_name,
+          role = EXCLUDED.role
         RETURNING id, username
       `);
       adminUser = insertAdmin.rows[0];
