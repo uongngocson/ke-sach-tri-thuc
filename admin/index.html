@@ -69,6 +69,10 @@
             <span class="text-base">📈</span>
             <span>Tổng Quan & Biểu Đồ</span>
           </div>
+          <div class="nav-item" data-tab="deep-analytics">
+            <span class="text-base">📊</span>
+            <span>Phân Tích Chuyên Sâu</span>
+          </div>
           <div class="nav-item" data-tab="teams">
             <span class="text-base">🏆</span>
             <span>8 Đội Thi Đua</span>
@@ -321,6 +325,309 @@
             <div class="chart-box" style="height: 360px;">
               <canvas id="chart-radar-teams"></canvas>
             </div>
+          </div>
+
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB: DEEP-DIVE ANALYTICS (3 CHIỀU THÔNG MINH)  -->
+        <!-- ============================================== -->
+        <div id="tab-pane-deep-analytics" class="tab-content space-y-6">
+          
+          <!-- Filter Toolbar Bar -->
+          <div class="glass-panel p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 border-l-sky-500">
+            <div>
+              <h3 class="text-base font-black text-white flex items-center gap-2">
+                <span>📊</span><span>BÁO CÁO PHÂN TÍCH CHUYÊN SÂU 3 CHIỀU</span>
+              </h3>
+              <p class="text-xs text-slate-400 font-bold">
+                1. Đóng góp cá nhân • 2. Nội dung tri thức của cây • 3. Phát triển & Tốc độ bứt phá 8 Cây Tri Thức
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-400">Chọn Cây Phân Tích:</span>
+                <select id="deep-analytics-team-filter" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-bold focus:outline-none focus:border-sky-400 shadow-inner">
+                  <option value="">🌳 Toàn Vườn (Cả 8 Cây Tri Thức)</option>
+                  <option value="1">🌱 Cây Số 1: Đội 1 (Mầm Xanh BGD)</option>
+                  <option value="2">🌱 Cây Số 2: Đội 2 (Hạt Giống Tri Thức)</option>
+                  <option value="3">🌱 Cây Số 3: Đội 3 (Cành Vươn Trưởng Thành)</option>
+                  <option value="4">🌱 Cây Số 4: Đội 4 (Tán Lá Tri Thức)</option>
+                  <option value="5">🌱 Cây Số 5: Đội 5 (Chồi Non Vươn Cao)</option>
+                  <option value="6">🌱 Cây Số 6: Đội 6 (Thân Gỗ Vững Vàng)</option>
+                  <option value="7">🌱 Cây Số 7: Đội 7 (Hoa Nở Trí Tuệ)</option>
+                  <option value="8">🌱 Cây Số 8: Đội 8 (Quả Ngọt Đại Ngàn)</option>
+                </select>
+              </div>
+              <button id="btn-refresh-deep-analytics" class="btn btn-primary text-xs py-2 px-3 flex items-center gap-1.5">
+                <span>🔄</span><span>Cập Nhật</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- PHẦN 1: ĐÓNG GÓP CÁ NHÂN (HALL OF FAME)        -->
+          <!-- ============================================== -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-sm font-black text-sky-400 uppercase tracking-wider flex items-center gap-2">
+                <span>🌟</span><span>Phân Hệ 1: Vinh Danh Cá Nhân Xuất Sắc Nhất (Hall of Fame)</span>
+              </h4>
+              <span id="deep-scope-badge" class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                Toàn Vườn (8 Cây)
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              
+              <!-- Card 1: Top EXP -->
+              <div class="glass-panel p-4 space-y-3 border-t-2 border-t-amber-400">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-white flex items-center gap-1.5">
+                    <span class="text-base">👑</span><span>Đóng Góp EXP Nhiều Nhất</span>
+                  </span>
+                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">TOP 10</span>
+                </div>
+                <div id="deep-top-exp-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                  <div class="text-xs text-slate-500 text-center py-4">Đang tải dữ liệu...</div>
+                </div>
+              </div>
+
+              <!-- Card 2: Top Waterers -->
+              <div class="glass-panel p-4 space-y-3 border-t-2 border-t-sky-400">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-white flex items-center gap-1.5">
+                    <span class="text-base">💧</span><span>Tưới Cây Chăm Chỉ & Chuỗi Streak</span>
+                  </span>
+                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">TOP 10</span>
+                </div>
+                <div id="deep-top-waterers-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                  <div class="text-xs text-slate-500 text-center py-4">Đang tải dữ liệu...</div>
+                </div>
+              </div>
+
+              <!-- Card 3: Top Seeders -->
+              <div class="glass-panel p-4 space-y-3 border-t-2 border-t-emerald-400">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-white flex items-center gap-1.5">
+                    <span class="text-base">🌱</span><span>Gieo Mầm Tri Thức (Sách) Nhiều Nhất</span>
+                  </span>
+                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">TOP 10</span>
+                </div>
+                <div id="deep-top-seeders-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                  <div class="text-xs text-slate-500 text-center py-4">Đang tải dữ liệu...</div>
+                </div>
+              </div>
+
+              <!-- Card 4: Top Quotes & Depth -->
+              <div class="glass-panel p-4 space-y-3 border-t-2 border-t-indigo-400">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-white flex items-center gap-1.5">
+                    <span class="text-base">✍️</span><span>Viết Câu Cốt Sâu Sắc & Nhiều Nhất</span>
+                  </span>
+                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">TOP 10</span>
+                </div>
+                <div id="deep-top-quotes-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                  <div class="text-xs text-slate-500 text-center py-4">Đang tải dữ liệu...</div>
+                </div>
+              </div>
+
+              <!-- Card 5: Top Appreciated -->
+              <div class="glass-panel p-4 space-y-3 border-t-2 border-t-rose-400">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-white flex items-center gap-1.5">
+                    <span class="text-base">💖</span><span>Được Cảm Ơn / Ghi Nhận (Nhiều Like)</span>
+                  </span>
+                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300">TOP 10</span>
+                </div>
+                <div id="deep-top-appreciated-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                  <div class="text-xs text-slate-500 text-center py-4">Đang tải dữ liệu...</div>
+                </div>
+              </div>
+
+              <!-- Card 6: Top Visitors -->
+              <div class="glass-panel p-4 space-y-3 border-t-2 border-t-purple-400">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-white flex items-center gap-1.5">
+                    <span class="text-base">👀</span><span>Độc Giả Ghé Thăm & Truy Cập Cây</span>
+                  </span>
+                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">TOP 10</span>
+                </div>
+                <div id="deep-top-visitors-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                  <div class="text-xs text-slate-500 text-center py-4">Đang tải dữ liệu...</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- PHẦN 2: PHÂN TÍCH NỘI DUNG TRI THỨC CỦA CÂY    -->
+          <!-- ============================================== -->
+          <div class="space-y-3">
+            <h4 class="text-sm font-black text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+              <span>📖</span><span>Phân Hệ 2: Phân Tích Chi Tiết Nội Dung Tri Thức Của Cây</span>
+            </h4>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              <!-- Left: Top Books & Category Breakdown -->
+              <div class="space-y-4">
+                
+                <!-- Top Books Table -->
+                <div class="glass-panel p-4 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-white flex items-center gap-2">
+                      <span>📚</span><span>Cuốn Sách Được Trích Dẫn Nhiều Câu Cốt Nhất</span>
+                    </span>
+                    <span class="text-[10px] font-bold text-slate-400">Theo lượt gieo & chia sẻ</span>
+                  </div>
+                  <div class="overflow-x-auto rounded-lg border border-slate-800">
+                    <table class="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Tựa Sách & Tác Giả</th>
+                          <th>Thể Loại</th>
+                          <th class="text-center">Số Câu Cốt</th>
+                          <th class="text-center">Lượt Tim</th>
+                        </tr>
+                      </thead>
+                      <tbody id="deep-top-books-tbody">
+                        <tr><td colspan="4" class="p-4 text-center text-slate-500">Đang tải dữ liệu sách...</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Top Categories -->
+                <div class="glass-panel p-4 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-white flex items-center gap-2">
+                      <span>🏷️</span><span>Chủ Đề / Thể Loại Xuất Hiện Nhiều Nhất</span>
+                    </span>
+                    <span class="text-[10px] font-bold text-slate-400">Tỷ trọng thể loại</span>
+                  </div>
+                  <div id="deep-categories-breakdown" class="space-y-2.5">
+                    <div class="text-xs text-slate-500 text-center py-4">Đang tải dữ liệu chủ đề...</div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Right: Highlighted Quotes & Interactors -->
+              <div class="space-y-4">
+                
+                <!-- Highlighted Interactive Quotes -->
+                <div class="glass-panel p-4 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-white flex items-center gap-2">
+                      <span>💎</span><span>Những Câu Cốt Được Tương Tác / Yêu Thích Nhất</span>
+                    </span>
+                    <span class="text-[10px] font-bold text-slate-400">Nhiều lượt cảm ơn</span>
+                  </div>
+                  <div id="deep-top-quotes-cards" class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                    <div class="text-xs text-slate-500 text-center py-4">Đang tải câu cốt tâm đắc...</div>
+                  </div>
+                </div>
+
+                <!-- Active Interactors -->
+                <div class="glass-panel p-4 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-white flex items-center gap-2">
+                      <span>❤️</span><span>Thành Viên Tích Cực Tương Tác & Lan Tỏa Tri Thức</span>
+                    </span>
+                    <span class="text-[10px] font-bold text-slate-400">Số lượt gửi tim</span>
+                  </div>
+                  <div id="deep-top-interactors-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                    <div class="text-xs text-slate-500 text-center py-4">Đang tải danh sách tương tác...</div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- PHẦN 3: SỰ PHÁT TRIỂN CỦA CÂY & SO SÁNH 8 CÂY   -->
+          <!-- ============================================== -->
+          <div class="space-y-4">
+            <h4 class="text-sm font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
+              <span>🌳</span><span>Phân Hệ 3: Phân Tích Sự Phát Triển & So Sánh Toàn Diện 8 Cây Tri Thức</span>
+            </h4>
+
+            <!-- Trees Comparison Matrix Table -->
+            <div class="glass-panel p-5 space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h5 class="text-xs font-black text-white flex items-center gap-2">
+                    <span>⚡</span><span>BẢNG MA TRẬN SO SÁNH SỨC MẠNH & TỐC ĐỘ BỨT PHÁ 8 CÂY TRI THỨC</span>
+                  </h5>
+                  <p class="text-[11px] text-slate-400">Đánh giá cấp độ, tổng điểm, lượt tưới, sách đã gieo và gia tốc tăng trưởng EXP trong 24h & 7 ngày qua</p>
+                </div>
+                <span class="text-[11px] font-bold text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-lg border border-sky-500/20">
+                  Cập nhật thời gian thực
+                </span>
+              </div>
+
+              <div class="overflow-x-auto rounded-xl border border-slate-800">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th class="text-center">Hạng</th>
+                      <th>Cây Tri Thức / Đội</th>
+                      <th>Cấp & Tiến Độ</th>
+                      <th class="text-right">Tổng EXP</th>
+                      <th class="text-center">Lượt Tưới</th>
+                      <th class="text-center">Sách Gieo</th>
+                      <th class="text-center">Tương Tác</th>
+                      <th class="text-right text-emerald-400">Bứt Phá 24h</th>
+                      <th class="text-right text-sky-400">Bứt Phá 7 Ngày</th>
+                      <th class="text-center">Điểm Sức Sống</th>
+                    </tr>
+                  </thead>
+                  <tbody id="deep-trees-matrix-tbody">
+                    <tr><td colspan="10" class="p-6 text-center text-slate-500">Đang tải ma trận so sánh 8 cây...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Activity Breakdown & 8 Team MVPs Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              <!-- Activity EXP Breakdown (1 Col) -->
+              <div class="glass-panel p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-white flex items-center gap-2">
+                    <span>🌱</span><span>Cơ Cấu Hoạt Động Nuôi Dưỡng Cây</span>
+                  </span>
+                  <span class="text-[10px] font-bold text-slate-400">% EXP</span>
+                </div>
+                <p class="text-[11px] text-slate-400 font-medium">Hoạt động nào mang lại nhiều điểm số nhất giúp cây vươn mình:</p>
+                <div id="deep-activity-breakdown-list" class="space-y-2.5 pt-1">
+                  <div class="text-xs text-slate-500 text-center py-4">Đang tải cơ cấu hoạt động...</div>
+                </div>
+              </div>
+
+              <!-- 8 Team MVPs (2 Cols) -->
+              <div class="glass-panel p-4 space-y-3 lg:col-span-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-white flex items-center gap-2">
+                    <span>👑</span><span>8 Gương Mặt Tiêu Biểu Số 1 (MVP) Của 8 Cây Tri Thức</span>
+                  </span>
+                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                    8 ĐỘI THI ĐUA
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-400 font-medium">Chiến binh dẫn đầu về điểm số và truyền cảm hứng đọc sách cho từng đội:</p>
+                <div id="deep-team-mvps-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 pt-1">
+                  <div class="text-xs text-slate-500 text-center py-4 col-span-full">Đang tải danh sách MVP...</div>
+                </div>
+              </div>
+
+            </div>
+
           </div>
 
         </div>

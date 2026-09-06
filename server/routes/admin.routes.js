@@ -4,7 +4,7 @@ import {
   adminBonusExp, getAuditLogs, getAdminAnalytics, getAdminLedger, 
   getAdminUsersDirectory, advanceAdminRound,
   getAdminContentSettings, updateAdminContentSetting, resetAdminContentSetting,
-  adminWipeData
+  adminWipeData, getAdminDeepDiveAnalytics
 } from '../controllers/index.js';
 import { authenticate, authorizeRoles } from '../middlewares/auth.js';
 import { validateBody, adminLoginSchema, updateBookStatusSchema, adminBonusExpSchema } from '../middlewares/validator.js';
@@ -19,6 +19,7 @@ router.use(authenticate);
 
 // Realtime Analytics & KPIs
 router.get('/analytics/overview', authorizeRoles('moderator', 'admin'), getAdminAnalytics);
+router.get('/analytics/deep-dive', authorizeRoles('moderator', 'admin'), getAdminDeepDiveAnalytics);
 router.get('/ledger', authorizeRoles('moderator', 'admin'), getAdminLedger);
 router.get('/users', authorizeRoles('moderator', 'admin'), getAdminUsersDirectory);
 router.post('/rounds/advance', authorizeRoles('admin'), advanceAdminRound);

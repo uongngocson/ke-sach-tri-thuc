@@ -52,3 +52,17 @@ export async function advanceAdminRound(req, res, next) {
     next(err);
   }
 }
+
+export async function getAdminDeepDiveAnalytics(req, res, next) {
+  try {
+    const { teamId, period } = req.query;
+    const data = await AnalyticsService.getDeepDiveAnalytics({ teamId, period });
+    res.json({
+      success: true,
+      data
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+

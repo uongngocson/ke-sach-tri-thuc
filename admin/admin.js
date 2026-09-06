@@ -100,6 +100,7 @@ function bindSidebarEvents() {
   const navItems = document.querySelectorAll('#sidebar-nav .nav-item');
   const tabTitles = {
     'analytics': '📈 Tổng Quan & Biểu Đồ Phân Tích',
+    'deep-analytics': '📊 Báo Cáo Phân Tích Chuyên Sâu 3 Chiều',
     'teams': '🏆 Bảng Xếp Hạng & Phân Tích 8 Đội Thi Đua',
     'users': '👥 Danh Bạ & Trạng Thái 288 Nhân Sự',
     'moderation': '📚 Trung Tâm Hậu Kiểm Sách & Trích Dẫn',
@@ -131,6 +132,7 @@ function bindSidebarEvents() {
       }
 
       // Lazy load tab data
+      if (tab === 'deep-analytics') loadDeepDiveAnalytics();
       if (tab === 'teams') renderTeamsTable();
       if (tab === 'users') loadUsers();
       if (tab === 'moderation') loadBooks();
@@ -332,12 +334,16 @@ function bindActionEvents() {
   document.getElementById('mod-btn-reviewed')?.addEventListener('click', () => handleModalAction('reviewed', 'visible'));
   document.getElementById('mod-btn-hide')?.addEventListener('click', () => handleModalAction('rejected', 'deleted'));
 
+  // Deep-Dive Analytics Controls
+  bindDeepDiveAnalyticsEvents();
+
   // Danger Zone: Wipe Full Operational Data
   bindWipeDataEvents();
 }
 
 async function loadAllDashboardData() {
   await loadAnalytics();
+  if (isTabActive('deep-analytics')) loadDeepDiveAnalytics();
   if (isTabActive('teams')) renderTeamsTable();
   if (isTabActive('users')) loadUsers();
   if (isTabActive('rounds')) renderRoundsTimeline();
@@ -661,6 +667,510 @@ function updateAdvanceRoundSelect(rounds, currentRound) {
       Chặng ${r.round_number}: ${r.label}
     </option>
   `).join('');
+}
+
+// =========================================================================
+// 1.5. PHÂN TÍCH CHUYÊN SÂU 3 CHIỀU (DEEP-DIVE ANALYTICS)
+// =========================================================================
+let deepAnalyticsCache = null;
+
+function bindDeepDiveAnalyticsEvents() {
+  const teamFilter = document.getElementById('deep-analytics-team-filter');
+  const refreshBtn = document.getElementById('btn-refresh-deep-analytics');
+
+  if (teamFilter) {
+    teamFilter.addEventListener('change', () => {
+      loadDeepDiveAnalytics(teamFilter.value);
+    });
+  }
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      loadDeepDiveAnalytics(teamFilter ? teamFilter.value : '');
+    });
+  }
+}
+
+async function loadDeepDiveAnalytics(teamId = '') {
+  const filterVal = (teamId !== undefined && teamId !== null) ? teamId : (document.getElementById('deep-analytics-team-filter')?.value || '');
+  
+  // Update scope badge
+  const scopeBadge = document.getElementById('deep-scope-badge');
+  if (scopeBadge) {
+    scopeBadge.textContent = filterVal ? `Cây Số ${filterVal} (Đội ${filterVal})` : 'Toàn Vườn (8 Cây)';
+    scopeBadge.className = filterVal 
+      ? 'text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+      : 'text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30';
+  }
+
+  try {
+    const url = `${API_BASE}/admin/analytics/deep-dive${filterVal ? `?teamId=${filterVal}` : ''}`;
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const result = await res.json();
+    if (!result.success) {
+      console.error('Failed to load deep-dive analytics:', result.message);
+      return;
+    }
+
+    const data = result.data;
+    deepAnalyticsCache = data;
+
+    renderDeepContributors(data.contributors);
+    renderDeepContent(data.content);
+    renderDeepGrowth(data.growth);
+  } catch (err) {
+    console.error('Error fetching deep-dive analytics:', err);
+  }
+}
+
+// -------------------------------------------------------------
+// PHẦN 1: ĐÓNG GÓP CÁ NHÂN (HALL OF FAME)
+// -------------------------------------------------------------
+function renderDeepContributors(contributors) {
+  if (!contributors) return;
+
+  // 1.1: Top EXP
+  const expContainer = document.getElementById('deep-top-exp-list');
+  if (expContainer) {
+    const list = contributors.topExp || [];
+    if (list.length === 0) {
+      expContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có dữ liệu đóng góp EXP</div>';
+    } else {
+      expContainer.innerHTML = list.map((u, idx) => {
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+        const color = u.team_color || '#38bdf8';
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:border-amber-400/40 transition">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-amber-400' : 'text-slate-500'}">${medal}</span>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.full_name)}</div>
+                <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <span class="font-mono">${escapeHtml(u.employee_code || '')}</span>
+                  <span>•</span>
+                  <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-xs font-black text-amber-400 font-mono">+${Number(u.total_exp_earned || 0).toLocaleString()}</span>
+              <div class="text-[9.5px] text-slate-500">${u.contributed_books_count || 0} sách</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 1.2: Top Waterers (kèm Streak)
+  const waterContainer = document.getElementById('deep-top-waterers-list');
+  if (waterContainer) {
+    const list = contributors.topWaterers || [];
+    if (list.length === 0) {
+      waterContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có lượt tưới cây nào</div>';
+    } else {
+      waterContainer.innerHTML = list.map((u, idx) => {
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+        const color = u.team_color || '#38bdf8';
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:border-sky-400/40 transition">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-sky-400' : 'text-slate-500'}">${medal}</span>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.full_name)}</div>
+                <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <span class="font-mono">${escapeHtml(u.employee_code || '')}</span>
+                  <span>•</span>
+                  <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-xs font-black text-sky-400">${u.total_dews || 0} giọt</span>
+              <div class="text-[9.5px] text-emerald-400 font-bold">🔥 Chuỗi ${u.max_streak || 1} ngày</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 1.3: Top Seeders
+  const seedContainer = document.getElementById('deep-top-seeders-list');
+  if (seedContainer) {
+    const list = contributors.topSeeders || [];
+    if (list.length === 0) {
+      seedContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có mầm tri thức nào</div>';
+    } else {
+      seedContainer.innerHTML = list.map((u, idx) => {
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+        const color = u.team_color || '#10b981';
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:border-emerald-400/40 transition">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-emerald-400' : 'text-slate-500'}">${medal}</span>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.full_name)}</div>
+                <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <span class="font-mono">${escapeHtml(u.employee_code || '')}</span>
+                  <span>•</span>
+                  <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-xs font-black text-emerald-400">${u.books_count || 0} mầm</span>
+              <div class="text-[9.5px] text-rose-400">❤️ ${u.total_likes_received || 0} tim</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 1.4: Top Quote Writers & Depth
+  const quotesContainer = document.getElementById('deep-top-quotes-list');
+  if (quotesContainer) {
+    const list = contributors.topQuoteWriters || [];
+    if (list.length === 0) {
+      quotesContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có câu cốt nào</div>';
+    } else {
+      quotesContainer.innerHTML = list.map((u, idx) => {
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+        const color = u.team_color || '#818cf8';
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:border-indigo-400/40 transition">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-indigo-400' : 'text-slate-500'}">${medal}</span>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.full_name)}</div>
+                <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <span class="font-mono">${escapeHtml(u.employee_code || '')}</span>
+                  <span>•</span>
+                  <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_name || 'Đội ' + u.team_id)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-xs font-black text-indigo-400">${u.quotes_count || 0} câu</span>
+              <div class="text-[9.5px] text-slate-400">~${u.avg_quote_length || 0} ký tự/câu</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 1.5: Top Appreciated (Nhiều người cảm ơn / like nhất)
+  const appContainer = document.getElementById('deep-top-appreciated-list');
+  if (appContainer) {
+    const list = contributors.topAppreciated || [];
+    if (list.length === 0) {
+      appContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có tương tác cảm ơn</div>';
+    } else {
+      appContainer.innerHTML = list.map((u, idx) => {
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+        const color = u.team_color || '#f43f5e';
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:border-rose-400/40 transition">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-rose-400' : 'text-slate-500'}">${medal}</span>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.full_name)}</div>
+                <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <span class="font-mono">${escapeHtml(u.employee_code || '')}</span>
+                  <span>•</span>
+                  <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-xs font-black text-rose-400">💖 ${u.total_likes_received || 0} tim</span>
+              <div class="text-[9.5px] text-slate-400">${u.books_count || 0} chia sẻ</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 1.6: Top Visitors (Ghé thăm cây nhiều nhất)
+  const visitorContainer = document.getElementById('deep-top-visitors-list');
+  if (visitorContainer) {
+    const list = contributors.topVisitors || [];
+    if (list.length === 0) {
+      visitorContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa ghi nhận độc giả ghé thăm</div>';
+    } else {
+      visitorContainer.innerHTML = list.map((v, idx) => {
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+        const color = v.team_color || '#c084fc';
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:border-purple-400/40 transition">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-purple-400' : 'text-slate-500'}">${medal}</span>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(v.user_name || 'Độc Giả Thân Thiết')}</div>
+                <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <span class="truncate">${escapeHtml(v.user_email || v.user_fingerprint?.slice(0, 10) || '')}</span>
+                  ${v.team_name ? `<span>•</span><span style="color: ${color};" class="font-bold">${escapeHtml(v.team_name)}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-xs font-black text-purple-400">👀 ${v.visit_count || 0} lần</span>
+              <div class="text-[9.5px] text-slate-500">${v.last_visited_at ? new Date(v.last_visited_at).toLocaleDateString('vi-VN') : ''}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// PHẦN 2: PHÂN TÍCH NỘI DUNG TRI THỨC CỦA CÂY
+// -------------------------------------------------------------
+function renderDeepContent(content) {
+  if (!content) return;
+
+  // 2.1: Top Books Trích Dẫn Nhiều Nhất
+  const booksTbody = document.getElementById('deep-top-books-tbody');
+  if (booksTbody) {
+    const list = content.topBooks || [];
+    if (list.length === 0) {
+      booksTbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500">Chưa có dữ liệu sách</td></tr>';
+    } else {
+      booksTbody.innerHTML = list.map(b => `
+        <tr>
+          <td>
+            <div class="font-bold text-white text-xs">${escapeHtml(b.title)}</div>
+            <div class="text-[10px] text-slate-400">${escapeHtml(b.author || 'Khuyết Danh')}</div>
+          </td>
+          <td>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              ${escapeHtml(b.category || 'Sách Tinh Hoa')}
+            </span>
+          </td>
+          <td class="text-center font-black text-emerald-400 text-xs">${b.quote_count || 0}</td>
+          <td class="text-center font-black text-rose-400 text-xs">❤️ ${b.total_likes || 0}</td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  // 2.2: Chủ đề / Thể loại xuất hiện nhiều nhất
+  const catContainer = document.getElementById('deep-categories-breakdown');
+  if (catContainer) {
+    const list = content.topCategories || [];
+    if (list.length === 0) {
+      catContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có dữ liệu thể loại</div>';
+    } else {
+      catContainer.innerHTML = list.map(cat => {
+        const pct = Math.min(100, Math.max(0, cat.percentage || 0));
+        return `
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-white">${escapeHtml(cat.category)}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-slate-400 font-mono text-[11px]">${cat.book_count || 0} sách</span>
+                <span class="font-black text-emerald-400 text-[11px]">${pct}%</span>
+              </div>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500" style="width: ${pct}%;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 2.3: Những câu cốt được tương tác / thích nhiều nhất
+  const quotesCards = document.getElementById('deep-top-quotes-cards');
+  if (quotesCards) {
+    const list = content.topQuotes || [];
+    if (list.length === 0) {
+      quotesCards.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có câu cốt nào được chia sẻ</div>';
+    } else {
+      quotesCards.innerHTML = list.map(q => {
+        const teamColor = q.team_color || '#38bdf8';
+        return `
+          <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-emerald-500/40 transition space-y-2">
+            <p class="text-xs text-slate-200 italic leading-relaxed border-l-2 border-emerald-400 pl-2.5">
+              "${escapeHtml(q.quote)}"
+            </p>
+            <div class="flex items-center justify-between text-[10.5px] pt-1 border-t border-slate-800/60">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="font-bold text-white truncate">${escapeHtml(q.reader_name || 'Độc giả')}</span>
+                <span class="text-slate-500">•</span>
+                <span style="color: ${teamColor};" class="font-bold truncate">${escapeHtml(q.team_display_name || q.team_name || 'Đội ' + q.team_id)}</span>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="text-slate-400 font-medium truncate max-w-[140px]">📖 ${escapeHtml(q.title)}</span>
+                <span class="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-300 font-bold border border-rose-500/30">
+                  ❤️ ${q.likes_count || 0}
+                </span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 2.4: Thành viên tích cực tương tác / lan tỏa tim
+  const interactorsContainer = document.getElementById('deep-top-interactors-list');
+  if (interactorsContainer) {
+    const list = content.topInteractors || [];
+    if (list.length === 0) {
+      interactorsContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có thành viên tương tác tim</div>';
+    } else {
+      interactorsContainer.innerHTML = list.map((u, idx) => `
+        <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-5 text-center text-xs font-bold text-rose-400">#${idx + 1}</span>
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-white truncate">${escapeHtml(u.user_name || 'Độc Giả Ẩn Danh')}</div>
+              <div class="text-[10px] text-slate-400">${escapeHtml(u.team_name || 'Thành viên CLB')}</div>
+            </div>
+          </div>
+          <span class="text-xs font-black text-rose-400 shrink-0">❤️ ${u.likes_given || 0} tim</span>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// PHẦN 3: SỰ PHÁT TRIỂN CỦA CÂY & SO SÁNH 8 CÂY
+// -------------------------------------------------------------
+const DEEP_ACTIVITY_LABELS = {
+  'BOOK_CONTRIBUTION': '📚 Gieo Mầm Sách Mới',
+  'DAILY_DEW': '💧 Tưới Nước Sương Sớm',
+  'ROUND_COMPLETION': '🏆 Thưởng Hoàn Thành Vòng',
+  'ADMIN_AWARD': '🎁 Khen Thưởng Ban Giám Đốc',
+  'ADMIN_DEDUCTION': '⚠️ Điều Chỉnh Trừ Điểm'
+};
+
+function renderDeepGrowth(growth) {
+  if (!growth) return;
+
+  // 3.1: Trees Comparison Matrix Table
+  const matrixTbody = document.getElementById('deep-trees-matrix-tbody');
+  if (matrixTbody) {
+    const trees = growth.treesComparison || [];
+    if (trees.length === 0) {
+      matrixTbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-slate-500">Chưa có số liệu 8 cây</td></tr>';
+    } else {
+      matrixTbody.innerHTML = trees.map((t, idx) => {
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+        const color = t.color_code || '#38bdf8';
+        const pct = Math.min(100, Math.max(0, t.progressPercent || 0));
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="text-center font-black text-sm ${idx < 3 ? 'text-amber-400' : 'text-slate-500'}">${medal}</td>
+            <td>
+              <div class="flex items-center gap-2">
+                <span class="text-base">${t.icon || '🌳'}</span>
+                <div>
+                  <div class="font-black text-white text-xs" style="color: ${color};">${escapeHtml(t.display_name || t.name)}</div>
+                  <div class="text-[10px] text-slate-400 italic">${escapeHtml(t.slogan || '')}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="flex items-center justify-between text-[11px] font-bold text-slate-300 mb-1">
+                <span>${escapeHtml(t.levelName || 'Mầm Non')}</span>
+                <span class="text-sky-400">${pct}%</span>
+              </div>
+              <div class="w-28 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full" style="width: ${pct}%;"></div>
+              </div>
+            </td>
+            <td class="text-right font-black font-mono text-white text-xs">
+              ${Number(t.total_exp || t.tree_exp || 0).toLocaleString()}
+            </td>
+            <td class="text-center font-bold text-sky-400 text-xs">💧 ${t.total_dews || 0}</td>
+            <td class="text-center font-bold text-emerald-400 text-xs">🌱 ${t.total_books || 0}</td>
+            <td class="text-center font-bold text-rose-400 text-xs">❤️ ${t.total_likes || 0}</td>
+            <td class="text-right font-mono font-black text-emerald-400 text-xs">
+              +${Number(t.velocity_24h || 0).toLocaleString()}
+            </td>
+            <td class="text-right font-mono font-black text-sky-400 text-xs">
+              +${Number(t.velocity_7d || 0).toLocaleString()}
+            </td>
+            <td class="text-center">
+              <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-extrabold text-xs border border-amber-500/30">
+                ⚡ ${t.interactionScore || 0}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  }
+
+  // 3.2: Activity EXP Breakdown
+  const actContainer = document.getElementById('deep-activity-breakdown-list');
+  if (actContainer) {
+    const list = growth.activityBreakdown || [];
+    if (list.length === 0) {
+      actContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có giao dịch sổ cái</div>';
+    } else {
+      actContainer.innerHTML = list.map(act => {
+        const label = DEEP_ACTIVITY_LABELS[act.type] || act.type;
+        const pct = Math.min(100, Math.max(0, act.percentage || 0));
+        return `
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-white">${escapeHtml(label)}</span>
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono text-amber-400 font-bold">${Number(act.total_exp || 0).toLocaleString()} EXP</span>
+                <span class="text-slate-400 font-bold text-[10px]">(${pct}%)</span>
+              </div>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full rounded-full bg-gradient-to-r from-amber-500 to-sky-400 transition-all duration-500" style="width: ${pct}%;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 3.3: 8 Team MVPs Grid
+  const mvpsGrid = document.getElementById('deep-team-mvps-grid');
+  if (mvpsGrid) {
+    const mvps = growth.teamMvps || [];
+    if (mvps.length === 0) {
+      mvpsGrid.innerHTML = '<div class="text-xs text-slate-500 text-center py-4 col-span-full">Chưa có danh sách MVP</div>';
+    } else {
+      mvpsGrid.innerHTML = mvps.map(m => {
+        const color = m.team_color || '#38bdf8';
+        return `
+          <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-amber-400/50 transition relative overflow-hidden flex flex-col justify-between">
+            <div class="absolute top-0 right-0 px-2 py-0.5 rounded-bl-lg bg-amber-500/20 text-amber-300 text-[9px] font-black uppercase">
+              MVP ĐỘI ${m.team_id}
+            </div>
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-lg">${m.team_icon || '🌱'}</span>
+                <span class="text-[11px] font-black truncate" style="color: ${color};">${escapeHtml(m.team_display_name || m.team_name)}</span>
+              </div>
+              <div class="font-black text-white text-xs truncate">${escapeHtml(m.full_name)}</div>
+              <div class="text-[10px] text-slate-400 truncate mb-2.5">${escapeHtml(m.job_title || m.employee_code || '')}</div>
+            </div>
+            <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10.5px]">
+              <span class="text-slate-400 font-medium">✨ ${m.contributed_books_count || 0} sách</span>
+              <span class="font-black text-amber-400 font-mono">+${Number(m.total_exp_earned || 0).toLocaleString()} EXP</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
 }
 
 // =========================================================================

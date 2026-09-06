@@ -367,6 +367,285 @@ export class AnalyticsService {
 
     return result;
   }
+
+  /**
+   * PHÂN TÍCH CHUYÊN SÂU 3 CHIỀU (DEEP-DIVE ANALYTICS):
+   * 1. Đóng góp cá nhân (Hall of Fame)
+   * 2. Nội dung tri thức của cây (Lọc theo từng cây 1..8 hoặc toàn vườn)
+   * 3. Sự phát triển của cây & So sánh 8 cây / 8 đội
+   */
+  static async getDeepDiveAnalytics({ teamId = null, period = 'all' } = {}) {
+    const filterTeamId = teamId ? parseInt(teamId, 10) : null;
+
+    // -------------------------------------------------------------
+    // PHẦN 1: ĐÓNG GÓP CÁ NHÂN (CONTRIBUTOR INSIGHTS & HALL OF FAME)
+    // -------------------------------------------------------------
+    const [
+      topExpRes,
+      topWaterersRes,
+      topSeedersRes,
+      topQuoteWritersRes,
+      topAppreciatedRes,
+      topVisitorsRes
+    ] = await Promise.all([
+      // 1.1: Ai đóng góp nhiều điểm EXP nhất
+      db.query(`
+        SELECT u.id, u.employee_code, u.full_name, u.email, u.job_title, u.branch, u.team_id,
+               t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
+               u.total_exp_earned, u.contributed_books_count
+        FROM users u
+        LEFT JOIN teams t ON u.team_id = t.id
+        WHERE ($1::INT IS NULL OR u.team_id = $1)
+        ORDER BY u.total_exp_earned DESC, u.contributed_books_count DESC
+        LIMIT 10
+      `, [filterTeamId]),
+
+      // 1.2: Ai là người tưới cây nhiều nhất (kèm chuỗi streak)
+      db.query(`
+        SELECT u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id,
+               t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
+               COUNT(d.id)::INT as total_dews,
+               COALESCE(MAX(d.streak), 1)::INT as max_streak,
+               MAX(d.claim_date) as last_watered_date
+        FROM daily_dews d
+        JOIN users u ON d.user_id = u.id
+        LEFT JOIN teams t ON u.team_id = t.id
+        WHERE ($1::INT IS NULL OR d.team_id = $1)
+        GROUP BY u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id, t.name, t.display_name, t.color_code
+        ORDER BY total_dews DESC, max_streak DESC
+        LIMIT 10
+      `, [filterTeamId]),
+
+      // 1.3: Ai là người gieo mầm nhiều nhất
+      db.query(`
+        SELECT u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id,
+               t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
+               COUNT(b.id)::INT as books_count,
+               COALESCE(SUM(b.likes_count), 0)::INT as total_likes_received
+        FROM books b
+        JOIN users u ON b.user_id = u.id
+        LEFT JOIN teams t ON u.team_id = t.id
+        WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
+        GROUP BY u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id, t.name, t.display_name, t.color_code
+        ORDER BY books_count DESC, total_likes_received DESC
+        LIMIT 10
+      `, [filterTeamId]),
+
+      // 1.4: Ai viết nhiều câu trích dẫn & có độ sâu nội dung nhất
+      db.query(`
+        SELECT u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id,
+               t.name as team_name, t.color_code as team_color,
+               COUNT(b.id)::INT as quotes_count,
+               COALESCE(AVG(LENGTH(b.quote)), 0)::INT as avg_quote_length,
+               COALESCE(SUM(b.likes_count), 0)::INT as total_likes
+        FROM books b
+        JOIN users u ON b.user_id = u.id
+        LEFT JOIN teams t ON u.team_id = t.id
+        WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
+        GROUP BY u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id, t.name, t.color_code
+        ORDER BY quotes_count DESC, total_likes DESC
+        LIMIT 10
+      `, [filterTeamId]),
+
+      // 1.5: Ai được nhiều người cảm ơn / ghi nhận (nhiều like nhất)
+      db.query(`
+        SELECT u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id,
+               t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
+               COALESCE(SUM(b.likes_count), 0)::INT as total_likes_received,
+               COUNT(b.id)::INT as books_count
+        FROM books b
+        JOIN users u ON b.user_id = u.id
+        LEFT JOIN teams t ON u.team_id = t.id
+        WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
+        GROUP BY u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id, t.name, t.display_name, t.color_code
+        HAVING COALESCE(SUM(b.likes_count), 0) > 0
+        ORDER BY total_likes_received DESC, books_count DESC
+        LIMIT 10
+      `, [filterTeamId]),
+
+      // 1.6: Ai là người truy cập cây nhiều nhất
+      db.query(`
+        SELECT sv.id, sv.user_fingerprint, sv.visit_count, sv.first_visited_at, sv.last_visited_at,
+               COALESCE(u.full_name, 'Độc Giả Thân Thiết') as user_name,
+               u.email as user_email,
+               t.name as team_name, t.color_code as team_color
+        FROM site_visitors sv
+        LEFT JOIN users u ON sv.user_fingerprint LIKE '%' || SUBSTRING(u.id::text, 1, 8) || '%'
+        LEFT JOIN teams t ON u.team_id = t.id
+        WHERE ($1::INT IS NULL OR t.id = $1)
+        ORDER BY sv.visit_count DESC, sv.last_visited_at DESC
+        LIMIT 10
+      `, [filterTeamId])
+    ]);
+
+    // -------------------------------------------------------------
+    // PHẦN 2: PHÂN TÍCH NỘI DUNG TRI THỨC (CONTENT & KNOWLEDGE)
+    // -------------------------------------------------------------
+    const [
+      topBooksRes,
+      topCategoriesRes,
+      topQuotesRes,
+      topInteractorsRes
+    ] = await Promise.all([
+      // 2.1: Cuốn sách nào được trích dẫn nhiều nhất
+      db.query(`
+        SELECT b.title, b.author,
+               COALESCE(NULLIF(b.category, ''), 'Sách Tinh Hoa') as category,
+               COUNT(b.id)::INT as quote_count,
+               COALESCE(SUM(b.likes_count), 0)::INT as total_likes,
+               MAX(b.created_at) as latest_shared_at
+        FROM books b
+        WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
+        GROUP BY b.title, b.author, COALESCE(NULLIF(b.category, ''), 'Sách Tinh Hoa')
+        ORDER BY quote_count DESC, total_likes DESC
+        LIMIT 10
+      `, [filterTeamId]),
+
+      // 2.2: Chủ đề / Thể loại sách xuất hiện nhiều nhất
+      db.query(`
+        SELECT COALESCE(NULLIF(b.category, ''), 'Sách Tinh Hoa') as category,
+               COUNT(b.id)::INT as book_count,
+               COALESCE(SUM(b.likes_count), 0)::INT as total_likes,
+               ROUND(
+                 (COUNT(b.id)::numeric / NULLIF((SELECT COUNT(*) FROM books WHERE visibility_status = 'visible' AND ($1::INT IS NULL OR team_id = $1)), 0)) * 100, 
+                 1
+               )::FLOAT as percentage
+        FROM books b
+        WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
+        GROUP BY category
+        ORDER BY book_count DESC
+      `, [filterTeamId]),
+
+      // 2.3: Những câu cốt được nhiều thành viên tương tác nhất
+      db.query(`
+        SELECT b.id, b.title, b.author, b.quote, b.category, b.likes_count, b.created_at,
+               u.id as user_id, u.full_name as reader_name, u.employee_code,
+               t.id as team_id, t.name as team_name, t.display_name as team_display_name, t.color_code as team_color
+        FROM books b
+        LEFT JOIN users u ON b.user_id = u.id
+        LEFT JOIN teams t ON b.team_id = t.id
+        WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
+        ORDER BY b.likes_count DESC, b.created_at DESC
+        LIMIT 10
+      `, [filterTeamId]),
+
+      // 2.4: Thành viên tích cực tương tác / thả tim
+      db.query(`
+        SELECT ql.user_fingerprint,
+               COUNT(ql.id)::INT as likes_given,
+               MAX(ql.created_at) as last_liked_at,
+               u.id as user_id, u.full_name as user_name, u.email as user_email,
+               t.name as team_name, t.color_code as team_color
+        FROM quote_likes ql
+        LEFT JOIN users u ON ql.user_fingerprint LIKE '%' || SUBSTRING(u.id::text, 1, 8) || '%'
+        LEFT JOIN teams t ON u.team_id = t.id
+        WHERE ($1::INT IS NULL OR t.id = $1)
+        GROUP BY ql.user_fingerprint, u.id, u.full_name, u.email, t.name, t.color_code
+        ORDER BY likes_given DESC
+        LIMIT 10
+      `, [filterTeamId])
+    ]);
+
+    // -------------------------------------------------------------
+    // PHẦN 3: SỰ PHÁT TRIỂN CỦA CÂY & SO SÁNH 8 CÂY (TREE GROWTH)
+    // -------------------------------------------------------------
+    const [
+      treesComparisonRes,
+      activityBreakdownRes,
+      teamMvpsRes
+    ] = await Promise.all([
+      // 3.1: So sánh tổng hợp 8 cây (Tốc độ bứt phá, Lượt tưới, Sách, EXP, Level)
+      db.query(`
+        SELECT t.id, t.code, t.name, t.display_name, t.color_code, t.icon, t.slogan,
+               t.actual_members, t.target_members,
+               COALESCE(t.total_exp, 0)::BIGINT as total_exp,
+               COALESCE(t.tree_exp, 0)::BIGINT as tree_exp,
+               COALESCE(t.level, 0)::INT as level,
+               COALESCE(t.tree_level, 0)::INT as tree_level,
+               COALESCE(t.tree_seeds, 0)::INT as tree_seeds,
+               COALESCE(t.avg_participation_rate, 0)::FLOAT as avg_participation_rate,
+               (SELECT COUNT(*)::INT FROM daily_dews d WHERE d.team_id = t.id) as total_dews,
+               (SELECT COUNT(*)::INT FROM books b WHERE b.team_id = t.id AND b.visibility_status = 'visible') as total_books,
+               (SELECT COUNT(*)::INT FROM quote_likes ql JOIN books b ON ql.book_id = b.id WHERE b.team_id = t.id) as total_likes,
+               COALESCE((
+                 SELECT SUM(amount)::INT FROM exp_ledger el 
+                 WHERE el.team_id = t.id AND el.created_at >= NOW() - INTERVAL '24 hours'
+               ), 0) as velocity_24h,
+               COALESCE((
+                 SELECT SUM(amount)::INT FROM exp_ledger el 
+                 WHERE el.team_id = t.id AND el.created_at >= NOW() - INTERVAL '7 days'
+               ), 0) as velocity_7d
+        FROM teams t
+        ORDER BY t.total_exp DESC, t.id ASC
+      `),
+
+      // 3.2: Tỷ trọng các hoạt động nuôi dưỡng cây (Activity EXP Contribution)
+      db.query(`
+        SELECT el.type,
+               COUNT(*)::INT as transaction_count,
+               COALESCE(SUM(el.amount), 0)::BIGINT as total_exp,
+               ROUND(
+                 (SUM(el.amount)::numeric / NULLIF((SELECT SUM(amount) FROM exp_ledger WHERE ($1::INT IS NULL OR team_id = $1)), 0)) * 100, 
+                 1
+               )::FLOAT as percentage
+        FROM exp_ledger el
+        WHERE ($1::INT IS NULL OR el.team_id = $1)
+        GROUP BY el.type
+        ORDER BY total_exp DESC
+      `, [filterTeamId]),
+
+      // 3.3: Gương mặt tiêu biểu số 1 (MVP) của từng đội trong 8 đội
+      db.query(`
+        SELECT DISTINCT ON (u.team_id)
+               u.id, u.employee_code, u.full_name, u.email, u.job_title, u.avatar_url,
+               u.contributed_books_count, u.total_exp_earned,
+               t.id as team_id, t.name as team_name, t.display_name as team_display_name, 
+               t.color_code as team_color, t.icon as team_icon
+        FROM users u
+        JOIN teams t ON u.team_id = t.id
+        ORDER BY u.team_id ASC, u.total_exp_earned DESC, u.contributed_books_count DESC
+      `)
+    ]);
+
+    // Format 8 Trees Comparison with stage names & interaction scores
+    const formattedTrees = treesComparisonRes.rows.map((t, idx) => {
+      const exp = parseInt(t.total_exp || t.tree_exp || 0, 10);
+      const levelInfo = calculateLevelFromExp(exp);
+      const interactionScore = t.total_dews + t.total_books + t.total_likes;
+
+      return {
+        ...t,
+        rank: idx + 1,
+        levelName: levelInfo.name,
+        progressPercent: levelInfo.progressPercent,
+        interactionScore
+      };
+    });
+
+    return {
+      filterTeamId,
+      period,
+      contributors: {
+        topExp: topExpRes.rows,
+        topWaterers: topWaterersRes.rows,
+        topSeeders: topSeedersRes.rows,
+        topQuoteWriters: topQuoteWritersRes.rows,
+        topAppreciated: topAppreciatedRes.rows,
+        topVisitors: topVisitorsRes.rows
+      },
+      content: {
+        topBooks: topBooksRes.rows,
+        topCategories: topCategoriesRes.rows,
+        topQuotes: topQuotesRes.rows,
+        topInteractors: topInteractorsRes.rows
+      },
+      growth: {
+        treesComparison: formattedTrees,
+        activityBreakdown: activityBreakdownRes.rows,
+        teamMvps: teamMvpsRes.rows
+      }
+    };
+  }
 }
 
 export default AnalyticsService;

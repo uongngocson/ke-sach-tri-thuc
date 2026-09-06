@@ -341,3 +341,25 @@ body {
 .modal-card.modal-lg {
   max-width: 850px;
 }
+
+/* Deep-Dive Analytics Enhancements */
+#tab-pane-deep-analytics .glass-panel {
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+}
+
+#deep-team-mvps-grid > div {
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.75));
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#deep-team-mvps-grid > div:hover {
+  transform: translateY(-3px);
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 10px 25px -4px rgba(245, 158, 11, 0.2);
+}
+
+#deep-top-quotes-cards > div {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(22, 33, 62, 0.6) 100%);
+}
