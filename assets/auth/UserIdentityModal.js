@@ -608,11 +608,11 @@ export class UserIdentityModal {
     guestBtn.addEventListener('click', () => {
       const guestSession = {
         id: 'guest',
-        full_name: 'Độc giả Tri Thức',
+        full_name: 'Khách Tham Quan',
         email: 'guest@fpt.com',
         isGuest: true,
-        team_id: 1, // Default preview team
-        team_display_name: 'Toàn Vườn Tri Thức'
+        team_id: null, // Guests do not belong to any team
+        team_display_name: 'Khách Tham Quan'
       };
       UserIdentityModal.saveSession(guestSession);
       this.close();

@@ -5868,8 +5868,8 @@
 
   </style>
 
-  <!-- GLOBAL FIXED GROUND ACTION HINT (ALWAYS VISIBLE AT BOTTOM OF SCREEN) -->
-  <div id="ground-action-hint" title="Bấm vào để gieo mầm tri thức ngay">
+  <!-- GLOBAL FIXED GROUND ACTION HINT (SHOWN ONLY WHEN LOGGED IN AND ON OWN TEAM) -->
+  <div id="ground-action-hint" title="Bấm vào để gieo mầm tri thức ngay" style="display: none;">
     <div class="ground-hint-pill">
       <span class="text-base sm:text-lg leading-none">🌰</span>
       <span id="ground-action-hint-text">Chạm vào mặt đất để gieo hạt tri thức</span>
@@ -6439,6 +6439,9 @@
 
       /* 2. MASTER 8-TEAM GROWTH HUD & STATE SYNC */
       let currentUser = UserIdentityModal.getStoredSession();
+      if (currentUser && (currentUser.isGuest || currentUser.id === 'guest')) {
+        currentUser.team_id = null;
+      }
       let activeTeam = null;
       let myTeam = null;
       let currentRound = null;
@@ -6448,10 +6451,19 @@
       window.renderGroundSeeds = renderGroundSeeds;
       window.getActiveTeam = () => activeTeam;
       window.getAllTeams = () => allTeams;
+      window.getCurrentUser = () => currentUser;
+      window.setCurrentUser = (u) => { currentUser = u; };
+      window.getMyTeam = () => myTeam;
 
       const userIdentityModal = new UserIdentityModal({
         onUserIdentified: async (user) => {
           currentUser = user;
+          if (currentUser && (currentUser.isGuest || currentUser.id === 'guest')) {
+            currentUser.team_id = null;
+          }
+          if (currentUser && currentUser.team_id) {
+            localStorage.setItem('caosach_current_team_id', currentUser.team_id.toString());
+          }
           await loadUserTeamAndSync();
         }
       });
@@ -6526,7 +6538,7 @@
         if (!rail || !allTeams || !allTeams.length) return;
 
         const activeId = activeTeam ? activeTeam.id : 1;
-        const myTeamId = myTeam ? myTeam.id : (currentUser?.team_id || 1);
+        const myTeamId = (currentUser && !currentUser.isGuest && currentUser.team_id) ? currentUser.team_id : null;
 
         const TEAM_SHORT_NAMES = {
           1: 'BO & SCU',
@@ -6632,7 +6644,7 @@
         }
         if (hudTeamName) hudTeamName.textContent = team.display_name || team.name;
         if (hudInspectingTag) hudInspectingTag.style.display = isInspecting ? 'inline-block' : 'none';
-        if (hudReturnBtn) hudReturnBtn.style.display = isInspecting ? 'inline-flex' : 'none';
+        if (hudReturnBtn) hudReturnBtn.style.display = (isInspecting && myTeam) ? 'inline-flex' : 'none';
 
         if (hudRoundLabel && currentRound) {
           const dateTxt = currentRound.date_label || '05/09 - 07/09';
@@ -6663,15 +6675,27 @@
         }
 
         if (userAccountName) {
-          userAccountName.textContent = currentUser ? currentUser.full_name : 'Đăng Nhập / Đội Tôi';
+          userAccountName.textContent = (currentUser && !currentUser.isGuest) ? currentUser.full_name : 'Đăng Nhập / Đội Tôi';
         }
 
-        const hintTextEl = document.getElementById('ground-action-hint-text');
-        if (hintTextEl) {
-          if (!isSprouted) {
-            hintTextEl.textContent = `Chạm vào đất để gieo hạt cho ${team.display_name} (${team.tree_seeds || 0}/50)`;
+        const groundActionHint = document.getElementById('ground-action-hint');
+        const isRealUserLoggedIn = !!(currentUser && !currentUser.isGuest && currentUser.team_id);
+        const isMyTeamActive = isRealUserLoggedIn && team && (currentUser.team_id === team.id);
+
+        if (groundActionHint) {
+          if (isMyTeamActive) {
+            groundActionHint.style.display = 'flex';
+            const hintTextEl = document.getElementById('ground-action-hint-text');
+            if (hintTextEl) {
+              if (!isSprouted) {
+                hintTextEl.textContent = `Chạm vào đất để gieo hạt cho ${team.display_name} (${team.tree_seeds || 0}/50)`;
+              } else {
+                hintTextEl.textContent = `Chạm vào đất để gieo thêm sách cho ${team.display_name}`;
+              }
+            }
           } else {
-            hintTextEl.textContent = `Chạm vào đất để gieo thêm sách cho ${team.display_name}`;
+            // Khi xem cây đội khác HOẶC chưa đăng nhập / là khách -> ẩn 100%
+            groundActionHint.style.display = 'none';
           }
         }
 
@@ -6698,7 +6722,7 @@
       async function inspectTeam(team, notify = true) {
         activeTeam = team;
         localStorage.setItem('caosach_current_team_id', team.id.toString());
-        const isInspecting = myTeam ? (team.id !== myTeam.id) : false;
+        const isInspecting = myTeam ? (team.id !== myTeam.id) : true;
         updateHUDWithTeam(team, isInspecting);
         sync3DTreeWithTeam(team);
         renderGroundSeeds();
@@ -6716,14 +6740,17 @@
           const savedTeamId = localStorage.getItem('caosach_current_team_id');
           if (savedTeamId) {
             targetTeamId = parseInt(savedTeamId, 10);
-          } else if (currentUser && currentUser.team_id) {
+          } else if (currentUser && !currentUser.isGuest && currentUser.team_id) {
             targetTeamId = currentUser.team_id;
           }
 
-          myTeam = allTeams.find(t => t.id === (currentUser?.team_id || targetTeamId)) || allTeams[0];
-          activeTeam = allTeams.find(t => t.id === targetTeamId) || myTeam;
+          myTeam = (currentUser && !currentUser.isGuest && currentUser.team_id) 
+            ? (allTeams.find(t => t.id === currentUser.team_id) || null) 
+            : null;
+          activeTeam = allTeams.find(t => t.id === targetTeamId) || (myTeam || allTeams[0]);
+          const isInspecting = myTeam ? (activeTeam.id !== myTeam.id) : true;
 
-          updateHUDWithTeam(activeTeam, activeTeam.id !== myTeam.id);
+          updateHUDWithTeam(activeTeam, isInspecting);
           sync3DTreeWithTeam(activeTeam);
           renderGroundSeeds();
         } catch (err) {
@@ -7151,6 +7178,17 @@
       }
 
       function openContributeModal() {
+        if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
+          if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
+            userIdentityModal.open();
+            showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+          }
+          return;
+        }
+        if (activeTeam && activeTeam.id !== currentUser.team_id) {
+          showToast(`👀 Bạn đang ở chế độ xem Cây Tri Thức của ${activeTeam.display_name}. Hãy quay về Đội của bạn để gieo hạt nhé!`);
+          return;
+        }
         if (contributeOverlay) contributeOverlay.classList.add('active');
         updateBodyModalState();
         if (cbBookTitle && window.innerWidth > 640) {
@@ -7164,6 +7202,8 @@
         if (contributeOverlay) contributeOverlay.classList.remove('active');
         updateBodyModalState();
       }
+      window.openContributeModal = openContributeModal;
+      window.closeContributeModal = closeContributeModal;
 
       function openOnchainModal() {
         if (onchainOverlay) onchainOverlay.classList.add('active');
@@ -7203,6 +7243,14 @@
       if (mainGieoMamBtn) mainGieoMamBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
+          if (typeof userIdentityModal !== 'undefined') userIdentityModal.open();
+          showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+          return;
+        }
+        if (myTeam && activeTeam && activeTeam.id !== myTeam.id) {
+          inspectTeam(myTeam, false);
+        }
         openContributeModal();
       });
 
@@ -7210,6 +7258,14 @@
       if (mobileGieoMamBtn) mobileGieoMamBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
+          if (typeof userIdentityModal !== 'undefined') userIdentityModal.open();
+          showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+          return;
+        }
+        if (myTeam && activeTeam && activeTeam.id !== myTeam.id) {
+          inspectTeam(myTeam, false);
+        }
         openContributeModal();
       });
 
@@ -7219,6 +7275,27 @@
         let touchStartX = 0;
         let touchStartY = 0;
         let isTouchMoved = false;
+
+        const handleGroundAction = (e) => {
+          if (e.target.closest && e.target.closest('.ground-seed-item')) return;
+
+          // 1. Kiểm tra đăng nhập
+          if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
+            if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
+              userIdentityModal.open();
+              showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+            }
+            return;
+          }
+
+          // 2. Kiểm tra chế độ xem: Nếu đang xem cây đội khác -> Không cho gieo hạt vào đất
+          if (activeTeam && activeTeam.id !== currentUser.team_id) {
+            showToast(`👀 Bạn đang ở chế độ xem Cây Tri Thức của ${activeTeam.display_name}. Hãy quay về Đội của bạn để gieo hạt nhé!`);
+            return;
+          }
+
+          openContributeModal();
+        };
 
         el.addEventListener('touchstart', (e) => {
           if (e.touches && e.touches[0]) {
@@ -7238,17 +7315,15 @@
 
         el.addEventListener('touchend', (e) => {
           if (isTouchMoved) return;
-          if (e.target.closest && e.target.closest('.ground-seed-item')) return;
           e.preventDefault();
           e.stopPropagation();
-          openContributeModal();
+          handleGroundAction(e);
         }, { passive: false });
 
         el.addEventListener('click', (e) => {
-          if (e.target.closest && e.target.closest('.ground-seed-item')) return;
           e.preventDefault();
           e.stopPropagation();
-          openContributeModal();
+          handleGroundAction(e);
         });
       }
 
@@ -7281,6 +7356,14 @@
       if (welcomePlantBtn) {
         welcomePlantBtn.addEventListener('click', () => {
           closeWelcomeModal();
+          if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
+            if (typeof userIdentityModal !== 'undefined') userIdentityModal.open();
+            showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+            return;
+          }
+          if (myTeam && activeTeam && activeTeam.id !== myTeam.id) {
+            inspectTeam(myTeam, false);
+          }
           openContributeModal();
         });
       }
@@ -7395,12 +7478,20 @@
           const bookQuoteVal = cbBookQuote.value.trim();
           const readerVal = (cbReaderName && cbReaderName.value.trim()) || currentUser?.full_name || 'Độc giả gieo mầm';
 
+          if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
+            showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+            if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
+              userIdentityModal.open();
+            }
+            return;
+          }
+
           if (!bookTitleVal || !bookAuthorVal || !bookQuoteVal) {
             showToast('⚠️ Vui lòng điền đủ Tên sách, Tác giả và Trích dẫn!');
             return;
           }
 
-          const targetTeamId = activeTeam?.id || currentUser?.team_id || 1;
+          const targetTeamId = currentUser.team_id;
           const res = await MockDataStore.plantSeed({
             book: bookTitleVal,
             author: bookAuthorVal,
