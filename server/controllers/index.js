@@ -51,8 +51,9 @@ export async function getQuotes(req, res, next) {
 export async function recordVisit(req, res, next) {
   try {
     const { userFingerprint } = req.body;
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
-    const userAgent = req.headers['user-agent'] || '';
+    const rawIp = req.headers['cf-connecting-ip'] || (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : '') || req.socket.remoteAddress || '';
+    const ip = rawIp.trim().slice(0, 45);
+    const userAgent = (req.headers['user-agent'] || '').slice(0, 255);
 
     const result = await GrowthService.recordVisitor(userFingerprint, ip, userAgent);
     res.json({
