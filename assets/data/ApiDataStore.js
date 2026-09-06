@@ -456,25 +456,41 @@ class ApiDataStoreManager {
     }
   }
 
-  async claimDailyDew() {
+  async claimDailyDew(payload = {}) {
     try {
       const idempotencyKey = this.generateIdempotencyKey();
+      const bodyPayload = {
+        userId: payload.userId || null,
+        teamId: payload.teamId ? parseInt(payload.teamId, 10) : null,
+        email: payload.email || null,
+        userFingerprint: payload.userFingerprint || this.fingerprint
+      };
       const res = await fetch(`${getApiBase()}/dew/claim`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Idempotency-Key': idempotencyKey
         },
-        body: JSON.stringify({ userFingerprint: this.fingerprint })
+        body: JSON.stringify(bodyPayload)
       });
 
       const data = await res.json();
       if (data.success) {
         const growth = await this.getCommunityGrowth();
         this.emit('growth:updated', growth);
-        return { success: true, streak: data.data.streak, expEarned: 1 };
+        return {
+          success: true,
+          streak: data.data.streak,
+          expEarned: data.data.expEarned || 1,
+          team: data.data.team,
+          growth: data.data.growth
+        };
       } else {
-        return { success: false, message: data.message };
+        return {
+          success: false,
+          code: data.error,
+          message: data.message
+        };
       }
     } catch (err) {
       console.error('Error claiming dew:', err);

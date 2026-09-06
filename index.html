@@ -374,6 +374,10 @@
       z-index: 10;
     }
 
+    .team-rail-exp {
+      display: none !important;
+    }
+
     #timeline-teams-rail {
       display: grid !important;
       grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
@@ -3367,48 +3371,53 @@
       text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9) !important;
     }
 
-    /* Dew Button Styling */
+    /* Synchronized Orange Gradient for all Header Action Buttons (matching Gieo Mầm Ngay) */
     #fpt-main-dew-btn,
-    #fpt-mobile-dew-btn {
-      transition: all 0.25s ease !important;
-    }
-    html.dark #fpt-main-dew-btn,
-    html.sky-night-active #fpt-main-dew-btn {
-      background: rgba(14, 165, 233, 0.22) !important;
-      border-color: rgba(56, 189, 248, 0.6) !important;
-      color: #38bdf8 !important;
-      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8) !important;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 12px rgba(56, 189, 248, 0.3) !important;
-    }
-
-    /* Rules Button Styling */
     #fpt-main-rules-btn,
-    #fpt-mobile-rules-btn {
-      transition: all 0.25s ease !important;
-    }
-    html.dark #fpt-main-rules-btn,
-    html.sky-night-active #fpt-main-rules-btn {
-      background: rgba(30, 41, 59, 0.85) !important;
-      border-color: rgba(255, 255, 255, 0.35) !important;
-      color: #ffffff !important;
-      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8) !important;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
-    }
-
-    /* Primary CTA Gieo Mầm Button */
-    .fpt-btn-cta,
-    #fpt-main-gieo-mam-btn,
-    #fpt-mobile-gieo-mam-btn {
+    #fpt-main-night-btn,
+    #fpt-user-account-btn,
+    #fpt-mobile-dew-btn,
+    #fpt-mobile-rules-btn,
+    #fpt-mobile-night-btn,
+    #fpt-mobile-user-btn {
       background: linear-gradient(135deg, #F36F21 0%, #FF8A3D 100%) !important;
-      border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+      border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
       box-shadow: 0 4px 14px rgba(243, 111, 33, 0.35) !important;
       color: #ffffff !important;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35) !important;
+      font-weight: 800 !important;
+      transition: all 0.25s ease !important;
     }
-    .fpt-btn-cta:hover,
-    #fpt-main-gieo-mam-btn:hover {
+
+    #fpt-main-dew-btn *,
+    #fpt-main-rules-btn *,
+    #fpt-main-night-btn *,
+    #fpt-user-account-btn *,
+    #fpt-mobile-dew-btn *,
+    #fpt-mobile-rules-btn *,
+    #fpt-mobile-night-btn *,
+    #fpt-mobile-user-btn * {
+      color: #ffffff !important;
+    }
+
+    #fpt-main-dew-btn:hover,
+    #fpt-main-rules-btn:hover,
+    #fpt-main-night-btn:hover,
+    #fpt-user-account-btn:hover,
+    #fpt-mobile-dew-btn:hover,
+    #fpt-mobile-rules-btn:hover,
+    #fpt-mobile-night-btn:hover,
+    #fpt-mobile-user-btn:hover {
       background: linear-gradient(135deg, #e05e10 0%, #F36F21 100%) !important;
       box-shadow: 0 6px 20px rgba(243, 111, 33, 0.45) !important;
+      transform: translateY(-1px) scale(1.02);
+      color: #ffffff !important;
+    }
+
+    /* Hide Gieo Mầm Ngay buttons */
+    #fpt-main-gieo-mam-btn,
+    #fpt-mobile-gieo-mam-btn {
+      display: none !important;
     }
 
     /* 3. GROUND CONTAINER & SEED INTERACTION */
@@ -3947,23 +3956,25 @@
                   </button>
                   <button
                     id="fpt-mobile-gieo-mam-btn"
+                    style="display:none !important;"
                     class="w-9 h-9 flex items-center justify-center rounded-xl fpt-btn-cta text-sm font-bold text-white transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
                     title="Gieo mầm tri thức ngay" type="button">
                     <span>🌱</span>
                   </button>
                   <button
                     id="fpt-mobile-rules-btn"
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-white/90 dark:bg-slate-800 border border-[#0054A6]/30 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-slate-200 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
                     title="Xem thể lệ chương trình" type="button">
                     <span>📜</span>
                   </button>
                   <button
                     _ngcontent-ng-c4179040905=""
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-white/90 dark:bg-slate-800 border border-[#0054A6]/30 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-slate-200 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
+                    id="fpt-mobile-night-btn"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
                     title="Chuyển sang chế độ Đọc Ban Đêm"><span _ngcontent-ng-c4179040905="">🌙</span></button>
                   <button
                     id="fpt-mobile-user-btn"
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/40 text-sm font-bold text-amber-900 dark:text-amber-200 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
                     title="Đăng nhập / Đổi tài khoản" type="button">
                     <span>👤</span>
                   </button>
@@ -3980,13 +3991,14 @@
                 </button>
                 <button
                   id="fpt-main-dew-btn"
-                  class="h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/40 text-sky-700 dark:text-sky-300 text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
+                  class="h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
                   title="Tưới nước cho cây hằng ngày (+1 EXP)" type="button">
                   <span class="text-sm leading-none">💧</span>
                   <span id="fpt-main-dew-text">Tưới Cây</span>
                 </button>
                 <button
                   id="fpt-main-gieo-mam-btn"
+                  style="display:none !important;"
                   class="h-9 flex items-center justify-center gap-1.5 px-4 rounded-xl fpt-btn-cta text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
                   title="Gieo mầm tri thức ngay" type="button">
                   <span class="text-sm leading-none">🌱</span>
@@ -3994,19 +4006,20 @@
                 </button>
                 <button
                   id="fpt-main-rules-btn"
-                  class="h-9 flex items-center justify-center gap-1.5 px-4 rounded-xl bg-white/90 hover:bg-white dark:bg-slate-800 dark:hover:bg-slate-700 border border-[#0054A6]/30 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-200 transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
+                  class="h-9 flex items-center justify-center gap-1.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
                   title="Xem thể lệ chương trình Cáo Sách" type="button">
                   <span class="text-sm leading-none">📜</span>
                   <span>Thể Lệ</span>
                 </button>
                 <button
                   _ngcontent-ng-c4179040905=""
-                  class="h-9 flex items-center justify-center gap-1.5 px-4 rounded-xl bg-white/90 hover:bg-white dark:bg-slate-800 dark:hover:bg-slate-700 border border-[#0054A6]/30 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-200 transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
+                  id="fpt-main-night-btn"
+                  class="h-9 flex items-center justify-center gap-1.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
                   title="Chuyển sang chế độ Đọc Ban Đêm"><span _ngcontent-ng-c4179040905="">🌙</span><span
                     _ngcontent-ng-c4179040905="">Ban Đêm</span></button>
                 <button
                   id="fpt-user-account-btn"
-                  class="h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-orange-500/15 hover:from-amber-500/25 hover:to-orange-500/25 border border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95 ml-1"
+                  class="h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95 ml-1"
                   title="Nhận diện tài khoản & Đội của bạn" type="button">
                   <span class="text-sm leading-none">👤</span>
                   <span id="fpt-user-account-name">Đăng Nhập / Đội Tôi</span>
@@ -6367,36 +6380,120 @@
 
       // DAILY DEW CHECK-IN SERVICE BINDINGS
       async function updateDewButtonState() {
-        const hasClaimed = await DailyDewService.hasCheckedInToday();
         const mainDewText = document.getElementById('fpt-main-dew-text');
         const mainDewBtn = document.getElementById('fpt-main-dew-btn');
         const mobileDewBtn = document.getElementById('fpt-mobile-dew-btn');
 
+        // Case 1: Guest / Not logged in
+        if (!currentUser || currentUser.isGuest || currentUser.id === 'guest' || !currentUser.team_id) {
+          if (mainDewText) mainDewText.textContent = 'Tưới Nước (+1 EXP)';
+          if (mainDewBtn) {
+            mainDewBtn.classList.remove('opacity-75');
+            mainDewBtn.title = 'Đăng nhập để tưới nước cho cây tri thức của đội bạn!';
+          }
+          if (mobileDewBtn) {
+            mobileDewBtn.classList.remove('opacity-75');
+            mobileDewBtn.title = 'Đăng nhập để tưới cây!';
+          }
+          return;
+        }
+
+        // Case 2: Logged in - Check if already claimed today
+        const hasClaimed = await DailyDewService.hasCheckedInToday(currentUser.id);
+        const isInspectingOther = activeTeam && (parseInt(activeTeam.id, 10) !== parseInt(currentUser.team_id, 10));
+
         if (hasClaimed) {
-          if (mainDewText) mainDewText.textContent = 'Đã Tưới Cây';
+          if (mainDewText) mainDewText.textContent = 'Đã Tưới Hôm Nay';
           if (mainDewBtn) {
             mainDewBtn.classList.add('opacity-75');
-            mainDewBtn.title = 'Hôm nay bạn đã tưới cây rồi. Hẹn gặp lại ngày mai!';
+            mainDewBtn.title = 'Hôm nay bạn đã tưới nước cho cây đội mình rồi. Hẹn gặp lại ngày mai!';
           }
           if (mobileDewBtn) {
             mobileDewBtn.classList.add('opacity-75');
             mobileDewBtn.title = 'Hôm nay bạn đã tưới cây rồi!';
           }
+        } else if (isInspectingOther) {
+          if (mainDewText) mainDewText.textContent = 'Tưới Cây Đội Tôi';
+          if (mainDewBtn) {
+            mainDewBtn.classList.remove('opacity-75');
+            mainDewBtn.title = `Bạn đang xem cây ${activeTeam.display_name || 'đội khác'}. Bấm để chuyển về cây đội bạn và tưới nước!`;
+          }
+          if (mobileDewBtn) {
+            mobileDewBtn.classList.remove('opacity-75');
+            mobileDewBtn.title = 'Tưới nước cho cây đội bạn!';
+          }
+        } else {
+          if (mainDewText) mainDewText.textContent = 'Tưới Nước (+1 EXP)';
+          if (mainDewBtn) {
+            mainDewBtn.classList.remove('opacity-75');
+            mainDewBtn.title = 'Tưới nước cho cây tri thức đội bạn (+1 EXP/ngày)';
+          }
+          if (mobileDewBtn) {
+            mobileDewBtn.classList.remove('opacity-75');
+            mobileDewBtn.title = 'Tưới nước cho cây (+1 EXP)';
+          }
         }
       }
-      updateDewButtonState();
+      window.updateDewButtonState = updateDewButtonState;
 
       async function handleDailyDewClaim(e) {
         if (e) {
           e.preventDefault();
           e.stopPropagation();
         }
-        const result = await DailyDewService.claimDailyDew();
+
+        // 1. Guest Check: Cannot water if not logged in
+        if (!currentUser || currentUser.isGuest || currentUser.id === 'guest' || !currentUser.team_id) {
+          showToast('🔒 Khách vãng lai chưa thể tưới cây. Vui lòng đăng nhập hoặc xác nhận danh tính thành viên!');
+          if (userIdentityModal) {
+            userIdentityModal.open();
+          }
+          return;
+        }
+
+        // 2. Check if viewing other team's tree
+        if (activeTeam && parseInt(activeTeam.id, 10) !== parseInt(currentUser.team_id, 10)) {
+          const teamName = activeTeam.display_name || ('Đội ' + activeTeam.id);
+          const myTeamName = myTeam ? myTeam.display_name : ('Đội ' + currentUser.team_id);
+          showToast(`⚠️ Bạn đang xem cây của ${teamName}! Bạn chỉ có thể tưới cây của đội mình (${myTeamName}). Đang chuyển về đội bạn...`);
+          if (myTeam) {
+            await inspectTeam(myTeam, false);
+            updateDewButtonState();
+          }
+          return;
+        }
+
+        // 3. Check if already claimed today
+        const hasClaimed = await DailyDewService.hasCheckedInToday(currentUser.id);
+        if (hasClaimed) {
+          showToast('💧 Hôm nay bạn đã tưới nước cho cây đội mình rồi! Hãy quay lại vào ngày mai nhé. 🌱');
+          updateDewButtonState();
+          return;
+        }
+
+        // 4. Perform Dew Claim
+        const result = await DailyDewService.claimDailyDew({
+          currentUser,
+          activeTeam
+        });
+
         if (result.success) {
-          showToast(`💧 Bạn đã tưới nước cho cây thành công (+1 EXP)! Chuỗi chăm sóc: ${result.streak} ngày liên tiếp 🌱`);
+          showToast(`💧 Bạn đã tưới nước cho cây đội mình thành công (+1 EXP)! Chuỗi chăm sóc: ${result.streak} ngày liên tiếp 🌱`);
+          await loadUserTeamAndSync();
           updateDewButtonState();
         } else {
-          showToast(result.message || 'Hôm nay bạn đã tưới cây rồi 🌱');
+          if (result.code === 'NEED_LOGIN') {
+            showToast('🔒 Vui lòng đăng nhập để tưới nước cho cây!');
+            if (userIdentityModal) userIdentityModal.open();
+          } else if (result.code === 'WRONG_TEAM') {
+            showToast(`⚠️ ${result.message}`);
+            if (myTeam) {
+              await inspectTeam(myTeam, false);
+            }
+          } else {
+            showToast(result.message || 'Hôm nay bạn đã tưới cây rồi 🌱');
+          }
+          updateDewButtonState();
         }
       }
 
@@ -6639,7 +6736,7 @@
                   <span class="text-xs leading-none shrink-0">${levelIcon}</span>
                   <span class="truncate text-[9.5px]">${team.level_name || 'Ủ Mầm'}</span>
                 </span>
-                <span class="team-rail-exp font-extrabold text-[10px] shrink-0" style="color: ${team.color_code || '#0054A6'};">
+                <span class="team-rail-exp font-extrabold text-[10px] shrink-0" style="color: ${team.color_code || '#0054A6'}; display: none !important;">
                   ${progressVal}
                 </span>
               </div>
@@ -6798,6 +6895,7 @@
         updateHUDWithTeam(team, isInspecting);
         sync3DTreeWithTeam(team);
         renderGroundSeeds();
+        updateDewButtonState();
         if (notify) {
           showToast(`🌳 Đang ghé thăm Cây Tri Thức: Đội ${team.id}`);
         }
@@ -6825,6 +6923,7 @@
           updateHUDWithTeam(activeTeam, isInspecting);
           sync3DTreeWithTeam(activeTeam);
           renderGroundSeeds();
+          updateDewButtonState();
         } catch (err) {
           console.warn('Error loading user team and sync:', err);
         }
@@ -6848,6 +6947,7 @@
       async function initGrowthHUD() {
         await loadUserTeamAndSync();
         syncActiveReaders();
+        updateDewButtonState();
         window.__CAOSACH_READY__ = true;
 
         MockDataStore.subscribe('growth:updated', (growth) => {

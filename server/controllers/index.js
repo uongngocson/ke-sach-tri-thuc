@@ -66,7 +66,8 @@ export async function getGrowth(req, res, next) {
 // --- DEW CONTROLLER ---
 export async function claimDew(req, res, next) {
   try {
-    const result = await DewService.claimDew(req.body.userFingerprint);
+    const { userId, teamId, email, userFingerprint } = req.body;
+    const result = await DewService.claimDew({ userId, teamId, email, userFingerprint });
     res.status(201).json({
       success: true,
       message: 'Tưới cây thành công (+1 EXP)!',
@@ -79,8 +80,8 @@ export async function claimDew(req, res, next) {
 
 export async function getDewStatus(req, res, next) {
   try {
-    const fingerprint = req.query.userFingerprint || '';
-    const status = await DewService.getDewStatus(fingerprint);
+    const { userId, userFingerprint } = req.query;
+    const status = await DewService.getDewStatus({ userId, userFingerprint });
     res.json({
       success: true,
       data: status

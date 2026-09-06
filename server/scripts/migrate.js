@@ -217,6 +217,27 @@ async function migrate() {
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='exp_ledger' AND column_name='team_id') THEN
         ALTER TABLE exp_ledger ADD COLUMN team_id INT REFERENCES teams(id);
       END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='exp_ledger' AND column_name='user_id') THEN
+        ALTER TABLE exp_ledger ADD COLUMN user_id UUID REFERENCES users(id);
+      END IF;
+      IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'exp_ledger_user_id_fkey') THEN
+        ALTER TABLE exp_ledger DROP CONSTRAINT exp_ledger_user_id_fkey;
+      END IF;
+      ALTER TABLE exp_ledger ADD CONSTRAINT exp_ledger_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='daily_dews' AND column_name='user_id') THEN
+        ALTER TABLE daily_dews ADD COLUMN user_id UUID REFERENCES users(id);
+      END IF;
+      IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'daily_dews_user_id_fkey') THEN
+        ALTER TABLE daily_dews DROP CONSTRAINT daily_dews_user_id_fkey;
+      END IF;
+      ALTER TABLE daily_dews ADD CONSTRAINT daily_dews_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='daily_dews' AND column_name='team_id') THEN
+        ALTER TABLE daily_dews ADD COLUMN team_id INT REFERENCES teams(id);
+      END IF;
+      -- Unique 1 dew per user per day constraint
+      CREATE UNIQUE INDEX IF NOT EXISTS unq_user_dew_daily_user_id ON daily_dews(user_id, claim_date) WHERE user_id IS NOT NULL;
     END $$;
   `;
 

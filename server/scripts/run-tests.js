@@ -75,23 +75,63 @@ async function runAllTests() {
     assert(ledgerRes.rows.length === 1 && ledgerRes.rows[0].type === 'BOOK_CONTRIBUTION', 'Ledger: Audit entry created in exp_ledger table');
 
     // -------------------------------------------------------------
-    // INTEGRATION TESTS: ANTI-SPAM DATABASE CONSTRAINTS
+    // INTEGRATION TESTS: ANTI-SPAM & DEW BUSINESS CONSTRAINTS
     // -------------------------------------------------------------
-    console.log('\n📦 [3/4] Running Integration Tests: Anti-Spam Constraints...');
+    console.log('\n📦 [3/4] Running Integration Tests: Daily Dew & Anti-Spam Constraints...');
 
-    // Daily Dew 1st time
+    // Fetch a valid user from DB
+    const uRes = await db.query('SELECT * FROM users WHERE team_id IS NOT NULL LIMIT 1');
+    const validUser = uRes.rows[0];
+
+    // Guest rejection
+    let guestBlocked = false;
+    try {
+      await DewService.claimDew({ userId: null });
+    } catch (err) {
+      if (err.statusCode === 401 || err.code === 'LOGIN_REQUIRED') guestBlocked = true;
+    }
+    assert(guestBlocked, 'Daily Dew: Guest user is strictly blocked (HTTP 401 LOGIN_REQUIRED)');
+
+    // Other team tree rejection
+    const wrongTeamId = validUser.team_id === 1 ? 2 : 1;
+    let wrongTeamBlocked = false;
+    try {
+      await DewService.claimDew({ userId: validUser.id, teamId: wrongTeamId });
+    } catch (err) {
+      if (err.statusCode === 403 || err.code === 'FORBIDDEN_OTHER_TEAM_TREE') wrongTeamBlocked = true;
+    }
+    assert(wrongTeamBlocked, 'Daily Dew: Inspecting & watering another team tree is strictly blocked (HTTP 403)');
+
+    // Clean up any test dew records today for this user
+    await db.query('DELETE FROM daily_dews WHERE user_id = $1', [validUser.id]);
+
+    // Daily Dew 1st time on own team tree
     const dewFp = `dew_test_${Date.now()}`;
-    const dew1 = await DewService.claimDew(dewFp);
-    assert(dew1.expEarned === 1, 'Daily Dew: First claim succeeds (+1 EXP)');
+    const dew1 = await DewService.claimDew({
+      userId: validUser.id,
+      teamId: validUser.team_id,
+      email: validUser.email,
+      userFingerprint: dewFp
+    });
+    assert(dew1.expEarned === 1, 'Daily Dew: First claim on own team tree succeeds (+1 EXP)');
+    assert(dew1.team.id === validUser.team_id, 'Daily Dew: Team tree EXP is credited to the correct team');
 
-    // Daily Dew 2nd time on same date -> Must throw 23505 Unique Constraint
+    // Daily Dew 2nd time on same date -> Must throw 409 DUPLICATE_DEW_CLAIM
     let dewSpamBlocked = false;
     try {
-      await DewService.claimDew(dewFp);
+      await DewService.claimDew({
+        userId: validUser.id,
+        teamId: validUser.team_id,
+        email: validUser.email,
+        userFingerprint: dewFp
+      });
     } catch (err) {
-      if (err.code === '23505') dewSpamBlocked = true;
+      if (err.statusCode === 409 || err.code === 'DUPLICATE_DEW_CLAIM' || err.code === '23505') dewSpamBlocked = true;
     }
-    assert(dewSpamBlocked, 'Daily Dew: Second claim on same day blocked by UNIQUE(user_fingerprint, claim_date) constraint');
+    assert(dewSpamBlocked, 'Daily Dew: Second claim on same day strictly blocked (HTTP 409 DUPLICATE_DEW_CLAIM)');
+
+    const statusCheck = await DewService.getDewStatus({ userId: validUser.id });
+    assert(statusCheck.hasClaimedToday === true, 'Daily Dew: getDewStatus correctly reports hasClaimedToday = true');
 
     // Quote Like 1st time
     const likeFp = `like_test_${Date.now()}`;

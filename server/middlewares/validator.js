@@ -15,7 +15,10 @@ export const likeQuoteSchema = z.object({
 });
 
 export const claimDewSchema = z.object({
-  userFingerprint: z.string().trim().min(1, 'Fingerprint thiết bị là bắt buộc')
+  userId: z.string().trim().min(1, 'User ID là bắt buộc'),
+  teamId: z.number().int().min(1).max(8).optional().nullable(),
+  email: z.string().email().optional().nullable().or(z.literal('')),
+  userFingerprint: z.string().trim().optional().default('default_fp')
 });
 
 export const harvestFruitSchema = z.object({
