@@ -83,9 +83,9 @@ export class QuoteTreasuryModal {
       
       .qtm-card {
         position: relative;
-        width: 100%;
-        max-width: 1520px;
-        height: 100%;
+        width: 95vw;
+        max-width: 1360px;
+        height: 92vh;
         max-height: 94vh;
         background: #ffffff;
         border: 1px solid #e2e8f0;
@@ -448,28 +448,24 @@ export class QuoteTreasuryModal {
         border-radius: 5px;
       }
 
-      /* Modern Compact Responsive Grid */
+      /* Modern Editorial Responsive Grid (Max 3 columns for optimal card readability) */
       .qtm-grid {
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 12px;
+        width: 100%;
+        box-sizing: border-box;
       }
-      @media (min-width: 600px) {
+      @media (min-width: 680px) {
         .qtm-grid {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 12px;
-        }
-      }
-      @media (min-width: 1024px) {
-        .qtm-grid {
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 14px;
         }
       }
-      @media (min-width: 1440px) {
+      @media (min-width: 1180px) {
         .qtm-grid {
-          grid-template-columns: repeat(4, 1fr);
-          gap: 14px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 16px;
         }
       }
 
@@ -485,6 +481,8 @@ export class QuoteTreasuryModal {
         justify-content: space-between;
         transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
+        min-width: 0;
+        width: 100%;
         min-height: 0;
         box-sizing: border-box;
       }
