@@ -4046,7 +4046,7 @@
                       <span class="hud-badge shrink-0 text-[10.5px] py-0.5 px-2 rounded-md font-black text-white shadow-2xs" id="hud-team-badge">Đội 1</span>
                       <span class="hud-name" id="hud-team-name" style="display:none;"></span>
                       <span id="hud-inspecting-tag" style="display:none; font-size:9.5px; font-weight:800; background:#f59e0b; color:#fff; padding:1px 6px; border-radius:5px;" class="shrink-0">Đang Thăm Cây</span>
-                      <span class="text-slate-500 dark:text-slate-400 text-[10px] hidden lg:inline" id="hud-participation-stat">Tham gia: 0/39 (0%)</span>
+                      <span class="text-slate-500 dark:text-slate-400 text-[10px] hidden lg:inline" id="hud-participation-stat">Tham gia: 0%</span>
                     </div>
                   </div>
                   
@@ -6744,7 +6744,7 @@
 
               <div class="flex items-center justify-between text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
                 <span>Tham gia</span>
-                <span class="font-bold text-slate-700 dark:text-slate-200">${team.round_active_users || 0}/${team.target_members || 40} (${team.participation_rate || 0}%)</span>
+                <span class="font-bold text-slate-700 dark:text-slate-200">${team.participation_rate || 0}%</span>
               </div>
             </div>
           `;
@@ -6810,7 +6810,7 @@
           hudRoundLabel.textContent = `Lượt ${currentRound.round_number || 1} (${dateTxt}): ${stageTxt}`;
         }
         if (hudParticipation) {
-          hudParticipation.textContent = `Tham gia: ${team.round_active_users || 0}/${team.target_members || 40} (${team.participation_rate || 0}%)`;
+          hudParticipation.textContent = `Tham gia: ${team.participation_rate || 0}%`;
         }
 
         const isSprouted = team.is_sprouted || team.level >= 1;
@@ -7764,7 +7764,216 @@
       const skyDevEl = document.getElementById('realistic-sky-dev-control');
       if (skyDevEl) skyDevEl.remove();
       document.querySelectorAll('[id*="sky-dev"]').forEach(el => el.remove());
+
+      // =========================================================================
+      // DYNAMIC RULES & WELCOME CONTENT ENGINE (REALTIME SYNC FROM ADMIN PORTAL)
+      // =========================================================================
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      function applyContentSettings(settings) {
+        if (!settings) return;
+
+        // 1. WELCOME MODAL
+        if (settings.welcome_content) {
+          const w = settings.welcome_content;
+          const badgeEl = document.querySelector('#welcome-slogan-card .welcome-badge span:last-child');
+          if (badgeEl && w.badge) badgeEl.textContent = w.badge.replace(/^🌱\s*/, '');
+
+          const titleEl = document.querySelector('#welcome-slogan-card .welcome-title');
+          if (titleEl && w.title) titleEl.textContent = w.title;
+
+          const subtitleEl = document.querySelector('#welcome-slogan-card .welcome-subtitle');
+          if (subtitleEl && w.subtitle) subtitleEl.textContent = w.subtitle;
+
+          const metaphorEl = document.querySelector('#welcome-slogan-card .welcome-metaphor-text');
+          if (metaphorEl && w.metaphor) metaphorEl.innerHTML = escapeHtml(w.metaphor).replace(/\n/g, '<br/>');
+
+          const pillars = document.querySelectorAll('#welcome-slogan-card .welcome-pillar-item strong');
+          if (pillars[0] && w.pillar1) pillars[0].textContent = w.pillar1;
+          if (pillars[1] && w.pillar2) pillars[1].textContent = w.pillar2;
+          if (pillars[2] && w.pillar3) pillars[2].textContent = w.pillar3;
+
+          const exploreBtnSpan = document.querySelector('#welcome-explore-btn span:last-child');
+          if (exploreBtnSpan && w.buttonText) exploreBtnSpan.textContent = w.buttonText;
+        }
+
+        // 2. RULES MODAL
+        if (settings.rules_content) {
+          const r = settings.rules_content;
+          const rBadge = document.querySelector('#rules-card .bq-badge span:last-child');
+          if (rBadge && r.badge) rBadge.textContent = r.badge.replace(/^📜\s*/, '');
+
+          const sections = document.querySelectorAll('#rules-card .rules-section-card');
+          if (sections.length >= 6) {
+            // Section 1: Sứ mệnh
+            if (r.mission) {
+              const h1 = sections[0].querySelector('.rules-heading');
+              if (h1 && r.mission.title) h1.textContent = r.mission.title;
+              const d1 = sections[0].querySelector('.rules-desc');
+              if (d1 && r.mission.description) d1.innerHTML = escapeHtml(r.mission.description).replace(/\n/g, '<br/>');
+            }
+
+            // Section 2: Lộ trình 15 lượt
+            if (r.timeline) {
+              const h2 = sections[1].querySelector('.rules-heading');
+              if (h2 && r.timeline.title) h2.textContent = r.timeline.title;
+              const d2 = sections[1].querySelector('.rules-desc');
+              if (d2 && r.timeline.description) d2.innerHTML = escapeHtml(r.timeline.description).replace(/\n/g, '<br/>');
+
+              const p1Box = sections[1].children[2]?.children[0];
+              if (p1Box && r.timeline.phase1) {
+                const p1Title = p1Box.children[0];
+                if (p1Title && r.timeline.phase1.title) p1Title.innerHTML = `<span>🌰</span> ${escapeHtml(r.timeline.phase1.title)}`;
+                const p1Content = p1Box.children[1];
+                if (p1Content) {
+                  const rText = escapeHtml(r.timeline.phase1.rounds || '').replace(/\n/g, '<br/>');
+                  const nText = escapeHtml(r.timeline.phase1.note || '');
+                  p1Content.innerHTML = `${rText}<br/><em>${nText}</em>`;
+                }
+              }
+
+              const p2Box = sections[1].children[2]?.children[1];
+              if (p2Box && r.timeline.phase2) {
+                const p2Title = p2Box.children[0];
+                if (p2Title && r.timeline.phase2.title) p2Title.innerHTML = `<span>⚡</span> ${escapeHtml(r.timeline.phase2.title)}`;
+                const p2Content = p2Box.children[1];
+                if (p2Content) {
+                  p2Content.innerHTML = escapeHtml(r.timeline.phase2.rounds || '').replace(/\n/g, '<br/>');
+                }
+              }
+            }
+
+            // Section 3: Công thức chuẩn hóa 40 người
+            if (r.formula) {
+              const h3 = sections[2].querySelector('.rules-heading');
+              if (h3 && r.formula.title) h3.textContent = r.formula.title;
+              const d3 = sections[2].querySelector('.rules-desc');
+              if (d3 && r.formula.description) d3.innerHTML = escapeHtml(r.formula.description).replace(/\n/g, '<br/>');
+
+              const fBox = sections[2].children[2];
+              if (fBox) {
+                const fText = fBox.children[0];
+                if (fText && r.formula.formulaText) fText.textContent = r.formula.formulaText;
+                const fMax = fBox.children[1];
+                if (fMax && r.formula.maxExpPerRound) fMax.innerHTML = escapeHtml(r.formula.maxExpPerRound);
+              }
+
+              const exGrid = sections[2].children[3];
+              if (exGrid && exGrid.children.length >= 2) {
+                if (r.formula.example1) {
+                  exGrid.children[0].innerHTML = `<strong style="color:#059669;">${escapeHtml(r.formula.example1.title)}</strong><br/>${escapeHtml(r.formula.example1.description).replace(/\n/g, '<br/>')}`;
+                }
+                if (r.formula.example2) {
+                  exGrid.children[1].innerHTML = `<strong style="color:#2563eb;">${escapeHtml(r.formula.example2.title)}</strong><br/>${escapeHtml(r.formula.example2.description).replace(/\n/g, '<br/>')}`;
+                }
+              }
+
+              const fNote = sections[2].children[4];
+              if (fNote && r.formula.note) fNote.innerHTML = escapeHtml(r.formula.note);
+            }
+
+            // Section 4: 5 Mốc sinh trưởng cây 3D
+            if (Array.isArray(r.milestones) && r.milestones.length > 0) {
+              const tl = sections[3].querySelector('.rules-timeline');
+              if (tl) {
+                tl.innerHTML = r.milestones.map(m => `
+                  <div class="rules-timeline-item">
+                    <div class="rules-timeline-dot ${m.level === 1 ? 'active' : ''}">${m.level}</div>
+                    <div class="rules-timeline-content">
+                      <strong>${escapeHtml(m.label)} (${escapeHtml(m.range)}):</strong> ${escapeHtml(m.effect)}
+                    </div>
+                  </div>
+                `).join('');
+              }
+            }
+
+            // Section 5: Cơ chế tương tác & điểm EXP
+            if (Array.isArray(r.interactions) && r.interactions.length > 0) {
+              const grid = sections[4].querySelector('.rules-rewards-grid');
+              if (grid) {
+                const colors = ['#15803d', '#e11d48', '#0054A6'];
+                grid.innerHTML = r.interactions.map((act, i) => `
+                  <div class="rules-reward-box">
+                    <div class="rules-reward-title">${escapeHtml(act.action)}</div>
+                    <div style="font-size:11px; font-weight:800; color:${colors[i % 3]}; margin-bottom:4px; line-height:1.4;">
+                      ${escapeHtml(act.exp).replace(/\n/g, '<br/>')}
+                    </div>
+                    <div class="rules-reward-detail">${escapeHtml(act.note)}</div>
+                  </div>
+                `).join('');
+              }
+            }
+
+            // Section 6: Tiêu chí phá hòa & giải thưởng
+            if (r.tieBreakers) {
+              const s6Content = sections[5].children[1];
+              if (s6Content) {
+                const tRules = escapeHtml(r.tieBreakers.tieRules || '').replace(/\n/g, '<br/>');
+                const awards = (r.tieBreakers.awards || '').split(',').map(a => a.trim()).filter(Boolean);
+                const awardPills = awards.map((a, i) => {
+                  const pillStyles = [
+                    'background:rgba(0,84,166,0.1); color:#0054A6;',
+                    'background:rgba(16,185,129,0.1); color:#059669;',
+                    'background:rgba(243,111,33,0.1); color:#ea580c;',
+                    'background:rgba(168,85,247,0.1); color:#9333ea;'
+                  ];
+                  return `<span style="${pillStyles[i % pillStyles.length]} font-weight:800; padding:2px 8px; border-radius:6px;">${escapeHtml(a)}</span>`;
+                }).join(' ');
+
+                s6Content.innerHTML = `
+                  <strong>Thứ tự ưu tiên xếp hạng khi bằng điểm (Tie-Breakers):</strong><br/>
+                  ${tRules}
+                  <div style="margin-top:8px; padding-top:8px; border-top:1px dashed rgba(0,0,0,0.1); display:flex; flex-wrap:wrap; gap:8px;">
+                    ${awardPills}
+                  </div>
+                `;
+              }
+            }
+          }
+
+          // Confirm button
+          const confirmBtn = document.querySelector('#rules-dismiss-btn span:last-child');
+          if (confirmBtn && r.confirmButton) confirmBtn.textContent = r.confirmButton;
+        }
+      }
+
+      async function initDynamicContentSettings() {
+        try {
+          if (typeof MockDataStore !== 'undefined' && MockDataStore.getContentSettings) {
+            const settings = await MockDataStore.getContentSettings();
+            if (settings) applyContentSettings(settings);
+          } else {
+            const hostname = window.location.hostname || 'localhost';
+            const protocol = window.location.protocol || 'http:';
+            const port = window.location.port;
+            const apiBase = (!port || port === '80' || port === '443') ? `${protocol}//${window.location.host}/api/v1` : `${protocol}//${hostname}:5000/api/v1`;
+            const res = await fetch(`${apiBase}/content/settings`);
+            const data = await res.json();
+            if (data.success) applyContentSettings(data.data);
+          }
+        } catch (e) {
+          console.warn('Error loading dynamic content settings:', e);
+        }
+
+        // Listen for Realtime updates via MockDataStore
+        if (typeof MockDataStore !== 'undefined' && MockDataStore.subscribe) {
+          MockDataStore.subscribe('content:updated', async (data) => {
+            console.log('🔄 Content updated via realtime:', data);
+            if (data && data.key && data.value) {
+              applyContentSettings({ [data.key]: data.value });
+            } else if (MockDataStore.getContentSettings) {
+              const fresh = await MockDataStore.getContentSettings();
+              if (fresh) applyContentSettings(fresh);
+            }
+          });
+        }
+      }
+
       // Start all subsystems
+      initDynamicContentSettings();
       initTheme();
       initGrowthHUD();
       initAsideQuoteRotator();

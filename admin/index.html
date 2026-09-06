@@ -92,6 +92,10 @@
             <span class="text-base">📑</span>
             <span>Sổ Cái EXP</span>
           </div>
+          <div class="nav-item" data-tab="content-rules">
+            <span class="text-base">🎨</span>
+            <span>Tùy Biến Thể Lệ & Chào Mừng</span>
+          </div>
           <div class="nav-item" data-tab="tools">
             <span class="text-base">⚙️</span>
             <span>Điều Phối & Audit Logs</span>
@@ -642,6 +646,270 @@
 
           </div>
         </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 7: CUSTOMIZE RULES & WELCOME CONTENT       -->
+        <!-- ============================================== -->
+        <div id="tab-pane-content-rules" class="tab-content space-y-6">
+          <div class="glass-panel p-5 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="text-sm font-black text-white flex items-center gap-2">
+                  <span>🎨</span><span>TÙY BIẾN THỂ LỆ & GIAO DIỆN CHÀO MỪNG</span>
+                </h3>
+                <p class="text-xs text-slate-400 font-bold">Quản trị viên có thể tùy biến linh hoạt 100% nội dung Thể Lệ 15 Lượt và Popup Chào Mừng Vườn Tri Thức. Đồng bộ Realtime.</p>
+              </div>
+
+              <!-- Sub-tabs Switcher -->
+              <div class="flex items-center gap-2 p-1 rounded-xl bg-slate-900 border border-slate-800">
+                <button id="subtab-btn-welcome" class="btn btn-primary text-xs py-1.5 px-3">
+                  <span>🌱</span><span>Chào Mừng Vườn Tri Thức</span>
+                </button>
+                <button id="subtab-btn-rules" class="btn btn-ghost text-xs py-1.5 px-3">
+                  <span>📜</span><span>Thể Lệ 15 Lượt FoxREAD</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- SUB-PANE 1: WELCOME MODAL CUSTOMIZER -->
+            <div id="subpane-welcome" class="space-y-6">
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Form Inputs -->
+                <div class="space-y-4">
+                  <div class="border-b border-slate-800 pb-2">
+                    <h4 class="text-xs font-black text-sky-400 uppercase tracking-wider">Cấu Hình Popup Chào Mừng</h4>
+                    <p class="text-[11px] text-slate-400">Hiển thị khi độc giả bước chân vào Vườn Tri Thức</p>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-bold text-slate-300 mb-1">Huy Hiệu (Badge)</label>
+                      <input type="text" id="cfg-welcome-badge" class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-300 mb-1">Chữ Nút Khám Phá</label>
+                      <input type="text" id="cfg-welcome-btn" class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none">
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Tiêu Đề Chính</label>
+                    <input type="text" id="cfg-welcome-title" class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none">
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Tiêu Đề Phụ</label>
+                    <input type="text" id="cfg-welcome-subtitle" class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none">
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Trích Dẫn Ngụ Ngôn Dẫn Nhập</label>
+                    <textarea id="cfg-welcome-metaphor" rows="3" class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none"></textarea>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label class="block text-xs font-bold text-slate-300 mb-1">Trụ Cột 1</label>
+                      <input type="text" id="cfg-welcome-pillar1" class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-300 mb-1">Trụ Cột 2</label>
+                      <input type="text" id="cfg-welcome-pillar2" class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-300 mb-1">Trụ Cột 3</label>
+                      <input type="text" id="cfg-welcome-pillar3" class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none">
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2 pt-2">
+                    <button id="btn-save-welcome" class="btn btn-primary text-xs py-2 px-4">
+                      <span>💾</span><span>Lưu Cấu Hình Chào Mừng</span>
+                    </button>
+                    <button id="btn-reset-welcome" class="btn btn-ghost text-xs py-2 px-3">
+                      <span>↺</span><span>Khôi Phục Mặc Định</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Live Visual Card Mockup Preview -->
+                <div class="space-y-2">
+                  <div class="border-b border-slate-800 pb-2 flex items-center justify-between">
+                    <div>
+                      <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider">Trình Xem Trước Trực Quan (Live Preview)</h4>
+                      <p class="text-[11px] text-slate-400">Mô phỏng 100% giao diện popup độc giả nhìn thấy</p>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black">TỰ ĐỘNG CẬP NHẬT</span>
+                  </div>
+
+                  <div class="p-6 rounded-2xl bg-slate-950/90 border border-sky-500/30 text-center space-y-4 shadow-2xl relative overflow-hidden">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-extrabold" id="preview-welcome-badge">
+                      🌱 VƯỜN TRI THỨC
+                    </div>
+
+                    <div class="space-y-1">
+                      <h3 class="text-lg font-black text-white" id="preview-welcome-title">Mỗi Cuốn Sách Là Một Hạt Mầm</h3>
+                      <h4 class="text-xs font-bold text-sky-400" id="preview-welcome-subtitle">Mỗi Độc Giả Là Một Người Gieo Tri Thức</h4>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs italic text-slate-300 leading-relaxed text-left" id="preview-welcome-metaphor">
+                      “Một Cây Tri Thức lớn lên từ những hạt mầm nhỏ bé. Mỗi lượt tham gia là một lần gieo hạt, mỗi trích dẫn được lan tỏa là một dòng dưỡng chất — cùng cộng đồng vun bồi để Cây Tri Thức vươn mình thành đại cổ thụ.”
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 text-xs font-bold">
+                      <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center gap-1 text-slate-200">
+                        <span>🌰</span><span id="preview-welcome-p1">Gieo Hạt Tri Thức</span>
+                      </div>
+                      <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center gap-1 text-slate-200">
+                        <span>💖</span><span id="preview-welcome-p2">Lan Tỏa Tri Thức</span>
+                      </div>
+                      <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center gap-1 text-slate-200">
+                        <span>🔗</span><span id="preview-welcome-p3">Nhật Ký Tri Thức</span>
+                      </div>
+                    </div>
+
+                    <div class="pt-2">
+                      <div class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-sky-600 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg">
+                        <span>🌿</span><span id="preview-welcome-btn">Khám Phá Vườn Tri Thức</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUB-PANE 2: RULES CUSTOMIZER -->
+            <div id="subpane-rules" class="hidden space-y-6">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div>
+                  <h4 class="text-xs font-black text-sky-400 uppercase tracking-wider">Cấu Hình Thể Lệ 15 Lượt Thi Đua FoxREAD 2026</h4>
+                  <p class="text-[11px] text-slate-400">Tùy biến nội dung sứ mệnh, lộ trình, công thức tính điểm và 5 mốc sinh trưởng cây 3D</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button id="btn-save-rules" class="btn btn-primary text-xs">
+                    <span>💾</span><span>Lưu Cấu Hình Thể Lệ</span>
+                  </button>
+                  <button id="btn-reset-rules" class="btn btn-ghost text-xs">
+                    <span>↺</span><span>Khôi Phục Mặc Định</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Rules Accordion / Cards -->
+              <div class="space-y-4">
+                <!-- 0. Badge Header -->
+                <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                  <label class="block text-xs font-black text-slate-300">Tiêu Đề Thể Lệ (Header Badge)</label>
+                  <input type="text" id="cfg-rules-badge" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none">
+                </div>
+
+                <!-- 1. Mission -->
+                <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                  <div class="flex items-center gap-2 text-xs font-black text-white">
+                    <span>🌟</span><span>PHẦN 1: SỨ MỆNH HỘI ĐỒNG FOXREAD & 8 VƯỜN TRI THỨC</span>
+                  </div>
+                  <div class="grid grid-cols-1 gap-2">
+                    <input type="text" id="cfg-rules-mission-title" placeholder="Tiêu đề sứ mệnh..." class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs">
+                    <textarea id="cfg-rules-mission-desc" rows="3" placeholder="Nội dung chi tiết sứ mệnh 288 cán bộ..." class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs"></textarea>
+                  </div>
+                </div>
+
+                <!-- 2. Timeline -->
+                <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                  <div class="flex items-center gap-2 text-xs font-black text-white">
+                    <span>📅</span><span>PHẦN 2: LỘ TRÌNH 15 LƯỢT THI ĐỦA (05/09 – 17/10/2026)</span>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-400 mb-1">Tiêu Đề Lộ Trình</label>
+                      <input type="text" id="cfg-rules-timeline-title" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs">
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-400 mb-1">Mô Tả Tổng Quan</label>
+                      <input type="text" id="cfg-rules-timeline-desc" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs">
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div class="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 space-y-2">
+                      <label class="block text-xs font-bold text-orange-400">Giai Đoạn 1 (Ủ Mầm)</label>
+                      <input type="text" id="cfg-rules-timeline-p1-title" class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs">
+                      <textarea id="cfg-rules-timeline-p1-rounds" rows="2" class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"></textarea>
+                      <textarea id="cfg-rules-timeline-p1-note" rows="2" class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"></textarea>
+                    </div>
+                    <div class="p-3 rounded-lg bg-sky-500/10 border border-sky-500/20 space-y-2">
+                      <label class="block text-xs font-bold text-sky-400">Giai Đoạn 2 (Tính EXP)</label>
+                      <input type="text" id="cfg-rules-timeline-p2-title" class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs">
+                      <textarea id="cfg-rules-timeline-p2-rounds" rows="5" class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3. Formula -->
+                <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                  <div class="flex items-center gap-2 text-xs font-black text-white">
+                    <span>⚖️</span><span>PHẦN 3: CÔNG THỨC QUY ĐỔI CHUẨN HÓA 40 NGƯỜI</span>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" id="cfg-rules-formula-title" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs">
+                    <input type="text" id="cfg-rules-formula-desc" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs">
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" id="cfg-rules-formula-text" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-sky-500/40 text-sky-300 text-xs font-mono font-bold">
+                    <input type="text" id="cfg-rules-formula-max" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs">
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 space-y-1">
+                      <input type="text" id="cfg-rules-formula-ex1-title" class="w-full px-3 py-1 rounded bg-slate-950 border border-slate-700 text-emerald-400 font-bold text-xs">
+                      <textarea id="cfg-rules-formula-ex1-text" rows="2" class="w-full px-3 py-1 rounded bg-slate-950 border border-slate-700 text-white text-xs"></textarea>
+                    </div>
+                    <div class="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 space-y-1">
+                      <input type="text" id="cfg-rules-formula-ex2-title" class="w-full px-3 py-1 rounded bg-slate-950 border border-slate-700 text-blue-400 font-bold text-xs">
+                      <textarea id="cfg-rules-formula-ex2-text" rows="2" class="w-full px-3 py-1 rounded bg-slate-950 border border-slate-700 text-white text-xs"></textarea>
+                    </div>
+                  </div>
+                  <textarea id="cfg-rules-formula-note" rows="2" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-slate-300 text-xs italic"></textarea>
+                </div>
+
+                <!-- 4. 5 Milestones -->
+                <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                  <div class="flex items-center gap-2 text-xs font-black text-white">
+                    <span>🌱</span><span>PHẦN 4: 5 MỐC SINH TRƯỞNG CỦA CÂY TRI THỨC 3D</span>
+                  </div>
+                  <div id="cfg-rules-milestones-container" class="space-y-2">
+                    <!-- 6 milestones dynamically populated -->
+                  </div>
+                </div>
+
+                <!-- 5. Interactions & Tie Breakers -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                    <div class="text-xs font-black text-white flex items-center gap-1.5">
+                      <span>💖</span><span>PHẦN 5: CƠ CHẾ TƯƠNG TÁC</span>
+                    </div>
+                    <div id="cfg-rules-interactions-container" class="space-y-2"></div>
+                  </div>
+
+                  <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                    <div class="text-xs font-black text-white flex items-center gap-1.5">
+                      <span>🏆</span><span>PHẦN 6: TIÊU CHÍ PHÁ HÒA & GIẢI THƯỞNG</span>
+                    </div>
+                    <textarea id="cfg-rules-tie-rules" rows="5" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs"></textarea>
+                    <input type="text" id="cfg-rules-awards" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs" placeholder="Danh sách giải thưởng...">
+                  </div>
+                </div>
+
+                <!-- Confirm button text -->
+                <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                  <label class="block text-xs font-black text-slate-300">Chữ Nút Xác Nhận Đã Hiểu</label>
+                  <input type="text" id="cfg-rules-confirm-btn" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs">
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
 
         <!-- ============================================== -->
         <!-- TAB 7: ADMIN TOOLS & AUDIT LOGS                -->

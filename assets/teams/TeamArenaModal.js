@@ -473,7 +473,7 @@ export class TeamArenaModal {
                   <span class="tam-team-name" title="Đội ${t.id}">Đội ${t.id}</span>
                   ${isMyTeam ? '<span class="tam-my-team-pill">Đội của bạn</span>' : ''}
                 </div>
-                <div class="tam-team-comp">${t.target_members || 40} thành viên</div>
+                <div class="tam-team-comp">${t.display_name || ('Đội ' + t.id)}</div>
               </div>
             </div>
 

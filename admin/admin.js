@@ -84,6 +84,10 @@ function initSocket() {
     if (isTabActive('moderation')) loadBooks();
     if (isTabActive('ledger')) loadLedger();
   });
+
+  socket.on('content:updated', () => {
+    if (isTabActive('content-rules')) loadContentSettings();
+  });
 }
 
 function isTabActive(tabName) {
@@ -101,6 +105,7 @@ function bindSidebarEvents() {
     'rounds': '⏱️ Tiến Trình 15 Chặng Thi Đấu',
     'moderation': '📚 Trung Tâm Hậu Kiểm Sách & Trích Dẫn',
     'ledger': '📑 Sổ Cái EXP Minh Bạch Toàn Giải',
+    'content-rules': '🎨 Tùy Biến Thể Lệ & Giao Diện Chào Mừng',
     'tools': '⚙️ Công Cụ Điều Phối & Nhật Ký Kiểm Toán'
   };
 
@@ -132,12 +137,14 @@ function bindSidebarEvents() {
       if (tab === 'rounds') renderRoundsTimeline();
       if (tab === 'moderation') loadBooks();
       if (tab === 'ledger') loadLedger();
+      if (tab === 'content-rules') loadContentSettings();
       if (tab === 'tools') loadAuditLogs();
     });
   });
 }
 
 function bindActionEvents() {
+  bindContentRulesEvents();
   // Login Form
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
@@ -1209,6 +1216,371 @@ async function loadAuditLogs() {
     }
   } catch (err) {
     tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-rose-400">Lỗi tải nhật ký kiểm toán</td></tr>';
+  }
+}
+
+
+// =========================================================================
+// 8. CONTENT & RULES CUSTOMIZER
+// =========================================================================
+let currentRulesSettings = null;
+
+function bindContentRulesEvents() {
+  // Subtab switching
+  const subtabWelcome = document.getElementById('subtab-btn-welcome');
+  const subtabRules = document.getElementById('subtab-btn-rules');
+  const subpaneWelcome = document.getElementById('subpane-welcome');
+  const subpaneRules = document.getElementById('subpane-rules');
+
+  if (subtabWelcome && subtabRules && subpaneWelcome && subpaneRules) {
+    subtabWelcome.addEventListener('click', () => {
+      subtabWelcome.className = 'btn btn-primary text-xs py-1.5 px-3';
+      subtabRules.className = 'btn btn-ghost text-xs py-1.5 px-3';
+      subpaneWelcome.classList.remove('hidden');
+      subpaneRules.classList.add('hidden');
+    });
+
+    subtabRules.addEventListener('click', () => {
+      subtabRules.className = 'btn btn-primary text-xs py-1.5 px-3';
+      subtabWelcome.className = 'btn btn-ghost text-xs py-1.5 px-3';
+      subpaneRules.classList.remove('hidden');
+      subpaneWelcome.classList.add('hidden');
+    });
+  }
+
+  // Welcome Live Preview listeners
+  ['cfg-welcome-badge', 'cfg-welcome-title', 'cfg-welcome-subtitle', 'cfg-welcome-metaphor', 'cfg-welcome-pillar1', 'cfg-welcome-pillar2', 'cfg-welcome-pillar3', 'cfg-welcome-btn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', syncWelcomePreview);
+  });
+
+  // Welcome Save & Reset
+  const btnSaveWelcome = document.getElementById('btn-save-welcome');
+  if (btnSaveWelcome) {
+    btnSaveWelcome.addEventListener('click', saveWelcomeSettings);
+  }
+
+  const btnResetWelcome = document.getElementById('btn-reset-welcome');
+  if (btnResetWelcome) {
+    btnResetWelcome.addEventListener('click', () => resetContentSetting('welcome_content'));
+  }
+
+  // Rules Save & Reset
+  const btnSaveRules = document.getElementById('btn-save-rules');
+  if (btnSaveRules) {
+    btnSaveRules.addEventListener('click', saveRulesSettings);
+  }
+
+  const btnResetRules = document.getElementById('btn-reset-rules');
+  if (btnResetRules) {
+    btnResetRules.addEventListener('click', () => resetContentSetting('rules_content'));
+  }
+}
+
+function syncWelcomePreview() {
+  const badge = document.getElementById('cfg-welcome-badge')?.value || '🌱 VƯỜN TRI THỨC';
+  const title = document.getElementById('cfg-welcome-title')?.value || 'Mỗi Cuốn Sách Là Một Hạt Mầm';
+  const subtitle = document.getElementById('cfg-welcome-subtitle')?.value || 'Mỗi Độc Giả Là Một Người Gieo Tri Thức';
+  const metaphor = document.getElementById('cfg-welcome-metaphor')?.value || '';
+  const p1 = document.getElementById('cfg-welcome-pillar1')?.value || 'Gieo Hạt Tri Thức';
+  const p2 = document.getElementById('cfg-welcome-pillar2')?.value || 'Lan Tỏa Tri Thức';
+  const p3 = document.getElementById('cfg-welcome-pillar3')?.value || 'Nhật Ký Tri Thức';
+  const btn = document.getElementById('cfg-welcome-btn')?.value || 'Khám Phá Vườn Tri Thức';
+
+  const prevBadge = document.getElementById('preview-welcome-badge');
+  const prevTitle = document.getElementById('preview-welcome-title');
+  const prevSubtitle = document.getElementById('preview-welcome-subtitle');
+  const prevMetaphor = document.getElementById('preview-welcome-metaphor');
+  const prevP1 = document.getElementById('preview-welcome-p1');
+  const prevP2 = document.getElementById('preview-welcome-p2');
+  const prevP3 = document.getElementById('preview-welcome-p3');
+  const prevBtn = document.getElementById('preview-welcome-btn');
+
+  if (prevBadge) prevBadge.textContent = badge;
+  if (prevTitle) prevTitle.textContent = title;
+  if (prevSubtitle) prevSubtitle.textContent = subtitle;
+  if (prevMetaphor) prevMetaphor.textContent = metaphor;
+  if (prevP1) prevP1.textContent = p1;
+  if (prevP2) prevP2.textContent = p2;
+  if (prevP3) prevP3.textContent = p3;
+  if (prevBtn) prevBtn.textContent = btn;
+}
+
+async function loadContentSettings() {
+  try {
+    const res = await fetch(`${API_BASE}/admin/content-settings`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+    if (!data.success) return;
+
+    const settings = data.data;
+
+    // 1. Populate Welcome
+    if (settings.welcome_content) {
+      const w = settings.welcome_content;
+      setVal('cfg-welcome-badge', w.badge || '');
+      setVal('cfg-welcome-title', w.title || '');
+      setVal('cfg-welcome-subtitle', w.subtitle || '');
+      setVal('cfg-welcome-metaphor', w.metaphor || '');
+      setVal('cfg-welcome-pillar1', w.pillar1 || '');
+      setVal('cfg-welcome-pillar2', w.pillar2 || '');
+      setVal('cfg-welcome-pillar3', w.pillar3 || '');
+      setVal('cfg-welcome-btn', w.buttonText || '');
+      syncWelcomePreview();
+    }
+
+    // 2. Populate Rules
+    if (settings.rules_content) {
+      const r = settings.rules_content;
+      currentRulesSettings = r;
+
+      setVal('cfg-rules-badge', r.badge || '');
+      setVal('cfg-rules-mission-title', r.mission?.title || '');
+      setVal('cfg-rules-mission-desc', r.mission?.desc || r.mission?.description || '');
+
+      setVal('cfg-rules-timeline-title', r.timeline?.title || '');
+      setVal('cfg-rules-timeline-desc', r.timeline?.desc || r.timeline?.description || '');
+      setVal('cfg-rules-timeline-p1-title', r.timeline?.phase1Title || r.timeline?.phase1?.title || '');
+      setVal('cfg-rules-timeline-p1-rounds', r.timeline?.phase1Rounds || r.timeline?.phase1?.rounds || '');
+      setVal('cfg-rules-timeline-p1-note', r.timeline?.phase1Note || r.timeline?.phase1?.note || '');
+      setVal('cfg-rules-timeline-p2-title', r.timeline?.phase2Title || r.timeline?.phase2?.title || '');
+      setVal('cfg-rules-timeline-p2-rounds', r.timeline?.phase2Rounds || r.timeline?.phase2?.rounds || '');
+
+      setVal('cfg-rules-formula-title', r.formula?.title || '');
+      setVal('cfg-rules-formula-desc', r.formula?.desc || r.formula?.description || '');
+      setVal('cfg-rules-formula-text', r.formula?.formulaText || '');
+      setVal('cfg-rules-formula-max', r.formula?.maxText || r.formula?.maxExpPerRound || '');
+      setVal('cfg-rules-formula-ex1-title', r.formula?.example1Title || r.formula?.example1?.title || '');
+      setVal('cfg-rules-formula-ex1-text', r.formula?.example1Text || r.formula?.example1?.description || '');
+      setVal('cfg-rules-formula-ex2-title', r.formula?.example2Title || r.formula?.example2?.title || '');
+      setVal('cfg-rules-formula-ex2-text', r.formula?.example2Text || r.formula?.example2?.description || '');
+      setVal('cfg-rules-formula-note', r.formula?.note || '');
+
+      // Milestones
+      renderMilestonesEditor(r.milestones || []);
+
+      // Interactions
+      renderInteractionsEditor(r.interactions || []);
+
+      // Tie Breakers & Awards
+      const tieRules = Array.isArray(r.tieBreakers?.rules) ? r.tieBreakers.rules.join('\n') : (r.tieBreakers?.tieRules || '');
+      const awards = Array.isArray(r.tieBreakers?.awards) ? r.tieBreakers.awards.join(', ') : (r.tieBreakers?.awards || '');
+      setVal('cfg-rules-tie-rules', tieRules);
+      setVal('cfg-rules-awards', awards);
+
+      setVal('cfg-rules-confirm-btn', r.confirmButton || '');
+    }
+  } catch (err) {
+    console.error('Error loading content settings:', err);
+  }
+}
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.value = val;
+}
+
+function getVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+function renderMilestonesEditor(milestones) {
+  const container = document.getElementById('cfg-rules-milestones-container');
+  if (!container) return;
+
+  container.innerHTML = milestones.map((m, idx) => `
+    <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2 milestone-item" data-index="${idx}">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-xs flex items-center justify-center">${m.level}</span>
+          <input type="text" class="m-label px-2.5 py-1 rounded bg-slate-900 border border-slate-700 text-white font-bold text-xs w-72" value="${escapeHtml(m.title || m.label || ('Level ' + m.level))}">
+        </div>
+        <input type="text" class="m-range px-2.5 py-1 rounded bg-slate-900 border border-slate-700 text-sky-400 text-xs w-48 text-right font-mono" value="${escapeHtml(m.range || '')}" placeholder="Mốc EXP / Hạt">
+      </div>
+      <textarea class="m-effect w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-300 text-xs" rows="2">${escapeHtml(m.desc || m.effect || '')}</textarea>
+    </div>
+  `).join('');
+}
+
+function renderInteractionsEditor(interactions) {
+  const container = document.getElementById('cfg-rules-interactions-container');
+  if (!container) return;
+
+  container.innerHTML = interactions.map((item, idx) => `
+    <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1.5 interaction-item" data-index="${idx}">
+      <div class="flex items-center justify-between gap-2">
+        <input type="text" class="i-action px-2 py-1 rounded bg-slate-900 border border-slate-700 text-white font-bold text-xs flex-1" value="${escapeHtml((item.icon ? item.icon + ' ' : '') + (item.title || item.action || ''))}">
+        <input type="text" class="i-exp px-2 py-1 rounded bg-slate-900 border border-slate-700 text-amber-400 font-bold text-xs flex-1 text-right" value="${escapeHtml(item.exp || '+5 EXP')}">
+      </div>
+      <textarea class="i-note w-full px-2 py-1 rounded bg-slate-900 border border-slate-700 text-slate-400 text-xs" rows="2">${escapeHtml(item.desc || item.note || '')}</textarea>
+    </div>
+  `).join('');
+}
+
+async function saveWelcomeSettings() {
+  const btn = document.getElementById('btn-save-welcome');
+  const payload = {
+    badge: getVal('cfg-welcome-badge') || '🌱 VƯỜN TRI THỨC',
+    title: getVal('cfg-welcome-title') || 'Mỗi Cuốn Sách Là Một Hạt Mầm',
+    subtitle: getVal('cfg-welcome-subtitle') || 'Mỗi Độc Giả Là Một Người Gieo Tri Thức',
+    metaphor: getVal('cfg-welcome-metaphor'),
+    pillar1: getVal('cfg-welcome-pillar1') || 'Gieo Hạt Tri Thức',
+    pillar2: getVal('cfg-welcome-pillar2') || 'Lan Tỏa Tri Thức',
+    pillar3: getVal('cfg-welcome-pillar3') || 'Nhật Ký Tri Thức',
+    buttonText: getVal('cfg-welcome-btn') || 'Khám Phá Vườn Tri Thức'
+  };
+
+  try {
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span><span>Đang lưu...</span>';
+    }
+    const res = await fetch(`${API_BASE}/admin/content-settings`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ key: 'welcome_content', value: payload })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('✅ Lưu cấu hình Popup Chào Mừng thành công! Mọi độc giả đang mở trang sẽ thấy nội dung mới ngay lập tức.');
+    } else {
+      alert('❌ Lỗi: ' + (data.message || 'Không thể lưu'));
+    }
+  } catch (err) {
+    alert('❌ Lỗi kết nối máy chủ');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>💾</span><span>Lưu Cấu Hình Chào Mừng</span>';
+    }
+  }
+}
+
+async function saveRulesSettings() {
+  const btn = document.getElementById('btn-save-rules');
+
+  // Gather milestones
+  const milestoneEls = document.querySelectorAll('.milestone-item');
+  const milestones = [];
+  milestoneEls.forEach((el, idx) => {
+    milestones.push({
+      level: idx,
+      label: el.querySelector('.m-label')?.value || '',
+      range: el.querySelector('.m-range')?.value || '',
+      effect: el.querySelector('.m-effect')?.value || ''
+    });
+  });
+
+  // Gather interactions
+  const interactionEls = document.querySelectorAll('.interaction-item');
+  const interactions = [];
+  interactionEls.forEach(el => {
+    interactions.push({
+      action: el.querySelector('.i-action')?.value || '',
+      exp: el.querySelector('.i-exp')?.value || '',
+      note: el.querySelector('.i-note')?.value || ''
+    });
+  });
+
+  const payload = {
+    badge: getVal('cfg-rules-badge') || '📜 THỂ LỆ & QUY TRÌNH THI ĐUA 15 LƯỢT • FOXREAD 2026',
+    mission: {
+      title: getVal('cfg-rules-mission-title'),
+      description: getVal('cfg-rules-mission-desc')
+    },
+    timeline: {
+      title: getVal('cfg-rules-timeline-title'),
+      description: getVal('cfg-rules-timeline-desc'),
+      phase1: {
+        title: getVal('cfg-rules-timeline-p1-title'),
+        rounds: getVal('cfg-rules-timeline-p1-rounds'),
+        note: getVal('cfg-rules-timeline-p1-note')
+      },
+      phase2: {
+        title: getVal('cfg-rules-timeline-p2-title'),
+        rounds: getVal('cfg-rules-timeline-p2-rounds')
+      }
+    },
+    formula: {
+      title: getVal('cfg-rules-formula-title'),
+      description: getVal('cfg-rules-formula-desc'),
+      formulaText: getVal('cfg-rules-formula-text'),
+      maxExpPerRound: getVal('cfg-rules-formula-max'),
+      example1: {
+        title: getVal('cfg-rules-formula-ex1-title'),
+        description: getVal('cfg-rules-formula-ex1-text')
+      },
+      example2: {
+        title: getVal('cfg-rules-formula-ex2-title'),
+        description: getVal('cfg-rules-formula-ex2-text')
+      },
+      note: getVal('cfg-rules-formula-note')
+    },
+    milestones: milestones.length > 0 ? milestones : (currentRulesSettings?.milestones || []),
+    interactions: interactions.length > 0 ? interactions : (currentRulesSettings?.interactions || []),
+    tieBreakers: {
+      tieRules: getVal('cfg-rules-tie-rules'),
+      awards: getVal('cfg-rules-awards')
+    },
+    confirmButton: getVal('cfg-rules-confirm-btn') || '🌱 Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây'
+  };
+
+  try {
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span><span>Đang lưu...</span>';
+    }
+    const res = await fetch(`${API_BASE}/admin/content-settings`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ key: 'rules_content', value: payload })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('✅ Lưu cấu hình Thể Lệ thành công! Nội dung thể lệ trên giao diện người đọc đã được cập nhật.');
+    } else {
+      alert('❌ Lỗi: ' + (data.message || 'Không thể lưu'));
+    }
+  } catch (err) {
+    alert('❌ Lỗi kết nối máy chủ');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>💾</span><span>Lưu Cấu Hình Thể Lệ</span>';
+    }
+  }
+}
+
+async function resetContentSetting(key) {
+  const name = key === 'welcome_content' ? 'Popup Chào Mừng' : 'Thể Lệ 15 Lượt';
+  if (!confirm(`Bạn có chắc chắn muốn khôi phục nội dung [${name}] về mặc định của BTC?`)) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/content-settings/reset`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ key })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(`✅ Đã khôi phục [${name}] về mặc định thành công!`);
+      loadContentSettings();
+    } else {
+      alert('❌ Lỗi: ' + (data.message || 'Không thể khôi phục'));
+    }
+  } catch (err) {
+    alert('❌ Lỗi kết nối máy chủ');
   }
 }
 

@@ -4,7 +4,7 @@ import {
   getDewStatus, likeQuote, unlikeQuote, harvestFruit,
   getTeams, getTeamById, getTeamMembers,
   getUsers, lookupUser, suggestUsers, getUserById,
-  getCurrentRound, getAllRounds
+  getCurrentRound, getAllRounds, getPublicContentSettings
 } from '../controllers/index.js';
 import { validateBody, contributeBookSchema, likeQuoteSchema, claimDewSchema, harvestFruitSchema } from '../middlewares/validator.js';
 import { idempotencyMiddleware } from '../middlewares/idempotency.js';
@@ -16,6 +16,7 @@ router.get('/growth', getGrowth);
 router.post('/growth/visit', recordVisit);
 router.get('/quotes', getQuotes);
 router.get('/dew/status', getDewStatus);
+router.get('/content/settings', getPublicContentSettings);
 
 // Teams & 8 Trees Endpoints
 router.get('/teams', getTeams);

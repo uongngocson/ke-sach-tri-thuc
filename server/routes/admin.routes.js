@@ -2,7 +2,8 @@ import express from 'express';
 import { 
   adminLogin, getAdminStats, getAdminBooks, updateAdminBookStatus, 
   adminBonusExp, getAuditLogs, getAdminAnalytics, getAdminLedger, 
-  getAdminUsersDirectory, advanceAdminRound 
+  getAdminUsersDirectory, advanceAdminRound,
+  getAdminContentSettings, updateAdminContentSetting, resetAdminContentSetting
 } from '../controllers/index.js';
 import { authenticate, authorizeRoles } from '../middlewares/auth.js';
 import { validateBody, adminLoginSchema, updateBookStatusSchema, adminBonusExpSchema } from '../middlewares/validator.js';
@@ -20,6 +21,11 @@ router.get('/analytics/overview', authorizeRoles('moderator', 'admin'), getAdmin
 router.get('/ledger', authorizeRoles('moderator', 'admin'), getAdminLedger);
 router.get('/users', authorizeRoles('moderator', 'admin'), getAdminUsersDirectory);
 router.post('/rounds/advance', authorizeRoles('admin'), advanceAdminRound);
+
+// Custom UI Content & Rules Settings
+router.get('/content-settings', authorizeRoles('moderator', 'admin'), getAdminContentSettings);
+router.put('/content-settings', authorizeRoles('admin'), updateAdminContentSetting);
+router.post('/content-settings/reset', authorizeRoles('admin'), resetAdminContentSetting);
 
 // Core Admin Stats & Moderation
 router.get('/stats', authorizeRoles('moderator', 'admin'), getAdminStats);

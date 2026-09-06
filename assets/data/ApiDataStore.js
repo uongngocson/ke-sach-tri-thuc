@@ -97,10 +97,30 @@ class ApiDataStoreManager {
         this.socket.on('quote:liked', (likeData) => {
           this.emit('quote:liked', likeData);
         });
+
+        this.socket.on('content:updated', (contentData) => {
+          console.log('🎨 Realtime Content Updated:', contentData);
+          this.emit('content:updated', contentData);
+        });
       } catch (err) {
         console.warn('Socket.io connection error:', err);
       }
     }
+  }
+
+  on(event, callback) {
+    return this.subscribe(event, callback);
+  }
+
+  async getContentSettings() {
+    try {
+      const res = await fetch(`${getApiBase()}/content/settings`);
+      const data = await res.json();
+      if (data.success) return data.data;
+    } catch (e) {
+      console.warn('Error fetching content settings:', e);
+    }
+    return null;
   }
 
   // Pub/Sub Events
