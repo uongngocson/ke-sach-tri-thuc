@@ -3,6 +3,7 @@ import GrowthService from '../services/growth.service.js';
 import DewService from '../services/dew.service.js';
 import QuoteService from '../services/quote.service.js';
 import ModerationService from '../services/moderation.service.js';
+import TesterService from '../services/tester.service.js';
 import db from '../config/database.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -304,6 +305,29 @@ export async function getAuditLogs(req, res, next) {
     res.json({
       success: true,
       data: logsRes.rows
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function adminWipeData(req, res, next) {
+  try {
+    const { password } = req.body || {};
+    if (password !== 'Soncute@123') {
+      return res.status(403).json({
+        success: false,
+        message: 'Mật khẩu xác nhận không chính xác! Vui lòng kiểm tra lại.'
+      });
+    }
+
+    const ip = req.ip || req.connection?.remoteAddress || '';
+    const result = await TesterService.wipeDatabaseExceptAccounts(req.user, ip);
+
+    res.json({
+      success: true,
+      message: 'Đã dọn sạch toàn bộ dữ liệu hoạt động thành công (bảo lưu 288 tài khoản và 8 đội)!',
+      data: result
     });
   } catch (err) {
     next(err);

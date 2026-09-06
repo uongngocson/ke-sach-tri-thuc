@@ -331,6 +331,9 @@ function bindActionEvents() {
   // Modal Actions
   document.getElementById('mod-btn-reviewed')?.addEventListener('click', () => handleModalAction('reviewed', 'visible'));
   document.getElementById('mod-btn-hide')?.addEventListener('click', () => handleModalAction('rejected', 'deleted'));
+
+  // Danger Zone: Wipe Full Operational Data
+  bindWipeDataEvents();
 }
 
 async function loadAllDashboardData() {
@@ -1524,4 +1527,138 @@ async function resetContentSetting(key) {
 function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// =========================================================================
+// 8. DANGER ZONE: SYSTEM WIPE OPERATIONAL DATA
+// =========================================================================
+function bindWipeDataEvents() {
+  const openBtn = document.getElementById('btn-open-wipe-modal');
+  const closeBtn = document.getElementById('wipe-modal-close');
+  const cancelBtn = document.getElementById('wipe-modal-cancel');
+  const wipeModal = document.getElementById('modal-wipe-database');
+  const togglePwdBtn = document.getElementById('btn-toggle-wipe-pwd');
+  const pwdInput = document.getElementById('wipe-confirm-password');
+  const wipeForm = document.getElementById('form-confirm-wipe');
+
+  if (openBtn) openBtn.addEventListener('click', openWipeModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeWipeModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeWipeModal);
+
+  if (wipeModal) {
+    wipeModal.addEventListener('click', (e) => {
+      if (e.target === wipeModal) closeWipeModal();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && wipeModal?.classList.contains('show')) {
+      closeWipeModal();
+    }
+  });
+
+  if (togglePwdBtn && pwdInput) {
+    togglePwdBtn.addEventListener('click', () => {
+      const isPwd = pwdInput.type === 'password';
+      pwdInput.type = isPwd ? 'text' : 'password';
+      togglePwdBtn.textContent = isPwd ? '🙈' : '👁️';
+    });
+  }
+
+  if (wipeForm) {
+    wipeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pwd = pwdInput ? pwdInput.value.trim() : '';
+      const errEl = document.getElementById('wipe-pwd-error');
+      const errMsgEl = document.getElementById('wipe-pwd-error-msg');
+      const submitBtn = document.getElementById('btn-submit-wipe');
+      const spinner = document.getElementById('wipe-spinner');
+      const icon = document.getElementById('wipe-icon');
+      const btnText = document.getElementById('wipe-btn-text');
+
+      // Client-side quick check
+      if (pwd !== 'Soncute@123') {
+        if (errEl && errMsgEl) {
+          errMsgEl.textContent = 'Mật khẩu xác nhận không chính xác! Vui lòng nhập đúng mật khẩu bảo vệ.';
+          errEl.classList.remove('hidden');
+        }
+        if (pwdInput) {
+          pwdInput.focus();
+          pwdInput.classList.add('border-rose-500');
+        }
+        return;
+      }
+
+      if (errEl) errEl.classList.add('hidden');
+
+      // Set loading state
+      if (submitBtn) submitBtn.disabled = true;
+      if (spinner) spinner.classList.remove('hidden');
+      if (icon) icon.classList.add('hidden');
+      if (btnText) btnText.textContent = 'Đang dọn sạch CSDL...';
+
+      try {
+        const res = await fetch(`${API_BASE}/admin/system/wipe-data`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ password: pwd })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          closeWipeModal();
+          alert('🧹 ' + (data.message || 'Đã dọn sạch toàn bộ dữ liệu CSDL thành công (bảo lưu 288 tài khoản và 8 đội nhóm)!'));
+          await loadAllDashboardData();
+        } else {
+          if (errEl && errMsgEl) {
+            errMsgEl.textContent = data.message || 'Lỗi xử lý dọn sạch dữ liệu';
+            errEl.classList.remove('hidden');
+          }
+        }
+      } catch (err) {
+        if (errEl && errMsgEl) {
+          errMsgEl.textContent = 'Lỗi kết nối máy chủ backend';
+          errEl.classList.remove('hidden');
+        }
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (spinner) spinner.classList.add('hidden');
+        if (icon) icon.classList.remove('hidden');
+        if (btnText) btnText.textContent = 'Xác Nhận Xóa Sạch';
+      }
+    });
+  }
+}
+
+function openWipeModal() {
+  const wipeModal = document.getElementById('modal-wipe-database');
+  const pwdInput = document.getElementById('wipe-confirm-password');
+  const errEl = document.getElementById('wipe-pwd-error');
+  const togglePwdBtn = document.getElementById('btn-toggle-wipe-pwd');
+
+  if (pwdInput) {
+    pwdInput.value = '';
+    pwdInput.type = 'password';
+    pwdInput.classList.remove('border-rose-500');
+  }
+  if (togglePwdBtn) togglePwdBtn.textContent = '👁️';
+  if (errEl) errEl.classList.add('hidden');
+
+  if (wipeModal) {
+    wipeModal.classList.add('show');
+    setTimeout(() => pwdInput?.focus(), 150);
+  }
+}
+
+function closeWipeModal() {
+  const wipeModal = document.getElementById('modal-wipe-database');
+  const pwdInput = document.getElementById('wipe-confirm-password');
+  const errEl = document.getElementById('wipe-pwd-error');
+
+  if (wipeModal) wipeModal.classList.remove('show');
+  if (pwdInput) pwdInput.value = '';
+  if (errEl) errEl.classList.add('hidden');
 }

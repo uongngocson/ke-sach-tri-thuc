@@ -3,7 +3,8 @@ import {
   adminLogin, getAdminStats, getAdminBooks, updateAdminBookStatus, 
   adminBonusExp, getAuditLogs, getAdminAnalytics, getAdminLedger, 
   getAdminUsersDirectory, advanceAdminRound,
-  getAdminContentSettings, updateAdminContentSetting, resetAdminContentSetting
+  getAdminContentSettings, updateAdminContentSetting, resetAdminContentSetting,
+  adminWipeData
 } from '../controllers/index.js';
 import { authenticate, authorizeRoles } from '../middlewares/auth.js';
 import { validateBody, adminLoginSchema, updateBookStatusSchema, adminBonusExpSchema } from '../middlewares/validator.js';
@@ -33,5 +34,8 @@ router.get('/books', authorizeRoles('moderator', 'admin'), getAdminBooks);
 router.patch('/books/:id/status', authorizeRoles('moderator', 'admin'), validateBody(updateBookStatusSchema), updateAdminBookStatus);
 router.post('/growth/bonus', authorizeRoles('admin'), validateBody(adminBonusExpSchema), adminBonusExp);
 router.get('/audit-logs', authorizeRoles('admin'), getAuditLogs);
+
+// System Management & Danger Zone
+router.post('/system/wipe-data', authorizeRoles('admin'), adminWipeData);
 
 export default router;

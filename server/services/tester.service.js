@@ -512,11 +512,12 @@ export class TesterService {
     });
   }
 
-  static async wipeDatabaseExceptAccounts() {
+  static async wipeDatabaseExceptAccounts(adminUser = null, clientIp = null) {
     return await db.transaction(async (client) => {
       await client.query('DELETE FROM quote_likes');
       await client.query('DELETE FROM fruit_harvests');
       await client.query('DELETE FROM daily_dews');
+      await client.query('DELETE FROM daily_quotes');
       await client.query('DELETE FROM exp_ledger');
       await client.query('DELETE FROM idempotency_keys');
       await client.query('DELETE FROM audit_logs');
@@ -532,6 +533,30 @@ export class TesterService {
             level = 0,
             tree_level = 0,
             total_likes = 0,
+            avg_participation_rate = 0,
+            milestone_150_at = NULL,
+            milestone_400_at = NULL,
+            milestone_1000_at = NULL,
+            milestone_2500_at = NULL,
+            perfect_rounds_count = 0,
+            updated_at = NOW()
+      `);
+
+      await client.query(`
+        UPDATE team_rounds
+        SET participants_count = 0,
+            participation_rate = 0,
+            raw_exp = 0,
+            converted_exp = 0,
+            seeds_count = 0,
+            is_sprouted_this_round = false,
+            updated_at = NOW()
+      `);
+
+      await client.query(`
+        UPDATE users
+        SET contributed_books_count = 0,
+            total_exp_earned = 0,
             updated_at = NOW()
       `);
 
@@ -546,6 +571,22 @@ export class TesterService {
             updated_at = NOW()
         WHERE id = 1
       `);
+
+      if (adminUser) {
+        await client.query(`
+          INSERT INTO audit_logs (admin_id, action, target_type, metadata, ip_address)
+          VALUES ($1, $2, $3, $4, $5)
+        `, [
+          adminUser.id,
+          'WIPE_DATABASE',
+          'SYSTEM_DATABASE',
+          JSON.stringify({
+            reason: 'Dọn sạch toàn bộ dữ liệu hoạt động CSDL (bảo lưu 288 tài khoản và 8 đội nhóm)',
+            performed_by: adminUser.username || adminUser.full_name || 'Admin'
+          }),
+          clientIp || null
+        ]);
+      }
 
       const fullGrowth = {
         totalEXP: 0,

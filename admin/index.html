@@ -860,6 +860,45 @@
             </div>
           </div>
 
+          <!-- Danger Zone / Full Operational Data Wipe -->
+          <div class="glass-panel p-5 space-y-4 border-rose-500/30 bg-gradient-to-br from-rose-950/25 via-slate-900/70 to-slate-950/90 relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="space-y-1.5">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                    ⚠️ VÙNG NGUY HIỂM (DANGER ZONE)
+                  </span>
+                  <span class="text-xs font-bold text-slate-400">Thiết Lập Lại Dữ Liệu Hoạt Động</span>
+                </div>
+                <h3 class="text-sm font-black text-white flex items-center gap-2">
+                  <span>🧹</span><span>DỌN SẠCH TOÀN BỘ DỮ LIỆU HOẠT ĐỘNG (RESET FULL DATA)</span>
+                </h3>
+                <p class="text-xs text-slate-300 leading-relaxed max-w-3xl">
+                  Xóa toàn bộ sách đã gieo, trích dẫn, lượt thả tim, lịch sử tưới nước, điểm EXP và nhật ký hoạt động.
+                  <br>
+                  <span class="inline-flex items-center gap-1 text-emerald-400 font-bold mt-0.5">
+                    <span>🛡️</span>
+                    <span>BẢO LƯU AN TOÀN TUYỆT ĐỐI: Giữ nguyên 100% danh sách 288 tài khoản nhân sự & 8 đội nhóm (không xóa user và team).</span>
+                  </span>
+                </p>
+              </div>
+
+              <div class="shrink-0">
+                <button id="btn-open-wipe-modal" type="button" class="btn btn-danger text-xs py-2.5 px-4 font-black shadow-lg shadow-rose-950/50 flex items-center gap-2">
+                  <span>🧹</span>
+                  <span>Dọn Sạch Toàn Bộ Dữ Liệu</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-300 flex items-start gap-2">
+              <span class="text-sm shrink-0">🔒</span>
+              <span>
+                Thao tác mang tính chất dọn sạch vĩnh viễn dữ liệu hoạt động của hệ thống. Để kích hoạt, quản trị viên bắt buộc phải nhập <strong>mật khẩu xác thực bảo vệ</strong>. Hành động này sẽ được ghi nhận vào nhật ký kiểm toán.
+              </span>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -938,6 +977,71 @@
             <tr><td colspan="7" class="p-6 text-center text-slate-500">Đang tải danh sách thành viên...</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: CONFIRM WIPE FULL DATA WITH PASSWORD -->
+  <div id="modal-wipe-database" class="modal-backdrop">
+    <div class="modal-card max-w-md space-y-4 border-rose-500/40 shadow-2xl shadow-rose-950/60">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2 text-rose-400 font-black text-sm">
+          <span class="text-lg">⚠️</span>
+          <span>XÁC NHẬN DỌN SẠCH DỮ LIỆU</span>
+        </div>
+        <button id="wipe-modal-close" class="text-slate-400 hover:text-white text-base font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div class="p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-200 leading-relaxed space-y-2">
+          <p class="font-black text-white text-xs flex items-center gap-1.5">
+            <span>🚨</span> CẢNH BÁO NGUY HIỂM:
+          </p>
+          <p class="text-[11.5px] text-slate-200">
+            Hành động này sẽ xóa sạch hoàn toàn các dữ liệu sau:
+          </p>
+          <ul class="list-disc list-inside space-y-1 text-slate-300 pl-1 text-[11px]">
+            <li>Toàn bộ sách & trích dẫn đã gieo</li>
+            <li>Toàn bộ lượt thả tim, tưới sương & thu hoạch quả</li>
+            <li>Sổ cái EXP và điểm tiến độ các đội thi đua</li>
+            <li>Nhật ký kiểm toán cũ và lượt thiết bị ghé thăm</li>
+          </ul>
+          <div class="pt-2 border-t border-rose-500/20 text-emerald-400 font-bold text-[11px] flex items-center gap-1.5">
+            <span>🛡️</span>
+            <span>Giữ nguyên 288 tài khoản nhân sự & 8 đội nhóm!</span>
+          </div>
+        </div>
+
+        <form id="form-confirm-wipe" class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-1.5">
+              Nhập mật khẩu xác thực bảo vệ:
+            </label>
+            <div class="relative">
+              <input type="password" id="wipe-confirm-password" 
+                placeholder="Nhập mật khẩu bảo vệ để xác nhận..." required autocomplete="off"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-rose-500/40 text-white text-xs focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 placeholder-slate-500 pr-10">
+              <button type="button" id="btn-toggle-wipe-pwd" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs font-bold" title="Hiện/Ẩn mật khẩu">
+                👁️
+              </button>
+            </div>
+            <div id="wipe-pwd-error" class="hidden text-[11px] font-bold text-rose-400 mt-1.5 flex items-center gap-1">
+              <span>❌</span>
+              <span id="wipe-pwd-error-msg">Mật khẩu xác nhận không chính xác!</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+            <button type="button" id="wipe-modal-cancel" class="btn btn-ghost text-xs py-2 px-3.5">
+              Hủy Bỏ
+            </button>
+            <button type="submit" id="btn-submit-wipe" class="btn btn-danger text-xs py-2 px-4 font-black shadow-md flex items-center gap-1.5">
+              <span id="wipe-spinner" class="hidden animate-spin">⏳</span>
+              <span id="wipe-icon">🔥</span>
+              <span id="wipe-btn-text">Xác Nhận Xóa Sạch</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
