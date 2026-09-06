@@ -3,7 +3,7 @@
  * Master Entry Point for the Realistic Day/Night Celestial Sky System
  * Runs 100% automatically in background with ZERO UI buttons/overlays.
  */
-import { SkyCanvas } from './components/SkyCanvas.js';
+import { SkyCanvas } from './components/SkyCanvas.js?v=20260907_v1';
 
 class RealisticSkySystem {
   constructor() {

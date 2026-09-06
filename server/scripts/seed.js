@@ -64,13 +64,18 @@ async function seed() {
       }
     ];
 
-    for (const q of masterQuotes) {
-      await db.query(`
-        INSERT INTO books (title, author, quote, category, reader_name, likes_count, visibility_status, moderation_status)
-        VALUES ($1, $2, $3, $4, $5, $6, 'visible', 'reviewed')
-      `, [q.title, q.author, q.quote, q.category, q.reader, q.likes]);
+    const existingBooks = await db.query('SELECT COUNT(*) as count FROM books');
+    if (parseInt(existingBooks.rows[0].count, 10) === 0) {
+      for (const q of masterQuotes) {
+        await db.query(`
+          INSERT INTO books (title, author, quote, category, reader_name, likes_count, visibility_status, moderation_status)
+          VALUES ($1, $2, $3, $4, $5, $6, 'visible', 'reviewed')
+        `, [q.title, q.author, q.quote, q.category, q.reader, q.likes]);
+      }
+      console.log(` - ${masterQuotes.length} curated master quotes seeded!`);
+    } else {
+      console.log(` - Books table already has ${existingBooks.rows[0].count} entries, skipping duplicate seeding.`);
     }
-    console.log(` - ${masterQuotes.length} curated master quotes seeded!`);
 
     // 3. Update community growth count
     await db.query(`

@@ -1,5 +1,5 @@
-import { MockDataStore } from '../data/MockDataStore.js?v=20260906_v7';
-import { APP_CONFIG } from '../config/appEnv.js?v=20260906_v7';
+import { MockDataStore } from '../data/MockDataStore.js?v=20260907_v1';
+import { APP_CONFIG } from '../config/appEnv.js?v=20260907_v1';
 
 export class TesterPanel {
   constructor() {
