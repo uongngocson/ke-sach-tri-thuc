@@ -3957,9 +3957,8 @@
                 <div _ngcontent-ng-c4179040905="" class="flex lg:hidden items-center gap-1.5 shrink-0">
                   <button
                     id="fpt-mobile-arena-btn"
-                    style="display:none;"
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-sm font-bold text-emerald-800 dark:text-emerald-300 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
-                    title="Toàn cảnh 8 cây" type="button">
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-sm font-bold text-emerald-800 dark:text-emerald-300 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
+                    title="Toàn cảnh 8 Cây Tri Thức" type="button">
                     <span>🌳</span>
                   </button>
                   <button
@@ -4003,9 +4002,8 @@
               <div _ngcontent-ng-c4179040905="" class="hidden lg:flex items-center gap-2.5 shrink-0">
                 <button
                   id="fpt-arena-btn"
-                  style="display:none;"
                   class="h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-800 dark:text-emerald-300 text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
-                  title="Toàn cảnh & Xếp hạng 8 Cây Tri Thức" type="button">
+                  title="Toàn cảnh 8 Cây Tri Thức" type="button">
                   <span class="text-sm leading-none">🌳</span>
                   <span>Toàn Cảnh 8 Cây</span>
                 </button>
@@ -4056,8 +4054,8 @@
           </header>
           <main _ngcontent-ng-c4179040905="" class="relative z-10 flex-1 w-full flex flex-col justify-between">
             <!-- 8-Team Panoramic Interactive Timeline Dock -->
-            <div id="panoramic-team-timeline" class="w-full max-w-[1530px] mx-auto px-3 sm:px-6 pt-1 sm:pt-2 z-30 relative pointer-events-auto">
-              <div class="team-timeline-dock is-single-mode backdrop-blur-xl bg-white/85 dark:bg-slate-900/85 border border-slate-200/70 dark:border-slate-800/80 rounded-2xl shadow-lg overflow-hidden transition-all duration-300">
+            <div id="panoramic-team-timeline" style="display: none;" class="w-full max-w-[1530px] mx-auto px-3 sm:px-6 pt-1 sm:pt-2 z-30 relative pointer-events-auto">
+              <div class="team-timeline-dock backdrop-blur-xl bg-white/85 dark:bg-slate-900/85 border border-slate-200/70 dark:border-slate-800/80 rounded-2xl shadow-lg overflow-hidden transition-all duration-300">
                 <!-- Top Micro Bar: Round Info, Active Viewing Team & Actions -->
                 <div class="timeline-subbar flex items-center justify-between px-3 sm:px-4 py-1.5 border-b border-slate-200/60 dark:border-slate-800/70 bg-gradient-to-r from-slate-50/70 via-white/50 to-slate-50/70 dark:from-slate-900/70 dark:via-slate-800/50 dark:to-slate-900/70 text-[11px] sm:text-xs">
                   <div class="flex items-center gap-2 min-w-0">
@@ -4092,15 +4090,15 @@
                       <span>🏆</span>
                       <span class="hidden sm:inline">Chi Tiết</span>
                     </button>
-                    <button id="timeline-toggle-collapse-btn" class="h-6 sm:h-7 px-2 sm:px-2.5 rounded-lg bg-slate-200/80 hover:bg-slate-300/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] sm:text-[10.5px] font-black flex items-center gap-1 cursor-pointer transition-all shadow-2xs active:scale-95 shrink-0" title="Mở rộng xem toàn cảnh 8 Đội">
-                      <span id="timeline-collapse-text">Xem đủ 8 đội</span>
-                      <span id="timeline-collapse-icon">▾</span>
+                    <button id="timeline-toggle-collapse-btn" class="h-6 sm:h-7 px-2 sm:px-2.5 rounded-lg bg-slate-200/80 hover:bg-slate-300/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] sm:text-[10.5px] font-black flex items-center gap-1 cursor-pointer transition-all shadow-2xs active:scale-95 shrink-0" title="Thu gọn toàn cảnh 8 cây">
+                      <span id="timeline-collapse-text">Thu gọn</span>
+                      <span id="timeline-collapse-icon">▴</span>
                     </button>
                   </div>
                 </div>
 
                 <!-- 8-Team Interactive Cards Strip -->
-                <div id="timeline-teams-rail" class="is-single-mode p-1.5 sm:p-2 grid grid-cols-4 lg:grid-cols-8 gap-1.5 sm:gap-2 transition-all duration-300">
+                <div id="timeline-teams-rail" class="p-1.5 sm:p-2 grid grid-cols-4 lg:grid-cols-8 gap-1.5 sm:gap-2 transition-all duration-300">
                   <!-- 8 Team Cards injected by render8TeamTimeline() -->
                 </div>
               </div>
@@ -5426,15 +5424,206 @@
       touch-action: manipulation !important;
       -webkit-tap-highlight-color: transparent !important;
       position: relative !important;
+      overflow-x: auto !important;
+      overflow-y: visible !important;
+      -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: none;
+    }
+    .fpt-ground-container::-webkit-scrollbar {
+      display: none;
     }
 
     .fpt-ground-inner {
       min-height: 190px !important;
       height: 100% !important;
       width: 100% !important;
+      min-width: 960px;
       pointer-events: auto !important;
       position: relative !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: stretch !important;
+      padding: 0 1% !important;
     }
+
+    @media (min-width: 1200px) {
+      .fpt-ground-container {
+        overflow: visible !important;
+      }
+      .fpt-ground-inner {
+        min-width: 100% !important;
+      }
+    }
+
+    @media (max-width: 1199px) {
+      .fpt-ground-arc {
+        min-width: 960px !important;
+      }
+    }
+
+    /* REALISTIC BOTANICAL TREE ROOT PLOTS (VÙNG ĐẤT GỐC CÂY) */
+    .team-root-plot {
+      position: relative;
+      flex: 1 1 0;
+      min-width: 108px;
+      height: 100%;
+      margin: 0;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      cursor: pointer;
+      user-select: none;
+      overflow: visible;
+      transition: transform 0.25s ease;
+    }
+
+    @media (min-width: 1200px) {
+      .team-root-plot {
+        min-width: 0;
+      }
+    }
+
+    /* Organic Elliptical Soil Ring circling the tree root on the ground */
+    .root-soil-ring {
+      position: absolute;
+      top: 0px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 86px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(255, 255, 255, 0.24);
+      background: radial-gradient(ellipse at center, var(--team-color-glow, rgba(255, 255, 255, 0.08)) 0%, rgba(0, 0, 0, 0.22) 65%, transparent 100%);
+      pointer-events: none;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 10;
+    }
+
+    .team-root-plot:hover .root-soil-ring {
+      border-color: var(--team-color, #38bdf8);
+      border-style: solid;
+      box-shadow: 0 0 16px 2px var(--team-color-glow, rgba(56, 189, 248, 0.35));
+      transform: translateX(-50%) scale(1.06);
+    }
+
+    .team-root-plot.is-active-zone .root-soil-ring {
+      border: 2.2px solid var(--team-color, #F36F21);
+      box-shadow: 0 0 24px 6px var(--team-color-glow, rgba(243, 111, 33, 0.5)), inset 0 0 14px var(--team-color-glow, rgba(243, 111, 33, 0.35));
+      transform: translateX(-50%) scale(1.10);
+      animation: rootAuraPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes rootAuraPulse {
+      0%, 100% {
+        box-shadow: 0 0 18px 4px var(--team-color-glow, rgba(243, 111, 33, 0.45)), inset 0 0 10px var(--team-color-glow, rgba(243, 111, 33, 0.3));
+        opacity: 0.85;
+      }
+      50% {
+        box-shadow: 0 0 28px 8px var(--team-color-glow, rgba(243, 111, 33, 0.65)), inset 0 0 18px var(--team-color-glow, rgba(243, 111, 33, 0.45));
+        opacity: 1;
+      }
+    }
+
+    /* Botanical Garden Signpost Plaque planted in the dirt in front of the tree root */
+    .root-garden-plaque {
+      position: absolute;
+      top: 26px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: inline-flex;
+      align-items: center;
+      gap: 3.5px;
+      padding: 2.5px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      white-space: nowrap;
+      z-index: 35;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .team-root-plot:hover .root-garden-plaque {
+      border-color: var(--team-color, #38bdf8);
+      transform: translateX(-50%) translateY(-1px);
+    }
+
+    .team-root-plot.is-active-zone .root-garden-plaque {
+      border-color: var(--team-color, #F36F21);
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 0 18px var(--team-color-glow, rgba(243, 111, 33, 0.45)), 0 4px 16px rgba(0, 0, 0, 0.6);
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    .plaque-badge {
+      font-size: 8.5px;
+      font-weight: 900;
+      padding: 1px 4.5px;
+      border-radius: 4px;
+      color: #fff;
+      line-height: 1;
+      letter-spacing: 0.02em;
+    }
+
+    .plaque-title {
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .plaque-status {
+      font-size: 8px;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .plaque-status.status-seed {
+      background: rgba(245, 158, 11, 0.22);
+      color: #fcd34d;
+      border: 0.5px solid rgba(245, 158, 11, 0.4);
+    }
+    .plaque-status.status-sprouted {
+      background: rgba(16, 185, 129, 0.22);
+      color: #6ee7b7;
+      border: 0.5px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .plaque-myteam {
+      font-size: 8px;
+      font-weight: 900;
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: #f59e0b;
+      color: #0f172a;
+      line-height: 1;
+    }
+
+    .root-nutrient-glow {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 44px;
+      height: 18px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, var(--team-color, #10b981) 0%, transparent 72%);
+      opacity: 0.55;
+      filter: blur(4px);
+      pointer-events: none;
+      animation: rootNutrientPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes rootNutrientPulse {
+      0%, 100% { opacity: 0.4; transform: translateX(-50%) scale(0.92); }
+      50% { opacity: 0.85; transform: translateX(-50%) scale(1.15); }
+    }
+
 
     @media (max-width: 1024px) {
       /* Hide 3D tree option GUI button on mobile & tablet to avoid overlap */
@@ -6560,14 +6749,58 @@
         });
       });
 
-      const arenaBtns = document.querySelectorAll('#fpt-arena-btn, #fpt-mobile-arena-btn, #hud-open-arena-btn');
-      arenaBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
+      // Open / Toggle 8-Team Panoramic Timeline Dock
+      let isPanoramicTimelineOpen = false;
+      const panoramicTimeline = document.getElementById('panoramic-team-timeline');
+      const arenaBtnDesktop = document.getElementById('fpt-arena-btn');
+      const arenaBtnMobile = document.getElementById('fpt-mobile-arena-btn');
+      const hudOpenArenaBtn = document.getElementById('hud-open-arena-btn');
+
+      function togglePanoramicTimeline(forceState) {
+        if (!panoramicTimeline) return;
+        isPanoramicTimelineOpen = (typeof forceState === 'boolean') ? forceState : !isPanoramicTimelineOpen;
+
+        if (isPanoramicTimelineOpen) {
+          panoramicTimeline.style.display = 'block';
+          if (arenaBtnDesktop) {
+            arenaBtnDesktop.classList.add('is-active', 'bg-emerald-600', 'text-white');
+            arenaBtnDesktop.classList.remove('bg-emerald-500/15', 'text-emerald-800', 'dark:text-emerald-300');
+          }
+          if (arenaBtnMobile) {
+            arenaBtnMobile.classList.add('is-active', 'bg-emerald-600', 'text-white');
+            arenaBtnMobile.classList.remove('bg-emerald-500/15', 'text-emerald-800', 'dark:text-emerald-300');
+          }
+          render8TeamTimeline();
+        } else {
+          panoramicTimeline.style.display = 'none';
+          if (arenaBtnDesktop) {
+            arenaBtnDesktop.classList.remove('is-active', 'bg-emerald-600', 'text-white');
+            arenaBtnDesktop.classList.add('bg-emerald-500/15', 'text-emerald-800', 'dark:text-emerald-300');
+          }
+          if (arenaBtnMobile) {
+            arenaBtnMobile.classList.remove('is-active', 'bg-emerald-600', 'text-white');
+            arenaBtnMobile.classList.add('bg-emerald-500/15', 'text-emerald-800', 'dark:text-emerald-300');
+          }
+        }
+      }
+
+      [arenaBtnDesktop, arenaBtnMobile].forEach(btn => {
+        if (btn) {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            togglePanoramicTimeline();
+          });
+        }
+      });
+
+      if (hudOpenArenaBtn) {
+        hudOpenArenaBtn.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
           teamArenaModal.open();
         });
-      });
+      }
 
       const treasuryBtns = document.querySelectorAll('#fpt-main-treasury-btn, #fpt-mobile-treasury-btn');
       treasuryBtns.forEach(btn => {
@@ -6590,38 +6823,13 @@
         });
       }
 
-      // 8-Team Timeline Collapse / Expand Toggle
-      // Mặc định ban đầu chỉ hiển thị 1 card của 1 đội, click icon mũi tên mới đổ full 8 đội theo yêu cầu UI/UX
-      let isTimelineSingleMode = true;
+      // 8-Team Timeline Collapse Button (Closes panoramic dock)
       const toggleCollapseBtn = document.getElementById('timeline-toggle-collapse-btn');
-      const collapseIcon = document.getElementById('timeline-collapse-icon');
-      const collapseText = document.getElementById('timeline-collapse-text');
-      const teamsRail = document.getElementById('timeline-teams-rail');
-
-      function applyTimelineDisplayMode(singleMode) {
-        const dock = document.querySelector('.team-timeline-dock');
-        if (!dock || !teamsRail) return;
-        if (singleMode) {
-          dock.classList.add('is-single-mode');
-          teamsRail.classList.add('is-single-mode');
-          if (collapseIcon) collapseIcon.textContent = '▾';
-          if (collapseText) collapseText.textContent = 'Xem đủ 8 đội';
-          if (toggleCollapseBtn) toggleCollapseBtn.setAttribute('title', 'Mở rộng xem toàn cảnh 8 Đội');
-        } else {
-          dock.classList.remove('is-single-mode');
-          teamsRail.classList.remove('is-single-mode');
-          if (collapseIcon) collapseIcon.textContent = '▴';
-          if (collapseText) collapseText.textContent = 'Thu gọn';
-          if (toggleCollapseBtn) toggleCollapseBtn.setAttribute('title', 'Thu gọn về 1 Đội');
-        }
-      }
-
       if (toggleCollapseBtn) {
         toggleCollapseBtn.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          isTimelineSingleMode = !isTimelineSingleMode;
-          applyTimelineDisplayMode(isTimelineSingleMode);
+          togglePanoramicTimeline(false);
         });
       }
 
@@ -6698,16 +6906,11 @@
 
         rail.innerHTML = cardsHtml;
 
-        // Bind click listeners to cards
+        // Bind click listeners to cards - directly inspect team
         rail.querySelectorAll('.team-rail-card').forEach(card => {
           card.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            if (isTimelineSingleMode) {
-              isTimelineSingleMode = false;
-              applyTimelineDisplayMode(isTimelineSingleMode);
-              return;
-            }
             const teamId = parseInt(card.getAttribute('data-team-id'), 10);
             const targetTeam = allTeams.find(t => t.id === teamId);
             if (targetTeam) {
@@ -6715,8 +6918,6 @@
             }
           });
         });
-
-        applyTimelineDisplayMode(isTimelineSingleMode);
 
         // Auto-scroll to active card on mobile
         const activeCard = rail.querySelector(`.team-rail-card[data-team-id="${activeId}"]`);
@@ -6807,6 +7008,14 @@
         }
 
         render8TeamTimeline();
+
+        // Auto-center active ground plot on mobile screen
+        if (window.innerWidth < 1024) {
+          const activePlot = document.querySelector(`.team-root-plot[data-team-id="${team.id}"], .team-ground-zone[data-team-id="${team.id}"]`);
+          if (activePlot) {
+            activePlot.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          }
+        }
       }
 
       function sync3DTreeWithTeam(team) {
@@ -6900,13 +7109,13 @@
             if (onchainEl) onchainEl.textContent = num;
           }
           if (!growth || !growth._isTeamSync) {
-            loadUserTeamAndSync();
+              loadUserTeamAndSync();
           }
         });
       }
 
-      /* 3. DYNAMIC GROUND SEEDS RENDERER */
-                        function escapeHtml(str) {
+      /* 3. DYNAMIC 8-ZONE GROUND & SEEDS RENDERER */
+      function escapeHtml(str) {
         if (!str) return '';
         return String(str)
           .replace(/&/g, '&amp;')
@@ -6915,6 +7124,17 @@
           .replace(/"/g, '&quot;');
       }
 
+      const DEFAULT_TEAM_COLORS = [
+        '#F36F21', // Đội 1: Cam FPT
+        '#0054A6', // Đội 2: Xanh FPT
+        '#70B928', // Đội 3: Xanh Lá FPT
+        '#9333ea', // Đội 4: Tím Thủy Chung
+        '#06b6d4', // Đội 5: Xanh Cyan
+        '#ec4899', // Đội 6: Hồng Năng Động
+        '#f59e0b', // Đội 7: Vàng Hổ Phách
+        '#10b981'  // Đội 8: Ngọc Bích
+      ];
+
       let renderGroundSeedsToken = 0;
       async function renderGroundSeeds() {
         const groundContainer = document.querySelector('.fpt-ground-inner');
@@ -6922,62 +7142,163 @@
 
         const currentToken = ++renderGroundSeedsToken;
 
-        // If activeTeam is sprouted, ground seeds are absorbed into soil (HIDDEN)
-        const isSprouted = activeTeam ? (activeTeam.is_sprouted || activeTeam.level >= 1) : false;
-        if (isSprouted) {
-          groundContainer.innerHTML = '';
-          return;
+        // Ensure all 8 teams are available
+        if (!allTeams || !allTeams.length) {
+          try {
+            allTeams = await MockDataStore.getTeams(true);
+          } catch (e) {
+            allTeams = [];
+          }
         }
 
         const allSeeds = await MockDataStore.getSeeds();
         if (currentToken !== renderGroundSeedsToken) return;
 
         groundContainer.innerHTML = '';
-        if (!allSeeds.length) return;
-
-        // If inspecting a team, filter seeds strictly belonging to this team
-        let seeds = allSeeds;
-        if (activeTeam && activeTeam.id) {
-          seeds = allSeeds.filter(s => s.team_id === activeTeam.id);
-        }
-
         const fragment = document.createDocumentFragment();
 
-        seeds.forEach((seed, index) => {
-          const btn = document.createElement('button');
-          btn.className = 'absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-135 hover:z-50 focus:z-50 z-30 group/fl flex flex-col items-center ground-seed-item';
-          btn.style.left = `${seed.x}%`;
-          btn.style.top = `${seed.y}%`;
-          btn.setAttribute('data-seed-id', seed.id);
-          btn.setAttribute('title', `${seed.book} (${seed.author})`);
+        // Render each of the 8 team zones
+        for (let i = 0; i < 8; i++) {
+          const teamId = i + 1;
+          const team = (allTeams && allTeams.find(t => t.id === teamId)) || {
+            id: teamId,
+            display_name: `Đội ${teamId}`,
+            short_name: `Đội ${teamId}`,
+            color_code: DEFAULT_TEAM_COLORS[i],
+            level: 0,
+            tree_seeds: 0,
+            total_exp: 0,
+            is_sprouted: false
+          };
 
-          const teamTag = seed.team_short_name || (activeTeam ? activeTeam.display_name : '');
-          const teamTagHtml = teamTag ? `<span style="background:#F36F21; color:#fff; font-size:9px; padding:1px 5px; border-radius:4px; margin-right:4px;">${escapeHtml(teamTag)}</span>` : '';
+          const isSprouted = team.is_sprouted || team.level >= 1 || ((team.tree_seeds || 0) >= 50);
+          const level = isSprouted ? Math.max(1, Math.min(5, team.level || 1)) : 0;
+          const isActive = activeTeam ? (activeTeam.id === teamId) : (teamId === 1);
+          const teamColor = team.color_code || team.color_primary || DEFAULT_TEAM_COLORS[i];
 
-          btn.innerHTML = `
-            <div class="absolute pointer-events-none opacity-0 group-hover/fl:opacity-100 transition-all duration-200 z-50 whitespace-nowrap bottom-full mb-2 left-1/2 -translate-x-1/2">
-              <div class="px-2.5 py-1 rounded-xl bg-[#0054A6]/95 dark:bg-slate-900/95 backdrop-blur-md text-white dark:text-slate-100 text-xs font-bold shadow-xl border border-sky-300/40 dark:border-slate-700 flex items-center gap-1.5">
-                <span>🌰</span>
-                ${teamTagHtml}
-                <span>${escapeHtml(seed.reader || 'Độc giả')}</span>
-                <span class="text-[10px] text-amber-300/80 dark:text-amber-400 font-normal">(${escapeHtml(seed.book)})</span>
-              </div>
-              <div class="w-2 h-2 bg-[#0054A6]/95 dark:bg-slate-900/95 rotate-45 mx-auto -mt-1 border-r border-b border-sky-300/40 dark:border-slate-700"></div>
-            </div>
-            <div class="relative w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 rounded-full bg-white/95 dark:bg-slate-900/95 shadow-xl border-2 border-amber-500 text-base sm:text-lg flex items-center justify-center select-none group-hover/fl:-translate-y-1 transition-transform shadow-amber-950/40">
-              <span class="leading-none flex items-center justify-center">🌰</span>
+          const levelIcon = isSprouted
+            ? (level >= 5 ? '✨' : (level >= 4 ? '🌲' : (level >= 3 ? '🌳' : (level >= 2 ? '🌿' : '🌱'))))
+            : '🌰';
+
+          const zoneEl = document.createElement('div');
+          zoneEl.className = `team-root-plot${isActive ? ' is-active-zone' : ''}`;
+          zoneEl.setAttribute('data-team-id', teamId);
+          zoneEl.style.setProperty('--team-color', teamColor);
+          zoneEl.style.setProperty('--team-color-glow', `${teamColor}55`);
+
+          const isMyTeam = (myTeam && myTeam.id === teamId);
+          const myTeamTag = isMyTeam ? `<span class="plaque-myteam">★ Tôi</span>` : '';
+
+          // Realistic Elliptical Root Ring + Botanical Garden Plaque
+          let innerContent = `
+            <!-- Organic Elliptical Ground Ring circling the tree root on the earth -->
+            <div class="root-soil-ring" title="Gốc Cây Tri Thức: ${escapeHtml(team.display_name || ('Đội ' + teamId))}"></div>
+
+            <!-- Garden Signpost Plaque planted in the soil at tree foot -->
+            <div class="root-garden-plaque" title="Click để xem chi tiết Đội ${teamId}">
+              <span class="plaque-badge" style="background: ${teamColor};">#${teamId}</span>
+              <span class="plaque-title">${escapeHtml(team.short_name || (`Đội ${teamId}`))}</span>
+              ${isSprouted 
+                ? `<span class="plaque-status status-sprouted">${levelIcon} Lv.${level}</span>`
+                : `<span class="plaque-status status-seed">🌰 ${team.tree_seeds || 0}/50</span>`
+              }
+              ${myTeamTag}
             </div>
           `;
 
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openQuoteModal(seed);
+          if (isSprouted) {
+            // Sprouted Tree: glowing nutrient aura ascending into tree root
+            innerContent += `
+              <div class="root-nutrient-glow"></div>
+              <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 text-[8.5px] font-extrabold text-emerald-300/80 uppercase tracking-wider select-none pointer-events-none whitespace-nowrap opacity-60">
+                <span>🌱</span>
+                <span>Cây Đang Lớn</span>
+              </div>
+            `;
+          } else {
+            // Unsprouted / Seed Stage: subtle soil bed prompt if empty
+            const teamSeeds = allSeeds.filter(s => s.team_id === teamId);
+            if (!teamSeeds.length) {
+              innerContent += `
+                <div class="absolute top-[64px] inset-x-0 flex flex-col items-center justify-center pointer-events-none opacity-40 hover:opacity-70 transition-opacity select-none">
+                  <span class="text-xs">🌰</span>
+                  <span class="text-[9px] text-amber-200/80 font-bold mt-0.5">Ủ mầm (${team.tree_seeds || 0}/50)</span>
+                </div>
+              `;
+            }
+          }
+
+          zoneEl.innerHTML = innerContent;
+
+          // If Level 0 (seeds nestled naturally in the soil plot), populate interactive seed buttons
+          if (!isSprouted) {
+            const teamSeeds = allSeeds.filter(s => s.team_id === teamId);
+            teamSeeds.forEach((seed, idx) => {
+              const col = idx % 3;
+              const row = Math.floor(idx / 3);
+              const jitterX = ((idx * 17 + teamId * 13) % 9) - 4;
+              const jitterY = ((idx * 23 + teamId * 19) % 11) - 5;
+              const posX = (typeof seed.zone_x === 'number') ? seed.zone_x : Math.max(16, Math.min(84, 20 + col * 30 + jitterX * 1.2));
+              const posY = Math.max(62, Math.min(145, 66 + (row % 4) * 20 + jitterY * 0.8));
+
+              const btn = document.createElement('button');
+              btn.className = 'absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-135 hover:z-50 focus:z-50 z-30 group/fl flex flex-col items-center ground-seed-item';
+              btn.style.left = `${posX}%`;
+              btn.style.top = `${posY}px`;
+              btn.setAttribute('data-seed-id', seed.id);
+              btn.setAttribute('title', `${seed.book} (${seed.author})`);
+
+              const teamTag = seed.team_short_name || (`Đội ${teamId}`);
+              const teamTagHtml = `<span style="background:${teamColor}; color:#fff; font-size:9px; padding:1px 5px; border-radius:4px; margin-right:4px;">${escapeHtml(teamTag)}</span>`;
+
+              btn.innerHTML = `
+                <div class="absolute pointer-events-none opacity-0 group-hover/fl:opacity-100 transition-all duration-200 z-50 whitespace-nowrap bottom-full mb-2 left-1/2 -translate-x-1/2">
+                  <div class="px-2.5 py-1 rounded-xl bg-[#0054A6]/95 dark:bg-slate-900/95 backdrop-blur-md text-white dark:text-slate-100 text-xs font-bold shadow-xl border border-sky-300/40 dark:border-slate-700 flex items-center gap-1.5">
+                    <span>🌰</span>
+                    ${teamTagHtml}
+                    <span>${escapeHtml(seed.reader || 'Độc giả')}</span>
+                    <span class="text-[10px] text-amber-300/80 dark:text-amber-400 font-normal">(${escapeHtml(seed.book)})</span>
+                  </div>
+                  <div class="w-2 h-2 bg-[#0054A6]/95 dark:bg-slate-900/95 rotate-45 mx-auto -mt-1 border-r border-b border-sky-300/40 dark:border-slate-700"></div>
+                </div>
+                <div class="relative w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 rounded-full bg-white/95 dark:bg-slate-900/95 shadow-lg border-2 border-amber-500 text-sm sm:text-base flex items-center justify-center select-none group-hover/fl:-translate-y-1 transition-transform shadow-amber-950/40">
+                  <span class="leading-none flex items-center justify-center">🌰</span>
+                </div>
+              `;
+
+              btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openQuoteModal(seed);
+              });
+
+              zoneEl.appendChild(btn);
+            });
+          }
+
+          // Zone Click Listener: Switch inspection or trigger ground action
+          zoneEl.addEventListener('click', (e) => {
+            if (e.target.closest('.ground-seed-item')) return;
+            if (!activeTeam || activeTeam.id !== teamId) {
+              const targetTeam = allTeams.find(t => t.id === teamId) || team;
+              inspectTeam(targetTeam);
+            } else {
+              handleGroundAction(e);
+            }
           });
 
-          fragment.appendChild(btn);
-        });
+          fragment.appendChild(zoneEl);
+        }
 
         groundContainer.appendChild(fragment);
+
+        // Auto-center active plot on mobile screen
+        if (activeTeam && window.innerWidth < 1024) {
+          const activePlot = groundContainer.querySelector(`.team-root-plot[data-team-id="${activeTeam.id}"]`);
+          if (activePlot) {
+            activePlot.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          }
+        }
       }
 
       window.renderGroundSeeds = renderGroundSeeds;
@@ -6991,6 +7312,11 @@
       });
 
       MockDataStore.subscribe('growth:updated', () => {
+        renderGroundSeeds();
+      });
+
+      MockDataStore.subscribe('teams:updated', (teams) => {
+        if (teams && Array.isArray(teams)) allTeams = teams;
         renderGroundSeeds();
       });
 
