@@ -33,9 +33,17 @@ export class SettingsService {
       throw new Error('Khóa cấu hình không hợp lệ');
     }
 
-    const adminId = (adminUser?.id && /^[0-9a-fA-F-]{36}$/.test(String(adminUser.id))) ? adminUser.id : null;
+    const candidateAdminId = (adminUser?.id && /^[0-9a-fA-F-]{36}$/.test(String(adminUser.id))) ? adminUser.id : null;
 
     const result = await db.transaction(async (client) => {
+      let adminId = null;
+      if (candidateAdminId) {
+        const check = await client.query('SELECT id FROM admin_users WHERE id = $1', [candidateAdminId]);
+        if (check.rows.length > 0) {
+          adminId = candidateAdminId;
+        }
+      }
+
       // Upsert
       const upsertRes = await client.query(`
         INSERT INTO system_settings (key, value, updated_by, updated_at)

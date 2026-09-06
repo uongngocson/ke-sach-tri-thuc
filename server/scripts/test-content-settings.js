@@ -6,12 +6,17 @@ const API_BASE = `http://127.0.0.1:${API_PORT}/api/v1`;
 const JWT_SECRET = process.env.JWT_SECRET || 'caosach_super_secure_jwt_secret_2026_production';
 let serverInstance = null;
 
-function generateAdminToken() {
+async function generateAdminToken() {
+  const adminRes = await db.query("SELECT id, username, role FROM admin_users WHERE username = 'admin' LIMIT 1");
+  const adminId = adminRes.rows[0]?.id || 'be07a95b-c197-4f8a-8830-b4c60bebe7b9';
+  const username = adminRes.rows[0]?.username || 'admin';
+  const role = adminRes.rows[0]?.role || 'admin';
+
   return jwt.sign(
     {
-      id: 'be07a95b-c197-4f8a-8830-b4c60bebe7b9',
-      username: 'admin',
-      role: 'admin',
+      id: adminId,
+      username: username,
+      role: role,
       email: 'admin@fpt.com'
     },
     JWT_SECRET,
@@ -51,7 +56,7 @@ async function runTests() {
     console.log(`🔌 Headless API test server auto-started on port ${API_PORT}`);
   }
 
-  const adminToken = generateAdminToken();
+  const adminToken = await generateAdminToken();
 
   // Test 1: Public endpoint
   console.log('📦 [1/6] Test 1: Public endpoint GET /content/settings...');

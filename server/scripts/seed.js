@@ -12,11 +12,13 @@ async function seed() {
     // 2. Seed Superadmin Account: admin / admin123
     const passwordHash = await bcrypt.hash('admin123', 10);
     await db.query(`
-      INSERT INTO admin_users (username, password_hash, full_name, role)
-      VALUES ($1, $2, $3, $4)
-      ON CONFLICT (username) DO NOTHING
+      INSERT INTO admin_users (id, username, password_hash, full_name, role)
+      VALUES ('be07a95b-c197-4f8a-8830-b4c60bebe7b9', $1, $2, $3, $4)
+      ON CONFLICT (username) DO UPDATE SET
+        password_hash = EXCLUDED.password_hash,
+        role = EXCLUDED.role;
     `, ['admin', passwordHash, 'Super Admin Cáo Sách', 'admin']);
-    console.log(' - Admin user seeded: admin / admin123');
+    console.log(' - Admin user seeded: admin / admin123 (be07a95b-c197-4f8a-8830-b4c60bebe7b9)');
 
     // 3. Seed Curated Master Quotes
     const masterQuotes = [
