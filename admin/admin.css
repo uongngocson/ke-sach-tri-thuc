@@ -37,6 +37,24 @@ body {
   background-attachment: fixed;
 }
 
+#login-view img {
+  width: 48px !important;
+  height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  object-fit: contain !important;
+  flex-shrink: 0 !important;
+}
+
+.admin-sidebar img {
+  width: 40px !important;
+  height: 40px !important;
+  max-width: 40px !important;
+  max-height: 40px !important;
+  object-fit: contain !important;
+  flex-shrink: 0 !important;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
