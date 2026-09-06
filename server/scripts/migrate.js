@@ -146,6 +146,11 @@ async function migrate() {
       tree_level INT DEFAULT 0,
       tree_seeds INT DEFAULT 0,
       color_code VARCHAR(30) DEFAULT '#70B928',
+      color_primary VARCHAR(30) DEFAULT '#70B928',
+      color_secondary VARCHAR(30) DEFAULT '#0054A6',
+      leaf_color_hex VARCHAR(30) DEFAULT '#22c55e',
+      icon VARCHAR(50) DEFAULT '🌳',
+      slogan TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
@@ -216,6 +221,21 @@ async function migrate() {
       END IF;
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='color_code') THEN
         ALTER TABLE teams ADD COLUMN color_code VARCHAR(30) DEFAULT '#70B928';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='color_primary') THEN
+        ALTER TABLE teams ADD COLUMN color_primary VARCHAR(30) DEFAULT '#70B928';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='color_secondary') THEN
+        ALTER TABLE teams ADD COLUMN color_secondary VARCHAR(30) DEFAULT '#0054A6';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='leaf_color_hex') THEN
+        ALTER TABLE teams ADD COLUMN leaf_color_hex VARCHAR(30) DEFAULT '#22c55e';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='icon') THEN
+        ALTER TABLE teams ADD COLUMN icon VARCHAR(50) DEFAULT '🌳';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='slogan') THEN
+        ALTER TABLE teams ADD COLUMN slogan TEXT;
       END IF;
 
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='user_id') THEN

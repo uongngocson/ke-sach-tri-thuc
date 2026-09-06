@@ -278,6 +278,11 @@ export class TreeManager {
 
     // Apply responsive scale and transform immediately
     this.updateAnchorTransform();
+
+    // Automatically sync fruits for this team if it reaches Level 5
+    if (this.fruitManager && typeof this.fruitManager.syncTeamFruits === 'function') {
+      this.fruitManager.syncTeamFruits(teamId);
+    }
   }
 
   setActiveTeam(teamId) {
@@ -286,9 +291,7 @@ export class TreeManager {
       this.activeTeamId = teamId;
       this.treeAnchor = this.teamAnchors[idx];
       this.tree = this.teamTrees[idx];
-      if (this.fruitManager && typeof this.fruitManager.setParentAnchor === 'function') {
-        this.fruitManager.setParentAnchor(this.treeAnchor);
-      }
+      // Do NOT move fruit groups: Each team tree reaching Level 5 keeps its own fruit cluster permanently
     }
   }
 
@@ -312,6 +315,9 @@ export class TreeManager {
       if (this.teamTrees[index]) {
         this.teamTrees[index].group.visible = false;
       }
+      if (this.fruitManager && typeof this.fruitManager.syncTeamFruits === 'function') {
+        this.fruitManager.syncTeamFruits(teamId);
+      }
       return;
     }
 
@@ -321,6 +327,8 @@ export class TreeManager {
 
     if (hasLevelChanged || !this.teamTrees[index]) {
       this.regenerateTeamTree(teamId, state.stagePreset, state.colorCode);
+    } else if (this.fruitManager && typeof this.fruitManager.syncTeamFruits === 'function') {
+      this.fruitManager.syncTeamFruits(teamId);
     }
   }
 

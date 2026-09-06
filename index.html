@@ -7662,6 +7662,9 @@
         updateBodyModalState();
       }
 
+      window.openQuoteModal = openQuoteModal;
+      window.openBookQuoteModal = openQuoteModal;
+
       function openContributeModal() {
         if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
           if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
