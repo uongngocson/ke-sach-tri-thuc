@@ -4,6 +4,7 @@ import db from '../config/database.js';
 const API_PORT = process.env.PORT || 5000;
 const API_BASE = `http://127.0.0.1:${API_PORT}/api/v1`;
 const JWT_SECRET = process.env.JWT_SECRET || 'caosach_super_secure_jwt_secret_2026_production';
+let serverInstance = null;
 
 function generateAdminToken() {
   return jwt.sign(
@@ -35,6 +36,20 @@ async function runTests() {
   console.log('🧪 =================================================================');
   console.log('🧪 RUNNING AUTOMATED TEST SUITE: CONTENT & RULES CUSTOMIZER');
   console.log('🧪 =================================================================\n');
+
+  // Ensure server is active for API tests (e.g. CI headless test runner)
+  try {
+    const check = await fetch(`http://127.0.0.1:${API_PORT}/health`, { signal: AbortSignal.timeout(1000) });
+    if (!check.ok) throw new Error('Health check non-200');
+  } catch {
+    const { server } = await import('../server.js');
+    if (!server.listening) {
+      await new Promise((resolve) => {
+        serverInstance = server.listen(API_PORT, '0.0.0.0', resolve);
+      });
+    }
+    console.log(`🔌 Headless API test server auto-started on port ${API_PORT}`);
+  }
 
   const adminToken = generateAdminToken();
 
@@ -164,6 +179,10 @@ async function runTests() {
     assert(resetData2.data.confirmButton === '🌱 Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây', 'Reset rules confirmButton restored to BTC standard');
   } catch (err) {
     assert(false, `Reset error: ${err.message}`);
+  }
+
+  if (serverInstance) {
+    await new Promise((resolve) => serverInstance.close(resolve));
   }
 
   console.log('\n=================================================================');

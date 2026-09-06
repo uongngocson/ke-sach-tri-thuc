@@ -5,7 +5,9 @@ async function testContributeModalKeys() {
   console.log('🧪 RUNNING FULL TEST SUITE: MODAL GIEO MẦM VÀO CÂY TRI THỨC');
   console.log('🧪 =================================================================\n');
 
-  const BASE_URL = 'http://localhost:5000/api/v1';
+  const API_PORT = process.env.PORT || 5000;
+  const BASE_URL = `http://127.0.0.1:${API_PORT}/api/v1`;
+  let serverInstance = null;
   let passed = 0;
   let failed = 0;
 
@@ -22,6 +24,20 @@ async function testContributeModalKeys() {
   }
 
   try {
+    // Ensure server is active for API tests (e.g. CI headless test runner)
+    try {
+      const check = await fetch(`http://127.0.0.1:${API_PORT}/health`, { signal: AbortSignal.timeout(1000) });
+      if (!check.ok) throw new Error('Health check non-200');
+    } catch {
+      const { server } = await import('../server.js');
+      if (!server.listening) {
+        await new Promise((resolve) => {
+          serverInstance = server.listen(API_PORT, '0.0.0.0', resolve);
+        });
+      }
+      console.log(`🔌 Headless API test server auto-started on port ${API_PORT}`);
+    }
+
     const testRunId = Date.now();
 
     // -------------------------------------------------------------
@@ -250,6 +266,9 @@ Những điều trông thấy mà đau đớn lòng.” ✨📚`;
     console.error('💥 Lỗi ngoài dự kiến trong quá trình test:', err);
     failed++;
   } finally {
+    if (serverInstance) {
+      await new Promise((resolve) => serverInstance.close(resolve));
+    }
     console.log('\n=================================================================');
     console.log(`📊 KẾT QUẢ KIỂM THỬ: ${passed} PASSED | ${failed} FAILED (100% SUCCESS)`);
     console.log('=================================================================\n');

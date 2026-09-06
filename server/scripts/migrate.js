@@ -142,9 +142,19 @@ async function migrate() {
       full_composition TEXT,
       target_members INT DEFAULT 0,
       actual_members INT DEFAULT 0,
+      total_exp BIGINT DEFAULT 0,
       tree_exp BIGINT DEFAULT 0,
+      level INT DEFAULT 0,
       tree_level INT DEFAULT 0,
       tree_seeds INT DEFAULT 0,
+      total_books INT DEFAULT 0,
+      total_likes INT DEFAULT 0,
+      avg_participation_rate NUMERIC(6,3) DEFAULT 0,
+      milestone_150_at TIMESTAMPTZ,
+      milestone_400_at TIMESTAMPTZ,
+      milestone_1000_at TIMESTAMPTZ,
+      milestone_2500_at TIMESTAMPTZ,
+      perfect_rounds_count INT DEFAULT 0,
       color_code VARCHAR(30) DEFAULT '#70B928',
       color_primary VARCHAR(30) DEFAULT '#70B928',
       color_secondary VARCHAR(30) DEFAULT '#0054A6',
@@ -197,10 +207,88 @@ async function migrate() {
     CREATE INDEX IF NOT EXISTS idx_daily_quotes_fp_date ON daily_quotes(user_fingerprint, quote_date);
     CREATE INDEX IF NOT EXISTS idx_daily_quotes_date ON daily_quotes(quote_date);
 
+    -- 14. Rounds Table
+    CREATE TABLE IF NOT EXISTS rounds (
+      round_number INT PRIMARY KEY CHECK (round_number BETWEEN 1 AND 15),
+      start_date DATE NOT NULL,
+      end_date DATE NOT NULL,
+      stage_type VARCHAR(20) NOT NULL CHECK (stage_type IN ('SEEDING', 'GROWTH', 'FINALS')),
+      label VARCHAR(100) NOT NULL,
+      is_active BOOLEAN DEFAULT false
+    );
+
+    -- 15. Team Rounds Table
+    CREATE TABLE IF NOT EXISTS team_rounds (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      round_number INT NOT NULL REFERENCES rounds(round_number),
+      team_id INT NOT NULL REFERENCES teams(id),
+      participants_count INT DEFAULT 0,
+      participation_rate NUMERIC(6,3) DEFAULT 0.000,
+      raw_exp NUMERIC(8,2) DEFAULT 0.00,
+      converted_exp NUMERIC(8,2) DEFAULT 0.00,
+      seeds_count INT DEFAULT 0,
+      is_sprouted_this_round BOOLEAN DEFAULT false,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS unq_team_round_idx ON team_rounds(team_id, round_number);
+
+    -- 16. Round Contributions Table
+    CREATE TABLE IF NOT EXISTS round_contributions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      round_number INT NOT NULL REFERENCES rounds(round_number),
+      user_id UUID NOT NULL REFERENCES users(id),
+      team_id INT NOT NULL REFERENCES teams(id),
+      book_id UUID REFERENCES books(id),
+      reading_code VARCHAR(100),
+      is_valid BOOLEAN DEFAULT true,
+      contributed_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS unq_user_round_participation_idx ON round_contributions(user_id, round_number);
+    CREATE INDEX IF NOT EXISTS idx_round_contrib_team ON round_contributions(team_id, round_number);
+
+    -- 17. System Settings Table
+    CREATE TABLE IF NOT EXISTS system_settings (
+      key VARCHAR(100) PRIMARY KEY,
+      value JSONB NOT NULL,
+      updated_by UUID REFERENCES admin_users(id),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
     -- Alter existing tables to associate books and exp with teams/users
     DO $$ 
     BEGIN 
       -- Ensure teams has all expected columns
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='total_exp') THEN
+        ALTER TABLE teams ADD COLUMN total_exp BIGINT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='level') THEN
+        ALTER TABLE teams ADD COLUMN level INT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='total_books') THEN
+        ALTER TABLE teams ADD COLUMN total_books INT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='total_likes') THEN
+        ALTER TABLE teams ADD COLUMN total_likes INT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='avg_participation_rate') THEN
+        ALTER TABLE teams ADD COLUMN avg_participation_rate NUMERIC(6,3) DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='milestone_150_at') THEN
+        ALTER TABLE teams ADD COLUMN milestone_150_at TIMESTAMPTZ;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='milestone_400_at') THEN
+        ALTER TABLE teams ADD COLUMN milestone_400_at TIMESTAMPTZ;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='milestone_1000_at') THEN
+        ALTER TABLE teams ADD COLUMN milestone_1000_at TIMESTAMPTZ;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='milestone_2500_at') THEN
+        ALTER TABLE teams ADD COLUMN milestone_2500_at TIMESTAMPTZ;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='perfect_rounds_count') THEN
+        ALTER TABLE teams ADD COLUMN perfect_rounds_count INT DEFAULT 0;
+      END IF;
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='display_name') THEN
         ALTER TABLE teams ADD COLUMN display_name VARCHAR(100);
       END IF;

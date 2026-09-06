@@ -56,6 +56,8 @@ jobs:
         run: |
           node scripts/migrate.js
           node scripts/migrate_daily_quotes.js || true
+          node scripts/migrate_rounds.js || true
+          node scripts/migrate_settings.js || true
           node scripts/seed.js
           node scripts/seed-teams-users.js || true
 
