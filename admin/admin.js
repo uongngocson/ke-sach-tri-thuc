@@ -18,12 +18,21 @@ const API_BASE = getApiBase();
 let authToken = localStorage.getItem('caosach_admin_token') || '';
 let currentUser = JSON.parse(localStorage.getItem('caosach_admin_user') || 'null');
 let socket = null;
+
+// Global Data Caches
+let analyticsCache = null;
 let currentBookInModal = null;
+let charts = {};
+
+// Pagination States
+let usersPageState = { page: 1, limit: 25, total: 0, totalPages: 1 };
+let ledgerPageState = { page: 1, limit: 20, total: 0, totalPages: 1 };
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
   initAuthView();
-  bindEvents();
+  bindSidebarEvents();
+  bindActionEvents();
 });
 
 function initAuthView() {
@@ -37,8 +46,7 @@ function initAuthView() {
     document.getElementById('admin-user-role').textContent = currentUser.role;
     
     initSocket();
-    loadDashboardStats();
-    loadBooks();
+    loadAllDashboardData();
   } else {
     loginView.classList.remove('hidden');
     dashboardView.classList.add('hidden');
@@ -54,30 +62,82 @@ function initSocket() {
 
   socket.on('connect', () => {
     if (badge) {
-      badge.textContent = '🟢 REALTIME ACTIVE';
-      badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+      badge.textContent = 'REALTIME ACTIVE';
+      badge.className = 'text-[10px] font-extrabold text-emerald-400';
     }
   });
 
   socket.on('disconnect', () => {
     if (badge) {
-      badge.textContent = '🔴 DISCONNECTED';
-      badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/40';
+      badge.textContent = 'DISCONNECTED';
+      badge.className = 'text-[10px] font-extrabold text-rose-400';
     }
   });
 
-  // Listen to live community events
-  socket.on('growth:updated', (growth) => {
-    updateGrowthUI(growth);
+  // Realtime updates
+  socket.on('growth:updated', () => {
+    loadAnalytics();
   });
 
-  socket.on('book:created', (book) => {
-    loadBooks();
-    loadDashboardStats();
+  socket.on('book:created', () => {
+    loadAnalytics();
+    if (isTabActive('moderation')) loadBooks();
+    if (isTabActive('ledger')) loadLedger();
   });
 }
 
-function bindEvents() {
+function isTabActive(tabName) {
+  const pane = document.getElementById(`tab-pane-${tabName}`);
+  return pane && pane.classList.contains('active');
+}
+
+// Bind Sidebar Nav
+function bindSidebarEvents() {
+  const navItems = document.querySelectorAll('#sidebar-nav .nav-item');
+  const tabTitles = {
+    'analytics': '📈 Tổng Quan & Biểu Đồ Phân Tích',
+    'teams': '🏆 Bảng Xếp Hạng & Phân Tích 8 Đội Thi Đua',
+    'users': '👥 Danh Bạ & Trạng Thái 288 Nhân Sự',
+    'rounds': '⏱️ Tiến Trình 15 Chặng Thi Đấu',
+    'moderation': '📚 Trung Tâm Hậu Kiểm Sách & Trích Dẫn',
+    'ledger': '📑 Sổ Cái EXP Minh Bạch Toàn Giải',
+    'tools': '⚙️ Công Cụ Điều Phối & Nhật Ký Kiểm Toán'
+  };
+
+  navItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const tab = item.getAttribute('data-tab');
+      if (!tab) return;
+
+      navItems.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+
+      document.querySelectorAll('.tab-content').forEach(pane => {
+        pane.classList.remove('active');
+      });
+
+      const activePane = document.getElementById(`tab-pane-${tab}`);
+      if (activePane) {
+        activePane.classList.add('active');
+      }
+
+      const titleEl = document.getElementById('page-title');
+      if (titleEl && tabTitles[tab]) {
+        titleEl.innerHTML = `<span>${tabTitles[tab]}</span>`;
+      }
+
+      // Lazy load tab data
+      if (tab === 'teams') renderTeamsTable();
+      if (tab === 'users') loadUsers();
+      if (tab === 'rounds') renderRoundsTimeline();
+      if (tab === 'moderation') loadBooks();
+      if (tab === 'ledger') loadLedger();
+      if (tab === 'tools') loadAuditLogs();
+    });
+  });
+}
+
+function bindActionEvents() {
   // Login Form
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
@@ -89,7 +149,7 @@ function bindEvents() {
       errEl.classList.add('hidden');
 
       try {
-        const res = await fetch(`${getApiBase()}/admin/auth/login`, {
+        const res = await fetch(`${API_BASE}/admin/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: u, password: p })
@@ -106,8 +166,7 @@ function bindEvents() {
           errEl.classList.remove('hidden');
         }
       } catch (err) {
-        console.error('Login error:', err);
-        errEl.textContent = 'Lỗi kết nối máy chủ backend. Vui lòng kiểm tra server cổng 5000.';
+        errEl.textContent = 'Lỗi kết nối máy chủ backend (Port 5000)';
         errEl.classList.remove('hidden');
       }
     });
@@ -126,57 +185,106 @@ function bindEvents() {
     });
   }
 
-  // Tabs
-  const tabBooksBtn = document.getElementById('tab-books-btn');
-  const tabTreeBtn = document.getElementById('tab-tree-btn');
-  const tabAuditBtn = document.getElementById('tab-audit-btn');
-
-  const contentBooks = document.getElementById('tab-books-content');
-  const contentTree = document.getElementById('tab-tree-content');
-  const contentAudit = document.getElementById('tab-audit-content');
-
-  function switchTab(activeBtn, activeContent) {
-    [tabBooksBtn, tabTreeBtn, tabAuditBtn].forEach(b => {
-      if (b) b.className = 'btn btn-ghost text-xs font-bold';
-    });
-    [contentBooks, contentTree, contentAudit].forEach(c => {
-      if (c) c.classList.add('hidden');
-    });
-
-    if (activeBtn) activeBtn.className = 'btn btn-primary text-xs font-bold';
-    if (activeContent) activeContent.classList.remove('hidden');
-  }
-
-  if (tabBooksBtn) {
-    tabBooksBtn.addEventListener('click', () => {
-      switchTab(tabBooksBtn, contentBooks);
-      loadBooks();
-    });
-  }
-  if (tabTreeBtn) {
-    tabTreeBtn.addEventListener('click', () => {
-      switchTab(tabTreeBtn, contentTree);
-    });
-  }
-  if (tabAuditBtn) {
-    tabAuditBtn.addEventListener('click', () => {
-      switchTab(tabAuditBtn, contentAudit);
-      loadAuditLogs();
+  // Global Refresh Button
+  const refreshBtn = document.getElementById('btn-global-refresh');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      loadAllDashboardData();
     });
   }
 
-  // Filters & Refresh
-  const refreshBtn = document.getElementById('btn-refresh-books');
-  if (refreshBtn) refreshBtn.addEventListener('click', loadBooks);
-  
-  const searchInput = document.getElementById('filter-search');
-  if (searchInput) searchInput.addEventListener('input', debounce(loadBooks, 300));
-  
-  const modFilter = document.getElementById('filter-moderation');
-  if (modFilter) modFilter.addEventListener('change', loadBooks);
+  // Users Filters & Search
+  const btnSearchUsers = document.getElementById('btn-search-users');
+  if (btnSearchUsers) {
+    btnSearchUsers.addEventListener('click', () => {
+      usersPageState.page = 1;
+      loadUsers();
+    });
+  }
+  const btnResetUsers = document.getElementById('btn-reset-users-filter');
+  if (btnResetUsers) {
+    btnResetUsers.addEventListener('click', () => {
+      document.getElementById('users-search').value = '';
+      document.getElementById('users-filter-team').value = '';
+      document.getElementById('users-filter-status').value = '';
+      usersPageState.page = 1;
+      loadUsers();
+    });
+  }
+  document.getElementById('users-search')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') { usersPageState.page = 1; loadUsers(); }
+  });
 
-  const visFilter = document.getElementById('filter-visibility');
-  if (visFilter) visFilter.addEventListener('change', loadBooks);
+  // Users Pagination
+  document.getElementById('users-prev-page')?.addEventListener('click', () => {
+    if (usersPageState.page > 1) {
+      usersPageState.page--;
+      loadUsers();
+    }
+  });
+  document.getElementById('users-next-page')?.addEventListener('click', () => {
+    if (usersPageState.page < usersPageState.totalPages) {
+      usersPageState.page++;
+      loadUsers();
+    }
+  });
+
+  // Export Users CSV
+  document.getElementById('btn-export-users-csv')?.addEventListener('click', exportUsersCSV);
+  document.getElementById('btn-export-teams')?.addEventListener('click', exportTeamsCSV);
+
+  // Books Refresh & Filters
+  document.getElementById('btn-refresh-books')?.addEventListener('click', loadBooks);
+  document.getElementById('filter-search')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') loadBooks();
+  });
+  document.getElementById('filter-moderation')?.addEventListener('change', loadBooks);
+  document.getElementById('filter-visibility')?.addEventListener('change', loadBooks);
+
+  // Ledger Filter & Pagination
+  document.getElementById('btn-filter-ledger')?.addEventListener('click', () => {
+    ledgerPageState.page = 1;
+    loadLedger();
+  });
+  document.getElementById('ledger-prev-page')?.addEventListener('click', () => {
+    if (ledgerPageState.page > 1) {
+      ledgerPageState.page--;
+      loadLedger();
+    }
+  });
+  document.getElementById('ledger-next-page')?.addEventListener('click', () => {
+    if (ledgerPageState.page < ledgerPageState.totalPages) {
+      ledgerPageState.page++;
+      loadLedger();
+    }
+  });
+
+  // Advance Round
+  document.getElementById('btn-advance-round')?.addEventListener('click', async () => {
+    const sel = document.getElementById('select-advance-round');
+    const targetRound = parseInt(sel.value, 10);
+    if (!confirm(`Bạn có chắc chắn muốn kích hoạt Chặng ${targetRound} không?`)) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/rounds/advance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ roundNumber: targetRound })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`🎉 ${data.message}`);
+        loadAllDashboardData();
+      } else {
+        alert(data.message || 'Lỗi chuyển chặng');
+      }
+    } catch (e) {
+      alert('Lỗi kết nối máy chủ');
+    }
+  });
 
   // Bonus EXP Form
   const bonusForm = document.getElementById('bonus-exp-form');
@@ -184,24 +292,26 @@ function bindEvents() {
     bonusForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const amount = parseInt(document.getElementById('bonus-amount').value, 10);
-      const reason = document.getElementById('bonus-reason').value;
+      const reason = document.getElementById('bonus-reason').value.trim();
+      const teamId = document.getElementById('bonus-team-id').value;
 
       try {
-        const res = await fetch(`${getApiBase()}/admin/growth/bonus`, {
+        const res = await fetch(`${API_BASE}/admin/growth/bonus`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}`
           },
-          body: JSON.stringify({ amount, reason })
+          body: JSON.stringify({ amount, reason, teamId: teamId ? parseInt(teamId, 10) : undefined })
         });
         const data = await res.json();
         if (data.success) {
           alert(`🎉 Đã tặng +${amount} EXP thành công!`);
           bonusForm.reset();
-          loadDashboardStats();
+          loadAnalytics();
+          loadAuditLogs();
         } else {
-          alert(data.message || 'Lỗi xử lý');
+          alert(data.message || 'Lỗi xử lý tặng điểm');
         }
       } catch (err) {
         alert('Lỗi kết nối máy chủ');
@@ -209,81 +319,669 @@ function bindEvents() {
     });
   }
 
-  // Modal handlers
-  const closeModBtn = document.getElementById('mod-modal-close');
-  if (closeModBtn) closeModBtn.addEventListener('click', closeModal);
+  // Modals Close
+  document.getElementById('mod-modal-close')?.addEventListener('click', closeModModal);
+  document.getElementById('team-modal-close')?.addEventListener('click', closeTeamModal);
 
-  const modReviewedBtn = document.getElementById('mod-btn-reviewed');
-  if (modReviewedBtn) modReviewedBtn.addEventListener('click', () => handleModalAction('reviewed', 'visible'));
-
-  const modHideBtn = document.getElementById('mod-btn-hide');
-  if (modHideBtn) modHideBtn.addEventListener('click', () => handleModalAction('rejected', 'deleted'));
+  // Modal Actions
+  document.getElementById('mod-btn-reviewed')?.addEventListener('click', () => handleModalAction('reviewed', 'visible'));
+  document.getElementById('mod-btn-hide')?.addEventListener('click', () => handleModalAction('rejected', 'deleted'));
 }
 
-async function loadDashboardStats() {
+async function loadAllDashboardData() {
+  await loadAnalytics();
+  if (isTabActive('teams')) renderTeamsTable();
+  if (isTabActive('users')) loadUsers();
+  if (isTabActive('rounds')) renderRoundsTimeline();
+  if (isTabActive('moderation')) loadBooks();
+  if (isTabActive('ledger')) loadLedger();
+  if (isTabActive('tools')) loadAuditLogs();
+}
+
+// =========================================================================
+// 1. ANALYTICS & CHARTS
+// =========================================================================
+async function loadAnalytics() {
   try {
-    const res = await fetch(`${getApiBase()}/admin/stats`, {
+    const res = await fetch(`${API_BASE}/admin/analytics/overview`, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     const data = await res.json();
-    if (data.success) {
-      updateGrowthUI(data.data.growth);
-    }
+    if (!data.success) return;
+
+    analyticsCache = data.data;
+    updateKPICards(analyticsCache.kpi);
+    renderCharts(analyticsCache);
+    updateAdvanceRoundSelect(analyticsCache.rounds, analyticsCache.kpi.currentRound);
   } catch (err) {
-    console.error('Error loading stats:', err);
+    console.error('Error loading analytics:', err);
   }
 }
 
-function updateGrowthUI(growth) {
-  if (!growth) return;
-  const levelEl = document.getElementById('stat-level-name');
-  if (levelEl) levelEl.textContent = growth.levelName || `Level ${growth.level}`;
-  
-  const descEl = document.getElementById('stat-level-desc');
-  if (descEl) descEl.textContent = growth.levelDesc || '';
-  
-  const badgeEl = document.getElementById('stat-level-badge');
-  if (badgeEl) badgeEl.textContent = `Level ${growth.level}`;
-  
-  const expEl = document.getElementById('stat-total-exp');
-  if (expEl) expEl.textContent = (growth.totalEXP || 0).toLocaleString();
-  
-  const pctEl = document.getElementById('stat-progress-percent');
-  if (pctEl) pctEl.textContent = `${growth.progressPercent || 0}%`;
-  
-  const barEl = document.getElementById('stat-progress-bar');
-  if (barEl) barEl.style.width = `${growth.progressPercent || 0}%`;
-  
-  const booksEl = document.getElementById('stat-total-books');
-  if (booksEl) booksEl.textContent = (growth.totalBooks || 0).toLocaleString();
-  
-  const dewsEl = document.getElementById('stat-total-dews');
-  if (dewsEl) dewsEl.textContent = (growth.totalDews || 0).toLocaleString();
-  
-  const likesEl = document.getElementById('stat-total-likes');
-  if (likesEl) likesEl.textContent = (growth.totalLikes || 0).toLocaleString();
-  
-  const readersEl = document.getElementById('stat-active-readers');
-  if (readersEl) readersEl.textContent = (growth.activeReaders || 1).toLocaleString();
+function updateKPICards(kpi) {
+  if (!kpi) return;
+
+  // KPI 1: EXP & Level
+  document.getElementById('kpi-total-exp').textContent = (kpi.totalExp || 0).toLocaleString();
+  document.getElementById('kpi-level-name').textContent = kpi.levelName || 'Cấp 0';
+  document.getElementById('kpi-level-pct').textContent = `${kpi.progressPercent || 0}%`;
+  document.getElementById('kpi-level-bar').style.width = `${kpi.progressPercent || 0}%`;
+
+  // KPI 2: Books
+  document.getElementById('kpi-total-books').textContent = (kpi.totalBooks || 0).toLocaleString();
+  const revPct = kpi.totalBooks > 0 ? Math.round((kpi.reviewedBooks / kpi.totalBooks) * 100) : 100;
+  document.getElementById('kpi-reviewed-pct').textContent = `${revPct}%`;
+
+  // Pending badge in sidebar
+  const pendingBadge = document.getElementById('nav-pending-badge');
+  if (pendingBadge) {
+    if (kpi.pendingBooks > 0) {
+      pendingBadge.textContent = kpi.pendingBooks;
+      pendingBadge.classList.remove('hidden');
+    } else {
+      pendingBadge.classList.add('hidden');
+    }
+  }
+
+  // KPI 3: Dews
+  document.getElementById('kpi-total-dews').textContent = (kpi.totalDews || 0).toLocaleString();
+
+  // KPI 4: Likes
+  document.getElementById('kpi-total-likes').textContent = (kpi.totalLikes || 0).toLocaleString();
+
+  // KPI 5: Site Visitors
+  document.getElementById('kpi-site-visitors').textContent = (kpi.siteVisitors || 1).toLocaleString();
+
+  // KPI 6: Round Rate
+  document.getElementById('kpi-round-rate').textContent = `${kpi.overallParticipationRate || 0}%`;
+  document.getElementById('kpi-round-users').textContent = `${kpi.activeRoundUsers || 0}/${kpi.totalMembers || 288}`;
+
+  // Current Round Pill
+  const pill = document.getElementById('top-round-pill');
+  if (pill && kpi.currentRound) {
+    pill.textContent = `🎯 ${kpi.currentRound.label} (${kpi.currentRound.stage_type})`;
+  }
 }
 
+function renderCharts(data) {
+  if (typeof Chart === 'undefined') return;
+
+  // Default Chart Dark Theme Options
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.font.family = "'Quicksand', sans-serif";
+  Chart.defaults.font.weight = '600';
+
+  // --- CHART 1: 14-Day Trends Combo ---
+  const ctxDaily = document.getElementById('chart-daily-trend')?.getContext('2d');
+  if (ctxDaily) {
+    if (charts.daily) charts.daily.destroy();
+
+    const labels = data.timeline.map(t => t.label);
+    const expData = data.timeline.map(t => t.exp);
+    const booksData = data.timeline.map(t => t.books);
+
+    charts.daily = new Chart(ctxDaily, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            type: 'line',
+            label: 'Điểm EXP Tích Lũy',
+            data: expData,
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.15)',
+            borderWidth: 2.5,
+            tension: 0.35,
+            fill: true,
+            yAxisID: 'yExp'
+          },
+          {
+            type: 'bar',
+            label: 'Sách Đã Gieo',
+            data: booksData,
+            backgroundColor: 'rgba(16, 185, 129, 0.75)',
+            borderColor: '#10b981',
+            borderWidth: 1.5,
+            borderRadius: 6,
+            yAxisID: 'yBooks'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { boxWidth: 12, padding: 14, font: { weight: 'bold' } } }
+        },
+        scales: {
+          x: { grid: { color: 'rgba(255, 255, 255, 0.04)' } },
+          yExp: {
+            type: 'linear',
+            position: 'left',
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            title: { display: true, text: 'EXP', color: '#38bdf8' }
+          },
+          yBooks: {
+            type: 'linear',
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: 'Số Sách', color: '#10b981' }
+          }
+        }
+      }
+    });
+  }
+
+  // --- CHART 2: Book Categories Doughnut ---
+  const ctxCat = document.getElementById('chart-categories')?.getContext('2d');
+  if (ctxCat) {
+    if (charts.categories) charts.categories.destroy();
+
+    const catLabels = data.categories.map(c => c.category);
+    const catCounts = data.categories.map(c => parseInt(c.count, 10));
+    const catColors = ['#38bdf8', '#10b981', '#f59e0b', '#a855f7', '#f43f5e', '#3b82f6', '#14b8a6', '#eab308'];
+
+    charts.categories = new Chart(ctxCat, {
+      type: 'doughnut',
+      data: {
+        labels: catLabels.length ? catLabels : ['Chưa có dữ liệu'],
+        datasets: [{
+          data: catCounts.length ? catCounts : [1],
+          backgroundColor: catColors.slice(0, Math.max(1, catLabels.length)),
+          borderColor: '#0f172a',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '66%',
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  // --- CHART 3: 8 Teams Standings Horizontal Bar ---
+  const ctxTeams = document.getElementById('chart-teams-exp')?.getContext('2d');
+  if (ctxTeams) {
+    if (charts.teams) charts.teams.destroy();
+
+    const teamLabels = data.teams.map(t => `#${t.id} ${t.shortName}`);
+    const teamExp = data.teams.map(t => parseInt(t.tree_exp, 10));
+    const teamColors = data.teams.map(t => t.color_code || '#0284c7');
+
+    charts.teams = new Chart(ctxTeams, {
+      type: 'bar',
+      data: {
+        labels: teamLabels,
+        datasets: [{
+          label: 'Tổng EXP Cây Tri Thức',
+          data: teamExp,
+          backgroundColor: teamColors,
+          borderRadius: 6,
+          borderWidth: 1,
+          borderColor: 'rgba(255, 255, 255, 0.15)'
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `EXP: ${ctx.raw.toLocaleString()} EXP`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { callback: (v) => v.toLocaleString() }
+          },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // --- CHART 4: Branch Distribution ---
+  const ctxBranches = document.getElementById('chart-branches')?.getContext('2d');
+  if (ctxBranches) {
+    if (charts.branches) charts.branches.destroy();
+
+    const branchLabels = data.branches.map(b => b.branch);
+    const totalMembers = data.branches.map(b => parseInt(b.total_members, 10));
+    const activeMembers = data.branches.map(b => parseInt(b.active_round_members, 10));
+
+    charts.branches = new Chart(ctxBranches, {
+      type: 'bar',
+      data: {
+        labels: branchLabels,
+        datasets: [
+          {
+            label: 'Tổng Nhân Sự',
+            data: totalMembers,
+            backgroundColor: 'rgba(56, 189, 248, 0.65)',
+            borderRadius: 5
+          },
+          {
+            label: 'Đã Tham Gia Vòng Này',
+            data: activeMembers,
+            backgroundColor: 'rgba(243, 111, 33, 0.85)',
+            borderRadius: 5
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  // --- CHART 5: 8 Teams Radar Multi-Criteria Analysis ---
+  const ctxRadar = document.getElementById('chart-radar-teams')?.getContext('2d');
+  if (ctxRadar && data.teams.length) {
+    if (charts.radar) charts.radar.destroy();
+
+    // Normalize metrics 0 - 100 for top 4 teams
+    const top4 = data.teams.slice(0, 4);
+    const maxExp = Math.max(...data.teams.map(t => parseInt(t.tree_exp, 10)), 1);
+    const maxBooks = Math.max(...data.teams.map(t => t.books_count), 1);
+    const maxDews = Math.max(...data.teams.map(t => t.dews_count), 1);
+
+    const radarDatasets = top4.map(t => ({
+      label: t.shortName,
+      data: [
+        Math.round((t.tree_exp / maxExp) * 100),
+        Math.round((t.books_count / maxBooks) * 100),
+        Math.round((t.dews_count / maxDews) * 100),
+        Math.round(t.current_participation_rate || 0),
+        Math.round(parseFloat(t.avg_participation_rate || 0))
+      ],
+      borderColor: t.color_code || '#38bdf8',
+      backgroundColor: (t.color_code || '#38bdf8') + '33',
+      borderWidth: 2,
+      pointRadius: 3
+    }));
+
+    charts.radar = new Chart(ctxRadar, {
+      type: 'radar',
+      data: {
+        labels: ['Tổng EXP', 'Sách Đã Gieo', 'Lượt Tưới', 'Tham Gia Vòng Này (%)', 'Tỷ Lệ TB Giải (%)'],
+        datasets: radarDatasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { boxWidth: 12, padding: 12 } }
+        },
+        scales: {
+          r: {
+            angleLines: { color: 'rgba(255, 255, 255, 0.08)' },
+            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+            suggestedMin: 0,
+            suggestedMax: 100,
+            pointLabels: { font: { size: 11, weight: 'bold' }, color: '#cbd5e1' }
+          }
+        }
+      }
+    });
+  }
+}
+
+function updateAdvanceRoundSelect(rounds, currentRound) {
+  const sel = document.getElementById('select-advance-round');
+  if (!sel || !rounds) return;
+
+  sel.innerHTML = rounds.map(r => `
+    <option value="${r.round_number}" ${r.round_number === currentRound.round_number ? 'selected' : ''}>
+      Chặng ${r.round_number}: ${r.label}
+    </option>
+  `).join('');
+}
+
+// =========================================================================
+// 2. 8 TEAMS MANAGEMENT & DETAIL MODAL
+// =========================================================================
+function renderTeamsTable() {
+  const tbody = document.getElementById('teams-table-body');
+  if (!tbody || !analyticsCache || !analyticsCache.teams) return;
+
+  const teams = analyticsCache.teams;
+  tbody.innerHTML = teams.map(t => {
+    return `
+      <tr class="hover:bg-slate-800/40 transition-colors">
+        <td class="p-3.5">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full font-black text-xs ${t.rank === 1 ? 'bg-amber-400 text-slate-950 shadow-md' : (t.rank <= 3 ? 'bg-sky-500/20 text-sky-300' : 'bg-slate-800 text-slate-400')}">
+            ${t.rank}
+          </span>
+        </td>
+        <td class="p-3.5 font-black text-white">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full shrink-0" style="background: ${t.color_code || '#0284c7'};"></span>
+            <span>${escapeHtml(t.display_name || t.name)}</span>
+          </div>
+          <div class="text-[10px] text-slate-500 font-mono">${t.code}</div>
+        </td>
+        <td class="p-3.5">
+          <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            ${t.levelName}
+          </span>
+        </td>
+        <td class="p-3.5 font-extrabold text-sky-400 text-sm">
+          ${(t.tree_exp || 0).toLocaleString()}
+        </td>
+        <td class="p-3.5 font-extrabold text-amber-400">
+          ${t.tree_seeds || 0}/50
+        </td>
+        <td class="p-3.5 font-bold text-slate-300">
+          ${t.actual_members || 0} / ${t.target_members || 40}
+        </td>
+        <td class="p-3.5">
+          <div class="font-extrabold text-white">${t.current_participation_rate || 0}%</div>
+          <div class="text-[10px] text-slate-400">${t.current_round_participants || 0} cán bộ</div>
+        </td>
+        <td class="p-3.5 font-bold text-slate-400">
+          ${parseFloat(t.avg_participation_rate || 0).toFixed(1)}%
+        </td>
+        <td class="p-3.5 font-extrabold text-emerald-400">
+          ${t.books_count || 0}
+        </td>
+        <td class="p-3.5 font-extrabold text-cyan-400">
+          ${t.dews_count || 0}
+        </td>
+        <td class="p-3.5 text-right">
+          <button onclick="openTeamModal(${t.id})" class="btn btn-ghost text-[11px] py-1 px-2.5">
+            <span>👥</span><span>Chi Tiết</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+window.openTeamModal = async function(teamId) {
+  const modal = document.getElementById('modal-team-detail');
+  const tbody = document.getElementById('team-modal-members-body');
+  const nameEl = document.getElementById('team-modal-name');
+  const subEl = document.getElementById('team-modal-sub');
+
+  if (!modal || !tbody) return;
+
+  const team = analyticsCache?.teams?.find(t => t.id === teamId);
+  if (team) {
+    nameEl.innerHTML = `<span>🏆</span><span>${escapeHtml(team.display_name || team.name)}</span>`;
+    subEl.textContent = `Tổng cộng ${team.actual_members || 0} cán bộ · Đạt ${team.tree_exp.toLocaleString()} EXP`;
+  }
+
+  modal.classList.add('show');
+  tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">Đang tải danh sách thành viên...</td></tr>';
+
+  try {
+    const res = await fetch(`${API_BASE}/teams/${teamId}/members`);
+    const data = await res.json();
+    if (data.success && data.data) {
+      tbody.innerHTML = data.data.map(m => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="p-3 font-mono text-slate-400 text-xs">${escapeHtml(m.employee_code || '')}</td>
+          <td class="p-3 font-bold text-white">${escapeHtml(m.full_name)}</td>
+          <td class="p-3 text-slate-400">${escapeHtml(m.email)}</td>
+          <td class="p-3 text-slate-400">${escapeHtml(m.branch || m.parent_department || 'FPT')}</td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${m.contributed_books_count > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'}">
+              ${m.contributed_books_count > 0 ? '✅ Đã tham gia' : '⏳ Chưa tham gia'}
+            </span>
+          </td>
+          <td class="p-3 font-bold text-white">${m.contributed_books_count || 0}</td>
+          <td class="p-3 font-extrabold text-sky-400">${(m.total_exp_earned || 0).toLocaleString()}</td>
+        </tr>
+      `).join('');
+    }
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-rose-400">Lỗi tải danh sách thành viên</td></tr>';
+  }
+};
+
+function closeTeamModal() {
+  document.getElementById('modal-team-detail')?.classList.remove('show');
+}
+
+// =========================================================================
+// 3. 288 USERS DIRECTORY & EXPORT CSV
+// =========================================================================
+async function loadUsers() {
+  const tbody = document.getElementById('users-table-body');
+  if (!tbody) return;
+
+  const search = document.getElementById('users-search')?.value.trim() || '';
+  const teamId = document.getElementById('users-filter-team')?.value || '';
+  const status = document.getElementById('users-filter-status')?.value || '';
+
+  let url = `${API_BASE}/admin/users?page=${usersPageState.page}&limit=${usersPageState.limit}`;
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+  if (teamId) url += `&teamId=${teamId}`;
+  if (status) url += `&status=${status}`;
+
+  try {
+    const res = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
+    const data = await res.json();
+    if (data.success) {
+      usersPageState.total = data.data.pagination.total;
+      usersPageState.totalPages = data.data.pagination.totalPages;
+
+      // Update Pagination UI
+      document.getElementById('users-current-page').textContent = usersPageState.page;
+      const start = (usersPageState.page - 1) * usersPageState.limit + 1;
+      const end = Math.min(usersPageState.total, usersPageState.page * usersPageState.limit);
+      document.getElementById('users-pagination-info').textContent = 
+        `Hiển thị ${usersPageState.total > 0 ? start : 0} - ${end} / ${usersPageState.total} nhân sự`;
+
+      renderUsersTable(data.data.users);
+    }
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-rose-400">Lỗi tải danh sách nhân sự</td></tr>';
+  }
+}
+
+function renderUsersTable(users) {
+  const tbody = document.getElementById('users-table-body');
+  if (!tbody) return;
+
+  if (!users || users.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-500">Không tìm thấy nhân sự nào phù hợp.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = users.map(u => `
+    <tr class="hover:bg-slate-800/40 transition-colors">
+      <td class="p-3 font-mono text-slate-400 text-xs">${escapeHtml(u.employee_code || '')}</td>
+      <td class="p-3 font-bold text-white">
+        ${escapeHtml(u.full_name)}
+        <div class="text-[10px] text-slate-500">${escapeHtml(u.job_title || '')}</div>
+      </td>
+      <td class="p-3 text-slate-400">${escapeHtml(u.email)}</td>
+      <td class="p-3 text-slate-300">
+        <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-bold">
+          ${escapeHtml(u.branch || 'BGD/TDV/CLB')}
+        </span>
+      </td>
+      <td class="p-3">
+        <span class="px-2 py-0.5 rounded text-[10.5px] font-bold" style="background: ${(u.team_color || '#0284c7')}22; color: ${u.team_color || '#38bdf8'}; border: 1px solid ${(u.team_color || '#0284c7')}44;">
+          ${escapeHtml(u.team_display_name || ('Đội ' + u.team_id))}
+        </span>
+      </td>
+      <td class="p-3">
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${u.participated_current_round ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/15 text-rose-400'}">
+          ${u.participated_current_round ? '✅ Đã gieo' : '⏳ Chưa gieo'}
+        </span>
+      </td>
+      <td class="p-3 font-bold text-emerald-400">${u.contributed_books_count || 0}</td>
+      <td class="p-3 font-extrabold text-sky-400">${(u.total_exp_earned || 0).toLocaleString()}</td>
+    </tr>
+  `).join('');
+}
+
+async function exportUsersCSV() {
+  try {
+    const res = await fetch(`${API_BASE}/admin/users?limit=300`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+    if (!data.success || !data.data.users) return;
+
+    const rows = [
+      ['Mã Nhân Viên', 'Họ Tên', 'Email', 'Giới Tính', 'Chi Nhánh / Khối', 'Phòng Ban', 'Chức Danh', 'Đội Thi Đua', 'Gieo Vòng Này', 'Sách Đã Gieo', 'EXP Kiếm Được']
+    ];
+
+    data.data.users.forEach(u => {
+      rows.push([
+        `"${u.employee_code || ''}"`,
+        `"${u.full_name || ''}"`,
+        `"${u.email || ''}"`,
+        `"${u.gender || ''}"`,
+        `"${u.branch || ''}"`,
+        `"${u.parent_department || ''}"`,
+        `"${u.job_title || ''}"`,
+        `"${u.team_display_name || ('Đội ' + u.team_id)}"`,
+        `"${u.participated_current_round ? 'Đã tham gia' : 'Chưa tham gia'}"`,
+        u.contributed_books_count || 0,
+        u.total_exp_earned || 0
+      ]);
+    });
+
+    const csvContent = '\uFEFF' + rows.map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Danh_Ba_288_Nhan_Su_FoxREAD_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+  } catch (err) {
+    alert('Lỗi xuất file CSV');
+  }
+}
+
+function exportTeamsCSV() {
+  if (!analyticsCache || !analyticsCache.teams) return;
+  const rows = [
+    ['Hạng', 'Mã Đội', 'Tên Đội', 'Cấp Độ Cây', 'Tổng EXP', 'Hạt Giống', 'Thực Tế', 'Chỉ Tiêu', 'Tỷ Lệ Vòng Này (%)', 'Tỷ Lệ TB Giải (%)', 'Sách Gieo', 'Lượt Tưới']
+  ];
+
+  analyticsCache.teams.forEach(t => {
+    rows.push([
+      t.rank,
+      `"${t.code}"`,
+      `"${t.display_name || t.name}"`,
+      `"${t.levelName}"`,
+      t.tree_exp,
+      t.tree_seeds,
+      t.actual_members,
+      t.target_members,
+      t.current_participation_rate,
+      parseFloat(t.avg_participation_rate || 0).toFixed(1),
+      t.books_count,
+      t.dews_count
+    ]);
+  });
+
+  const csvContent = '\uFEFF' + rows.map(e => e.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `Bang_Xep_Hang_8_Doi_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+}
+
+// =========================================================================
+// 4. 15-ROUND TRACKER & MATRIX
+// =========================================================================
+function renderRoundsTimeline() {
+  const container = document.getElementById('rounds-stages-container');
+  const tbody = document.getElementById('rounds-table-body');
+  if (!analyticsCache || !analyticsCache.rounds) return;
+
+  const rounds = analyticsCache.rounds;
+
+  // Stages Cards
+  const stages = [
+    { title: '🌱 GIAI ĐOẠN 1: Ủ MẦM (Chặng 1 - 3)', desc: 'Tích lũy 50 hạt giống nảy mầm cây tri thức', rounds: rounds.slice(0, 3), color: 'emerald' },
+    { title: '🌲 GIAI ĐOẠN 2: VƯƠN MÌNH (Chặng 4 - 12)', desc: 'Gieo sách hàng ngày, mở rộng cành lá và đơm hoa', rounds: rounds.slice(3, 12), color: 'sky' },
+    { title: '🌟 GIAI ĐOẠN 3: VỀ ĐÍCH (Chặng 13 - 15)', desc: 'Bứt phá điểm số, kết trái vàng và xác lập Đại Cổ Thụ', rounds: rounds.slice(12, 15), color: 'amber' }
+  ];
+
+  if (container) {
+    container.innerHTML = stages.map(s => `
+      <div class="p-4 rounded-xl bg-slate-900/80 border border-${s.color}-500/30 space-y-3">
+        <h4 class="text-xs font-black text-${s.color}-400">${s.title}</h4>
+        <p class="text-[11px] text-slate-400">${s.desc}</p>
+        <div class="space-y-1.5 pt-1">
+          ${s.rounds.map(r => `
+            <div class="flex items-center justify-between p-2 rounded-lg ${r.is_active ? 'bg-sky-500/20 border border-sky-400/40 text-white font-black' : 'bg-slate-950/60 text-slate-300'} text-xs">
+              <span class="flex items-center gap-1.5">
+                <span>${r.is_active ? '🔥' : '📍'}</span>
+                <span>Chặng ${r.round_number}</span>
+              </span>
+              <span class="text-[10px] text-slate-400 font-mono">${new Date(r.start_date).toLocaleDateString('vi-VN')} - ${new Date(r.end_date).toLocaleDateString('vi-VN')}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Table
+  if (tbody) {
+    tbody.innerHTML = rounds.map(r => `
+      <tr class="hover:bg-slate-800/40 ${r.is_active ? 'bg-sky-500/10' : ''}">
+        <td class="p-3 font-bold text-white">#${r.round_number}</td>
+        <td class="p-3 font-black text-white">${escapeHtml(r.label)}</td>
+        <td class="p-3"><span class="badge badge-info">${r.stage_type}</span></td>
+        <td class="p-3 text-slate-400 font-mono text-[11px]">
+          ${new Date(r.start_date).toLocaleDateString('vi-VN')} ➔ ${new Date(r.end_date).toLocaleDateString('vi-VN')}
+        </td>
+        <td class="p-3 font-bold text-white">${r.total_participants || 0} cán bộ</td>
+        <td class="p-3 font-bold text-emerald-400">${parseFloat(r.avg_rate || 0).toFixed(1)}%</td>
+        <td class="p-3 font-extrabold text-sky-400">${(r.total_raw_exp || 0).toLocaleString()} EXP</td>
+        <td class="p-3">
+          ${r.is_active ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-black">🟢 ĐANG DIỄN RA</span>' : '<span class="text-[10px] text-slate-500 font-bold">Chờ kích hoạt</span>'}
+        </td>
+      </tr>
+    `).join('');
+  }
+}
+
+// =========================================================================
+// 5. BOOKS MODERATION HUB
+// =========================================================================
 async function loadBooks() {
   const tbody = document.getElementById('books-table-body');
   if (!tbody) return;
 
-  const search = document.getElementById('filter-search')?.value || '';
+  const search = document.getElementById('filter-search')?.value.trim() || '';
   const modStatus = document.getElementById('filter-moderation')?.value || '';
   const visStatus = document.getElementById('filter-visibility')?.value || '';
 
-  let url = `${getApiBase()}/admin/books?page=1&limit=50`;
+  let url = `${API_BASE}/admin/books?page=1&limit=50`;
   if (search) url += `&search=${encodeURIComponent(search)}`;
   if (modStatus) url += `&moderation_status=${modStatus}`;
   if (visStatus) url += `&visibility_status=${visStatus}`;
 
   try {
-    const res = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${authToken}` }
-    });
+    const res = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
     const data = await res.json();
     if (data.success) {
       renderBooksTable(data.data.books);
@@ -304,10 +1002,10 @@ function renderBooksTable(books) {
 
   tbody.innerHTML = books.map(b => {
     let modBadge = `<span class="badge badge-pending">Chờ Duyệt</span>`;
-    if (b.moderation_status === 'reviewed') modBadge = `<span class="badge badge-reviewed">Đã Duyệt</span>`;
-    if (b.moderation_status === 'rejected') modBadge = `<span class="badge badge-hidden">Bị Loại</span>`;
+    if (b.moderation_status === 'reviewed') modBadge = `<span class="badge badge-reviewed">Đã Duyệt An Toàn</span>`;
+    if (b.moderation_status === 'rejected') modBadge = `<span class="badge badge-rejected">Bị Loại Bỏ</span>`;
 
-    let visBadge = `<span class="text-[10px] text-emerald-400 font-bold">🟢 Hiện</span>`;
+    let visBadge = `<span class="text-[10px] text-emerald-400 font-bold">🟢 Đang Hiện Trên Cây</span>`;
     if (b.visibility_status !== 'visible') visBadge = `<span class="text-[10px] text-rose-400 font-bold">🔴 Ẩn</span>`;
 
     return `
@@ -315,7 +1013,7 @@ function renderBooksTable(books) {
         <td class="p-3.5 max-w-sm">
           <div class="font-black text-white text-sm">${escapeHtml(b.title)}</div>
           <div class="text-[11px] text-sky-400 font-bold">${escapeHtml(b.author)} · <span class="text-slate-400">${escapeHtml(b.category || '')}</span></div>
-          <p class="text-slate-300 italic text-[11px] mt-1 line-clamp-2">"${escapeHtml(b.quote)}"</p>
+          <p class="text-slate-300 italic text-[11px] mt-1.5 line-clamp-2 bg-slate-950/40 p-2 rounded border border-slate-800">"${escapeHtml(b.quote)}"</p>
         </td>
         <td class="p-3.5">
           <div class="font-bold text-white">${escapeHtml(b.reader_name)}</div>
@@ -326,11 +1024,11 @@ function renderBooksTable(books) {
           <div>${modBadge}</div>
           <div>${visBadge}</div>
         </td>
-        <td class="p-3.5">
-          <span class="font-black text-amber-400">❤️ ${b.likes_count || 0}</span>
+        <td class="p-3.5 font-black text-amber-400">
+          ❤️ ${b.likes_count || 0}
         </td>
         <td class="p-3.5 text-right space-x-1 whitespace-nowrap">
-          <button onclick="openModModal('${b.id}')" class="btn btn-ghost text-[11px] py-1 px-2.5">
+          <button onclick="openModModal('${b.id}')" class="btn btn-ghost text-[11px] py-1 px-3">
             <span>⚙️</span><span>Hậu Kiểm</span>
           </button>
         </td>
@@ -341,7 +1039,7 @@ function renderBooksTable(books) {
 
 window.openModModal = async function(bookId) {
   try {
-    const res = await fetch(`${getApiBase()}/admin/books?page=1&limit=50`, {
+    const res = await fetch(`${API_BASE}/admin/books?page=1&limit=50`, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     const data = await res.json();
@@ -352,6 +1050,7 @@ window.openModModal = async function(bookId) {
     document.getElementById('mod-book-title').textContent = book.title;
     document.getElementById('mod-book-author').textContent = book.author;
     document.getElementById('mod-book-quote').textContent = `"${book.quote}"`;
+    document.getElementById('mod-book-sender').textContent = `Người gửi: ${book.reader_name} (${book.reader_email || 'N/A'}) - Gieo lúc: ${new Date(book.created_at).toLocaleString('vi-VN')}`;
     document.getElementById('mod-notes').value = book.moderation_notes || '';
     document.getElementById('mod-deduct-exp').checked = false;
 
@@ -361,9 +1060,8 @@ window.openModModal = async function(bookId) {
   }
 };
 
-function closeModal() {
-  const modal = document.getElementById('mod-modal');
-  if (modal) modal.classList.remove('show');
+function closeModModal() {
+  document.getElementById('mod-modal')?.classList.remove('show');
   currentBookInModal = null;
 }
 
@@ -374,7 +1072,7 @@ async function handleModalAction(modStatus, visStatus) {
   const deductExp = document.getElementById('mod-deduct-exp').checked;
 
   try {
-    const res = await fetch(`${getApiBase()}/admin/books/${currentBookInModal.id}/status`, {
+    const res = await fetch(`${API_BASE}/admin/books/${currentBookInModal.id}/status`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -389,9 +1087,9 @@ async function handleModalAction(modStatus, visStatus) {
     });
     const data = await res.json();
     if (data.success) {
-      closeModal();
+      closeModModal();
       loadBooks();
-      loadDashboardStats();
+      loadAnalytics();
     } else {
       alert(data.message || 'Lỗi cập nhật');
     }
@@ -400,24 +1098,112 @@ async function handleModalAction(modStatus, visStatus) {
   }
 }
 
+// =========================================================================
+// 6. EXP LEDGER
+// =========================================================================
+async function loadLedger() {
+  const tbody = document.getElementById('ledger-table-body');
+  if (!tbody) return;
+
+  const type = document.getElementById('ledger-filter-type')?.value || '';
+  const teamId = document.getElementById('ledger-filter-team')?.value || '';
+
+  let url = `${API_BASE}/admin/ledger?page=${ledgerPageState.page}&limit=${ledgerPageState.limit}`;
+  if (type) url += `&type=${type}`;
+  if (teamId) url += `&teamId=${teamId}`;
+
+  try {
+    const res = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
+    const data = await res.json();
+    if (data.success) {
+      ledgerPageState.total = data.data.pagination.total;
+      ledgerPageState.totalPages = data.data.pagination.totalPages;
+
+      // Update Pagination UI
+      document.getElementById('ledger-current-page').textContent = ledgerPageState.page;
+      const start = (ledgerPageState.page - 1) * ledgerPageState.limit + 1;
+      const end = Math.min(ledgerPageState.total, ledgerPageState.page * ledgerPageState.limit);
+      document.getElementById('ledger-pagination-info').textContent = 
+        `Hiển thị ${ledgerPageState.total > 0 ? start : 0} - ${end} / ${ledgerPageState.total} giao dịch`;
+
+      renderLedgerTable(data.data.ledger);
+    }
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-rose-400">Lỗi tải sổ cái EXP</td></tr>';
+  }
+}
+
+function renderLedgerTable(ledger) {
+  const tbody = document.getElementById('ledger-table-body');
+  if (!tbody) return;
+
+  if (!ledger || ledger.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-500">Chưa có giao dịch EXP nào.</td></tr>';
+    return;
+  }
+
+  const typeLabels = {
+    'BOOK_CONTRIBUTION': '📚 Gieo Sách (+15 EXP)',
+    'DAILY_DEW': '💧 Tưới Sương (+1 EXP)',
+    'QUOTE_LIKE': '❤️ Thích Trích Dẫn (+2 EXP)',
+    'FRUIT_HARVEST': '🍎 Hái Quả (+5 EXP)',
+    'ADMIN_BONUS': '🎁 Thưởng Sự Kiện',
+    'MODERATION_PENALTY': '🚫 Phạt Vi Phạm'
+  };
+
+  tbody.innerHTML = ledger.map(item => {
+    const isPositive = item.amount >= 0;
+    return `
+      <tr class="hover:bg-slate-800/40 transition-colors">
+        <td class="p-3 text-slate-400 font-mono text-xs">
+          ${new Date(item.created_at).toLocaleString('vi-VN')}
+        </td>
+        <td class="p-3 font-bold text-white">
+          <span class="px-2 py-0.5 rounded text-[10.5px] ${isPositive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-400'}">
+            ${typeLabels[item.type] || item.type}
+          </span>
+        </td>
+        <td class="p-3 font-extrabold text-sm ${isPositive ? 'text-emerald-400' : 'text-rose-400'}">
+          ${isPositive ? '+' : ''}${item.amount} EXP
+        </td>
+        <td class="p-3 font-bold text-slate-200">
+          ${escapeHtml(item.user_name || 'Khách vãng lai')}
+          <div class="text-[10px] text-slate-500">${escapeHtml(item.user_email || item.user_fingerprint?.slice(0, 12) || '')}</div>
+        </td>
+        <td class="p-3">
+          <span class="px-2 py-0.5 rounded text-[10.5px] font-bold" style="background: ${(item.team_color || '#0284c7')}22; color: ${item.team_color || '#38bdf8'};">
+            ${escapeHtml(item.team_display_name || (item.team_id ? 'Đội ' + item.team_id : 'Cây Chung'))}
+          </span>
+        </td>
+        <td class="p-3 font-mono text-[10px] text-slate-500 truncate max-w-xs">
+          ${item.reference_id || 'N/A'}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// =========================================================================
+// 7. AUDIT LOGS
+// =========================================================================
 async function loadAuditLogs() {
   const tbody = document.getElementById('audit-table-body');
   if (!tbody) return;
 
   try {
-    const res = await fetch(`${getApiBase()}/admin/audit-logs`, {
+    const res = await fetch(`${API_BASE}/admin/audit-logs`, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     const data = await res.json();
     if (data.success) {
       tbody.innerHTML = data.data.map(a => `
         <tr class="hover:bg-slate-800/40">
-          <td class="p-3 text-slate-400">${new Date(a.created_at).toLocaleString('vi-VN')}</td>
+          <td class="p-3 text-slate-400 font-mono text-xs">${new Date(a.created_at).toLocaleString('vi-VN')}</td>
           <td class="p-3 font-bold text-sky-300">${escapeHtml(a.admin_username || 'System')}</td>
           <td class="p-3"><span class="badge badge-reviewed">${escapeHtml(a.action)}</span></td>
-          <td class="p-3 text-slate-300">${escapeHtml(a.target_type)}</td>
-          <td class="p-3 font-mono text-[10px] text-slate-400 max-w-xs truncate">${escapeHtml(JSON.stringify(a.metadata || {}))}</td>
-          <td class="p-3 text-slate-500 font-mono text-[10px]">${escapeHtml(a.ip_address || '')}</td>
+          <td class="p-3 text-slate-300 font-mono text-xs">${escapeHtml(a.target_type)}</td>
+          <td class="p-3 font-mono text-[10px] text-slate-400 max-w-sm truncate">${escapeHtml(JSON.stringify(a.metadata || {}))}</td>
+          <td class="p-3 text-slate-500 font-mono text-[10px]">${escapeHtml(a.ip_address || '127.0.0.1')}</td>
         </tr>
       `).join('');
     }
@@ -429,12 +1215,4 @@ async function loadAuditLogs() {
 function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function debounce(func, wait) {
-  let timeout;
-  return function(...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
 }

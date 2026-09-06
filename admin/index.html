@@ -3,219 +3,795 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cáo Sách — Admin Management Portal</title>
+  <title>Cáo Sách — Trung Tâm Quản Trị & Phân Tích Dữ Liệu</title>
   <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="./admin.css">
 </head>
 <body>
 
   <!-- 1. LOGIN SCREEN -->
   <div id="login-view" class="min-h-screen flex items-center justify-center p-4">
-    <div class="glass-panel w-full max-w-md p-8">
-      <div class="flex items-center justify-center gap-3 mb-6">
-        <img src="../assets/logo.svg" alt="Cáo Sách" class="w-12 h-12 rounded-2xl shadow-md">
-        <div>
+    <div class="glass-panel w-full max-w-md p-8 relative overflow-hidden">
+      <div class="absolute -top-12 -right-12 w-36 h-36 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-12 -left-12 w-36 h-36 bg-orange-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="flex items-center justify-center gap-3.5 mb-7 text-center">
+        <img src="../assets/logo.svg" alt="Cáo Sách" class="w-13 h-13 rounded-2xl shadow-lg border border-sky-500/30">
+        <div class="text-left">
           <h1 class="text-xl font-black text-white tracking-tight">CÁO SÁCH</h1>
-          <p class="text-xs text-sky-400 font-bold tracking-wider">ADMIN MANAGEMENT PORTAL</p>
+          <p class="text-[11px] text-sky-400 font-extrabold tracking-wider uppercase">Executive Analytics & Command Center</p>
         </div>
       </div>
 
       <form id="login-form" class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Tên Đăng Nhập</label>
-          <input type="text" id="login-username" placeholder="Nhập tên tài khoản quản trị..." autocomplete="username" required
-            class="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:outline-none focus:border-sky-400">
+          <label class="block text-xs font-extrabold text-slate-300 mb-1.5">Tên Đăng Nhập Quản Trị</label>
+          <input type="text" id="login-username" value="admin" placeholder="Nhập tài khoản admin..." autocomplete="username" required
+            class="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all">
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Mật Khẩu</label>
-          <input type="password" id="login-password" placeholder="Nhập mật khẩu..." autocomplete="current-password" required
-            class="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:outline-none focus:border-sky-400">
+          <label class="block text-xs font-extrabold text-slate-300 mb-1.5">Mật Khẩu</label>
+          <input type="password" id="login-password" value="admin123" placeholder="Nhập mật khẩu..." autocomplete="current-password" required
+            class="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all">
         </div>
-        <div id="login-error" class="text-xs text-red-400 font-bold hidden"></div>
-        <button type="submit" class="w-full btn btn-primary py-3 text-sm font-black">
-          <span>🔐</span><span>Đăng Nhập Quản Trị</span>
+        <div id="login-error" class="text-xs text-red-400 font-bold p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 hidden"></div>
+        <button type="submit" class="w-full btn btn-primary py-3 text-sm font-black tracking-wide shadow-lg mt-2">
+          <span>🔐</span><span>Đăng Nhập Command Center</span>
         </button>
       </form>
     </div>
   </div>
 
   <!-- 2. MAIN DASHBOARD VIEW -->
-  <div id="dashboard-view" class="hidden min-h-screen pb-12">
-    <!-- Top Navigation Bar -->
-    <header class="glass-panel rounded-none border-x-0 border-t-0 sticky top-0 z-40 px-6 py-3.5 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <img src="../assets/logo.svg" alt="Cáo Sách" class="w-9 h-9 rounded-xl shadow-md">
-        <div>
-          <h2 class="text-base font-black text-white flex items-center gap-2">
-            <span>CÁO SÁCH PORTAL</span>
-            <span id="socket-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-              🟢 REALTIME ACTIVE
-            </span>
-          </h2>
-          <p class="text-[11px] text-slate-400 font-bold">Hệ thống điều phối & hậu kiểm tri thức</p>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs">
-          <span>👤</span>
-          <span id="admin-user-name" class="font-bold text-sky-300">Admin</span>
-          <span id="admin-user-role" class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 text-[10px] font-black uppercase">Admin</span>
-        </div>
-        <button id="btn-logout" class="btn btn-danger text-xs">
-          <span>🚪</span><span>Đăng Xuất</span>
-        </button>
-      </div>
-    </header>
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
-      <!-- Row 1: Metrics Overview & Level Progress -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Metric 1: Tree Level & EXP -->
-        <div class="glass-panel p-5 md:col-span-2 space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="text-2xl">🌳</span>
-              <div>
-                <h3 id="stat-level-name" class="text-base font-black text-white">Đang tải...</h3>
-                <p id="stat-level-desc" class="text-xs text-slate-400 font-bold">Mô tả cấp độ</p>
-              </div>
-            </div>
-            <div class="text-right">
-              <span id="stat-level-badge" class="px-2.5 py-1 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/40 text-xs font-black">
-                Level 0
-              </span>
-            </div>
-          </div>
-          <div class="space-y-1.5">
-            <div class="flex justify-between text-xs font-black">
-              <span class="text-sky-400"><strong id="stat-total-exp">0</strong> EXP Toàn Cầu</span>
-              <span id="stat-progress-percent" class="text-amber-400">0%</span>
-            </div>
-            <div class="progress-track">
-              <div id="stat-progress-bar" class="progress-fill" style="width: 0%;"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Metric 2: Books Count -->
-        <div class="glass-panel p-5 flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-400">Sách Đã Gieo</span>
-            <span class="text-xl">📚</span>
-          </div>
+  <div id="dashboard-view" class="hidden min-h-screen flex flex-col md:flex-row">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="admin-sidebar p-4 flex flex-col justify-between">
+      <div class="space-y-6">
+        <!-- Logo & Branding -->
+        <div class="flex items-center gap-3 px-2 py-1">
+          <img src="../assets/logo.svg" alt="Cáo Sách" class="w-10 h-10 rounded-xl shadow-md border border-sky-400/20">
           <div>
-            <div id="stat-total-books" class="text-2xl font-black text-white">0</div>
-            <p class="text-[11px] text-emerald-400 font-bold flex items-center gap-1">
-              <span>⚡</span><span>Tự động duyệt 100%</span>
-            </p>
+            <h2 class="text-sm font-black text-white tracking-wide">CÁO SÁCH</h2>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="socket-status-badge" class="text-[10px] font-extrabold text-emerald-400">REALTIME ACTIVE</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Live Moderation Feed Header -->
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2">
-          <span class="text-base">📚</span>
-          <h3 class="text-sm font-black text-white">HẬU KIỂM SÁCH (LIVE MODERATION FEED)</h3>
-        </div>
-        <span class="text-xs text-emerald-400 font-bold flex items-center gap-1">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>Tự động cập nhật trực tiếp</span>
-        </span>
-      </div>
-
-      <!-- MODERATION & BOOKS LIVE FEED -->
-      <div id="tab-books-content" class="space-y-4">
-        <!-- Filter toolbar -->
-        <div class="glass-panel p-4 flex flex-wrap items-center justify-between gap-3">
-          <div class="flex flex-wrap items-center gap-2">
-            <input type="text" id="filter-search" placeholder="🔍 Tìm tên sách, tác giả, người gửi..."
-              class="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400 w-64">
-            
-            <select id="filter-moderation" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
-              <option value="">Tất cả kiểm duyệt</option>
-              <option value="pending_review">Chờ Hậu Kiểm (Pending)</option>
-              <option value="reviewed">Đã Duyệt An Toàn (Reviewed)</option>
-              <option value="flagged">Bị Báo Cáo (Flagged)</option>
-              <option value="rejected">Bị Từ Chối (Rejected)</option>
-            </select>
-
-            <select id="filter-visibility" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
-              <option value="">Tất cả hiển thị</option>
-              <option value="visible">Đang Hiện (Visible)</option>
-              <option value="hidden">Đang Ẩn (Hidden)</option>
-              <option value="deleted">Đã Xóa (Deleted)</option>
-            </select>
+        <!-- Navigation Menu -->
+        <nav class="space-y-1.5" id="sidebar-nav">
+          <div class="nav-item active" data-tab="analytics">
+            <span class="text-base">📈</span>
+            <span>Tổng Quan & Biểu Đồ</span>
           </div>
+          <div class="nav-item" data-tab="teams">
+            <span class="text-base">🏆</span>
+            <span>8 Đội Thi Đua</span>
+          </div>
+          <div class="nav-item" data-tab="users">
+            <span class="text-base">👥</span>
+            <span>288 Nhân Sự</span>
+          </div>
+          <div class="nav-item" data-tab="rounds">
+            <span class="text-base">⏱️</span>
+            <span>15 Chặng Thi Đấu</span>
+          </div>
+          <div class="nav-item flex items-center justify-between" data-tab="moderation">
+            <div class="flex items-center gap-2.5">
+              <span class="text-base">📚</span>
+              <span>Hậu Kiểm Sách</span>
+            </div>
+            <span id="nav-pending-badge" class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-black hidden">0</span>
+          </div>
+          <div class="nav-item" data-tab="ledger">
+            <span class="text-base">📑</span>
+            <span>Sổ Cái EXP</span>
+          </div>
+          <div class="nav-item" data-tab="tools">
+            <span class="text-base">⚙️</span>
+            <span>Điều Phối & Audit Logs</span>
+          </div>
+        </nav>
+      </div>
 
-          <button id="btn-refresh-books" class="btn btn-ghost text-xs">
-            <span>🔄</span><span>Làm Mới</span>
+      <!-- User Profile & Logout -->
+      <div class="pt-4 border-t border-slate-800/80 space-y-3">
+        <div class="flex items-center justify-between px-2">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-xs font-black text-sky-300">
+              AD
+            </div>
+            <div class="overflow-hidden">
+              <p id="admin-user-name" class="text-xs font-extrabold text-white truncate max-w-[110px]">Admin</p>
+              <p id="admin-user-role" class="text-[9.5px] text-sky-400 font-bold uppercase">Superadmin</p>
+            </div>
+          </div>
+          <button id="btn-logout" class="btn btn-ghost px-2 py-1 text-slate-400 hover:text-rose-400" title="Đăng xuất">
+            🚪
           </button>
         </div>
+      </div>
+    </aside>
 
-        <!-- Books Table / Cards -->
-        <div class="glass-panel overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-slate-900/90 text-slate-400 uppercase font-black tracking-wider text-[10px] border-b border-slate-800">
-                <tr>
-                  <th class="p-3.5">Sách & Trích Dẫn</th>
-                  <th class="p-3.5">Người Gieo</th>
-                  <th class="p-3.5">Tình Trạng</th>
-                  <th class="p-3.5">Tương Tác</th>
-                  <th class="p-3.5 text-right">Thao Tác Hậu Kiểm</th>
-                </tr>
-              </thead>
-              <tbody id="books-table-body" class="divide-y divide-slate-800/60 font-medium text-slate-200">
-                <tr>
-                  <td colspan="5" class="p-6 text-center text-slate-500">Đang tải danh sách sách...</td>
-                </tr>
-              </tbody>
-            </table>
+    <!-- MAIN CONTENT WRAPPER -->
+    <main class="flex-1 flex flex-col min-w-0 bg-[#080C14]">
+      
+      <!-- TOP HEADER BAR -->
+      <header class="h-16 border-b border-slate-800/80 px-6 flex items-center justify-between bg-slate-950/40 backdrop-blur sticky top-0 z-20">
+        <div class="flex items-center gap-3">
+          <h2 id="page-title" class="text-base font-black text-white flex items-center gap-2">
+            <span>📈 Tổng Quan & Biểu Đồ Phân Tích</span>
+          </h2>
+          <span id="top-round-pill" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-500/15 border border-sky-400/30 text-sky-300">
+            🌱 Chặng 1: Khởi Động Vườn Tri Thức
+          </span>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button id="btn-global-refresh" class="btn btn-ghost text-xs py-1.5 px-3">
+            <span>🔄</span><span>Làm Mới</span>
+          </button>
+          <a href="/" target="_blank" class="btn btn-primary text-xs py-1.5 px-3">
+            <span>🌳</span><span>Xem Cây 3D</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- CONTENT PANES -->
+      <div class="flex-1 p-6 space-y-6 overflow-y-auto max-w-[1600px] w-full mx-auto">
+        
+        <!-- ============================================== -->
+        <!-- TAB 1: EXECUTIVE ANALYTICS & CHARTS            -->
+        <!-- ============================================== -->
+        <div id="tab-pane-analytics" class="tab-content active space-y-6">
+          
+          <!-- Row 1: 6 KPI Cards -->
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            
+            <!-- KPI 1: Total EXP -->
+            <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #38bdf8, #0284c7);">
+              <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                <span>Tổng EXP Toàn Cầu</span>
+                <span class="text-base">✨</span>
+              </div>
+              <div class="text-2xl font-black text-white" id="kpi-total-exp">0</div>
+              <div class="flex items-center justify-between text-[10.5px] font-extrabold text-sky-400 mt-1">
+                <span id="kpi-level-name">Cấp 0</span>
+                <span id="kpi-level-pct">0%</span>
+              </div>
+              <div class="progress-track mt-1.5">
+                <div id="kpi-level-bar" class="progress-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- KPI 2: Total Books -->
+            <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #10b981, #059669);">
+              <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                <span>Sách Đã Gieo</span>
+                <span class="text-base">📚</span>
+              </div>
+              <div class="text-2xl font-black text-white" id="kpi-total-books">0</div>
+              <div class="text-[10.5px] text-emerald-400 font-extrabold flex items-center gap-1 mt-1">
+                <span id="kpi-reviewed-pct">100%</span>
+                <span class="text-slate-400 font-semibold">đã duyệt</span>
+              </div>
+            </div>
+
+            <!-- KPI 3: Total Dews -->
+            <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #06b6d4, #0891b2);">
+              <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                <span>Lượt Tưới Sương</span>
+                <span class="text-base">💧</span>
+              </div>
+              <div class="text-2xl font-black text-white" id="kpi-total-dews">0</div>
+              <div class="text-[10.5px] text-cyan-400 font-extrabold flex items-center gap-1 mt-1">
+                <span>+1 EXP</span>
+                <span class="text-slate-400 font-semibold">chăm sóc cây</span>
+              </div>
+            </div>
+
+            <!-- KPI 4: Total Likes -->
+            <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #f43f5e, #e11d48);">
+              <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                <span>Lượt Yêu Thích</span>
+                <span class="text-base">❤️</span>
+              </div>
+              <div class="text-2xl font-black text-white" id="kpi-total-likes">0</div>
+              <div class="text-[10.5px] text-rose-400 font-extrabold flex items-center gap-1 mt-1">
+                <span>Lan tỏa</span>
+                <span class="text-slate-400 font-semibold">trích dẫn hay</span>
+              </div>
+            </div>
+
+            <!-- KPI 5: Real Visitors -->
+            <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #a855f7, #7c3aed);">
+              <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                <span>Độc Giả Ghé Thăm</span>
+                <span class="text-base">👥</span>
+              </div>
+              <div class="text-2xl font-black text-white" id="kpi-site-visitors">0</div>
+              <div class="text-[10.5px] text-purple-400 font-extrabold flex items-center gap-1 mt-1">
+                <span>Thiết bị duy nhất</span>
+              </div>
+            </div>
+
+            <!-- KPI 6: Round Participation -->
+            <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #F36F21, #ea580c);">
+              <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                <span>Tham Gia Vòng Này</span>
+                <span class="text-base">🎯</span>
+              </div>
+              <div class="text-2xl font-black text-white" id="kpi-round-rate">0%</div>
+              <div class="text-[10.5px] text-orange-400 font-extrabold flex items-center gap-1 mt-1">
+                <span id="kpi-round-users">0/288</span>
+                <span class="text-slate-400 font-semibold">cán bộ</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Row 2: Charts Row 1 (14-Day Trends Combo + Categories Donut) -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Chart 1: Daily EXP & Books Trend (2 Cols) -->
+            <div class="chart-card lg:col-span-2">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-sm font-black text-white flex items-center gap-2">
+                    <span>📈</span><span>Xu Hướng Tăng Trưởng EXP & Sách (14 Ngày Qua)</span>
+                  </h3>
+                  <p class="text-xs text-slate-400 font-bold">Thống kê điểm kinh nghiệm tích lũy và số lượng sách được gieo mỗi ngày</p>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 text-[10px] font-black border border-sky-500/30">
+                  14 NGÀY
+                </span>
+              </div>
+              <div class="chart-box" style="height: 280px;">
+                <canvas id="chart-daily-trend"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 2: Book Categories Donut (1 Col) -->
+            <div class="chart-card">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-sm font-black text-white flex items-center gap-2">
+                    <span>🍩</span><span>Cơ Cấu Thể Loại Sách</span>
+                  </h3>
+                  <p class="text-xs text-slate-400 font-bold">Tỷ lệ các chủ đề tri thức được độc giả chia sẻ</p>
+                </div>
+              </div>
+              <div class="chart-box flex items-center justify-center" style="height: 280px;">
+                <canvas id="chart-categories"></canvas>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Row 3: Charts Row 2 (8 Teams Standings + Branch Participation) -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Chart 3: 8 Teams Standings Bar Chart (2 Cols) -->
+            <div class="chart-card lg:col-span-2">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-sm font-black text-white flex items-center gap-2">
+                    <span>🏆</span><span>Xếp Hạng Điểm Số & Cây Tri Thức Của 8 Đội</span>
+                  </h3>
+                  <p class="text-xs text-slate-400 font-bold">Tổng EXP tích lũy của từng Cây Tri Thức theo bảng xếp hạng thời gian thực</p>
+                </div>
+              </div>
+              <div class="chart-box" style="height: 280px;">
+                <canvas id="chart-teams-exp"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 4: Branch / Department Activity (1 Col) -->
+            <div class="chart-card">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-sm font-black text-white flex items-center gap-2">
+                    <span>📊</span><span>Phân Bố Nhân Sự Theo Khối</span>
+                  </h3>
+                  <p class="text-xs text-slate-400 font-bold">Số lượng cán bộ thuộc BGD, TDV, CLB FoxREAD</p>
+                </div>
+              </div>
+              <div class="chart-box" style="height: 280px;">
+                <canvas id="chart-branches"></canvas>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Row 4: Multi-dimensional Radar Chart of Teams -->
+          <div class="chart-card">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-sm font-black text-white flex items-center gap-2">
+                  <span>🕸️</span><span>Biểu Đồ Radar: So Sánh Toàn Diện Sức Mạnh 8 Đội</span>
+                </h3>
+                <p class="text-xs text-slate-400 font-bold">Đánh giá đa chiều 5 tiêu chí: Tổng EXP, Sách đã gieo, Lượt tưới sương, Tỷ lệ tham gia vòng này, Tỷ lệ TB toàn giải</p>
+              </div>
+            </div>
+            <div class="chart-box" style="height: 360px;">
+              <canvas id="chart-radar-teams"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 2: 8 TEAMS DEEP-DIVE TABLE & DRAWER        -->
+        <!-- ============================================== -->
+        <div id="tab-pane-teams" class="tab-content space-y-4">
+          <div class="glass-panel p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div>
+                <h3 class="text-sm font-black text-white flex items-center gap-2">
+                  <span>🏆</span><span>BẢNG XẾP HẠNG THỜI GIAN THỰC 8 ĐỘI THI ĐUA</span>
+                </h3>
+                <p class="text-xs text-slate-400 font-bold">Chi tiết Cây Tri Thức, điểm số chặng, chỉ tiêu thành viên và các mốc vươn cấp</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="btn-export-teams" class="btn btn-ghost text-xs">
+                  <span>📥</span><span>Xuất Báo Cáo 8 Đội</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Hạng</th>
+                    <th>Đội</th>
+                    <th>Cấp Cây</th>
+                    <th>Tổng EXP</th>
+                    <th>Hạt Giống</th>
+                    <th>Thành Viên (Thực Tế/Chỉ Tiêu)</th>
+                    <th>Tham Gia Vòng Này</th>
+                    <th>Tỷ Lệ TB Giải</th>
+                    <th>Sách Gieo</th>
+                    <th>Lượt Tưới</th>
+                    <th class="text-right">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody id="teams-table-body">
+                  <tr><td colspan="11" class="p-6 text-center text-slate-500">Đang tải số liệu 8 đội...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 3: 288 PERSONNEL DIRECTORY & SEARCH        -->
+        <!-- ============================================== -->
+        <div id="tab-pane-users" class="tab-content space-y-4">
+          <div class="glass-panel p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="text-sm font-black text-white flex items-center gap-2">
+                  <span>👥</span><span>DANH BẠ 288 NHÂN SỰ BGD / TDV / CLB FOXREAD</span>
+                </h3>
+                <p class="text-xs text-slate-400 font-bold">Quản lý và tra cứu trạng thái tham gia thi đua của 100% cán bộ</p>
+              </div>
+              <button id="btn-export-users-csv" class="btn btn-success text-xs">
+                <span>📥</span><span>Xuất Danh Sách Excel/CSV</span>
+              </button>
+            </div>
+
+            <!-- Filters Toolbar -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+              <input type="text" id="users-search" placeholder="🔍 Tìm tên, email, mã NV..."
+                class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400">
+              
+              <select id="users-filter-team" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
+                <option value="">Tất cả các Đội (1-8)</option>
+                <option value="1">Đội 1</option>
+                <option value="2">Đội 2</option>
+                <option value="3">Đội 3</option>
+                <option value="4">Đội 4</option>
+                <option value="5">Đội 5</option>
+                <option value="6">Đội 6</option>
+                <option value="7">Đội 7</option>
+                <option value="8">Đội 8</option>
+              </select>
+
+              <select id="users-filter-status" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
+                <option value="">Tất cả trạng thái vòng này</option>
+                <option value="participated">✅ Đã gieo sách vòng này</option>
+                <option value="not_participated">⏳ Chưa gieo sách vòng này</option>
+              </select>
+
+              <div class="flex items-center gap-2">
+                <button id="btn-search-users" class="btn btn-primary text-xs w-full">
+                  <span>🔎</span><span>Lọc Nhân Sự</span>
+                </button>
+                <button id="btn-reset-users-filter" class="btn btn-ghost text-xs">
+                  <span>✕</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Mã NV</th>
+                    <th>Họ & Tên</th>
+                    <th>Email</th>
+                    <th>Khối / Chi Nhánh</th>
+                    <th>Đội Thi Đua</th>
+                    <th>Vòng Này</th>
+                    <th>Sách Đã Gieo</th>
+                    <th>EXP Cá Nhân</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body">
+                  <tr><td colspan="8" class="p-6 text-center text-slate-500">Đang tải danh sách 288 nhân sự...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Users Pagination -->
+            <div class="flex items-center justify-between text-xs text-slate-400 pt-2">
+              <span id="users-pagination-info">Hiển thị 0 - 0 / 288 nhân sự</span>
+              <div class="flex items-center gap-2">
+                <button id="users-prev-page" class="btn btn-ghost text-xs px-2.5 py-1">Trước</button>
+                <span id="users-current-page" class="font-bold text-white px-2">1</span>
+                <button id="users-next-page" class="btn btn-ghost text-xs px-2.5 py-1">Tiếp</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 4: 15-ROUND TRACKER & MATCH SCHEDULE       -->
+        <!-- ============================================== -->
+        <div id="tab-pane-rounds" class="tab-content space-y-6">
+          <div class="glass-panel p-5 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="text-sm font-black text-white flex items-center gap-2">
+                  <span>⏱️</span><span>TIẾN TRÌNH 15 CHẶNG THI ĐẤU TOÀN GIẢI</span>
+                </h3>
+                <p class="text-xs text-slate-400 font-bold">3 Giai đoạn: Ủ Mầm (1-3) ➔ Vươn Mình (4-12) ➔ Về Đích (13-15)</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-300">Chuyển chặng thử nghiệm:</span>
+                <select id="select-advance-round" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs">
+                  <!-- Generated via JS -->
+                </select>
+                <button id="btn-advance-round" class="btn btn-warning text-xs">
+                  <span>⚡</span><span>Kích Hoạt Chặng</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 15-Round Timeline Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="rounds-stages-container">
+              <!-- Rendered via JS -->
+            </div>
+
+            <!-- Rounds Detail Table -->
+            <div>
+              <h4 class="text-xs font-black text-slate-300 uppercase tracking-wider mb-3">Ma Trận Điểm Số & Tỷ Lệ Tham Gia 15 Chặng</h4>
+              <div class="overflow-x-auto rounded-xl border border-slate-800">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Chặng</th>
+                      <th>Tên Chặng</th>
+                      <th>Giai Đoạn</th>
+                      <th>Thời Gian</th>
+                      <th>Tổng Lượt Tham Gia</th>
+                      <th>Tỷ Lệ TB</th>
+                      <th>Tổng EXP Gieo</th>
+                      <th>Trạng Thái</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rounds-table-body">
+                    <tr><td colspan="8" class="p-6 text-center text-slate-500">Đang tải ma trận 15 chặng...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 5: BOOKS MODERATION HUB                    -->
+        <!-- ============================================== -->
+        <div id="tab-pane-moderation" class="tab-content space-y-4">
+          <div class="glass-panel p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="text-sm font-black text-white flex items-center gap-2">
+                  <span>📚</span><span>TRUNG TÂM HẬU KIỂM SÁCH & TRÍCH DẪN</span>
+                </h3>
+                <p class="text-xs text-slate-400 font-bold">Toàn bộ sách được auto-approve lên cây ngay lập tức (+15 EXP) và kiểm duyệt hậu kiểm tại đây</p>
+              </div>
+            </div>
+
+            <!-- Moderation Toolbar -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-1">
+              <input type="text" id="filter-search" placeholder="🔍 Tìm tên sách, tác giả, người gieo..."
+                class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400">
+              
+              <select id="filter-moderation" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
+                <option value="">Tất cả trạng thái kiểm duyệt</option>
+                <option value="pending_review">Chờ Hậu Kiểm (Pending)</option>
+                <option value="reviewed">Đã Duyệt An Toàn (Reviewed)</option>
+                <option value="flagged">Bị Báo Cáo (Flagged)</option>
+                <option value="rejected">Bị Loại Bỏ (Rejected)</option>
+              </select>
+
+              <select id="filter-visibility" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
+                <option value="">Tất cả hiển thị</option>
+                <option value="visible">Đang Hiện Trên Cây (Visible)</option>
+                <option value="hidden">Đang Ẩn (Hidden)</option>
+                <option value="deleted">Đã Xóa (Deleted)</option>
+              </select>
+
+              <button id="btn-refresh-books" class="btn btn-primary text-xs">
+                <span>🔄</span><span>Lọc Sách</span>
+              </button>
+            </div>
+
+            <!-- Books Table -->
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Sách & Trích Dẫn</th>
+                    <th>Người Gieo</th>
+                    <th>Tình Trạng</th>
+                    <th>Tương Tác</th>
+                    <th class="text-right">Thao Tác Hậu Kiểm</th>
+                  </tr>
+                </thead>
+                <tbody id="books-table-body">
+                  <tr><td colspan="5" class="p-6 text-center text-slate-500">Đang tải kho sách...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 6: EXP LEDGER & TRANSPARENCY               -->
+        <!-- ============================================== -->
+        <div id="tab-pane-ledger" class="tab-content space-y-4">
+          <div class="glass-panel p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="text-sm font-black text-white flex items-center gap-2">
+                  <span>📑</span><span>SỔ CÁI EXP MINH BẠCH (EXP LEDGER)</span>
+                </h3>
+                <p class="text-xs text-slate-400 font-bold">Lưu vết 100% mọi giao dịch cộng/trừ điểm kinh nghiệm của toàn bộ thành viên và các đội</p>
+              </div>
+            </div>
+
+            <!-- Ledger Filter Toolbar -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              <select id="ledger-filter-type" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
+                <option value="">Tất cả loại giao dịch</option>
+                <option value="BOOK_CONTRIBUTION">Gieo Sách (+15 EXP)</option>
+                <option value="DAILY_DEW">Tưới Sương (+1 EXP)</option>
+                <option value="QUOTE_LIKE">Thích Trích Dẫn (+2 EXP)</option>
+                <option value="FRUIT_HARVEST">Hái Quả Tri Thức (+5 EXP)</option>
+                <option value="ADMIN_BONUS">Thưởng Quản Trị Viên (Bonus)</option>
+                <option value="MODERATION_PENALTY">Phạt Vi Phạm (-15 EXP)</option>
+              </select>
+
+              <select id="ledger-filter-team" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
+                <option value="">Tất cả các Đội (1-8)</option>
+                <option value="1">Đội 1</option>
+                <option value="2">Đội 2</option>
+                <option value="3">Đội 3</option>
+                <option value="4">Đội 4</option>
+                <option value="5">Đội 5</option>
+                <option value="6">Đội 6</option>
+                <option value="7">Đội 7</option>
+                <option value="8">Đội 8</option>
+              </select>
+
+              <button id="btn-filter-ledger" class="btn btn-primary text-xs">
+                <span>🔎</span><span>Lọc Sổ Cái</span>
+              </button>
+            </div>
+
+            <!-- Ledger Table -->
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Thời Gian</th>
+                    <th>Loại Giao Dịch</th>
+                    <th>Số Điểm EXP</th>
+                    <th>Thành Viên</th>
+                    <th>Đội Thụ Hưởng</th>
+                    <th>Mã Tham Chiếu</th>
+                  </tr>
+                </thead>
+                <tbody id="ledger-table-body">
+                  <tr><td colspan="6" class="p-6 text-center text-slate-500">Đang tải sổ cái EXP...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Ledger Pagination -->
+            <div class="flex items-center justify-between text-xs text-slate-400 pt-2">
+              <span id="ledger-pagination-info">Hiển thị 0 - 0 giao dịch</span>
+              <div class="flex items-center gap-2">
+                <button id="ledger-prev-page" class="btn btn-ghost text-xs px-2.5 py-1">Trước</button>
+                <span id="ledger-current-page" class="font-bold text-white px-2">1</span>
+                <button id="ledger-next-page" class="btn btn-ghost text-xs px-2.5 py-1">Tiếp</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 7: ADMIN TOOLS & AUDIT LOGS                -->
+        <!-- ============================================== -->
+        <div id="tab-pane-tools" class="tab-content space-y-6">
+          
+          <!-- Event Bonus Tool Card -->
+          <div class="glass-panel p-5 space-y-4">
+            <h3 class="text-sm font-black text-white flex items-center gap-2">
+              <span>🎁</span><span>CÔNG CỤ TẶNG ĐIỂM THƯỞNG SỰ KIỆN (EVENT BONUS EXP)</span>
+            </h3>
+            <p class="text-xs text-slate-400 font-bold">Thưởng điểm động viên, giải câu đố, mini-game hoặc khích lệ thi đua cho từng Đội</p>
+
+            <form id="bonus-exp-form" class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Số EXP Thưởng</label>
+                <input type="number" id="bonus-amount" min="1" max="1000" value="50" required
+                  class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Đội Nhận Thưởng</label>
+                <select id="bonus-team-id" class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
+                  <option value="">Toàn Bộ Cây Tri Thức (Global)</option>
+                  <option value="1">Đội 1</option>
+                  <option value="2">Đội 2</option>
+                  <option value="3">Đội 3</option>
+                  <option value="4">Đội 4</option>
+                  <option value="5">Đội 5</option>
+                  <option value="6">Đội 6</option>
+                  <option value="7">Đội 7</option>
+                  <option value="8">Đội 8</option>
+                </select>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-bold text-slate-300 mb-1">Lý Do Chính Thức</label>
+                <div class="flex gap-2">
+                  <input type="text" id="bonus-reason" placeholder="Ví dụ: Giải nhất Mini-game Đố Vui Sách Sáng Nay..." required
+                    class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400">
+                  <button type="submit" class="btn btn-primary text-xs shrink-0">
+                    <span>🎉</span><span>Tặng Điểm</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Audit Logs Table -->
+          <div class="glass-panel p-5 space-y-4">
+            <h3 class="text-sm font-black text-white flex items-center gap-2">
+              <span>🛡️</span><span>NHẬT KÝ KIỂM TOÁN HỆ THỐNG (AUDIT LOGS)</span>
+            </h3>
+            <p class="text-xs text-slate-400 font-bold">Lưu vết bất biến mọi hành động của Quản trị viên phục vụ thanh tra và hậu kiểm</p>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Thời Gian</th>
+                    <th>Quản Trị Viên</th>
+                    <th>Hành Động</th>
+                    <th>Đối Tượng</th>
+                    <th>Chi Tiết (Metadata)</th>
+                    <th>Địa Chỉ IP</th>
+                  </tr>
+                </thead>
+                <tbody id="audit-table-body">
+                  <tr><td colspan="6" class="p-6 text-center text-slate-500">Đang tải nhật ký kiểm toán...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
-    </div>
+    </main>
   </div>
 
-  <!-- ACTION MODAL (MODERATE / HIDE BOOK) -->
+  <!-- MODAL 1: MODERATE BOOK -->
   <div id="mod-modal" class="modal-backdrop">
     <div class="modal-card space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h4 id="mod-modal-title" class="text-sm font-black text-white">Xử Lý Sách</h4>
+        <h4 id="mod-modal-title" class="text-sm font-black text-white flex items-center gap-2">
+          <span>📚</span><span>Hậu Kiểm Sách & Trích Dẫn</span>
+        </h4>
         <button id="mod-modal-close" class="text-slate-400 hover:text-white text-base font-bold">✕</button>
       </div>
 
       <div class="space-y-3">
-        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
+        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs space-y-1">
           <div id="mod-book-title" class="font-black text-sky-400 text-sm">Tên sách</div>
           <div id="mod-book-author" class="text-slate-400 font-bold">Tác giả</div>
-          <p id="mod-book-quote" class="italic text-slate-300 mt-2">"Trích dẫn..."</p>
+          <p id="mod-book-quote" class="italic text-slate-300 mt-2 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">"Trích dẫn..."</p>
+          <div id="mod-book-sender" class="text-[10px] text-slate-500 font-semibold pt-1">Người gửi: Đang tải...</div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Ghi Chú Hậu Kiểm</label>
-          <input type="text" id="mod-notes" placeholder="Ghi chú nội dung..."
+          <label class="block text-xs font-bold text-slate-300 mb-1">Ghi Chú Ban Biên Tập</label>
+          <input type="text" id="mod-notes" placeholder="Ghi chú nội dung sách hoặc lý do..."
             class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400">
         </div>
 
         <div id="mod-penalty-group" class="flex items-center gap-2 pt-1">
-          <input type="checkbox" id="mod-deduct-exp" class="rounded bg-slate-900 border-slate-700 text-sky-500">
-          <label for="mod-deduct-exp" class="text-xs text-rose-400 font-bold">Trừ phạt -15 EXP (Nếu là hành vi cố ý spam nội dung xấu)</label>
+          <input type="checkbox" id="mod-deduct-exp" class="rounded bg-slate-900 border-slate-700 text-rose-500">
+          <label for="mod-deduct-exp" class="text-xs text-rose-400 font-bold">Trừ phạt -15 EXP (Nếu là hành vi cố ý spam hoặc nội dung không hợp lệ)</label>
         </div>
       </div>
 
-      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
         <button id="mod-btn-reviewed" class="btn btn-success text-xs">
           <span>✅</span><span>Duyệt An Toàn</span>
         </button>
         <button id="mod-btn-hide" class="btn btn-danger text-xs">
           <span>🚫</span><span>Ẩn Khỏi Cây</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: TEAM MEMBERS DRAWER / DETAIL -->
+  <div id="modal-team-detail" class="modal-backdrop">
+    <div class="modal-card modal-lg space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h4 id="team-modal-name" class="text-base font-black text-white flex items-center gap-2">
+            <span>🏆</span><span>Đội 1</span>
+          </h4>
+          <p id="team-modal-sub" class="text-xs text-slate-400 font-bold">Danh sách 100% cán bộ thành viên</p>
+        </div>
+        <button id="team-modal-close" class="text-slate-400 hover:text-white text-base font-bold">✕</button>
+      </div>
+
+      <div class="overflow-y-auto max-h-[60vh] rounded-xl border border-slate-800">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Mã NV</th>
+              <th>Họ & Tên</th>
+              <th>Email</th>
+              <th>Khối / Phòng Ban</th>
+              <th>Vòng Này</th>
+              <th>Sách Gieo</th>
+              <th>EXP Đóng Góp</th>
+            </tr>
+          </thead>
+          <tbody id="team-modal-members-body">
+            <tr><td colspan="7" class="p-6 text-center text-slate-500">Đang tải danh sách thành viên...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

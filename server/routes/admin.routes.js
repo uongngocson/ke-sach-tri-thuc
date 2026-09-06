@@ -1,5 +1,9 @@
 import express from 'express';
-import { adminLogin, getAdminStats, getAdminBooks, updateAdminBookStatus, adminBonusExp, getAuditLogs } from '../controllers/index.js';
+import { 
+  adminLogin, getAdminStats, getAdminBooks, updateAdminBookStatus, 
+  adminBonusExp, getAuditLogs, getAdminAnalytics, getAdminLedger, 
+  getAdminUsersDirectory, advanceAdminRound 
+} from '../controllers/index.js';
 import { authenticate, authorizeRoles } from '../middlewares/auth.js';
 import { validateBody, adminLoginSchema, updateBookStatusSchema, adminBonusExpSchema } from '../middlewares/validator.js';
 
@@ -11,6 +15,13 @@ router.post('/auth/login', validateBody(adminLoginSchema), adminLogin);
 // Protected Moderator & Admin Routes
 router.use(authenticate);
 
+// Realtime Analytics & KPIs
+router.get('/analytics/overview', authorizeRoles('moderator', 'admin'), getAdminAnalytics);
+router.get('/ledger', authorizeRoles('moderator', 'admin'), getAdminLedger);
+router.get('/users', authorizeRoles('moderator', 'admin'), getAdminUsersDirectory);
+router.post('/rounds/advance', authorizeRoles('admin'), advanceAdminRound);
+
+// Core Admin Stats & Moderation
 router.get('/stats', authorizeRoles('moderator', 'admin'), getAdminStats);
 router.get('/books', authorizeRoles('moderator', 'admin'), getAdminBooks);
 router.patch('/books/:id/status', authorizeRoles('moderator', 'admin'), validateBody(updateBookStatusSchema), updateAdminBookStatus);
