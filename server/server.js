@@ -54,7 +54,9 @@ const globalLimiter = rateLimit({
 app.use('/api/', globalLimiter);
 
 // 3. Static Admin & Public Client Servicing
+app.use('/assets', express.static(path.join(__dirname, '../assets')));
 app.use('/admin', express.static(path.join(__dirname, '../admin')));
+app.use(express.static(path.join(__dirname, '..')));
 
 // 4. API Routes
 app.use('/api/v1', apiRoutes);
