@@ -9,6 +9,17 @@ import GUI from './lil-gui.module.min.js';
 import { TreeGrowthController } from './TreeGrowthController.js';
 import { WisdomFruitManager } from './WisdomFruitManager.js';
 
+const DEFAULT_TEAM_COLORS = [
+  '#F36F21', // Đội 1: Cam FPT
+  '#0054A6', // Đội 2: Xanh FPT
+  '#70B928', // Đội 3: Xanh Lá FPT
+  '#9333ea', // Đội 4: Tím Thủy Chung
+  '#06b6d4', // Đội 5: Xanh Cyan
+  '#ec4899', // Đội 6: Hồng Năng Động
+  '#f59e0b', // Đội 7: Vàng Hổ Phách
+  '#10b981'  // Đội 8: Ngọc Bích
+];
+
 export class TreeManager {
   constructor(THREE, scene, camera) {
     this.THREE = THREE;
@@ -35,9 +46,9 @@ export class TreeManager {
         color: 0x3d2716,
         flatShading: false,
         textured: true,
-        length: 19.0,
-        radius: 2.2,
-        flare: 2.0
+        length: 17.5,
+        radius: 1.45,
+        flare: 1.55
       },
 
       branch: {
@@ -83,81 +94,323 @@ export class TreeManager {
       }
     };
 
-    // Tree Scene Anchor & Transforms
-    this.treeAnchor = new THREE.Group();
-    this.treeAnchor.name = 'TreeAnchor';
-    this.updateAnchorTransform();
-    this.scene.add(this.treeAnchor);
+    // Shared Textures for all 8 trees (single GPU load in memory)
+    this.textureLoader = new THREE.TextureLoader();
+    const barkTex = this.textureLoader.load('./assets/tree/textures/bark/bark.png');
+    barkTex.colorSpace = THREE.SRGBColorSpace;
+    barkTex.wrapS = THREE.RepeatWrapping;
+    barkTex.wrapT = THREE.RepeatWrapping;
+    barkTex.generateMipmaps = true;
+    barkTex.minFilter = THREE.LinearMipmapLinearFilter;
+    barkTex.magFilter = THREE.LinearFilter;
+    barkTex.anisotropy = 4;
+
+    const oakTex = this.textureLoader.load('./assets/tree/textures/leaves/oak.png');
+    oakTex.colorSpace = THREE.SRGBColorSpace;
+    oakTex.generateMipmaps = true;
+    oakTex.minFilter = THREE.LinearMipmapLinearFilter;
+    oakTex.magFilter = THREE.LinearFilter;
+    oakTex.anisotropy = 4;
+
+    this.sharedTextures = {
+      barkTexture: barkTex,
+      leafTextures: [null, null, oakTex, null]
+    };
 
     // Dedicated Lighting for 3D Tree
     this.#setupLighting();
 
-    // Instantiate Cây Cổ Thụ Lâu Năm
-    this.tree = new Tree(THREE, this.treeParams);
-    this.treeAnchor.add(this.tree.group);
+    // 8-Team Panorama Garden Anchors & 3D Botanical Root Demarcation Rings
+    this.teamAnchors = [];
+    this.teamTrees = [];
+    this.teamRings = [];
+    this.teamStates = [];
+    this.activeTeamId = 1;
+
+    for (let i = 0; i < 8; i++) {
+      const teamId = i + 1;
+      const anchor = new THREE.Group();
+      anchor.name = `TreeAnchor_Team_${teamId}`;
+      this.scene.add(anchor);
+
+      // 3D Botanical Root Ring encircling the tree root on the soil
+      // Uses depthTest: true so the tree trunk geometry occludes the back half of the ring
+      const ringGeo = new THREE.PlaneGeometry(16, 16);
+      ringGeo.rotateX(-Math.PI / 2);
+      const ringTex = this.#createRingTexture(DEFAULT_TEAM_COLORS[i]);
+      const ringMat = new THREE.MeshBasicMaterial({
+        map: ringTex,
+        transparent: true,
+        opacity: 0.85,
+        depthTest: true,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      });
+      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+      ringMesh.position.set(0, 0.12, 0); // Flat on soil around trunk
+      ringMesh.renderOrder = 2; // Renders after opaque trunk for natural occlusion
+      anchor.add(ringMesh);
+
+      this.teamAnchors.push(anchor);
+      this.teamTrees.push(null);
+      this.teamRings.push(ringMesh);
+      this.teamStates.push({
+        teamId,
+        level: 0,
+        isSprouted: false,
+        totalEXP: 0,
+        treeSeeds: 0,
+        colorCode: DEFAULT_TEAM_COLORS[i]
+      });
+    }
+
+    // Expose on window for easy coordination with UI
+    window.treeManager = this;
+
+    // Primary/Focus Anchor (for interactive fruits & focus events)
+    this.treeAnchor = this.teamAnchors[0];
+
+    this.updateAnchorTransform();
 
     // Initialize Master 3D Growth Controller
     this.growthController = new TreeGrowthController(this);
-    this.fruitManager = new WisdomFruitManager(THREE, scene, camera, this.treeAnchor, this);
+    this.fruitManager = new WisdomFruitManager(THREE, scene, camera, this.teamAnchors[0], this);
 
-    // Resize listener for continuous grounding
+    // Resize & scroll listener for continuous grounding
     window.addEventListener('resize', () => this.updateAnchorTransform(), { passive: true });
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', () => this.updateAnchorTransform(), { passive: true });
     }
+    const groundCont = document.querySelector('.fpt-ground-container');
+    if (groundCont) {
+      groundCont.addEventListener('scroll', () => this.updateAnchorTransform(), { passive: true });
+    }
   }
 
   /**
-   * Mathematically lock the base of the tree to the exact pixel top border of the ground dome
+   * Procedural canvas texture generator for 3D botanical root demarcation rings
    */
+  #createRingTexture(colorHex) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    const cx = 256, cy = 256;
+
+    // 1. Soft radial nutrient aura glow
+    const grad = ctx.createRadialGradient(cx, cy, 30, cx, cy, 240);
+    grad.addColorStop(0, colorHex + '00');
+    grad.addColorStop(0.55, colorHex + '33');
+    grad.addColorStop(0.85, colorHex + '18');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 512);
+
+    // 2. High-clarity dashed botanical border
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, 210, 0, Math.PI * 2);
+    ctx.strokeStyle = colorHex;
+    ctx.lineWidth = 14;
+    ctx.setLineDash([32, 20]);
+    ctx.stroke();
+
+    // 3. Crisp inner boundary ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, 195, 0, Math.PI * 2);
+    ctx.strokeStyle = colorHex;
+    ctx.lineWidth = 4;
+    ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.restore();
+
+    const texture = new this.THREE.CanvasTexture(canvas);
+    texture.generateMipmaps = true;
+    texture.minFilter = this.THREE.LinearMipmapLinearFilter;
+    return texture;
+  }
+
   /**
-   * Rebuild the entire 3D Tree Mesh with current treeParams (levels, maturity, trunk, leaves)
+   * Rebuild a specific team's 3D tree mesh
+   */
+  regenerateTeamTree(teamId, stageParams, colorCode = null) {
+    const THREE = this.THREE;
+    const index = teamId - 1;
+    if (index < 0 || index >= 8) return;
+
+    const anchor = this.teamAnchors[index];
+    if (!anchor) return;
+
+    if (this.teamTrees[index]) {
+      anchor.remove(this.teamTrees[index].group);
+      try { this.teamTrees[index].dispose(); } catch (e) {}
+      this.teamTrees[index] = null;
+    }
+
+    // Clone treeParams and apply stageParams
+    const p = JSON.parse(JSON.stringify(this.treeParams));
+    // Geometry optimized for 8 simultaneous trees at 60 FPS
+    p.geometry = {
+      sections: 7,
+      segments: 7,
+      lengthVariance: 0.07,
+      radiusVariance: 0.07,
+      randomization: 0.07
+    };
+
+    if (stageParams) {
+      p.maturity = stageParams.maturity || p.maturity;
+      if (stageParams.trunk) Object.assign(p.trunk, stageParams.trunk);
+      if (stageParams.branch) Object.assign(p.branch, stageParams.branch);
+      if (stageParams.leaves) Object.assign(p.leaves, stageParams.leaves);
+    }
+
+    // Unique deterministic organic seed per team
+    p.seed = 2026 + teamId * 1337;
+
+    const newTree = new Tree(THREE, p, this.sharedTextures);
+    anchor.add(newTree.group);
+    this.teamTrees[index] = newTree;
+    if (index === (this.activeTeamId - 1)) {
+      this.tree = newTree;
+      this.treeAnchor = anchor;
+    }
+
+    // Apply responsive scale and transform immediately
+    this.updateAnchorTransform();
+  }
+
+  setActiveTeam(teamId) {
+    const idx = teamId - 1;
+    if (idx >= 0 && idx < 8) {
+      this.activeTeamId = teamId;
+      this.treeAnchor = this.teamAnchors[idx];
+      this.tree = this.teamTrees[idx];
+      if (this.fruitManager && typeof this.fruitManager.setParentAnchor === 'function') {
+        this.fruitManager.setParentAnchor(this.treeAnchor);
+      }
+    }
+  }
+
+  updateTeamTreeState(teamId, state) {
+    const index = teamId - 1;
+    if (index < 0 || index >= 8) return;
+
+    const prevState = this.teamStates[index];
+    const hasLevelChanged = !prevState || prevState.level !== state.level || prevState.isSprouted !== state.isSprouted;
+
+    this.teamStates[index] = {
+      ...prevState,
+      ...state
+    };
+
+    const anchor = this.teamAnchors[index];
+    if (!anchor) return;
+
+    // Level 0 (not sprouted / < 50 seeds): Hide 3D tree mesh, keep plot demarcation ring visible
+    if (!state.isSprouted || state.level === 0) {
+      if (this.teamTrees[index]) {
+        this.teamTrees[index].group.visible = false;
+      }
+      return;
+    }
+
+    if (this.teamTrees[index]) {
+      this.teamTrees[index].group.visible = true;
+    }
+
+    if (hasLevelChanged || !this.teamTrees[index]) {
+      this.regenerateTeamTree(teamId, state.stagePreset, state.colorCode);
+    }
+  }
+
+  /**
+   * Legacy wrapper for single tree regeneration
    */
   regenerateTree() {
-    const THREE = this.THREE;
-    if (this.tree && this.tree.group) {
-      this.treeAnchor.remove(this.tree.group);
-      try { this.tree.dispose(); } catch (e) { }
-    }
-    this.tree = new Tree(THREE, this.treeParams);
-    this.treeAnchor.add(this.tree.group);
-    this.updateAnchorTransform();
-    if (this.fruitManager) this.fruitManager.syncWithTreeGeometry();
+    this.regenerateTeamTree(this.activeTeamId, this.growthController?.getStagePreset(1));
   }
 
   updateAnchorTransform() {
     const THREE = this.THREE;
-    const t = this.treeParams.transform;
-    let computedY = -58; // default fallback
+    if (!this.camera) return;
 
-    if (this.treeParams.lockToGroundBorder && this.camera) {
-      const groundEl = document.querySelector('.fpt-ground-arc') || document.querySelector('.fpt-ground-container');
-      if (groundEl) {
-        const rect = groundEl.getBoundingClientRect();
-        // The top edge of the ground dome arc
-        const vpHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        const groundTopPx = rect.top;
-        const ndcY = 1.0 - (groundTopPx / vpHeight) * 2.0;
+    const vpHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const vpWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    const isMobile = vpWidth < 768;
+    const isSmallMobile = vpWidth < 480;
 
-        const distance = Math.abs(this.camera.position.z - t.posZ);
-        const vFovRad = THREE.MathUtils.degToRad(this.camera.fov);
-        const halfFrustumH = Math.tan(vFovRad / 2.0) * distance;
+    // Always keep camera aspect in 100% sync with current viewport dimensions
+    const aspect = vpWidth / vpHeight;
+    if (Math.abs(this.camera.aspect - aspect) > 0.001) {
+      this.camera.aspect = aspect;
+      this.camera.updateProjectionMatrix();
+    }
 
-        // Exact world Y where the ground dome crest is located
-        computedY = ndcY * halfFrustumH + (t.groundOffset || 0);
+    const vFovRad = THREE.MathUtils.degToRad(this.camera.fov);
+    const tanHalfFov = Math.tan(vFovRad / 2.0);
+
+    // Responsive canopy scale factor calibrated for elegant, tall, and non-colliding tree canopies
+    const mobileScaleFactor = isSmallMobile ? 0.70 : (isMobile ? 0.78 : (vpWidth < 1024 ? 0.88 : 1.0));
+
+    // Direct DOM query for 100% pixel-perfect lock with the team root plots
+    const plotEls = document.querySelectorAll('.team-root-plot');
+    const groundContainer = document.querySelector('.fpt-ground-container');
+    const groundInner = document.querySelector('.fpt-ground-inner');
+    const containerRect = groundInner ? groundInner.getBoundingClientRect() : (groundContainer ? groundContainer.getBoundingClientRect() : null);
+
+    const baseDistance = 260;
+
+    for (let i = 0; i < 8; i++) {
+      const anchor = this.teamAnchors[i];
+      if (!anchor) continue;
+
+      let centerX, centerY;
+
+      if (plotEls && plotEls[i]) {
+        const plotEl = plotEls[i];
+        const plotRect = plotEl.getBoundingClientRect();
+        // Exact horizontal center of this team's garden plot
+        centerX = plotRect.left + plotRect.width / 2.0;
+        // The tree root base sits gracefully right at the ground plot plaque line
+        centerY = plotRect.top + (isMobile ? 18.0 : 26.0);
+      } else if (containerRect && containerRect.width > 0) {
+        const slotWidth = containerRect.width / 8.0;
+        centerX = containerRect.left + (i + 0.5) * slotWidth;
+        centerY = containerRect.top + (isMobile ? 18.0 : 26.0);
+      } else {
+        centerX = ((i + 0.5) / 8.0) * vpWidth;
+        centerY = vpHeight * (isMobile ? 0.78 : 0.74);
       }
-    }
 
-    // Ergonomic Mobile Framing (Lifts tree & ground cleanly above Safari toolbar)
-    const isMobile = window.innerWidth < 768;
-    const isSmallMobile = window.innerWidth < 480;
-    if (isMobile) {
-      computedY += isSmallMobile ? 16.0 : 12.0;
-    }
-    const responsiveScale = isSmallMobile ? t.scale * 0.85 : (isMobile ? t.scale * 0.90 : t.scale);
+      // Exact NDC coordinate corresponding to the center of the root plot
+      const ndcX = (centerX / vpWidth) * 2.0 - 1.0;
+      const ndcY = 1.0 - (centerY / vpHeight) * 2.0;
 
-    this.treeAnchor.position.set(0, computedY, t.posZ);
-    this.treeAnchor.scale.set(responsiveScale, responsiveScale, responsiveScale);
+      // Gentle amphitheater depth curve: center sits back, wings curve forward
+      const clampedNdcX = Math.max(-1.0, Math.min(1.0, ndcX));
+      const curveFactor = 1.0 - Math.pow(Math.abs(clampedNdcX), 1.8);
+      const worldZ = -baseDistance - (curveFactor * 12.0);
+      const dist = -worldZ;
+
+      // Exact frustum dimensions at this anchor's specific distance
+      const frustumHalfH = tanHalfFov * dist;
+      const frustumHalfW = frustumHalfH * aspect;
+
+      // World X is 100% mathematically aligned with the plot's screen X
+      const worldX = ndcX * frustumHalfW;
+
+      // Submerge trunk base slightly (1.8 units) so flared roots nest naturally into soil
+      const worldY = (ndcY * frustumHalfH) - 1.8;
+
+      anchor.position.set(worldX, worldY, worldZ);
+
+      // Base scale with responsive scaling factor
+      const currentState = this.teamStates[i];
+      const stageScale = currentState?.stagePreset?.transform?.scale || (this.treeParams.transform.scale * 0.7);
+      const responsiveScale = stageScale * mobileScaleFactor;
+      anchor.scale.set(responsiveScale, responsiveScale, responsiveScale);
+    }
   }
 
   #setupLighting() {
@@ -371,9 +624,40 @@ export class TreeManager {
   update(celestialState, elapsedTime, delta) {
     const { factors, sun, moon } = celestialState;
 
-    // Dynamically maintain lock with ground border if resized
+    // Dynamically maintain lock with ground border if resized or periodic check (avoids 60fps layout reflows)
     if (this.treeParams.lockToGroundBorder) {
-      this.updateAnchorTransform();
+      this._lastGroundCheck = this._lastGroundCheck || 0;
+      if (elapsedTime - this._lastGroundCheck > 1.0) {
+        this._lastGroundCheck = elapsedTime;
+        this.updateAnchorTransform();
+      }
+    }
+
+    // Dynamic scroll tracker for mobile ground container (instant 60fps sync during touch drag & inertia)
+    const groundCont = document.querySelector('.fpt-ground-container');
+    if (groundCont) {
+      const currentScroll = groundCont.scrollLeft;
+      if (this._lastScrollLeft !== currentScroll) {
+        this._lastScrollLeft = currentScroll;
+        this.updateAnchorTransform();
+      }
+    }
+
+    // Active team botanical ring pulse & nutrient glow animation
+    if (this.teamRings) {
+      for (let i = 0; i < 8; i++) {
+        const ring = this.teamRings[i];
+        if (!ring) continue;
+        const isActive = (i === (this.activeTeamId - 1));
+        if (isActive) {
+          const pulse = 1.0 + Math.sin(elapsedTime * 3.2) * 0.04;
+          ring.scale.set(pulse, 1, pulse);
+          ring.material.opacity = 0.90 + Math.sin(elapsedTime * 3.2) * 0.10;
+        } else {
+          ring.scale.set(1, 1, 1);
+          ring.material.opacity = 0.68;
+        }
+      }
     }
 
     // 1. Dynamic Lighting synced with Day/Night Cycle
@@ -403,18 +687,28 @@ export class TreeManager {
       this.fruitManager.update(elapsedTime, delta, factors.daylight);
     }
 
-    // 2. Wind Sway Physics & Auto-Rotation
+    // 2. Wind Sway Physics across all 8 Trees
     if (this.treeParams.windSway) {
-      const swayZ = Math.sin(elapsedTime * 0.75) * 0.018 + Math.cos(elapsedTime * 1.3) * 0.008;
-      const swayX = Math.sin(elapsedTime * 0.55 + 1.2) * 0.012;
-      this.treeAnchor.rotation.z = swayZ;
-      this.treeAnchor.rotation.x = swayX;
+      for (let i = 0; i < 8; i++) {
+        const anchor = this.teamAnchors[i];
+        if (anchor && anchor.visible) {
+          const swayZ = Math.sin(elapsedTime * 0.75 + i * 0.45) * 0.015 + Math.cos(elapsedTime * 1.3 + i * 0.3) * 0.006;
+          const swayX = Math.sin(elapsedTime * 0.55 + 1.2 + i * 0.4) * 0.010;
+          anchor.rotation.z = swayZ;
+          anchor.rotation.x = swayX;
+        }
+      }
     } else {
-      this.treeAnchor.rotation.z = 0;
-      this.treeAnchor.rotation.x = 0;
+      for (let i = 0; i < 8; i++) {
+        const anchor = this.teamAnchors[i];
+        if (anchor) {
+          anchor.rotation.z = 0;
+          anchor.rotation.x = 0;
+        }
+      }
     }
 
-    if (this.treeParams.autoRotate) {
+    if (this.treeParams.autoRotate && this.treeAnchor) {
       this.treeAnchor.rotation.y += delta * 0.35;
     }
 
@@ -430,7 +724,7 @@ export class TreeManager {
           }, 3500);
         }
       }
-      this.tree.generate();
+      if (this.teamTrees[0]) this.teamTrees[0].generate();
       if (this.gui) {
         this.gui.controllersRecursive().forEach(c => c.updateDisplay());
       }
@@ -439,7 +733,24 @@ export class TreeManager {
 
   dispose() {
     if (this.fruitManager) this.fruitManager.dispose();
-    if (this.tree) this.tree.dispose();
-    if (this.treeAnchor) this.scene.remove(this.treeAnchor);
+    if (this.teamTrees) {
+      this.teamTrees.forEach(t => { if (t) try { t.dispose(); } catch (e) {} });
+    }
+    if (this.teamRings) {
+      this.teamRings.forEach(r => {
+        if (r) {
+          try {
+            if (r.geometry) r.geometry.dispose();
+            if (r.material) {
+              if (r.material.map) r.material.map.dispose();
+              r.material.dispose();
+            }
+          } catch (e) {}
+        }
+      });
+    }
+    if (this.teamAnchors) {
+      this.teamAnchors.forEach(a => { if (a) this.scene.remove(a); });
+    }
   }
 }

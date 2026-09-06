@@ -19,13 +19,17 @@ export async function idempotencyMiddleware(req, res, next) {
 
     // Intercept res.json to cache response
     const originalJson = res.json.bind(res);
-    res.json = (payload) => {
+    res.json = async (payload) => {
       const statusCode = res.statusCode || 200;
       if (statusCode >= 200 && statusCode < 300) {
-        db.query(
-          'INSERT INTO idempotency_keys (key, request_path, response_payload, status_code) VALUES ($1, $2, $3, $4) ON CONFLICT (key) DO NOTHING',
-          [idempotencyKey, req.originalUrl, JSON.stringify(payload), statusCode]
-        ).catch((err) => console.error('Error saving idempotency key:', err));
+        try {
+          await db.query(
+            'INSERT INTO idempotency_keys (key, request_path, response_payload, status_code) VALUES ($1, $2, $3, $4) ON CONFLICT (key) DO NOTHING',
+            [idempotencyKey, req.originalUrl, JSON.stringify(payload), statusCode]
+          );
+        } catch (err) {
+          console.error('Error saving idempotency key:', err);
+        }
       }
       return originalJson(payload);
     };

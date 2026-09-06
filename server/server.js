@@ -22,6 +22,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 
+// Trust reverse proxy (Nginx / Cloudflare) to read real client IP & satisfy express-rate-limit
+app.set('trust proxy', 1);
+
 // 1. Security & Permissive CORS for Local / Network Dev
 app.use(helmet({
   contentSecurityPolicy: false,

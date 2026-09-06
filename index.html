@@ -5483,57 +5483,16 @@
       }
     }
 
-    /* Organic Elliptical Soil Ring circling the tree root on the ground */
-    .root-soil-ring {
-      position: absolute;
-      top: 0px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 86px;
-      height: 32px;
-      border-radius: 50%;
-      border: 1.5px dashed rgba(255, 255, 255, 0.24);
-      background: radial-gradient(ellipse at center, var(--team-color-glow, rgba(255, 255, 255, 0.08)) 0%, rgba(0, 0, 0, 0.22) 65%, transparent 100%);
-      pointer-events: none;
-      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-      z-index: 10;
-    }
-
-    .team-root-plot:hover .root-soil-ring {
-      border-color: var(--team-color, #38bdf8);
-      border-style: solid;
-      box-shadow: 0 0 16px 2px var(--team-color-glow, rgba(56, 189, 248, 0.35));
-      transform: translateX(-50%) scale(1.06);
-    }
-
-    .team-root-plot.is-active-zone .root-soil-ring {
-      border: 2.2px solid var(--team-color, #F36F21);
-      box-shadow: 0 0 24px 6px var(--team-color-glow, rgba(243, 111, 33, 0.5)), inset 0 0 14px var(--team-color-glow, rgba(243, 111, 33, 0.35));
-      transform: translateX(-50%) scale(1.10);
-      animation: rootAuraPulse 3s ease-in-out infinite;
-    }
-
-    @keyframes rootAuraPulse {
-      0%, 100% {
-        box-shadow: 0 0 18px 4px var(--team-color-glow, rgba(243, 111, 33, 0.45)), inset 0 0 10px var(--team-color-glow, rgba(243, 111, 33, 0.3));
-        opacity: 0.85;
-      }
-      50% {
-        box-shadow: 0 0 28px 8px var(--team-color-glow, rgba(243, 111, 33, 0.65)), inset 0 0 18px var(--team-color-glow, rgba(243, 111, 33, 0.45));
-        opacity: 1;
-      }
-    }
-
     /* Botanical Garden Signpost Plaque planted in the dirt in front of the tree root */
     .root-garden-plaque {
       position: absolute;
-      top: 26px;
+      top: 30px;
       left: 50%;
       transform: translateX(-50%);
       display: inline-flex;
       align-items: center;
       gap: 3.5px;
-      padding: 2.5px 7px;
+      padding: 2.5px 7.5px;
       border-radius: 999px;
       background: rgba(15, 23, 42, 0.88);
       backdrop-filter: blur(8px);
@@ -5545,6 +5504,32 @@
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       pointer-events: auto;
       cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .root-garden-plaque {
+        top: 22px;
+      }
+    }
+
+    /* Plaque position when team is in unsprouted seed stage, framing the front edge of the root ring */
+    .team-root-plot.is-unsprouted .root-garden-plaque {
+      top: 44px;
+    }
+    @media (max-width: 768px) {
+      .team-root-plot.is-unsprouted .root-garden-plaque {
+        top: 36px;
+      }
+    }
+
+    /* Clean organic ground seed item without artificial circular background */
+    .ground-seed-item {
+      background: none !important;
+      border: none !important;
+      padding: 0 !important;
+      outline: none !important;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .team-root-plot:hover .root-garden-plaque {
@@ -5602,26 +5587,6 @@
       background: #f59e0b;
       color: #0f172a;
       line-height: 1;
-    }
-
-    .root-nutrient-glow {
-      position: absolute;
-      top: 6px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 44px;
-      height: 18px;
-      border-radius: 50%;
-      background: radial-gradient(ellipse, var(--team-color, #10b981) 0%, transparent 72%);
-      opacity: 0.55;
-      filter: blur(4px);
-      pointer-events: none;
-      animation: rootNutrientPulse 3s ease-in-out infinite;
-    }
-
-    @keyframes rootNutrientPulse {
-      0%, 100% { opacity: 0.4; transform: translateX(-50%) scale(0.92); }
-      50% { opacity: 0.85; transform: translateX(-50%) scale(1.15); }
     }
 
 
@@ -7135,6 +7100,79 @@
         '#10b981'  // Đội 8: Ngọc Bích
       ];
 
+      /**
+       * Deterministic geometric distribution for seeds nestled inside the 3D root ring
+       * Guarantees 0% collision, no overlap, and strictly stays inside the ring boundary
+       */
+      function getSeedOffsets(totalCount, rx, ry) {
+        if (totalCount <= 0) return [];
+        if (totalCount === 1) {
+          return [{ dx: 0, dy: 0 }];
+        }
+        if (totalCount === 2) {
+          return [
+            { dx: -rx * 0.45, dy: 0 },
+            { dx: rx * 0.45, dy: 0 }
+          ];
+        }
+        if (totalCount === 3) {
+          return [
+            { dx: 0, dy: -ry * 0.65 },
+            { dx: -rx * 0.52, dy: ry * 0.48 },
+            { dx: rx * 0.52, dy: ry * 0.48 }
+          ];
+        }
+        if (totalCount === 4) {
+          return [
+            { dx: 0, dy: -ry * 0.72 },
+            { dx: rx * 0.58, dy: 0 },
+            { dx: 0, dy: ry * 0.68 },
+            { dx: -rx * 0.58, dy: 0 }
+          ];
+        }
+        if (totalCount === 5) {
+          return [
+            { dx: 0, dy: 0 },
+            { dx: 0, dy: -ry * 0.78 },
+            { dx: rx * 0.62, dy: -ry * 0.15 },
+            { dx: rx * 0.42, dy: ry * 0.68 },
+            { dx: -rx * 0.42, dy: ry * 0.68 }
+          ];
+        }
+
+        // For totalCount >= 6: deterministic concentric distribution
+        const offsets = [{ dx: 0, dy: 0 }];
+        const remaining = totalCount - 1;
+
+        if (remaining <= 7) {
+          for (let k = 0; k < remaining; k++) {
+            const angle = (2 * Math.PI * k) / remaining;
+            offsets.push({
+              dx: Math.cos(angle) * rx * 0.72,
+              dy: Math.sin(angle) * ry * 0.72
+            });
+          }
+        } else {
+          const innerCount = Math.min(6, Math.floor(remaining * 0.36));
+          const outerCount = remaining - innerCount;
+          for (let k = 0; k < innerCount; k++) {
+            const angle = (2 * Math.PI * k) / innerCount + 0.3;
+            offsets.push({
+              dx: Math.cos(angle) * rx * 0.44,
+              dy: Math.sin(angle) * ry * 0.44
+            });
+          }
+          for (let k = 0; k < outerCount; k++) {
+            const angle = (2 * Math.PI * k) / outerCount;
+            offsets.push({
+              dx: Math.cos(angle) * rx * 0.82,
+              dy: Math.sin(angle) * ry * 0.82
+            });
+          }
+        }
+        return offsets;
+      }
+
       let renderGroundSeedsToken = 0;
       async function renderGroundSeeds() {
         const groundContainer = document.querySelector('.fpt-ground-inner');
@@ -7181,7 +7219,7 @@
             : '🌰';
 
           const zoneEl = document.createElement('div');
-          zoneEl.className = `team-root-plot${isActive ? ' is-active-zone' : ''}`;
+          zoneEl.className = `team-root-plot${isActive ? ' is-active-zone' : ''}${isSprouted ? ' is-sprouted' : ' is-unsprouted'}`;
           zoneEl.setAttribute('data-team-id', teamId);
           zoneEl.style.setProperty('--team-color', teamColor);
           zoneEl.style.setProperty('--team-color-glow', `${teamColor}55`);
@@ -7189,11 +7227,8 @@
           const isMyTeam = (myTeam && myTeam.id === teamId);
           const myTeamTag = isMyTeam ? `<span class="plaque-myteam">★ Tôi</span>` : '';
 
-          // Realistic Elliptical Root Ring + Botanical Garden Plaque
+          // Botanical Garden Signpost Plaque planted in the soil at tree foot
           let innerContent = `
-            <!-- Organic Elliptical Ground Ring circling the tree root on the earth -->
-            <div class="root-soil-ring" title="Gốc Cây Tri Thức: ${escapeHtml(team.display_name || ('Đội ' + teamId))}"></div>
-
             <!-- Garden Signpost Plaque planted in the soil at tree foot -->
             <div class="root-garden-plaque" title="Click để xem chi tiết Đội ${teamId}">
               <span class="plaque-badge" style="background: ${teamColor};">#${teamId}</span>
@@ -7206,45 +7241,28 @@
             </div>
           `;
 
-          if (isSprouted) {
-            // Sprouted Tree: glowing nutrient aura ascending into tree root
-            innerContent += `
-              <div class="root-nutrient-glow"></div>
-              <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 text-[8.5px] font-extrabold text-emerald-300/80 uppercase tracking-wider select-none pointer-events-none whitespace-nowrap opacity-60">
-                <span>🌱</span>
-                <span>Cây Đang Lớn</span>
-              </div>
-            `;
-          } else {
-            // Unsprouted / Seed Stage: subtle soil bed prompt if empty
-            const teamSeeds = allSeeds.filter(s => s.team_id === teamId);
-            if (!teamSeeds.length) {
-              innerContent += `
-                <div class="absolute top-[64px] inset-x-0 flex flex-col items-center justify-center pointer-events-none opacity-40 hover:opacity-70 transition-opacity select-none">
-                  <span class="text-xs">🌰</span>
-                  <span class="text-[9px] text-amber-200/80 font-bold mt-0.5">Ủ mầm (${team.tree_seeds || 0}/50)</span>
-                </div>
-              `;
-            }
-          }
-
           zoneEl.innerHTML = innerContent;
 
-          // If Level 0 (seeds nestled naturally in the soil plot), populate interactive seed buttons
+          // If Level 0 (seeds nestled naturally inside the root ring), populate interactive seed buttons
           if (!isSprouted) {
             const teamSeeds = allSeeds.filter(s => s.team_id === teamId);
-            teamSeeds.forEach((seed, idx) => {
-              const col = idx % 3;
-              const row = Math.floor(idx / 3);
-              const jitterX = ((idx * 17 + teamId * 13) % 9) - 4;
-              const jitterY = ((idx * 23 + teamId * 19) % 11) - 5;
-              const posX = (typeof seed.zone_x === 'number') ? seed.zone_x : Math.max(16, Math.min(84, 20 + col * 30 + jitterX * 1.2));
-              const posY = Math.max(62, Math.min(145, 66 + (row % 4) * 20 + jitterY * 0.8));
+            const totalTeamSeeds = teamSeeds.length;
+            const isMobile = window.innerWidth < 768;
 
+            // 3D root ring center & safe inner radii inside .team-root-plot
+            const ringCenterY = isMobile ? 18 : 25;
+            const maxRx = isMobile ? 24 : 36; // Horizontal pixel radius safely inside ring
+            const maxRy = isMobile ? 8 : 12;   // Vertical pixel radius safely inside ring
+
+            // Deterministic, non-overlapping geometric packaging of seeds inside the ring
+            const seedOffsets = getSeedOffsets(totalTeamSeeds, maxRx, maxRy);
+
+            teamSeeds.forEach((seed, idx) => {
+              const offset = seedOffsets[idx] || { dx: 0, dy: 0 };
               const btn = document.createElement('button');
-              btn.className = 'absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-135 hover:z-50 focus:z-50 z-30 group/fl flex flex-col items-center ground-seed-item';
-              btn.style.left = `${posX}%`;
-              btn.style.top = `${posY}px`;
+              btn.className = 'absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-140 hover:z-50 focus:z-50 z-30 group/fl flex flex-col items-center ground-seed-item';
+              btn.style.left = `calc(50% + ${offset.dx.toFixed(1)}px)`;
+              btn.style.top = `${(ringCenterY + offset.dy).toFixed(1)}px`;
               btn.setAttribute('data-seed-id', seed.id);
               btn.setAttribute('title', `${seed.book} (${seed.author})`);
 
@@ -7261,8 +7279,8 @@
                   </div>
                   <div class="w-2 h-2 bg-[#0054A6]/95 dark:bg-slate-900/95 rotate-45 mx-auto -mt-1 border-r border-b border-sky-300/40 dark:border-slate-700"></div>
                 </div>
-                <div class="relative w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 rounded-full bg-white/95 dark:bg-slate-900/95 shadow-lg border-2 border-amber-500 text-sm sm:text-base flex items-center justify-center select-none group-hover/fl:-translate-y-1 transition-transform shadow-amber-950/40">
-                  <span class="leading-none flex items-center justify-center">🌰</span>
+                <div class="relative flex items-center justify-center select-none transform transition-all duration-200 group-hover/fl:scale-135 group-hover/fl:-translate-y-0.5 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
+                  <span class="text-lg sm:text-xl leading-none cursor-pointer">🌰</span>
                 </div>
               `;
 
@@ -7291,6 +7309,11 @@
         }
 
         groundContainer.appendChild(fragment);
+
+        // Synchronize 3D tree roots with live DOM plots and rings
+        if (window.treeManager && typeof window.treeManager.updateAnchorTransform === 'function') {
+          requestAnimationFrame(() => window.treeManager.updateAnchorTransform());
+        }
 
         // Auto-center active plot on mobile screen
         if (activeTeam && window.innerWidth < 1024) {

@@ -398,13 +398,36 @@ class ApiDataStoreManager {
 
   async getSeeds() {
     const quotes = await this.getMasterQuotes(true);
+    // Group quotes by team so that each team's seeds are ordered and clustered in that team's zone
+    const teamSeedCounts = {};
     return quotes.map((q, idx) => {
-      const row = Math.floor(idx / 8);
-      const col = idx % 8;
-      const baseX = 10 + col * 10.5;
-      const baseY = 25 + (row % 4) * 16;
-      const jitterX = ((idx * 17) % 7) - 3;
-      const jitterY = ((idx * 23) % 9) - 4;
+      const teamId = (q.team_id && q.team_id >= 1 && q.team_id <= 8) ? q.team_id : 1;
+      const teamIdx = teamId - 1; // 0 to 7
+      
+      const seedIndexInTeam = teamSeedCounts[teamId] || 0;
+      teamSeedCounts[teamId] = seedIndexInTeam + 1;
+
+      // Each of the 8 teams has a dedicated horizontal zone:
+      // Zone span: 8 zones from left to right (2.5% to 97.5%)
+      const zoneLeft = 2.5 + teamIdx * 11.9;
+      const zoneWidth = 10.4;
+
+      // Compact micro-grid inside the team zone (3 columns, up to 16 rows)
+      const col = seedIndexInTeam % 3;
+      const row = Math.floor(seedIndexInTeam / 3);
+      
+      const jitterX = ((seedIndexInTeam * 17 + teamId * 13) % 7) - 3;
+      const jitterY = ((seedIndexInTeam * 23 + teamId * 19) % 9) - 4;
+
+      const colX = zoneLeft + 1.2 + (col * (zoneWidth - 2.4) / 2.0);
+      const rowY = 32 + ((row % 4) * 15.0);
+
+      const finalX = Math.max(zoneLeft + 1.0, Math.min(zoneLeft + zoneWidth - 1.0, colX + jitterX * 0.35));
+      const finalY = Math.max(22, Math.min(88, rowY + jitterY * 0.7));
+
+      const zoneRelX = Math.max(18, Math.min(82, 22 + col * 28 + jitterX * 1.2));
+      const zoneRelY = Math.max(52, Math.min(90, 55 + (row % 3) * 15 + jitterY * 0.9));
+
       return {
         id: q.id,
         book: q.book,
@@ -412,14 +435,18 @@ class ApiDataStoreManager {
         quote: q.quote,
         reader: q.reader,
         category: q.category,
-        team_id: q.team_id,
+        team_id: teamId,
         team_name: q.team_name,
         team_short_name: q.team_short_name,
         team_display_name: q.team_display_name,
         team_color: q.team_color,
         likes: q.likes || 0,
-        x: Math.max(6, Math.min(94, baseX + jitterX)),
-        y: Math.max(15, Math.min(88, baseY + jitterY))
+        x: parseFloat(finalX.toFixed(2)),
+        y: parseFloat(finalY.toFixed(2)),
+        zone_x: parseFloat(zoneRelX.toFixed(2)),
+        zone_y: parseFloat(zoneRelY.toFixed(2)),
+        zone_index: teamIdx,
+        seed_index_in_team: seedIndexInTeam
       };
     });
   }

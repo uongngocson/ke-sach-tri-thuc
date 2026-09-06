@@ -127,6 +127,10 @@ export class SkyCanvas {
 
     this.renderer.setSize(width, height);
     this.atmosphere.onResize(width, height);
+
+    if (this.treeManager && typeof this.treeManager.updateAnchorTransform === 'function') {
+      this.treeManager.updateAnchorTransform();
+    }
   }
 
   onVisibilityChange() {
