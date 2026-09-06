@@ -2,6 +2,7 @@
  * QuoteTreasuryModal.js
  * 🌟 KHO TÀNG TRI THỨC - THƯ VIỆN TRÍCH DẪN SỐ CÁO SÁCH 2026
  * Giao diện Clean Compact White Editorial - Tối ưu 100% Responsive & Zero Overflow
+ * Bộ Lọc Chuyên Nghiệp (Professional Segmented Filters & Instant Search)
  * Đồng bộ dữ liệu thật từ PostgreSQL (books, users, teams)
  */
 
@@ -60,7 +61,7 @@ export class QuoteTreasuryModal {
     style.id = 'quote-treasury-styles';
     style.textContent = `
       /* ==========================================================================
-         KHO TÀNG TRI THỨC - ULTRA CLEAN COMPACT WHITE THEME
+         KHO TÀNG TRI THỨC - ULTRA CLEAN COMPACT WHITE THEME & PROFESSIONAL FILTERS
          ========================================================================== */
       .qtm-overlay {
         position: fixed;
@@ -83,7 +84,7 @@ export class QuoteTreasuryModal {
       
       .qtm-card {
         position: relative;
-        width: 95vw;
+        width: 96vw;
         max-width: 1360px;
         height: 92vh;
         max-height: 94vh;
@@ -126,6 +127,7 @@ export class QuoteTreasuryModal {
         align-items: center;
         gap: 12px;
         min-width: 0;
+        flex: 1;
       }
       .qtm-header-icon {
         width: 38px;
@@ -142,6 +144,7 @@ export class QuoteTreasuryModal {
       }
       .qtm-title-area {
         min-width: 0;
+        flex: 1;
       }
       .qtm-title-row {
         display: flex;
@@ -231,14 +234,16 @@ export class QuoteTreasuryModal {
         transform: rotate(90deg);
       }
 
-      /* Compact Filter Toolbar */
+      /* ==========================================
+         PROFESSIONAL FILTER & SEARCH TOOLBAR
+         ========================================== */
       .qtm-filters-bar {
         padding: 10px 16px;
         background: #fafafa;
         border-bottom: 1px solid #f1f5f9;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
         flex-shrink: 0;
         box-sizing: border-box;
       }
@@ -248,22 +253,25 @@ export class QuoteTreasuryModal {
           gap: 10px;
         }
       }
+
+      /* Unified Responsive Search & Sort Controls */
       .qtm-search-row {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr;
         gap: 8px;
+        width: 100%;
+        box-sizing: border-box;
       }
-      @media (min-width: 680px) {
+      @media (min-width: 640px) {
         .qtm-search-row {
-          flex-direction: row;
-          align-items: center;
-          justify-content: space-between;
+          grid-template-columns: 1fr auto;
           gap: 10px;
+          align-items: center;
         }
       }
       .qtm-search-input-wrap {
         position: relative;
-        flex: 1;
+        width: 100%;
         min-width: 0;
       }
       .qtm-search-icon {
@@ -277,7 +285,7 @@ export class QuoteTreasuryModal {
       }
       .qtm-search-input {
         width: 100%;
-        height: 36px;
+        height: 38px;
         padding: 0 34px 0 34px;
         background: #ffffff;
         border: 1.5px solid #cbd5e1;
@@ -323,11 +331,12 @@ export class QuoteTreasuryModal {
         display: flex;
         align-items: center;
         gap: 6px;
-        align-self: flex-start;
+        width: 100%;
+        box-sizing: border-box;
       }
-      @media (min-width: 680px) {
+      @media (min-width: 640px) {
         .qtm-sort-wrap {
-          align-self: auto;
+          width: auto;
           flex-shrink: 0;
         }
       }
@@ -336,10 +345,17 @@ export class QuoteTreasuryModal {
         font-weight: 700;
         color: #64748b;
         white-space: nowrap;
+        display: none;
+      }
+      @media (min-width: 480px) {
+        .qtm-sort-label {
+          display: inline-block;
+        }
       }
       .qtm-sort-select {
-        height: 36px;
-        padding: 0 10px;
+        width: 100%;
+        height: 38px;
+        padding: 0 12px;
         background: #ffffff;
         border: 1.5px solid #cbd5e1;
         border-radius: 10px;
@@ -349,41 +365,41 @@ export class QuoteTreasuryModal {
         outline: none;
         cursor: pointer;
         transition: border-color 0.18s;
+        box-sizing: border-box;
+      }
+      @media (min-width: 640px) {
+        .qtm-sort-select {
+          width: auto;
+          min-width: 175px;
+        }
       }
       .qtm-sort-select:focus {
         border-color: #f59e0b;
       }
 
-      /* Segmented Team Filter Tabs */
+      /* Segmented Team Filter Tabs Strip */
+      .qtm-pills-container {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+      }
       .qtm-pills-row {
         display: flex;
         align-items: center;
         gap: 6px;
         overflow-x: auto;
         padding-bottom: 2px;
-        scrollbar-width: thin;
+        scrollbar-width: none; /* Hide default scrollbar for cleaner look */
         -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
       }
       .qtm-pills-row::-webkit-scrollbar {
-        height: 3px;
-      }
-      .qtm-pills-row::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 3px;
-      }
-      .qtm-pills-label {
-        font-size: 11px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: #64748b;
-        white-space: nowrap;
-        margin-right: 2px;
+        display: none;
       }
       .qtm-team-pill {
-        padding: 4px 10px;
-        border-radius: 9px;
-        font-size: 11.5px;
+        padding: 5px 11px;
+        border-radius: 10px;
+        font-size: 12px;
         font-weight: 700;
         background: #ffffff;
         border: 1.5px solid #e2e8f0;
@@ -395,11 +411,12 @@ export class QuoteTreasuryModal {
         align-items: center;
         gap: 5px;
         flex-shrink: 0;
+        scroll-snap-align: start;
       }
       .qtm-team-pill:hover {
-        border-color: #f59e0b;
-        color: #d97706;
-        background: #fffbeb;
+        border-color: #cbd5e1;
+        color: #0f172a;
+        background: #f8fafc;
       }
       .qtm-team-pill.active {
         background: #0f172a;
@@ -414,9 +431,9 @@ export class QuoteTreasuryModal {
         display: inline-block;
       }
       .qtm-pill-count {
-        font-size: 10px;
+        font-size: 10.5px;
         font-weight: 800;
-        padding: 1px 5px;
+        padding: 1px 6px;
         border-radius: 9999px;
         background: #f1f5f9;
         color: #475569;
@@ -425,6 +442,33 @@ export class QuoteTreasuryModal {
       .qtm-team-pill.active .qtm-pill-count {
         background: rgba(255, 255, 255, 0.25);
         color: #ffffff;
+      }
+
+      /* Active Filter Status Bar */
+      .qtm-filter-status {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        border-radius: 8px;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #1e40af;
+      }
+      .qtm-filter-status.active {
+        display: flex;
+      }
+      .qtm-status-clear {
+        background: none;
+        border: none;
+        color: #2563eb;
+        font-weight: 800;
+        font-size: 11px;
+        cursor: pointer;
+        padding: 0;
+        text-decoration: underline;
       }
 
       /* Content Scroll Area */
@@ -731,7 +775,7 @@ export class QuoteTreasuryModal {
                   <span>✨</span> +2 EXP / yêu thích
                 </span>
               </div>
-              <p class="qtm-subtitle">Tuyển tập những trích dẫn sâu sắc & bài học giá trị từ 8 đội và cộng đồng yêu sách Cáo Sách</p>
+              <p class="qtm-subtitle">Tuyển tập trích dẫn sâu sắc & bài học giá trị từ 8 đội và cộng đồng Cáo Sách</p>
             </div>
           </div>
           <button id="close-treasury-btn" class="qtm-close-btn" title="Đóng (Esc)">✕</button>
@@ -739,7 +783,7 @@ export class QuoteTreasuryModal {
 
         <!-- Filter & Control Toolbar -->
         <div class="qtm-filters-bar">
-          <!-- Search & Sort Row -->
+          <!-- Search & Sort Unified Row -->
           <div class="qtm-search-row">
             <div class="qtm-search-input-wrap">
               <span class="qtm-search-icon">🔍</span>
@@ -747,7 +791,7 @@ export class QuoteTreasuryModal {
                 type="text" 
                 id="treasury-search-input" 
                 class="qtm-search-input" 
-                placeholder="Tìm trích dẫn, tên sách, tác giả, người chia sẻ..." 
+                placeholder="Tìm kiếm trích dẫn, tên sách, tác giả, người chia sẻ..." 
                 autocomplete="off"
               />
               <button id="treasury-search-clear" class="qtm-search-clear" style="display:none;">✕</button>
@@ -756,31 +800,38 @@ export class QuoteTreasuryModal {
               <span class="qtm-sort-label">Sắp xếp:</span>
               <select id="treasury-sort-select" class="qtm-sort-select">
                 <option value="most_liked">🔥 Yêu Thích Nhất</option>
-                <option value="newest">🕒 Mới Nhất</option>
-                <option value="oldest">🌟 Ban Đầu</option>
+                <option value="newest">🕒 Trích Dẫn Mới Nhất</option>
+                <option value="oldest">🌟 Trích Dẫn Ban Đầu</option>
                 <option value="title_az">🔤 Tên Sách (A-Z)</option>
               </select>
             </div>
           </div>
 
-          <!-- Team Filter Segmented Tabs -->
-          <div class="qtm-pills-row" id="treasury-team-pills">
-            <span class="qtm-pills-label">Lọc:</span>
-            <button class="qtm-team-pill active" data-team="all">
-              <span>🌟 Tất Cả</span>
-              <span class="qtm-pill-count" id="pill-count-all">0</span>
-            </button>
-            ${Array.from({ length: 8 }, (_, i) => {
-              const teamId = i + 1;
-              const team = TEAMS_INFO[teamId];
-              return `
-                <button class="qtm-team-pill" data-team="${teamId}">
-                  <span class="qtm-pill-dot" style="background:${team.color}"></span>
-                  <span>Đội ${teamId}</span>
-                  <span class="qtm-pill-count" id="pill-count-${teamId}">0</span>
-                </button>
-              `;
-            }).join('')}
+          <!-- Team Filter Segmented Tabs Strip -->
+          <div class="qtm-pills-container">
+            <div class="qtm-pills-row" id="treasury-team-pills">
+              <button class="qtm-team-pill active" data-team="all">
+                <span>🌟 Tất Cả</span>
+                <span class="qtm-pill-count" id="pill-count-all">0</span>
+              </button>
+              ${Array.from({ length: 8 }, (_, i) => {
+                const teamId = i + 1;
+                const team = TEAMS_INFO[teamId];
+                return `
+                  <button class="qtm-team-pill" data-team="${teamId}">
+                    <span class="qtm-pill-dot" style="background:${team.color}"></span>
+                    <span>Đội ${teamId}</span>
+                    <span class="qtm-pill-count" id="pill-count-${teamId}">0</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Active Filter Status Bar -->
+          <div id="treasury-filter-status" class="qtm-filter-status">
+            <span id="treasury-status-text">Đang lọc: Tất Cả</span>
+            <button id="treasury-status-clear" class="qtm-status-clear">Đặt lại bộ lọc</button>
           </div>
         </div>
 
@@ -790,7 +841,7 @@ export class QuoteTreasuryModal {
           <div id="treasury-loading" class="qtm-loading">
             <div class="qtm-spinner"></div>
             <p style="font-weight:700; font-size:14px; color:#1e293b; margin:0 0 3px 0;">Đang mở Kho Tàng Tri Thức...</p>
-            <p style="font-size:12px; color:#64748b; margin:0;">Đang tải danh sách trích dẫn từ Cơ sở dữ liệu Cáo Sách</p>
+            <p style="font-size:12px; color:#64748b; margin:0;">Đang kết xuất dữ liệu trích dẫn từ Cơ sở dữ liệu Cáo Sách</p>
           </div>
 
           <!-- Quotes Grid -->
@@ -823,6 +874,7 @@ export class QuoteTreasuryModal {
     const searchClear = overlay.querySelector('#treasury-search-clear');
     const sortSelect = overlay.querySelector('#treasury-sort-select');
     const resetFiltersBtn = overlay.querySelector('#treasury-reset-filters');
+    const statusClearBtn = overlay.querySelector('#treasury-status-clear');
 
     const closeModal = () => this.close();
 
@@ -873,6 +925,10 @@ export class QuoteTreasuryModal {
     });
 
     resetFiltersBtn?.addEventListener('click', () => {
+      this.resetFilters();
+    });
+
+    statusClearBtn?.addEventListener('click', () => {
       this.resetFilters();
     });
 
@@ -1028,6 +1084,8 @@ export class QuoteTreasuryModal {
     const grid = overlay.querySelector('#treasury-grid');
     const empty = overlay.querySelector('#treasury-empty');
     const badge = overlay.querySelector('#treasury-total-badge');
+    const filterStatus = overlay.querySelector('#treasury-filter-status');
+    const statusText = overlay.querySelector('#treasury-status-text');
 
     let filtered = [...this.allQuotes];
 
@@ -1064,6 +1122,20 @@ export class QuoteTreasuryModal {
 
     if (badge) {
       badge.innerHTML = `<span>📖</span> ${filtered.length} Trích dẫn`;
+    }
+
+    // Filter status chip
+    const isFiltered = this.selectedTeam !== 'all' || !!this.searchQuery;
+    if (filterStatus && statusText) {
+      if (isFiltered) {
+        filterStatus.classList.add('active');
+        let desc = [];
+        if (this.selectedTeam !== 'all') desc.push(`Đội ${this.selectedTeam}`);
+        if (this.searchQuery) desc.push(`Từ khóa: "${this.searchQuery}"`);
+        statusText.innerHTML = `✨ Đang hiển thị: <strong>${desc.join(' • ')}</strong> (${filtered.length} kết quả)`;
+      } else {
+        filterStatus.classList.remove('active');
+      }
     }
 
     if (filtered.length === 0) {
@@ -1270,7 +1342,7 @@ export class QuoteTreasuryModal {
         format: 'story'
       });
     } else {
-      import('../services/QuoteCardExporter.js?v=20260906_v16').then(module => {
+      import('../services/QuoteCardExporter.js?v=20260906_v19').then(module => {
         if (module.QuoteCardExporter && typeof module.QuoteCardExporter.exportQuoteImage === 'function') {
           this.showToast('🎨 Đang kết xuất ảnh Story độ nét cao...');
           module.QuoteCardExporter.exportQuoteImage({
