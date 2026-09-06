@@ -9,22 +9,56 @@ export class BookService {
 
     // ACID Database Transaction: Insert Book + Insert Ledger + Update Community Growth
     const result = await db.transaction(async (client) => {
+      // 0. Auto-detect user and team if email provided
+      let userId = null;
+      let teamId = null;
+
+      if (email) {
+        const userRes = await client.query('SELECT id, team_id FROM users WHERE LOWER(email) = LOWER($1)', [email.trim()]);
+        if (userRes.rows.length > 0) {
+          userId = userRes.rows[0].id;
+          teamId = userRes.rows[0].team_id;
+        }
+      }
+
       // 1. Insert book with publication: visible, moderation: pending_review (Auto-Approve 100%)
       const bookInsert = await client.query(`
-        INSERT INTO books (title, author, quote, category, reader_name, reader_email, visibility_status, moderation_status)
-        VALUES ($1, $2, $3, $4, $5, $6, 'visible', 'pending_review')
+        INSERT INTO books (title, author, quote, category, reader_name, reader_email, visibility_status, moderation_status, user_id, team_id)
+        VALUES ($1, $2, $3, $4, $5, $6, 'visible', 'pending_review', $7, $8)
         RETURNING *
-      `, [title, author, quote, category, reader, email || null]);
+      `, [title, author, quote, category, reader, email ? email.trim() : null, userId, teamId]);
 
       const newBook = bookInsert.rows[0];
 
       // 2. Insert into EXP Ledger (+15 EXP)
       await client.query(`
-        INSERT INTO exp_ledger (user_fingerprint, amount, type, reference_type, reference_id)
-        VALUES ($1, $2, 'BOOK_CONTRIBUTION', 'books', $3)
-      `, [userFingerprint, EXP_CONFIG.BOOK_CONTRIBUTION, newBook.id]);
+        INSERT INTO exp_ledger (user_fingerprint, amount, type, reference_type, reference_id, team_id)
+        VALUES ($1, $2, 'BOOK_CONTRIBUTION', 'books', $3, $4)
+      `, [userFingerprint, EXP_CONFIG.BOOK_CONTRIBUTION, newBook.id, teamId]);
 
-      // 3. Update community growth
+      // 3. Update team stats if matched
+      if (teamId) {
+        await client.query(`
+          UPDATE teams
+          SET total_exp = total_exp + $1,
+              total_books = total_books + 1,
+              updated_at = NOW()
+          WHERE id = $2
+        `, [EXP_CONFIG.BOOK_CONTRIBUTION, teamId]);
+      }
+
+      // 4. Update user stats if matched
+      if (userId) {
+        await client.query(`
+          UPDATE users
+          SET contributed_books_count = contributed_books_count + 1,
+              total_exp_earned = total_exp_earned + $1,
+              updated_at = NOW()
+          WHERE id = $2
+        `, [EXP_CONFIG.BOOK_CONTRIBUTION, userId]);
+      }
+
+      // 5. Update community growth
       const growthRes = await client.query(`
         UPDATE community_growth
         SET total_exp = total_exp + $1,

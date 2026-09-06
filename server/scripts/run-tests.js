@@ -155,6 +155,36 @@ async function runAllTests() {
     const growthCheck = await GrowthService.getCommunityGrowth();
     assert(growthCheck.activeReaders >= 1, 'Visitor Tracking: community_growth.active_readers synced with PostgreSQL site_visitors count');
 
+    // -------------------------------------------------------------
+    // INTEGRATION TESTS: 8 TEAMS & 288 USERS INTEGRITY
+    // -------------------------------------------------------------
+    console.log('\n📦 [6/6] Running Integration Tests: 8 Teams & 288 Users Integrity...');
+
+    const { TeamService } = await import('../services/team.service.js');
+    const { UserService } = await import('../services/user.service.js');
+
+    const allTeams = await TeamService.getAllTeams();
+    assert(allTeams.length === 8, 'Teams: Exactly 8 teams present in database');
+
+    const expectedCounts = { 1: 39, 2: 49, 3: 30, 4: 26, 5: 37, 6: 32, 7: 36, 8: 39 };
+    let countsMatched = true;
+    for (const t of allTeams) {
+      if (t.actual_members !== expectedCounts[t.id]) {
+        countsMatched = false;
+        console.error(`Team ${t.id} count mismatch: got ${t.actual_members}, expected ${expectedCounts[t.id]}`);
+      }
+    }
+    assert(countsMatched, 'Teams: All 8 teams have 100% exact member counts (39, 49, 30, 26, 37, 32, 36, 39)');
+
+    const totalUsersRes = await db.query('SELECT COUNT(*) FROM users');
+    assert(parseInt(totalUsersRes.rows[0].count, 10) === 288, 'Users: Exactly 288 users stored in PostgreSQL database');
+
+    const userLookup = await UserService.lookupUser('thuhuong@fpt.com');
+    assert(userLookup && userLookup.employee_code === '00000295' && userLookup.team_id === 5, 'Users: Lookup by email thuhuong@fpt.com returns correct employee_code 00000295 and team 5');
+
+    const codeLookup = await UserService.lookupUser('00000295');
+    assert(codeLookup && codeLookup.email === 'thuhuong@fpt.com', 'Users: Lookup by code 00000295 returns correct user profile');
+
 
   } catch (err) {
     console.error('💥 Test suite encountered fatal error:', err);

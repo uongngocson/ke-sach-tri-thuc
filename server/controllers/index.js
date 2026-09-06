@@ -295,3 +295,6 @@ export async function getAuditLogs(req, res, next) {
     next(err);
   }
 }
+
+export * from './team.controller.js';
+export * from './user.controller.js';

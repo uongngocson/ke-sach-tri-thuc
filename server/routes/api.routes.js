@@ -1,5 +1,10 @@
 import express from 'express';
-import { contributeBook, getQuotes, getGrowth, recordVisit, claimDew, getDewStatus, likeQuote, unlikeQuote, harvestFruit } from '../controllers/index.js';
+import { 
+  contributeBook, getQuotes, getGrowth, recordVisit, claimDew, 
+  getDewStatus, likeQuote, unlikeQuote, harvestFruit,
+  getTeams, getTeamById, getTeamMembers,
+  getUsers, lookupUser, getUserById
+} from '../controllers/index.js';
 import { validateBody, contributeBookSchema, likeQuoteSchema, claimDewSchema, harvestFruitSchema } from '../middlewares/validator.js';
 import { idempotencyMiddleware } from '../middlewares/idempotency.js';
 
@@ -11,6 +16,16 @@ router.post('/growth/visit', recordVisit);
 router.get('/quotes', getQuotes);
 router.get('/dew/status', getDewStatus);
 
+// Teams & 8 Trees Endpoints
+router.get('/teams', getTeams);
+router.get('/teams/:id', getTeamById);
+router.get('/teams/:id/members', getTeamMembers);
+
+// Users & Members Endpoints (288 BGD/TDV/CLB)
+router.get('/users', getUsers);
+router.get('/users/lookup', lookupUser);
+router.get('/users/:id', getUserById);
+
 // Mutation Endpoints with Idempotency Protection
 router.post('/books/contribute', idempotencyMiddleware, validateBody(contributeBookSchema), contributeBook);
 router.post('/quotes/:id/like', idempotencyMiddleware, validateBody(likeQuoteSchema), likeQuote);
@@ -19,3 +34,4 @@ router.post('/dew/claim', idempotencyMiddleware, validateBody(claimDewSchema), c
 router.post('/fruits/harvest', idempotencyMiddleware, validateBody(harvestFruitSchema), harvestFruit);
 
 export default router;
+

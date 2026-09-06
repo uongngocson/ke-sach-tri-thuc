@@ -132,11 +132,97 @@ async function migrate() {
     );
 
     CREATE INDEX IF NOT EXISTS idx_site_visitors_fingerprint ON site_visitors(user_fingerprint);
+
+    -- 11. Teams Table (8 Teams / 8 Trees)
+    CREATE TABLE IF NOT EXISTS teams (
+      id INT PRIMARY KEY,
+      code VARCHAR(50) UNIQUE NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      display_name VARCHAR(100) NOT NULL,
+      full_composition TEXT,
+      target_members INT DEFAULT 0,
+      actual_members INT DEFAULT 0,
+      tree_exp BIGINT DEFAULT 0,
+      tree_level INT DEFAULT 0,
+      tree_seeds INT DEFAULT 0,
+      color_code VARCHAR(30) DEFAULT '#70B928',
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- 12. Users Table (288 BGD_TDV_CLB FoxREAD members)
+    CREATE TABLE IF NOT EXISTS users (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      employee_code VARCHAR(20) UNIQUE NOT NULL,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      full_name VARCHAR(150) NOT NULL,
+      gender VARCHAR(10),
+      branch VARCHAR(100),
+      parent_department VARCHAR(100),
+      child_department_1 VARCHAR(100),
+      child_department_2 VARCHAR(100),
+      officer_code VARCHAR(100),
+      job_title VARCHAR(255),
+      team_id INT REFERENCES teams(id),
+      role VARCHAR(20) DEFAULT 'member',
+      avatar_url VARCHAR(255),
+      contributed_books_count INT DEFAULT 0,
+      total_exp_earned INT DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_users_team_id ON users(team_id);
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+    CREATE INDEX IF NOT EXISTS idx_users_employee_code ON users(employee_code);
+
+    -- Alter existing tables to associate books and exp with teams/users
+    DO $$ 
+    BEGIN 
+      -- Ensure teams has all expected columns
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='display_name') THEN
+        ALTER TABLE teams ADD COLUMN display_name VARCHAR(100);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='full_composition') THEN
+        ALTER TABLE teams ADD COLUMN full_composition TEXT;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='actual_members') THEN
+        ALTER TABLE teams ADD COLUMN actual_members INT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='tree_exp') THEN
+        ALTER TABLE teams ADD COLUMN tree_exp BIGINT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='tree_level') THEN
+        ALTER TABLE teams ADD COLUMN tree_level INT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='tree_seeds') THEN
+        ALTER TABLE teams ADD COLUMN tree_seeds INT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='color_code') THEN
+        ALTER TABLE teams ADD COLUMN color_code VARCHAR(30) DEFAULT '#70B928';
+      END IF;
+
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='user_id') THEN
+        ALTER TABLE books ADD COLUMN user_id UUID REFERENCES users(id);
+      END IF;
+      -- Ensure foreign key references users(id) correctly
+      IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'books_user_id_fkey') THEN
+        ALTER TABLE books DROP CONSTRAINT books_user_id_fkey;
+      END IF;
+      ALTER TABLE books ADD CONSTRAINT books_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='team_id') THEN
+        ALTER TABLE books ADD COLUMN team_id INT REFERENCES teams(id);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='exp_ledger' AND column_name='team_id') THEN
+        ALTER TABLE exp_ledger ADD COLUMN team_id INT REFERENCES teams(id);
+      END IF;
+    END $$;
   `;
 
   try {
     await db.query(migrationSql);
-    console.log('✅ PostgreSQL Schema migrations completed successfully (10 tables ready)!');
+    console.log('✅ PostgreSQL Schema migrations completed successfully (12 tables ready)!');
   } catch (err) {
     console.error('❌ Migration failed:', err);
     process.exit(1);
