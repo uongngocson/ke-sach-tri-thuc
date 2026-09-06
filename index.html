@@ -6095,9 +6095,9 @@
             rows="3"></textarea>
         </div>
         <div>
-          <label class="cb-label">👤 Tên Của Bạn / Bút Danh</label>
+          <label class="cb-label">🎭 Bút Danh Ẩn Danh (Tùy chọn)</label>
           <input autocomplete="off" class="cb-input" id="cb-reader-name"
-            placeholder="Ví dụ: Độc giả yêu sách, Bạn đọc..." type="text" />
+            placeholder="Ví dụ: Người gieo mầm, Độc giả yêu sách, Kẻ mộng mơ..." type="text" />
         </div>
         <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:8px;">
           <button class="cb-submit-btn" id="cb-submit-btn" type="submit">
@@ -7612,7 +7612,7 @@
           const bookTitleVal = cbBookTitle.value.trim();
           const bookAuthorVal = cbBookAuthor.value.trim();
           const bookQuoteVal = cbBookQuote.value.trim();
-          const readerVal = (cbReaderName && cbReaderName.value.trim()) || currentUser?.full_name || 'Độc giả gieo mầm';
+          const readerVal = (cbReaderName && cbReaderName.value.trim()) || 'Độc giả gieo mầm';
 
           if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
             showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');

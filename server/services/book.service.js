@@ -104,12 +104,23 @@ export class BookService {
         }
       }
 
-      // 1. Insert book with publication: visible, moderation: pending_review (Auto-Approve 100%)
+      // 1. Assign anonymous pen name (Bút danh)
+      let penName = (reader || '').trim();
+      if (!penName) {
+        const fallbackPenNames = [
+          'Người Gieo Mầm Tri Thức', 'Bạn Đọc Cáo Sách', 'Độc Giả Tinh Hoa',
+          'Kẻ Mộng Mơ Đọc Sách', 'Người Vun Đắp Phù Sa', 'Tâm Hồn Tri Thức',
+          'Người Lữ Hành Thời Gian', 'Cánh Chim Tự Do', 'Hạt Mầm Tự Chủ'
+        ];
+        penName = fallbackPenNames[Math.floor(Math.random() * fallbackPenNames.length)];
+      }
+
+      // 1.1 Insert book with publication: visible, moderation: pending_review (Auto-Approve 100%)
       const bookInsert = await client.query(`
         INSERT INTO books (title, author, quote, category, reader_name, reader_email, visibility_status, moderation_status, user_id, team_id, user_fingerprint)
         VALUES ($1, $2, $3, $4, $5, $6, 'visible', 'pending_review', $7, $8, $9)
         RETURNING *
-      `, [title, author, quote, category, reader, email ? email.trim() : null, userId, teamId, userFingerprint]);
+      `, [title, author, quote, category, penName, email ? email.trim() : null, userId, teamId, userFingerprint]);
 
       const newBook = bookInsert.rows[0];
 
