@@ -167,7 +167,7 @@ export class TeamService {
       SELECT 
         id, employee_code, email, full_name, gender, branch,
         parent_department, child_department_1, child_department_2,
-        officer_code, job_title, role, avatar_url, contributed_books_count, total_exp_earned
+        officer_code, job_title, team_id, role, avatar_url, contributed_books_count, total_exp_earned
       FROM users
       WHERE team_id = $1
       ORDER BY full_name ASC
@@ -193,7 +193,7 @@ export class TeamService {
       SELECT 
         id, employee_code, email, full_name, gender, branch,
         parent_department, child_department_1, child_department_2,
-        officer_code, job_title, role, avatar_url, contributed_books_count, total_exp_earned
+        officer_code, job_title, team_id, role, avatar_url, contributed_books_count, total_exp_earned
       FROM users
       WHERE team_id = $1
       ORDER BY full_name ASC
