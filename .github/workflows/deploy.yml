@@ -55,6 +55,7 @@ jobs:
           DB_PASSWORD: test_runner_ephemeral_pw
         run: |
           node scripts/migrate.js
+          node scripts/migrate_daily_quotes.js || true
           node scripts/seed.js
 
       - name: Run Comprehensive Test Suite

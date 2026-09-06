@@ -176,6 +176,22 @@ async function migrate() {
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_employee_code ON users(employee_code);
 
+    -- 13. Daily Quotes Table (1 quote per user/device per day)
+    CREATE TABLE IF NOT EXISTS daily_quotes (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+      user_fingerprint VARCHAR(100),
+      book_id UUID REFERENCES books(id) ON DELETE CASCADE,
+      quote_date DATE NOT NULL DEFAULT CURRENT_DATE,
+      team_id INT REFERENCES teams(id),
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      CONSTRAINT unq_user_daily_quote UNIQUE(user_id, quote_date)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_daily_quotes_user_date ON daily_quotes(user_id, quote_date);
+    CREATE INDEX IF NOT EXISTS idx_daily_quotes_fp_date ON daily_quotes(user_fingerprint, quote_date);
+    CREATE INDEX IF NOT EXISTS idx_daily_quotes_date ON daily_quotes(quote_date);
+
     -- Alter existing tables to associate books and exp with teams/users
     DO $$ 
     BEGIN 
@@ -204,6 +220,9 @@ async function migrate() {
 
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='user_id') THEN
         ALTER TABLE books ADD COLUMN user_id UUID REFERENCES users(id);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='user_fingerprint') THEN
+        ALTER TABLE books ADD COLUMN user_fingerprint VARCHAR(100);
       END IF;
       -- Ensure foreign key references users(id) correctly
       IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'books_user_id_fkey') THEN
@@ -239,11 +258,24 @@ async function migrate() {
       -- Unique 1 dew per user per day constraint
       CREATE UNIQUE INDEX IF NOT EXISTS unq_user_dew_daily_user_id ON daily_dews(user_id, claim_date) WHERE user_id IS NOT NULL;
     END $$;
+
+    -- Backfill daily_quotes from existing books (if any)
+    INSERT INTO daily_quotes (user_id, user_fingerprint, book_id, quote_date, team_id, created_at)
+    SELECT DISTINCT ON (user_id, DATE(created_at))
+      user_id,
+      user_fingerprint,
+      id,
+      DATE(created_at),
+      team_id,
+      created_at
+    FROM books
+    WHERE user_id IS NOT NULL
+    ON CONFLICT (user_id, quote_date) DO NOTHING;
   `;
 
   try {
     await db.query(migrationSql);
-    console.log('✅ PostgreSQL Schema migrations completed successfully (12 tables ready)!');
+    console.log('✅ PostgreSQL Schema migrations completed successfully (13 tables ready)!');
   } catch (err) {
     console.error('❌ Migration failed:', err);
     process.exit(1);
