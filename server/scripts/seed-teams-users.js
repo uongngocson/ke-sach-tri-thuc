@@ -48,7 +48,19 @@ export async function seedTeamsAndUsers() {
     }
     console.log(`✅ Upserted ${teams.length} teams successfully.`);
 
-    // 2. Batch Upsert Users
+    // Initialize team_rounds for all teams if table exists
+    const roundsTableCheck = await client.query("SELECT to_regclass('public.team_rounds') as tbl");
+    if (roundsTableCheck.rows[0]?.tbl) {
+      for (const t of teams) {
+        for (let r = 1; r <= 15; r++) {
+          await client.query(`
+            INSERT INTO team_rounds (team_id, round_number)
+            VALUES ($1, $2)
+            ON CONFLICT DO NOTHING;
+          `, [t.id, r]);
+        }
+      }
+    }
     for (const u of users) {
       await client.query(`
         INSERT INTO users (

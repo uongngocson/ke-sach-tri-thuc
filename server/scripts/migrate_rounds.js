@@ -1,4 +1,4 @@
-﻿import db from '../config/database.js';
+import db from '../config/database.js';
 import { ROUNDS_CONFIG } from '../config/rounds.config.js';
 
 async function migrateRounds() {
@@ -90,17 +90,22 @@ async function migrateRounds() {
     }
     console.log(`✅ Seeded ${ROUNDS_CONFIG.length} rounds.`);
 
-    // 6. Initialize team_rounds for all 8 teams x 15 rounds
-    for (let tId = 1; tId <= 8; tId++) {
-      for (const r of ROUNDS_CONFIG) {
-        await client.query(`
-          INSERT INTO team_rounds (team_id, round_number)
-          VALUES ($1, $2)
-          ON CONFLICT DO NOTHING;
-        `, [tId, r.round]);
+    // 6. Initialize team_rounds for existing teams x 15 rounds
+    const teamsRes = await client.query('SELECT id FROM teams ORDER BY id ASC');
+    if (teamsRes.rows.length > 0) {
+      for (const team of teamsRes.rows) {
+        for (const r of ROUNDS_CONFIG) {
+          await client.query(`
+            INSERT INTO team_rounds (team_id, round_number)
+            VALUES ($1, $2)
+            ON CONFLICT DO NOTHING;
+          `, [team.id, r.round]);
+        }
       }
+      console.log(`✅ Initialized ${teamsRes.rows.length * ROUNDS_CONFIG.length} team_rounds entries.`);
+    } else {
+      console.log('ℹ️ Table "teams" is empty right now. team_rounds will be initialized during team seeding.');
     }
-    console.log('✅ Initialized 120 team_rounds entries (8 teams x 15 rounds).');
   });
 
   console.log('✨ Migration completed successfully!');
