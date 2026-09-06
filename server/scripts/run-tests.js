@@ -5,6 +5,7 @@ import DewService from '../services/dew.service.js';
 import QuoteService from '../services/quote.service.js';
 import ModerationService from '../services/moderation.service.js';
 import GrowthService from '../services/growth.service.js';
+import { seedTeamsAndUsers } from './seed-teams-users.js';
 import { v4 as uuidv4 } from 'uuid';
 
 async function runAllTests() {
@@ -26,6 +27,12 @@ async function runAllTests() {
   }
 
   try {
+    // Ensure teams & users exist before tests
+    const userCountRes = await db.query('SELECT COUNT(*) FROM users');
+    if (parseInt(userCountRes.rows[0].count, 10) === 0) {
+      console.log('📦 Auto-seeding 8 Teams and 288 Users for testing...');
+      await seedTeamsAndUsers();
+    }
     // -------------------------------------------------------------
     // UNIT TESTS
     // -------------------------------------------------------------

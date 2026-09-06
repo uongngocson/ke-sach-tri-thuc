@@ -57,6 +57,7 @@ jobs:
           node scripts/migrate.js
           node scripts/migrate_daily_quotes.js || true
           node scripts/seed.js
+          node scripts/seed-teams-users.js || true
 
       - name: Run Comprehensive Test Suite
         working-directory: ./server

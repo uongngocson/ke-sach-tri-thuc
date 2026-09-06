@@ -1,4 +1,4 @@
-﻿import fs from 'fs';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import db from '../config/database.js';
@@ -6,7 +6,7 @@ import db from '../config/database.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function seedTeamsAndUsers() {
+export async function seedTeamsAndUsers() {
   console.log('🌱 Starting Seed for 8 Teams and 288 Users...');
 
   const dataPath = path.join(__dirname, '../data/teams-and-users.json');
@@ -111,12 +111,14 @@ async function seedTeamsAndUsers() {
   });
 }
 
-seedTeamsAndUsers()
-  .then(() => {
-    console.log('✨ Seed completed successfully!');
-    process.exit(0);
-  })
-  .catch((err) => {
-    console.error('❌ Seed failed:', err);
-    process.exit(1);
-  });
+if (process.argv[1] && process.argv[1].endsWith('seed-teams-users.js')) {
+  seedTeamsAndUsers()
+    .then(() => {
+      console.log('✨ Seed completed successfully!');
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error('❌ Seed failed:', err);
+      process.exit(1);
+    });
+}
