@@ -1,4 +1,4 @@
-﻿import db from '../config/database.js';
+import db from '../config/database.js';
 import { calculateLevelFromExp } from '../config/constants.js';
 import { getCurrentRound, ROUNDS_CONFIG } from '../config/rounds.config.js';
 
@@ -180,6 +180,7 @@ export class TeamService {
       level: isSprouted ? Math.max(1, parseInt(team.level, 10)) : 0,
       is_sprouted: isSprouted,
       rounds_history: roundsHistoryRes.rows,
+      rounds: roundsHistoryRes.rows,
       members: membersRes.rows
     };
   }
