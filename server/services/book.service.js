@@ -132,9 +132,9 @@ export class BookService {
 
       // 2. Insert into EXP Ledger (+15 EXP)
       await client.query(`
-        INSERT INTO exp_ledger (user_fingerprint, amount, type, reference_type, reference_id, team_id)
-        VALUES ($1, $2, 'BOOK_CONTRIBUTION', 'books', $3, $4)
-      `, [userFingerprint, EXP_CONFIG.BOOK_CONTRIBUTION, newBook.id, teamId]);
+        INSERT INTO exp_ledger (user_id, team_id, user_fingerprint, amount, type, reference_type, reference_id)
+        VALUES ($1, $2, $3, $4, 'BOOK_CONTRIBUTION', 'books', $5)
+      `, [userId, teamId, userFingerprint, EXP_CONFIG.BOOK_CONTRIBUTION, newBook.id]);
 
       // 3. Update Team EXP and Level directly (No rounds concept)
       if (teamId) {
