@@ -36,10 +36,22 @@ class ApiDataStoreManager {
     this.cachedQuotes = [];
 
     this.initSocket();
+    if (typeof window !== 'undefined') {
+      setTimeout(() => this.recordVisit(), 150);
+    }
   }
 
   init() {
     return this;
+  }
+
+  updateActiveReadersUI(count) {
+    if (typeof document === 'undefined') return;
+    const num = Math.max(1, parseInt(count, 10) || 1).toLocaleString();
+    const headerReaders = document.getElementById('header-active-readers');
+    if (headerReaders) headerReaders.textContent = num;
+    const onchainReaders = document.getElementById('onchain-active-readers');
+    if (onchainReaders) onchainReaders.textContent = num;
   }
 
   getOrCreateFingerprint() {
@@ -72,7 +84,8 @@ class ApiDataStoreManager {
         this.socket.on('growth:updated', (growthData) => {
           console.log('🌱 Realtime Growth Received:', growthData);
           this.cachedGrowth = growthData;
-          this.emit('growth:updated', this.formatGrowthResponse(growthData));
+          const formatted = this.formatGrowthResponse(growthData);
+          this.emit('growth:updated', formatted);
         });
 
         this.socket.on('book:created', (bookData) => {
@@ -121,27 +134,53 @@ class ApiDataStoreManager {
   }
 
   formatGrowthResponse(raw) {
-    const totalExp = raw.totalEXP || 0;
+    const totalExp = raw.totalEXP || raw.total_exp || 0;
     const level = raw.level || 0;
     const isSprouted = level > 0;
+    const readers = raw.activeReaders || raw.active_readers || 1;
+    this.updateActiveReadersUI(readers);
     return {
-      totalSeeds: raw.totalBooks || 0,
+      totalSeeds: raw.totalBooks || raw.total_books || 0,
       targetSeeds: raw.nextLevelExp || 1200,
-      currentStage: raw.levelName || 'Hạt Mầm Tri Thức',
+      currentStage: raw.levelName || raw.level_name || 'Hạt Mầm Tri Thức',
       level: level,
       levelIcon: level >= 5 ? '👑' : (level >= 4 ? '🍎' : (level >= 3 ? '🌳' : (level >= 2 ? '🌿' : (level >= 1 ? '🌱' : '🌰')))),
-      levelName: raw.levelName || 'Hạt Mầm Tri Thức',
-      levelDesc: raw.levelDesc || '',
+      levelName: raw.levelName || raw.level_name || 'Hạt Mầm Tri Thức',
+      levelDesc: raw.levelDesc || raw.level_description || '',
       isSprouted: isSprouted,
       seedsOnGroundVisible: !isSprouted,
-      progressPercent: raw.progressPercent || 0,
+      progressPercent: raw.progressPercent || raw.progress_percent || 0,
       totalEXP: totalExp,
       nextLevelEXP: raw.nextLevelExp || (level === 0 ? 50 : 150),
-      activeReaders: raw.activeReaders || 1
+      activeReaders: readers
     };
   }
 
   // --- API METHODS ---
+
+  async recordVisit() {
+    try {
+      const res = await fetch(`${getApiBase()}/growth/visit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userFingerprint: this.fingerprint
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        if (data.data.totalVisitors) {
+          this.updateActiveReadersUI(data.data.totalVisitors);
+        }
+        return data.data;
+      }
+    } catch (err) {
+      console.warn('API /growth/visit offline:', err);
+    }
+    return null;
+  }
 
   async getCommunityGrowth() {
     try {
