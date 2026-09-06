@@ -1,5 +1,5 @@
-import { MockDataStore } from '../data/MockDataStore.js?v=20260905_v3';
-import { APP_CONFIG } from '../config/appEnv.js?v=20260905_v3';
+import { MockDataStore } from '../data/MockDataStore.js?v=20260906_v6';
+import { APP_CONFIG } from '../config/appEnv.js?v=20260906_v6';
 
 export class TesterPanel {
   constructor() {
@@ -106,6 +106,9 @@ export class TesterPanel {
       panel.style.display = this.isOpen ? 'block' : 'none';
       toggleBtn.classList.toggle('active', this.isOpen);
       if (this.isOpen) {
+        if (typeof window.closeWelcomeModal === 'function') {
+          window.closeWelcomeModal();
+        }
         this.syncCurrentState();
       }
     };
@@ -129,10 +132,14 @@ export class TesterPanel {
       slider.addEventListener('input', async (e) => {
         const val = parseInt(e.target.value, 10);
         this.updateExpLabel(val, expVal);
+        const seeds = val < 50 ? val : 0;
         if (typeof MockDataStore.setExp === 'function') {
-          await MockDataStore.setExp(val);
+          await MockDataStore.setExp(val, seeds);
         } else if (typeof MockDataStore.setTesterEXP === 'function') {
-          await MockDataStore.setTesterEXP(val);
+          await MockDataStore.setTesterEXP(val, seeds);
+        }
+        if (typeof window.renderGroundSeeds === 'function') {
+          await window.renderGroundSeeds();
         }
       });
     }
@@ -160,6 +167,9 @@ export class TesterPanel {
         } else if (typeof MockDataStore.setTesterEXP === 'function') {
           await MockDataStore.setTesterEXP(targetExp, seedsCount);
         }
+        if (typeof window.renderGroundSeeds === 'function') {
+          await window.renderGroundSeeds();
+        }
       });
     });
 
@@ -168,31 +178,38 @@ export class TesterPanel {
     if (btnSim1) btnSim1.addEventListener('click', async () => {
       if (typeof MockDataStore.addSeeds === 'function') await MockDataStore.addSeeds(1);
       else if (typeof MockDataStore.simulateSeedContribution === 'function') await MockDataStore.simulateSeedContribution(1);
+      if (typeof window.renderGroundSeeds === 'function') await window.renderGroundSeeds();
     });
 
     const btnSim10 = panel.querySelector('#tester-sim-10-seeds');
     if (btnSim10) btnSim10.addEventListener('click', async () => {
       if (typeof MockDataStore.addSeeds === 'function') await MockDataStore.addSeeds(10);
       else if (typeof MockDataStore.simulateSeedContribution === 'function') await MockDataStore.simulateSeedContribution(10);
+      if (typeof window.renderGroundSeeds === 'function') await window.renderGroundSeeds();
     });
 
     const btnSim50 = panel.querySelector('#tester-sim-50-seeds');
     if (btnSim50) btnSim50.addEventListener('click', async () => {
       if (typeof MockDataStore.addSeeds === 'function') await MockDataStore.addSeeds(50);
       else if (typeof MockDataStore.simulateSeedContribution === 'function') await MockDataStore.simulateSeedContribution(50);
+      if (typeof window.renderGroundSeeds === 'function') await window.renderGroundSeeds();
     });
 
     const btnSimHeart = panel.querySelector('#tester-sim-heart');
     if (btnSimHeart) btnSimHeart.addEventListener('click', async () => {
       if (typeof MockDataStore.addHeart === 'function') await MockDataStore.addHeart();
+      if (typeof window.renderGroundSeeds === 'function') await window.renderGroundSeeds();
     });
 
     const btnResetAll = panel.querySelector('#tester-sim-reset-all');
     if (btnResetAll) btnResetAll.addEventListener('click', async () => {
       if (typeof MockDataStore.resetToInitialState === 'function') await MockDataStore.resetToInitialState();
-      else if (typeof MockDataStore.setExp === 'function') await MockDataStore.setExp(0);
+      else if (typeof MockDataStore.setExp === 'function') await MockDataStore.setExp(0, 0);
       if (slider) slider.value = 0;
       this.updateExpLabel(0, expVal);
+      if (typeof window.renderGroundSeeds === 'function') {
+        await window.renderGroundSeeds();
+      }
     });
 
     const btnDbEmpty = panel.querySelector('#tester-db-empty');

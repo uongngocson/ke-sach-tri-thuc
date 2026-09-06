@@ -185,20 +185,21 @@ export class TesterService {
    * Helper: Inserts real curated mock books into PostgreSQL
    */
   static async insertMockBooks(client, count) {
+    if (count <= 0) return [];
     const totalMocks = MOCK_LIBRARY.length;
-    const inserted = [];
+    const values = [];
+    const valuePlaceholders = [];
 
     for (let i = 0; i < count; i++) {
       const template = MOCK_LIBRARY[i % totalMocks];
       const cycle = Math.floor(i / totalMocks);
       const titleSuffix = cycle > 0 ? ` (Quyển ${cycle + 1})` : '';
       const fullTitle = `${template.title}${titleSuffix}`;
-      
-      const insertRes = await client.query(`
-        INSERT INTO books (title, author, quote, category, reader_name, visibility_status, moderation_status, likes_count, created_at)
-        VALUES ($1, $2, $3, $4, $5, 'visible', 'reviewed', $6, NOW() - ($7 || ' seconds')::interval)
-        RETURNING *
-      `, [
+      const offset = i * 7;
+
+      valuePlaceholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, 'visible', 'reviewed', $${offset + 6}, NOW() - ($${offset + 7} || ' seconds')::interval)`);
+
+      values.push(
         fullTitle,
         template.author,
         template.quote,
@@ -206,12 +207,16 @@ export class TesterService {
         template.reader,
         Math.floor(Math.random() * 20) + 5,
         (count - i) * 10
-      ]);
-
-      inserted.push(insertRes.rows[0]);
+      );
     }
 
-    return inserted;
+    const insertRes = await client.query(`
+      INSERT INTO books (title, author, quote, category, reader_name, visibility_status, moderation_status, likes_count, created_at)
+      VALUES ${valuePlaceholders.join(', ')}
+      RETURNING *
+    `, values);
+
+    return insertRes.rows;
   }
 
   static async setExp(exp, customSeedsCount = null) {
