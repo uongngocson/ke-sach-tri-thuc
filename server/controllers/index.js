@@ -298,3 +298,4 @@ export async function getAuditLogs(req, res, next) {
 
 export * from './team.controller.js';
 export * from './user.controller.js';
+export * from './round.controller.js';

@@ -19,6 +19,19 @@ export async function getUsers(req, res, next) {
   }
 }
 
+export async function suggestUsers(req, res, next) {
+  try {
+    const { q, limit } = req.query;
+    const users = await UserService.suggestUsers(q, limit ? parseInt(limit, 10) : 8);
+    res.json({
+      success: true,
+      data: users
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function lookupUser(req, res, next) {
   try {
     const { q } = req.query;

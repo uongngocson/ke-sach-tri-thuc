@@ -3,7 +3,8 @@ import {
   contributeBook, getQuotes, getGrowth, recordVisit, claimDew, 
   getDewStatus, likeQuote, unlikeQuote, harvestFruit,
   getTeams, getTeamById, getTeamMembers,
-  getUsers, lookupUser, getUserById
+  getUsers, lookupUser, suggestUsers, getUserById,
+  getCurrentRound, getAllRounds
 } from '../controllers/index.js';
 import { validateBody, contributeBookSchema, likeQuoteSchema, claimDewSchema, harvestFruitSchema } from '../middlewares/validator.js';
 import { idempotencyMiddleware } from '../middlewares/idempotency.js';
@@ -21,8 +22,13 @@ router.get('/teams', getTeams);
 router.get('/teams/:id', getTeamById);
 router.get('/teams/:id/members', getTeamMembers);
 
+// 15 Fixed Rounds Schedule & Standings
+router.get('/rounds/current', getCurrentRound);
+router.get('/rounds', getAllRounds);
+
 // Users & Members Endpoints (288 BGD/TDV/CLB)
 router.get('/users', getUsers);
+router.get('/users/suggest', suggestUsers);
 router.get('/users/lookup', lookupUser);
 router.get('/users/:id', getUserById);
 

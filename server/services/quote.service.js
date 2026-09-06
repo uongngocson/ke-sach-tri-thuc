@@ -18,11 +18,22 @@ export class QuoteService {
         UPDATE books
         SET likes_count = likes_count + 1
         WHERE id = $1
-        RETURNING id, title, likes_count
+        RETURNING id, title, likes_count, team_id
       `, [bookId]);
 
       if (bookUpdate.rows.length === 0) {
         throw new Error('BOOK_NOT_FOUND');
+      }
+
+      const likedTeamId = bookUpdate.rows[0].team_id;
+      if (likedTeamId) {
+        await client.query(`
+          UPDATE teams
+          SET total_likes = total_likes + 1,
+              total_exp = total_exp + $1,
+              updated_at = NOW()
+          WHERE id = $2
+        `, [EXP_CONFIG.QUOTE_LIKE, likedTeamId]);
       }
 
       // 3. Insert into EXP Ledger (+2 EXP)
@@ -77,11 +88,22 @@ export class QuoteService {
         UPDATE books
         SET likes_count = GREATEST(0, likes_count - 1)
         WHERE id = $1
-        RETURNING id, title, likes_count
+        RETURNING id, title, likes_count, team_id
       `, [bookId]);
 
       if (bookUpdate.rows.length === 0) {
         throw new Error('BOOK_NOT_FOUND');
+      }
+
+      const unlikedTeamId = bookUpdate.rows[0].team_id;
+      if (unlikedTeamId) {
+        await client.query(`
+          UPDATE teams
+          SET total_likes = GREATEST(0, total_likes - 1),
+              total_exp = GREATEST(0, total_exp - $1),
+              updated_at = NOW()
+          WHERE id = $2
+        `, [EXP_CONFIG.QUOTE_LIKE, unlikedTeamId]);
       }
 
       // 3. Decrement total_likes in community_growth

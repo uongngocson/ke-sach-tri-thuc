@@ -2,6 +2,7 @@ import db from '../config/database.js';
 import { EXP_CONFIG } from '../config/constants.js';
 import GrowthService from './growth.service.js';
 import socketService from './socket.service.js';
+import { RoundService } from './round.service.js';
 
 export class BookService {
   static async contributeBook(payload) {
@@ -36,15 +37,23 @@ export class BookService {
         VALUES ($1, $2, 'BOOK_CONTRIBUTION', 'books', $3, $4)
       `, [userFingerprint, EXP_CONFIG.BOOK_CONTRIBUTION, newBook.id, teamId]);
 
-      // 3. Update team stats if matched
-      if (teamId) {
+      // 3. Record Round Contribution & Update Team Normalized EXP / Seeds
+      let roundResult = null;
+      if (userId && teamId) {
+        roundResult = await RoundService.recordContribution(client, { userId, teamId, bookId: newBook.id });
         await client.query(`
           UPDATE teams
-          SET total_exp = total_exp + $1,
-              total_books = total_books + 1,
+          SET total_books = total_books + 1,
               updated_at = NOW()
-          WHERE id = $2
-        `, [EXP_CONFIG.BOOK_CONTRIBUTION, teamId]);
+          WHERE id = $1
+        `, [teamId]);
+      } else if (teamId) {
+        await client.query(`
+          UPDATE teams
+          SET total_books = total_books + 1,
+              updated_at = NOW()
+          WHERE id = $1
+        `, [teamId]);
       }
 
       // 4. Update user stats if matched
@@ -99,18 +108,20 @@ export class BookService {
     const category = options.category;
 
     let query = `
-      SELECT id, title, author, quote, category, reader_name, likes_count, moderation_status, created_at
-      FROM books
-      WHERE visibility_status = 'visible'
+      SELECT b.id, b.title, b.author, b.quote, b.category, b.reader_name, b.likes_count, b.moderation_status, b.created_at,
+             b.team_id, t.name as team_name, t.code as team_code, t.short_name as team_short_name, t.display_name as team_display_name, t.color_code as team_color
+      FROM books b
+      LEFT JOIN teams t ON b.team_id = t.id
+      WHERE b.visibility_status = 'visible'
     `;
     const params = [];
 
     if (category && category !== 'all') {
       params.push(category);
-      query += ` AND category = $${params.length}`;
+      query += ` AND b.category = $${params.length}`;
     }
 
-    query += ` ORDER BY likes_count DESC, created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    query += ` ORDER BY b.likes_count DESC, b.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(limit, offset);
 
     const quotesRes = await db.query(query, params);

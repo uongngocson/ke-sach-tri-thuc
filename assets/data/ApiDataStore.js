@@ -180,6 +180,15 @@ class ApiDataStoreManager {
   async plantSeed(seedData) {
     try {
       const idempotencyKey = this.generateIdempotencyKey();
+      let session = null;
+      try {
+        session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+      } catch {}
+
+      const userId = seedData.userId || (session && session.id !== 'guest' ? session.id : null);
+      const teamId = seedData.teamId || (session && session.team_id ? session.team_id : null);
+      const email = seedData.email || (session && session.email ? session.email : null);
+
       const res = await fetch(`${getApiBase()}/books/contribute`, {
         method: 'POST',
         headers: {
@@ -191,7 +200,10 @@ class ApiDataStoreManager {
           author: seedData.author,
           quote: seedData.quote,
           category: seedData.category || 'Sách Tinh Hoa',
-          reader: seedData.reader || 'Độc giả yêu sách',
+          reader: seedData.reader || (session?.full_name) || 'Độc giả yêu sách',
+          email: email,
+          userId: userId,
+          teamId: teamId,
           userFingerprint: this.fingerprint
         })
       });
@@ -212,6 +224,39 @@ class ApiDataStoreManager {
     }
   }
 
+  async getTeams() {
+    try {
+      const res = await fetch(`${getApiBase()}/teams`);
+      const data = await res.json();
+      if (data.success) return data.data;
+    } catch (e) {
+      console.warn('Error fetching teams:', e);
+    }
+    return [];
+  }
+
+  async getTeam(id) {
+    try {
+      const res = await fetch(`${getApiBase()}/teams/${id}`);
+      const data = await res.json();
+      if (data.success) return data.data;
+    } catch (e) {
+      console.warn(`Error fetching team ${id}:`, e);
+    }
+    return null;
+  }
+
+  async getCurrentRound() {
+    try {
+      const res = await fetch(`${getApiBase()}/rounds/current`);
+      const data = await res.json();
+      if (data.success) return data.data;
+    } catch (e) {
+      console.warn('Error fetching current round:', e);
+    }
+    return null;
+  }
+
   async getMasterQuotes(forceRefresh = false) {
     try {
       const res = await fetch(`${getApiBase()}/quotes?page=1&limit=100&_t=${Date.now()}`);
@@ -224,6 +269,11 @@ class ApiDataStoreManager {
           quote: q.quote,
           category: q.category,
           reader: q.reader_name,
+          team_id: q.team_id,
+          team_name: q.team_name,
+          team_short_name: q.team_short_name,
+          team_display_name: q.team_display_name,
+          team_color: q.team_color,
           likes: q.likes_count || 0
         }));
         this.cachedQuotes = formatted;

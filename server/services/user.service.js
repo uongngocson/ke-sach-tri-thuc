@@ -80,6 +80,26 @@ export class UserService {
   }
 
   /**
+   * Fast autocomplete suggestions for Email / Employee Code input
+   */
+  static async suggestUsers(keyword = '', limit = 8) {
+    if (!keyword || !keyword.trim()) return [];
+    const term = `%${keyword.trim()}%`;
+    const res = await db.query(`
+      SELECT 
+        u.id, u.employee_code, u.email, u.full_name, u.gender,
+        u.branch, u.parent_department, u.officer_code, u.job_title,
+        u.team_id, t.display_name as team_display_name, t.color_code as team_color
+      FROM users u
+      LEFT JOIN teams t ON u.team_id = t.id
+      WHERE u.full_name ILIKE $1 OR u.email ILIKE $1 OR u.employee_code ILIKE $1
+      ORDER BY u.full_name ASC
+      LIMIT $2
+    `, [term, limit]);
+    return res.rows;
+  }
+
+  /**
    * Find user by Email or Employee Code (for book contribution & lookup)
    */
   static async lookupUser(query) {
