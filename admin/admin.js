@@ -1334,38 +1334,11 @@ async function loadContentSettings() {
       currentRulesSettings = r;
 
       setVal('cfg-rules-badge', r.badge || '');
-      setVal('cfg-rules-mission-title', r.mission?.title || '');
-      setVal('cfg-rules-mission-desc', r.mission?.desc || r.mission?.description || '');
-
-      setVal('cfg-rules-timeline-title', r.timeline?.title || '');
-      setVal('cfg-rules-timeline-desc', r.timeline?.desc || r.timeline?.description || '');
-      setVal('cfg-rules-timeline-p1-title', r.timeline?.phase1Title || r.timeline?.phase1?.title || '');
-      setVal('cfg-rules-timeline-p1-rounds', r.timeline?.phase1Rounds || r.timeline?.phase1?.rounds || '');
-      setVal('cfg-rules-timeline-p1-note', r.timeline?.phase1Note || r.timeline?.phase1?.note || '');
-      setVal('cfg-rules-timeline-p2-title', r.timeline?.phase2Title || r.timeline?.phase2?.title || '');
-      setVal('cfg-rules-timeline-p2-rounds', r.timeline?.phase2Rounds || r.timeline?.phase2?.rounds || '');
-
-      setVal('cfg-rules-formula-title', r.formula?.title || '');
-      setVal('cfg-rules-formula-desc', r.formula?.desc || r.formula?.description || '');
-      setVal('cfg-rules-formula-text', r.formula?.formulaText || '');
-      setVal('cfg-rules-formula-max', r.formula?.maxText || r.formula?.maxExpPerRound || '');
-      setVal('cfg-rules-formula-ex1-title', r.formula?.example1Title || r.formula?.example1?.title || '');
-      setVal('cfg-rules-formula-ex1-text', r.formula?.example1Text || r.formula?.example1?.description || '');
-      setVal('cfg-rules-formula-ex2-title', r.formula?.example2Title || r.formula?.example2?.title || '');
-      setVal('cfg-rules-formula-ex2-text', r.formula?.example2Text || r.formula?.example2?.description || '');
-      setVal('cfg-rules-formula-note', r.formula?.note || '');
-
-      // Milestones
+      setVal('cfg-rules-milestones-title', r.milestonesTitle || '🌱 5 GIAI ĐOẠN SINH TRƯỞNG CỦA CÂY TRI THỨC');
       renderMilestonesEditor(r.milestones || []);
 
-      // Interactions
+      setVal('cfg-rules-interactions-title', r.interactionsTitle || 'Cơ Chế Tương Tác & Điểm EXP Nuôi Cây');
       renderInteractionsEditor(r.interactions || []);
-
-      // Tie Breakers & Awards
-      const tieRules = Array.isArray(r.tieBreakers?.rules) ? r.tieBreakers.rules.join('\n') : (r.tieBreakers?.tieRules || '');
-      const awards = Array.isArray(r.tieBreakers?.awards) ? r.tieBreakers.awards.join(', ') : (r.tieBreakers?.awards || '');
-      setVal('cfg-rules-tie-rules', tieRules);
-      setVal('cfg-rules-awards', awards);
 
       setVal('cfg-rules-confirm-btn', r.confirmButton || '');
     }
@@ -1486,45 +1459,11 @@ async function saveRulesSettings() {
   });
 
   const payload = {
-    badge: getVal('cfg-rules-badge') || '📜 THỂ LỆ & QUY TRÌNH THI ĐUA 15 LƯỢT • FOXREAD 2026',
-    mission: {
-      title: getVal('cfg-rules-mission-title'),
-      description: getVal('cfg-rules-mission-desc')
-    },
-    timeline: {
-      title: getVal('cfg-rules-timeline-title'),
-      description: getVal('cfg-rules-timeline-desc'),
-      phase1: {
-        title: getVal('cfg-rules-timeline-p1-title'),
-        rounds: getVal('cfg-rules-timeline-p1-rounds'),
-        note: getVal('cfg-rules-timeline-p1-note')
-      },
-      phase2: {
-        title: getVal('cfg-rules-timeline-p2-title'),
-        rounds: getVal('cfg-rules-timeline-p2-rounds')
-      }
-    },
-    formula: {
-      title: getVal('cfg-rules-formula-title'),
-      description: getVal('cfg-rules-formula-desc'),
-      formulaText: getVal('cfg-rules-formula-text'),
-      maxExpPerRound: getVal('cfg-rules-formula-max'),
-      example1: {
-        title: getVal('cfg-rules-formula-ex1-title'),
-        description: getVal('cfg-rules-formula-ex1-text')
-      },
-      example2: {
-        title: getVal('cfg-rules-formula-ex2-title'),
-        description: getVal('cfg-rules-formula-ex2-text')
-      },
-      note: getVal('cfg-rules-formula-note')
-    },
+    badge: getVal('cfg-rules-badge') || 'THỂ LỆ & QUY TRÌNH NUÔI DƯỠNG CÂY TRI THỨC',
+    milestonesTitle: getVal('cfg-rules-milestones-title') || '🌱 5 GIAI ĐOẠN SINH TRƯỞNG CỦA CÂY TRI THỨC',
     milestones: milestones.length > 0 ? milestones : (currentRulesSettings?.milestones || []),
+    interactionsTitle: getVal('cfg-rules-interactions-title') || 'Cơ Chế Tương Tác & Điểm EXP Nuôi Cây',
     interactions: interactions.length > 0 ? interactions : (currentRulesSettings?.interactions || []),
-    tieBreakers: {
-      tieRules: getVal('cfg-rules-tie-rules'),
-      awards: getVal('cfg-rules-awards')
-    },
     confirmButton: getVal('cfg-rules-confirm-btn') || '🌱 Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây'
   };
 

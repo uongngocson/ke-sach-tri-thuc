@@ -12,31 +12,8 @@ export const DEFAULT_WELCOME_SETTINGS = {
 };
 
 export const DEFAULT_RULES_SETTINGS = {
-  badge: 'THỂ LỆ & QUY TRÌNH THI ĐUA 15 LƯỢT • FOXREAD 2026',
-  mission: {
-    title: 'Sứ Mệnh Hội Đồng FoxREAD & 8 Vườn Tri Thức',
-    desc: 'Chương trình dành riêng cho 288 thành viên Ban Giám Đốc, Trưởng Đơn Vị và CLB Sách FPT thuộc 8 Đội thi đua. Mỗi cuốn sách được gieo mầm, mỗi trích dẫn tâm đắc và mỗi lượt thả tim lan tỏa chính là nguồn dưỡng chất quý báu nuôi dưỡng Cây Tri Thức của từng đội sinh trưởng qua 15 lượt hành trình.'
-  },
-  timeline: {
-    title: 'Lộ Trình 15 Lượt Thi Đua (05/09/2026 – 17/10/2026)',
-    desc: 'Hành trình kéo dài 45 ngày với chu kỳ 3 ngày / 1 lượt, gồm 2 giai đoạn chiến lược:',
-    phase1Title: 'GIAI ĐOẠN 1: GIEO HẠT MẦM (Lượt 1 – 2)',
-    phase1Rounds: '• Lượt 1: 05/09 – 07/09/2026\n• Lượt 2: 08/09 – 10/09/2026',
-    phase1Note: '* 1 người tham gia = 1 hạt giống hữu cơ. Cần tích lũy đủ 50 hạt để Cây chính thức 🌱 Nảy mầm 3D. Chưa tính EXP ở 2 lượt này để đảm bảo công bằng.',
-    phase2Title: 'GIAI ĐOẠN 2: TÍNH EXP CHUẨN HÓA (Lượt 3 – 15)',
-    phase2Rounds: '• Lượt 3 (11/09): Tất cả 8 đội đồng loạt tính EXP!\n• Lượt 4 – 14: 14/09, 17/09, 20/09, 23/09, 26/09, 29/09, 02/10, 05/10, 08/10, 11/10, 14/10\n• Lượt 15 (17/10 – 19/10): Tổng kết chung cuộc & Gala vinh danh'
-  },
-  formula: {
-    title: 'Công Thức Quy Đổi Chuẩn Hóa 40 Người (Tuyệt Đối Công Bằng)',
-    desc: 'Do quy mô các đội không đồng đều (từ 26 đến 49 thành viên), hệ thống áp dụng công thức chuẩn hóa quy mô 40 người:',
-    formulaText: 'EXP Lượt = (Số thành viên tham gia / Tổng quân số đội) × 40 × 5 = Tỷ lệ % × 200 EXP',
-    maxText: 'Tối đa mỗi lượt: 100% quân số tham gia = 200 EXP',
-    example1Title: 'Ví dụ Đội 4 (26 người):',
-    example1Text: 'Nếu 26/26 thành viên tham gia (100%):\n(26 / 26) × 40 × 5 = 200 EXP',
-    example2Title: 'Ví dụ Đội 2 (49 người):',
-    example2Text: 'Nếu 49/49 thành viên tham gia (100%):\n(49 / 49) × 40 × 5 = 200 EXP',
-    note: '💡 Đội ít người không bị thiệt thòi về tổng điểm, và đội đông người cần duy trì tỷ lệ gắn kết cao để tối đa hóa điểm số.'
-  },
+  badge: 'THỂ LỆ & QUY TRÌNH NUÔI DƯỠNG CÂY TRI THỨC',
+  milestonesTitle: '🌱 5 GIAI ĐOẠN SINH TRƯỞNG CỦA CÂY TRI THỨC',
   milestones: [
     {
       level: 0,
@@ -69,6 +46,7 @@ export const DEFAULT_RULES_SETTINGS = {
       effect: 'Cây đã trưởng thành vững chãi, tỏa bóng mát và trở thành biểu tượng cho hành trình tích lũy, lan tỏa tri thức của cả đội. Mỗi giá trị được chia sẻ góp phần tạo nên một di sản văn hóa đọc bền vững.'
     }
   ],
+  interactionsTitle: 'Cơ Chế Tương Tác & Điểm EXP Nuôi Cây',
   interactions: [
     {
       action: '🌱 Gieo Hạt Tri Thức',
@@ -82,25 +60,10 @@ export const DEFAULT_RULES_SETTINGS = {
     },
     {
       action: '🔗 Nhật Ký Tri Thức',
-      exp: 'Ghi nhận minh bạch & chuẩn hóa',
+      exp: '',
       note: 'Mỗi lượt tham gia và tương tác được ghi nhận minh bạch trên hệ thống, tạo thành nhật ký hành trình phát triển của từng Cây Tri Thức của mỗi đội trong vườn.'
     }
   ],
-  tieBreakers: {
-    title: '4 Tiêu Chí Phá Hòa & Cơ Cấu Giải Thưởng',
-    rules: [
-      '1. 🥇 Tổng EXP tích lũy: Đội có tổng điểm sinh trưởng cao nhất.',
-      '2. 🥈 Tỷ lệ tham gia trung bình: Đo lường độ gắn kết bền bỉ của tập thể.',
-      '3. 🥉 Tốc độ đạt mốc: Đội nào cán mốc sinh trưởng sớm hơn.',
-      '4. 🏅 Số lượt đạt 100%: Số lượt có toàn bộ quân số cùng tham gia.'
-    ],
-    awards: [
-      '👑 Cây Tri Thức Xuất Sắc',
-      '🛡️ Cây Bền Bỉ',
-      '🚀 Cây Bứt Phá',
-      '🌱 Cây Khởi Đầu Tốt'
-    ]
-  },
   confirmButton: '🌱 Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây'
 };
 

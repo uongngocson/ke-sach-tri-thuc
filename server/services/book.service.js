@@ -192,9 +192,12 @@ export class BookService {
 
   static async getPublicQuotes(options = {}) {
     const page = Math.max(1, parseInt(options.page, 10) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(options.limit, 10) || 10));
+    const limit = Math.min(100, Math.max(1, parseInt(options.limit, 10) || 20));
     const offset = (page - 1) * limit;
     const category = options.category;
+    const teamId = options.teamId ? parseInt(options.teamId, 10) : null;
+    const search = options.search ? options.search.trim() : null;
+    const sortBy = options.sortBy || 'most_liked';
 
     let query = `
       SELECT b.id, b.title, b.author, b.quote, b.category, b.reader_name, b.likes_count, b.moderation_status, b.created_at,
@@ -205,21 +208,53 @@ export class BookService {
     `;
     const params = [];
 
-    if (category && category !== 'all') {
+    if (category && category !== 'all' && category !== 'Tất cả') {
       params.push(category);
       query += ` AND b.category = $${params.length}`;
     }
 
-    query += ` ORDER BY b.likes_count DESC, b.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    if (teamId) {
+      params.push(teamId);
+      query += ` AND b.team_id = $${params.length}`;
+    }
+
+    if (search) {
+      params.push(`%${search}%`);
+      query += ` AND (b.title ILIKE $${params.length} OR b.author ILIKE $${params.length} OR b.quote ILIKE $${params.length} OR b.reader_name ILIKE $${params.length})`;
+    }
+
+    // Sorting
+    if (sortBy === 'newest' || sortBy === 'recent') {
+      query += ` ORDER BY b.created_at DESC`;
+    } else if (sortBy === 'oldest') {
+      query += ` ORDER BY b.created_at ASC`;
+    } else {
+      // Default: most_liked
+      query += ` ORDER BY b.likes_count DESC, b.created_at DESC`;
+    }
+
+    query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(limit, offset);
 
     const quotesRes = await db.query(query, params);
     
-    let countQuery = `SELECT COUNT(*) FROM books WHERE visibility_status = 'visible'`;
-    if (category && category !== 'all') {
-      countQuery += ` AND category = '${category}'`;
+    // Count Query
+    let countQuery = `SELECT COUNT(*) FROM books b WHERE b.visibility_status = 'visible'`;
+    const countParams = [];
+    if (category && category !== 'all' && category !== 'Tất cả') {
+      countParams.push(category);
+      countQuery += ` AND b.category = $${countParams.length}`;
     }
-    const countRes = await db.query(countQuery);
+    if (teamId) {
+      countParams.push(teamId);
+      countQuery += ` AND b.team_id = $${countParams.length}`;
+    }
+    if (search) {
+      countParams.push(`%${search}%`);
+      countQuery += ` AND (b.title ILIKE $${countParams.length} OR b.author ILIKE $${countParams.length} OR b.quote ILIKE $${countParams.length} OR b.reader_name ILIKE $${countParams.length})`;
+    }
+
+    const countRes = await db.query(countQuery, countParams);
     const totalCount = parseInt(countRes.rows[0].count, 10);
 
     return {

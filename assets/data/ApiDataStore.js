@@ -372,6 +372,30 @@ class ApiDataStoreManager {
     return [];
   }
 
+  async getPublicQuotes(options = {}) {
+    try {
+      const params = new URLSearchParams();
+      if (options.page) params.set('page', options.page);
+      if (options.limit) params.set('limit', options.limit);
+      if (options.category && options.category !== 'all' && options.category !== 'Tất cả') {
+        params.set('category', options.category);
+      }
+      if (options.teamId) params.set('teamId', options.teamId);
+      if (options.search) params.set('search', options.search);
+      if (options.sortBy) params.set('sortBy', options.sortBy);
+      params.set('_t', Date.now());
+
+      const res = await fetch(`${getApiBase()}/quotes?${params.toString()}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        return data.data;
+      }
+    } catch (err) {
+      console.warn('Error fetching public quotes:', err);
+    }
+    return { quotes: [], pagination: { total: 0, page: 1, limit: 20, totalPages: 1 } };
+  }
+
   async getSeeds() {
     const quotes = await this.getMasterQuotes(true);
     return quotes.map((q, idx) => {

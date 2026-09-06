@@ -3955,6 +3955,12 @@
                     <span>💧</span>
                   </button>
                   <button
+                    id="fpt-mobile-treasury-btn"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500/15 border border-amber-500/35 text-sm font-bold text-amber-700 dark:text-amber-300 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
+                    title="Kho Tàng Tri Thức - Xem toàn bộ trích dẫn của các đội" type="button">
+                    <span>📚</span>
+                  </button>
+                  <button
                     id="fpt-mobile-gieo-mam-btn"
                     style="display:none !important;"
                     class="w-9 h-9 flex items-center justify-center rounded-xl fpt-btn-cta text-sm font-bold text-white transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
@@ -3995,6 +4001,13 @@
                   title="Tưới nước cho cây hằng ngày (+1 EXP)" type="button">
                   <span class="text-sm leading-none">💧</span>
                   <span id="fpt-main-dew-text">Tưới Cây</span>
+                </button>
+                <button
+                  id="fpt-main-treasury-btn"
+                  class="h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
+                  title="Kho Tàng Tri Thức - Xem toàn bộ trích dẫn của các đội" type="button">
+                  <span class="text-sm leading-none">📚</span>
+                  <span>Kho Tàng Tri Thức</span>
                 </button>
                 <button
                   id="fpt-main-gieo-mam-btn"
@@ -5945,7 +5958,7 @@
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; position:relative; z-index:2;">
         <div class="bq-badge">
           <span>📜</span>
-          <span>THỂ LỆ & QUY TRÌNH THI ĐUA 15 LƯỢT • FOXREAD 2026</span>
+          <span id="rules-badge-text">THỂ LỆ & QUY TRÌNH NUÔI DƯỠNG CÂY TRI THỨC</span>
         </div>
         <button class="bq-close" id="rules-close-btn" title="Đóng (Esc)">✕</button>
       </div>
@@ -5953,91 +5966,13 @@
       <!-- Body Content -->
       <div style="display:flex; flex-direction:column; gap:14px; position:relative; z-index:2;">
         
-        <!-- 1. Mục Đích & Sứ Mệnh Sinh Thái -->
-        <div class="rules-section-card">
-          <div class="rules-section-header">
-            <span class="rules-icon-badge" style="background:rgba(0,84,166,0.12); color:#0054A6;">🌟</span>
-            <h4 class="rules-heading">Sứ Mệnh Hội Đồng FoxREAD & 8 Vườn Tri Thức</h4>
-          </div>
-          <p class="rules-desc">
-            Chương trình dành riêng cho <strong>288 thành viên</strong> Ban Giám Đốc, Trưởng Đơn Vị và CLB Sách FPT thuộc <strong>8 Đội thi đua</strong>. Mỗi cuốn sách được gieo mầm, mỗi trích dẫn tâm đắc và mỗi lượt thả tim lan tỏa chính là nguồn dưỡng chất quý báu nuôi dưỡng <strong>Cây Tri Thức</strong> của từng đội sinh trưởng qua 15 lượt hành trình.
-          </p>
-        </div>
-
-        <!-- 2. Lộ Trình 15 Lượt Cố Định (05/09 - 17/10/2026) -->
-        <div class="rules-section-card">
-          <div class="rules-section-header">
-            <span class="rules-icon-badge" style="background:rgba(112,185,40,0.15); color:#15803d;">📅</span>
-            <h4 class="rules-heading">Lộ Trình 15 Lượt Thi Đua (05/09/2026 – 17/10/2026)</h4>
-          </div>
-          <p class="rules-desc" style="margin-bottom:10px;">
-            Hành trình kéo dài <strong>45 ngày</strong> với chu kỳ <strong>3 ngày / 1 lượt</strong>, gồm 2 giai đoạn chiến lược:
-          </p>
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:10px; font-size:11.5px;">
-            <div style="background:rgba(243,111,33,0.08); border:1px solid rgba(243,111,33,0.3); border-radius:12px; padding:10px 12px;">
-              <div style="font-weight:900; color:#ea580c; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
-                <span>🌰</span> GIAI ĐOẠN 1: GIEO HẠT MẦM (Lượt 1 – 2)
-              </div>
-              <div style="color:var(--text-color, #334155); line-height:1.5;">
-                • <strong>Lượt 1:</strong> 05/09 – 07/09/2026<br/>
-                • <strong>Lượt 2:</strong> 08/09 – 10/09/2026<br/>
-                <em>* 1 người tham gia = 1 hạt giống hữu cơ. Cần tích lũy đủ <strong>50 hạt</strong> để Cây chính thức 🌱 Nảy mầm 3D. Chưa tính EXP ở 2 lượt này để đảm bảo công bằng.</em>
-              </div>
-            </div>
-            <div style="background:rgba(0,84,166,0.08); border:1px solid rgba(0,84,166,0.3); border-radius:12px; padding:10px 12px;">
-              <div style="font-weight:900; color:#0054A6; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
-                <span>⚡</span> GIAI ĐOẠN 2: TÍNH EXP CHUẨN HÓA (Lượt 3 – 15)
-              </div>
-              <div style="color:var(--text-color, #334155); line-height:1.5;">
-                • <strong>Lượt 3 (11/09):</strong> Tất cả 8 đội đồng loạt tính EXP!<br/>
-                • <strong>Lượt 4 – 14:</strong> 14/09, 17/09, 20/09, 23/09, 26/09, 29/09, 02/10, 05/10, 08/10, 11/10, 14/10<br/>
-                • <strong>Lượt 15 (17/10 – 19/10):</strong> Tổng kết chung cuộc & Gala vinh danh
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. Công Thức Quy Đổi Chuẩn Hóa 40 Người -->
-        <div class="rules-section-card">
-          <div class="rules-section-header">
-            <span class="rules-icon-badge" style="background:rgba(243,111,33,0.12); color:#F36F21;">⚖️</span>
-            <h4 class="rules-heading">Công Thức Quy Đổi Chuẩn Hóa 40 Người (Tuyệt Đối Công Bằng)</h4>
-          </div>
-          <p class="rules-desc">
-            Do quy mô các đội không đồng đều (từ 26 đến 49 thành viên), hệ thống áp dụng công thức <strong>chuẩn hóa quy mô 40 người</strong>:
-          </p>
-          <div style="background:rgba(15,23,42,0.05); border-radius:12px; padding:12px; margin:8px 0; border:1px dashed rgba(0,84,166,0.4); text-align:center;">
-            <div style="font-size:13px; font-weight:900; color:#0054A6; letter-spacing:0.02em;">
-              EXP Lượt = (Số thành viên tham gia / Tổng quân số đội) × 40 × 5 = Tỷ lệ % × 200 EXP
-            </div>
-            <div style="font-size:11px; color:#64748b; margin-top:4px;">
-              Tối đa mỗi lượt: 100% quân số tham gia = <strong>200 EXP</strong>
-            </div>
-          </div>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:11.5px; margin-top:8px;">
-            <div style="background:rgba(16,185,129,0.08); border-radius:10px; padding:8px 12px;">
-              <strong style="color:#059669;">Ví dụ Đội 4 (26 người):</strong><br/>
-              Nếu 26/26 thành viên tham gia (100%):<br/>
-              (26 / 26) × 40 × 5 = <strong>200 EXP</strong>
-            </div>
-            <div style="background:rgba(59,130,246,0.08); border-radius:10px; padding:8px 12px;">
-              <strong style="color:#2563eb;">Ví dụ Đội 2 (49 người):</strong><br/>
-              Nếu 49/49 thành viên tham gia (100%):<br/>
-              (49 / 49) × 40 × 5 = <strong>200 EXP</strong>
-            </div>
-          </div>
-          <p style="font-size:11px; color:#64748b; margin-top:6px; font-style:italic;">
-            💡 Đội ít người không bị thiệt thòi về tổng điểm, và đội đông người cần duy trì tỷ lệ gắn kết cao để tối đa hóa điểm số.
-          </p>
-        </div>
-
-        <!-- 4. 5 Giai Đoạn Sinh Trưởng Của Cây Tri Thức -->
+        <!-- 1. 5 Giai Đoạn Sinh Trưởng Của Cây Tri Thức -->
         <div class="rules-section-card">
           <div class="rules-section-header">
             <span class="rules-icon-badge" style="background:rgba(112,185,40,0.15); color:#15803d;">🌱</span>
-            <h4 class="rules-heading">5 Giai Đoạn Sinh Trưởng Của Cây Tri Thức</h4>
+            <h4 class="rules-heading" id="rules-milestones-heading">🌱 5 GIAI ĐOẠN SINH TRƯỞNG CỦA CÂY TRI THỨC</h4>
           </div>
-          <div class="rules-timeline">
+          <div class="rules-timeline" id="rules-timeline-container">
             <div class="rules-timeline-item">
               <div class="rules-timeline-dot">0</div>
               <div class="rules-timeline-content">
@@ -6071,13 +6006,13 @@
           </div>
         </div>
 
-        <!-- 5. Cơ Chế Tương Tác & Điểm EXP Nuôi Cây -->
+        <!-- 2. Cơ Chế Tương Tác & Điểm EXP Nuôi Cây -->
         <div class="rules-section-card">
           <div class="rules-section-header">
             <span class="rules-icon-badge" style="background:rgba(244,63,94,0.12); color:#e11d48;">💖</span>
-            <h4 class="rules-heading">Cơ Chế Tương Tác & Điểm EXP Nuôi Cây</h4>
+            <h4 class="rules-heading" id="rules-interactions-heading">Cơ Chế Tương Tác & Điểm EXP Nuôi Cây</h4>
           </div>
-          <div class="rules-rewards-grid">
+          <div class="rules-rewards-grid" id="rules-interactions-grid">
             <div class="rules-reward-box">
               <div class="rules-reward-title">🌱 Gieo Hạt Tri Thức</div>
               <div style="font-size:11px; font-weight:800; color:#15803d; margin-bottom:4px; line-height:1.4;">
@@ -6095,31 +6030,7 @@
             </div>
             <div class="rules-reward-box">
               <div class="rules-reward-title">🔗 Nhật Ký Tri Thức</div>
-              <div style="font-size:11px; font-weight:800; color:#0054A6; margin-bottom:4px;">
-                Ghi nhận minh bạch & chuẩn hóa
-              </div>
-              <div class="rules-reward-detail">Mỗi lượt tham gia và tương tác được ghi nhận minh bạch trên hệ thống, tạo thành nhật ký hành trình phát triển của từng Cây Tri Thức của mỗi đội trong vườn.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 6. Tiêu Chí Xếp Hạng Phá Hòa & Giải Thưởng -->
-        <div class="rules-section-card">
-          <div class="rules-section-header">
-            <span class="rules-icon-badge" style="background:rgba(234,179,8,0.15); color:#ca8a04;">🏆</span>
-            <h4 class="rules-heading">4 Tiêu Chí Phá Hòa & Cơ Cấu Giải Thưởng</h4>
-          </div>
-          <div style="font-size:11.5px; line-height:1.6; color:var(--text-color, #334155);">
-            <strong>Thứ tự ưu tiên xếp hạng khi bằng điểm (Tie-Breakers):</strong><br/>
-            1. 🥇 <strong>Tổng EXP tích lũy:</strong> Đội có tổng điểm sinh trưởng cao nhất.<br/>
-            2. 🥈 <strong>Tỷ lệ tham gia trung bình:</strong> Đo lường độ gắn kết bền bỉ của tập thể.<br/>
-            3. 🥉 <strong>Tốc độ đạt mốc:</strong> Đội nào cán mốc sinh trưởng sớm hơn.<br/>
-            4. 🏅 <strong>Số lượt đạt 100%:</strong> Số lượt có toàn bộ quân số cùng tham gia.<br/>
-            <div style="margin-top:8px; padding-top:8px; border-top:1px dashed rgba(0,0,0,0.1); display:flex; flex-wrap:wrap; gap:8px;">
-              <span style="background:rgba(0,84,166,0.1); color:#0054A6; font-weight:800; padding:2px 8px; border-radius:6px;">👑 Cây Tri Thức Xuất Sắc</span>
-              <span style="background:rgba(16,185,129,0.1); color:#059669; font-weight:800; padding:2px 8px; border-radius:6px;">🛡️ Cây Bền Bỉ</span>
-              <span style="background:rgba(243,111,33,0.1); color:#ea580c; font-weight:800; padding:2px 8px; border-radius:6px;">🚀 Cây Bứt Phá</span>
-              <span style="background:rgba(168,85,247,0.1); color:#9333ea; font-weight:800; padding:2px 8px; border-radius:6px;">🌱 Cây Khởi Đầu Tốt</span>
+              <div class="rules-reward-detail" style="margin-top:6px;">Mỗi lượt tham gia và tương tác được ghi nhận minh bạch trên hệ thống, tạo thành nhật ký hành trình phát triển của từng Cây Tri Thức của mỗi đội trong vườn.</div>
             </div>
           </div>
         </div>
@@ -6130,7 +6041,7 @@
       <div style="margin-top:16px; display:flex; align-items:center; justify-content:flex-end; gap:10px; position:relative; z-index:2;">
         <button id="rules-dismiss-btn" class="cb-submit-btn" type="button">
           <span>🌱</span>
-          <span>Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây</span>
+          <span id="rules-confirm-btn-text">Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây</span>
         </button>
       </div>
     </div>
@@ -6364,6 +6275,7 @@
     import { QuoteCardExporter } from './assets/services/QuoteCardExporter.js?v=20260906_v7';
     import { UserIdentityModal } from './assets/auth/UserIdentityModal.js?v=20260906_v6';
     import { TeamArenaModal } from './assets/teams/TeamArenaModal.js?v=20260906_v6';
+    import { QuoteTreasuryModal } from './assets/quotes/QuoteTreasuryModal.js?v=20260906_v11';
 
     (async function () {
       // Initialize Mock Store, Tester Panel & Nourishment Particle FX
@@ -6613,7 +6525,18 @@
         }
       });
 
-      // Bind Account & Arena triggers
+      window.QuoteCardExporter = QuoteCardExporter;
+      const quoteTreasuryModal = new QuoteTreasuryModal({
+        onInspectTeam: async (teamId) => {
+          const targetTeam = allTeams.find(t => t.id === parseInt(teamId, 10));
+          if (targetTeam) {
+            await inspectTeam(targetTeam);
+          }
+        }
+      });
+      window.quoteTreasuryModal = quoteTreasuryModal;
+
+      // Bind Account, Arena & Treasury triggers
       const userBtns = document.querySelectorAll('#fpt-user-account-btn, #fpt-mobile-user-btn');
       userBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -6629,6 +6552,15 @@
           e.preventDefault();
           e.stopPropagation();
           teamArenaModal.open();
+        });
+      });
+
+      const treasuryBtns = document.querySelectorAll('#fpt-main-treasury-btn, #fpt-mobile-treasury-btn');
+      treasuryBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          quoteTreasuryModal.open();
         });
       });
 
@@ -7709,6 +7641,9 @@
           closeQuoteModal();
           closeContributeModal();
           closeOnchainModal();
+          if (window.quoteTreasuryModal && window.quoteTreasuryModal.isOpen) {
+            window.quoteTreasuryModal.close();
+          }
         }
       });
 
@@ -7717,7 +7652,7 @@
         const target = e.target;
         if (!target) return;
 
-        if (target.closest && (target.closest('#book-quote-card') || target.closest('#contribute-book-card') || target.closest('#onchain-card') || target.closest('#tester-panel-card') || target.closest('#book-toast-popup'))) {
+        if (target.closest && (target.closest('#quote-treasury-card') || target.closest('#quote-treasury-modal-overlay') || target.closest('#book-quote-card') || target.closest('#contribute-book-card') || target.closest('#onchain-card') || target.closest('#tester-panel-card') || target.closest('#book-toast-popup'))) {
           return;
         }
 
@@ -7803,142 +7738,52 @@
         // 2. RULES MODAL
         if (settings.rules_content) {
           const r = settings.rules_content;
-          const rBadge = document.querySelector('#rules-card .bq-badge span:last-child');
+          const rBadge = document.getElementById('rules-badge-text');
           if (rBadge && r.badge) rBadge.textContent = r.badge.replace(/^📜\s*/, '');
 
-          const sections = document.querySelectorAll('#rules-card .rules-section-card');
-          if (sections.length >= 6) {
-            // Section 1: Sứ mệnh
-            if (r.mission) {
-              const h1 = sections[0].querySelector('.rules-heading');
-              if (h1 && r.mission.title) h1.textContent = r.mission.title;
-              const d1 = sections[0].querySelector('.rules-desc');
-              if (d1 && r.mission.description) d1.innerHTML = escapeHtml(r.mission.description).replace(/\n/g, '<br/>');
-            }
+          // Milestones Heading & Timeline
+          const mHeading = document.getElementById('rules-milestones-heading');
+          if (mHeading && r.milestonesTitle) mHeading.textContent = r.milestonesTitle;
 
-            // Section 2: Lộ trình 15 lượt
-            if (r.timeline) {
-              const h2 = sections[1].querySelector('.rules-heading');
-              if (h2 && r.timeline.title) h2.textContent = r.timeline.title;
-              const d2 = sections[1].querySelector('.rules-desc');
-              if (d2 && r.timeline.description) d2.innerHTML = escapeHtml(r.timeline.description).replace(/\n/g, '<br/>');
-
-              const p1Box = sections[1].children[2]?.children[0];
-              if (p1Box && r.timeline.phase1) {
-                const p1Title = p1Box.children[0];
-                if (p1Title && r.timeline.phase1.title) p1Title.innerHTML = `<span>🌰</span> ${escapeHtml(r.timeline.phase1.title)}`;
-                const p1Content = p1Box.children[1];
-                if (p1Content) {
-                  const rText = escapeHtml(r.timeline.phase1.rounds || '').replace(/\n/g, '<br/>');
-                  const nText = escapeHtml(r.timeline.phase1.note || '');
-                  p1Content.innerHTML = `${rText}<br/><em>${nText}</em>`;
-                }
-              }
-
-              const p2Box = sections[1].children[2]?.children[1];
-              if (p2Box && r.timeline.phase2) {
-                const p2Title = p2Box.children[0];
-                if (p2Title && r.timeline.phase2.title) p2Title.innerHTML = `<span>⚡</span> ${escapeHtml(r.timeline.phase2.title)}`;
-                const p2Content = p2Box.children[1];
-                if (p2Content) {
-                  p2Content.innerHTML = escapeHtml(r.timeline.phase2.rounds || '').replace(/\n/g, '<br/>');
-                }
-              }
-            }
-
-            // Section 3: Công thức chuẩn hóa 40 người
-            if (r.formula) {
-              const h3 = sections[2].querySelector('.rules-heading');
-              if (h3 && r.formula.title) h3.textContent = r.formula.title;
-              const d3 = sections[2].querySelector('.rules-desc');
-              if (d3 && r.formula.description) d3.innerHTML = escapeHtml(r.formula.description).replace(/\n/g, '<br/>');
-
-              const fBox = sections[2].children[2];
-              if (fBox) {
-                const fText = fBox.children[0];
-                if (fText && r.formula.formulaText) fText.textContent = r.formula.formulaText;
-                const fMax = fBox.children[1];
-                if (fMax && r.formula.maxExpPerRound) fMax.innerHTML = escapeHtml(r.formula.maxExpPerRound);
-              }
-
-              const exGrid = sections[2].children[3];
-              if (exGrid && exGrid.children.length >= 2) {
-                if (r.formula.example1) {
-                  exGrid.children[0].innerHTML = `<strong style="color:#059669;">${escapeHtml(r.formula.example1.title)}</strong><br/>${escapeHtml(r.formula.example1.description).replace(/\n/g, '<br/>')}`;
-                }
-                if (r.formula.example2) {
-                  exGrid.children[1].innerHTML = `<strong style="color:#2563eb;">${escapeHtml(r.formula.example2.title)}</strong><br/>${escapeHtml(r.formula.example2.description).replace(/\n/g, '<br/>')}`;
-                }
-              }
-
-              const fNote = sections[2].children[4];
-              if (fNote && r.formula.note) fNote.innerHTML = escapeHtml(r.formula.note);
-            }
-
-            // Section 4: 5 Mốc sinh trưởng cây 3D
-            if (Array.isArray(r.milestones) && r.milestones.length > 0) {
-              const tl = sections[3].querySelector('.rules-timeline');
-              if (tl) {
-                tl.innerHTML = r.milestones.map(m => {
-                  const label = m.label || m.title || `Giai đoạn ${m.level}`;
-                  const range = m.range ? ` (${escapeHtml(m.range)})` : '';
-                  const effect = m.effect || m.desc || '';
-                  return `
-                    <div class="rules-timeline-item">
-                      <div class="rules-timeline-dot ${m.level === 1 ? 'active' : ''}">${m.level}</div>
-                      <div class="rules-timeline-content">
-                        <strong>${escapeHtml(label)}${range}:</strong> ${escapeHtml(effect)}
-                      </div>
+          if (Array.isArray(r.milestones) && r.milestones.length > 0) {
+            const tl = document.getElementById('rules-timeline-container');
+            if (tl) {
+              tl.innerHTML = r.milestones.map(m => {
+                const label = m.label || m.title || `Giai đoạn ${m.level}`;
+                const range = m.range ? ` (${escapeHtml(m.range)})` : '';
+                const effect = m.effect || m.desc || '';
+                return `
+                  <div class="rules-timeline-item">
+                    <div class="rules-timeline-dot ${m.level === 1 ? 'active' : ''}">${m.level}</div>
+                    <div class="rules-timeline-content">
+                      <strong>${escapeHtml(label)}${range}:</strong> ${escapeHtml(effect)}
                     </div>
-                  `;
-                }).join('');
-              }
-            }
-
-            // Section 5: Cơ chế tương tác & điểm EXP
-            if (Array.isArray(r.interactions) && r.interactions.length > 0) {
-              const grid = sections[4].querySelector('.rules-rewards-grid');
-              if (grid) {
-                const colors = ['#15803d', '#e11d48', '#0054A6'];
-                grid.innerHTML = r.interactions.map((act, i) => {
-                  const action = act.action || act.title || '';
-                  const expText = act.exp ? `<div style="font-size:11px; font-weight:800; color:${colors[i % 3]}; margin-bottom:4px; line-height:1.4;">${escapeHtml(act.exp).replace(/\n/g, '<br/>')}</div>` : '';
-                  const note = act.note || act.desc || '';
-                  return `
-                    <div class="rules-reward-box">
-                      <div class="rules-reward-title">${escapeHtml(action)}</div>
-                      ${expText}
-                      <div class="rules-reward-detail">${escapeHtml(note)}</div>
-                    </div>
-                  `;
-                }).join('');
-              }
-            }
-
-            // Section 6: Tiêu chí phá hòa & giải thưởng
-            if (r.tieBreakers) {
-              const s6Content = sections[5].children[1];
-              if (s6Content) {
-                const tRules = escapeHtml(r.tieBreakers.tieRules || '').replace(/\n/g, '<br/>');
-                const awards = (r.tieBreakers.awards || '').split(',').map(a => a.trim()).filter(Boolean);
-                const awardPills = awards.map((a, i) => {
-                  const pillStyles = [
-                    'background:rgba(0,84,166,0.1); color:#0054A6;',
-                    'background:rgba(16,185,129,0.1); color:#059669;',
-                    'background:rgba(243,111,33,0.1); color:#ea580c;',
-                    'background:rgba(168,85,247,0.1); color:#9333ea;'
-                  ];
-                  return `<span style="${pillStyles[i % pillStyles.length]} font-weight:800; padding:2px 8px; border-radius:6px;">${escapeHtml(a)}</span>`;
-                }).join(' ');
-
-                s6Content.innerHTML = `
-                  <strong>Thứ tự ưu tiên xếp hạng khi bằng điểm (Tie-Breakers):</strong><br/>
-                  ${tRules}
-                  <div style="margin-top:8px; padding-top:8px; border-top:1px dashed rgba(0,0,0,0.1); display:flex; flex-wrap:wrap; gap:8px;">
-                    ${awardPills}
                   </div>
                 `;
-              }
+              }).join('');
+            }
+          }
+
+          // Interactions Heading & Grid
+          const iHeading = document.getElementById('rules-interactions-heading');
+          if (iHeading && r.interactionsTitle) iHeading.textContent = r.interactionsTitle;
+
+          if (Array.isArray(r.interactions) && r.interactions.length > 0) {
+            const grid = document.getElementById('rules-interactions-grid');
+            if (grid) {
+              const colors = ['#15803d', '#e11d48', '#0054A6'];
+              grid.innerHTML = r.interactions.map((act, i) => {
+                const action = act.action || act.title || '';
+                const expText = act.exp ? `<div style="font-size:11px; font-weight:800; color:${colors[i % 3]}; margin-bottom:4px; line-height:1.4;">${escapeHtml(act.exp).replace(/\n/g, '<br/>')}</div>` : '';
+                const note = act.note || act.desc || '';
+                return `
+                  <div class="rules-reward-box">
+                    <div class="rules-reward-title">${escapeHtml(action)}</div>
+                    ${expText}
+                    <div class="rules-reward-detail">${escapeHtml(note)}</div>
+                  </div>
+                `;
+              }).join('');
             }
           }
 

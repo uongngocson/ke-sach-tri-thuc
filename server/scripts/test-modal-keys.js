@@ -22,6 +22,8 @@ async function testContributeModalKeys() {
   }
 
   try {
+    const testRunId = Date.now();
+
     // -------------------------------------------------------------
     // TEST KEY 1: MISSING TITLE VALIDATION
     // -------------------------------------------------------------
@@ -34,7 +36,7 @@ async function testContributeModalKeys() {
         author: 'Paulo Coelho',
         quote: 'Khi bạn khao khát điều gì, cả vũ trụ sẽ hợp lực giúp bạn.',
         reader: 'Độc giả Test',
-        userFingerprint: 'fp_test_1'
+        userFingerprint: `fp_test_1_${testRunId}`
       })
     });
     const data1 = await res1.json();
@@ -52,7 +54,7 @@ async function testContributeModalKeys() {
         author: '',
         quote: 'Khi bạn khao khát điều gì, cả vũ trụ sẽ hợp lực giúp bạn.',
         reader: 'Độc giả Test',
-        userFingerprint: 'fp_test_2'
+        userFingerprint: `fp_test_2_${testRunId}`
       })
     });
     const data2 = await res2.json();
@@ -70,7 +72,7 @@ async function testContributeModalKeys() {
         author: 'Paulo Coelho',
         quote: '',
         reader: 'Độc giả Test',
-        userFingerprint: 'fp_test_3'
+        userFingerprint: `fp_test_3_${testRunId}`
       })
     });
     const data3 = await res3.json();
@@ -92,8 +94,8 @@ async function testContributeModalKeys() {
         quote: 'Bước đi một bước mới, nói ra một lời mới là điều người ta sợ hãi nhất.',
         category: 'Văn Học Kinh Điển',
         reader: 'Sơn Uông',
-        email: 'sonuong@caosach.vn',
-        userFingerprint: 'fp_valid_test_4'
+        email: `sonuong_${testRunId}@caosach.vn`,
+        userFingerprint: `fp_valid_test_4_${testRunId}`
       })
     });
     const data4 = await res4.json();
@@ -118,7 +120,7 @@ async function testContributeModalKeys() {
         author: 'Ayn Rand',
         quote: 'Hàng ngàn năm trước, người đầu tiên tạo ra lửa có lẽ đã bị thiêu chết trên chính ngọn lửa ấy.',
         category: 'Triết Lý Sống',
-        userFingerprint: 'fp_anon_test_5'
+        userFingerprint: `fp_anon_test_5_${testRunId}`
       })
     });
     const data5 = await res5.json();
@@ -143,7 +145,7 @@ Những điều trông thấy mà đau đớn lòng.” ✨📚`;
         quote: specialQuote,
         category: 'Văn Học Cổ Điển Việt Nam',
         reader: 'Độc giả Yêu Thơ 🌸',
-        userFingerprint: 'fp_vietnamese_test_6'
+        userFingerprint: `fp_vietnamese_test_6_${testRunId}`
       })
     });
     const data6 = await res6.json();
@@ -154,14 +156,14 @@ Những điều trông thấy mà đau đớn lòng.” ✨📚`;
     // TEST KEY 7: IDEMPOTENCY PROTECTION (CHỐNG GỬI TRÙNG KHI BẤM NHIỀU LẦN)
     // -------------------------------------------------------------
     console.log('\n📦 [7/8] Test Key 7: Idempotency Protection (Chống click đúp gửi trùng)...');
-    const testIdempotencyKey = 'idemp_test_' + Date.now();
+    const testIdempotencyKey = 'idemp_test_' + testRunId;
     const payload7 = {
       title: 'Chiến Tranh Và Hòa Bình',
       author: 'Leo Tolstoy',
       quote: 'Mọi thứ đều đến đúng lúc với người biết kiên nhẫn chờ đợi.',
       category: 'Văn Học Kinh Điển',
       reader: 'Độc giả Kiên Nhẫn',
-      userFingerprint: 'fp_idemp_user'
+      userFingerprint: `fp_idemp_user_${testRunId}`
     };
 
     // Lần 1
