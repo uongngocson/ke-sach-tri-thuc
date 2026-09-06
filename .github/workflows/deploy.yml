@@ -94,7 +94,7 @@ jobs:
 
       - name: Deploy Staging Docker Containers
         run: |
-          ssh -o StrictHostKeyChecking=no sonun@${{ secrets.SERVER_HOST }} "cd /home/sonun/deployments/caosach-staging && docker compose -f docker-compose.staging.yml up -d --build"
+          ssh -o StrictHostKeyChecking=no sonun@${{ secrets.SERVER_HOST }} "cd /home/sonun/deployments/caosach-staging && docker compose -f docker-compose.staging.yml up -d --build --force-recreate"
 
   deploy-prod:
     name: Deploy to Production (https://caosach.soninfra.cloud)
@@ -117,4 +117,4 @@ jobs:
 
       - name: Deploy Production Docker Containers
         run: |
-          ssh -o StrictHostKeyChecking=no sonun@${{ secrets.SERVER_HOST }} "cd /home/sonun/deployments/caosach-prod && docker compose -f docker-compose.prod.yml up -d --build"
+          ssh -o StrictHostKeyChecking=no sonun@${{ secrets.SERVER_HOST }} "cd /home/sonun/deployments/caosach-prod && docker compose -f docker-compose.prod.yml up -d --build --force-recreate"
