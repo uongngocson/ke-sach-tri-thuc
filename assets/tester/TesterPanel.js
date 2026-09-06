@@ -53,14 +53,14 @@ export class TesterPanel {
           <select id="tester-team-select" style="width:100%; padding:7px 10px; border-radius:8px; background:#0f172a; color:#f8fafc; border:1px solid #334155; font-size:12px; font-weight:700; cursor:pointer; outline:none;">
             <option value="active">🌳 Đội Đang Xem (Tự động theo màn hình)</option>
             <option value="all">🌐 Toàn Bộ 8 Đội (Đồng bộ tất cả cây)</option>
-            <option value="1">Đội 1: Ban Giám Đốc (BO & SCU)</option>
-            <option value="2">Đội 2: FoxNews & FoxShare (BU HCM & ĐNB)</option>
-            <option value="3">Đội 3: FoxSkill & FoxDoctor (BU Miền Bắc)</option>
-            <option value="4">Đội 4: FoxLife (BU MT & NT)</option>
-            <option value="5">Đội 5: FoxClub (FPL, AU & FU)</option>
-            <option value="6">Đội 6: CLB FoxREAD (Khối FTI BU)</option>
-            <option value="7">Đội 7: TDV Nữ (Khối FTI BA)</option>
-            <option value="8">Đội 8: TDV Nam (Hạ Tầng IMU)</option>
+            <option value="1">Đội 1</option>
+            <option value="2">Đội 2</option>
+            <option value="3">Đội 3</option>
+            <option value="4">Đội 4</option>
+            <option value="5">Đội 5</option>
+            <option value="6">Đội 6</option>
+            <option value="7">Đội 7</option>
+            <option value="8">Đội 8</option>
           </select>
         </div>
 

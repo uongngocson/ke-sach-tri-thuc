@@ -381,8 +381,33 @@
       padding: 7px 8px !important;
     }
 
+    /* Single-card mode vs Full 8-card mode */
+    #timeline-teams-rail.is-single-mode {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      overflow-x: auto !important;
+    }
+
+    #timeline-teams-rail.is-single-mode .team-rail-card:not(.is-selected) {
+      display: none !important;
+    }
+
+    #timeline-teams-rail.is-single-mode .team-rail-card.is-selected {
+      flex: 0 0 210px !important;
+      max-width: 240px !important;
+    }
+
+    #timeline-teams-rail:not(.is-single-mode) .team-rail-expand-btn {
+      display: none !important;
+    }
+
+    #timeline-teams-rail.is-single-mode .team-rail-expand-btn {
+      display: flex !important;
+    }
+
     @media (max-width: 1120px) {
-      #timeline-teams-rail {
+      #timeline-teams-rail:not(.is-single-mode) {
         display: flex !important;
         flex-wrap: nowrap !important;
         overflow-x: auto !important;
@@ -3889,12 +3914,6 @@
                 </a>
                 <div _ngcontent-ng-c4179040905="" class="flex lg:hidden items-center gap-1.5 shrink-0">
                   <button
-                    id="fpt-mobile-user-btn"
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/40 text-sm font-bold text-amber-900 dark:text-amber-200 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
-                    title="Đăng nhập / Đổi tài khoản" type="button">
-                    <span>👤</span>
-                  </button>
-                  <button
                     id="fpt-mobile-arena-btn"
                     style="display:none;"
                     class="w-9 h-9 flex items-center justify-center rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-sm font-bold text-emerald-800 dark:text-emerald-300 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
@@ -3923,16 +3942,15 @@
                     _ngcontent-ng-c4179040905=""
                     class="w-9 h-9 flex items-center justify-center rounded-xl bg-white/90 dark:bg-slate-800 border border-[#0054A6]/30 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-slate-200 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
                     title="Chuyển sang chế độ Đọc Ban Đêm"><span _ngcontent-ng-c4179040905="">🌙</span></button>
+                  <button
+                    id="fpt-mobile-user-btn"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/40 text-sm font-bold text-amber-900 dark:text-amber-200 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
+                    title="Đăng nhập / Đổi tài khoản" type="button">
+                    <span>👤</span>
+                  </button>
                 </div>
               </div>
               <div _ngcontent-ng-c4179040905="" class="hidden lg:flex items-center gap-2.5 shrink-0">
-                <button
-                  id="fpt-user-account-btn"
-                  class="h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-orange-500/15 hover:from-amber-500/25 hover:to-orange-500/25 border border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
-                  title="Nhận diện tài khoản & Đội của bạn" type="button">
-                  <span class="text-sm leading-none">👤</span>
-                  <span id="fpt-user-account-name">Đăng Nhập / Đội Tôi</span>
-                </button>
                 <button
                   id="fpt-arena-btn"
                   style="display:none;"
@@ -3967,6 +3985,13 @@
                   class="h-9 flex items-center justify-center gap-1.5 px-4 rounded-xl bg-white/90 hover:bg-white dark:bg-slate-800 dark:hover:bg-slate-700 border border-[#0054A6]/30 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-200 transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
                   title="Chuyển sang chế độ Đọc Ban Đêm"><span _ngcontent-ng-c4179040905="">🌙</span><span
                     _ngcontent-ng-c4179040905="">Ban Đêm</span></button>
+                <button
+                  id="fpt-user-account-btn"
+                  class="h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-orange-500/15 hover:from-amber-500/25 hover:to-orange-500/25 border border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95 ml-1"
+                  title="Nhận diện tài khoản & Đội của bạn" type="button">
+                  <span class="text-sm leading-none">👤</span>
+                  <span id="fpt-user-account-name">Đăng Nhập / Đội Tôi</span>
+                </button>
               </div>
             </div>
           </header>
@@ -3987,7 +4012,7 @@
                     <div class="hidden sm:flex items-center gap-1.5 shrink-0 ml-1">
                       <span class="text-slate-400 dark:text-slate-500 hidden sm:inline">•</span>
                       <span class="hud-badge shrink-0 text-[10px] py-0.5 px-1.5 rounded" id="hud-team-badge">ĐỘI 1</span>
-                      <span class="hud-name truncate max-w-[150px] sm:max-w-[260px] text-xs font-black text-slate-800 dark:text-slate-100" id="hud-team-name">Khối Cơ quan FPT & CTT</span>
+                      <span class="hud-name truncate max-w-[150px] sm:max-w-[260px] text-xs font-black text-slate-800 dark:text-slate-100" id="hud-team-name">Đội 1</span>
                       <span id="hud-inspecting-tag" style="display:none; font-size:9.5px; font-weight:800; background:#f59e0b; color:#fff; padding:1px 6px; border-radius:5px;" class="shrink-0">Đang Thăm Cây</span>
                       <span class="text-slate-500 dark:text-slate-400 text-[10px] hidden lg:inline" id="hud-participation-stat">Tham gia: 0/39 (0%)</span>
                     </div>
@@ -4008,14 +4033,14 @@
                       <span>🏆</span>
                       <span class="hidden sm:inline">Chi Tiết</span>
                     </button>
-                    <button id="timeline-toggle-collapse-btn" class="h-6 sm:h-7 w-6 sm:w-7 rounded-lg bg-slate-200/70 hover:bg-slate-300/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold flex items-center justify-center cursor-pointer transition-all" title="Thu gọn / Mở rộng 8 cây">
-                      <span id="timeline-collapse-icon">▴</span>
+                    <button id="timeline-toggle-collapse-btn" class="h-6 sm:h-7 w-6 sm:w-7 rounded-lg bg-slate-200/70 hover:bg-slate-300/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold flex items-center justify-center cursor-pointer transition-all" title="Mở rộng xem toàn cảnh 8 Đội">
+                      <span id="timeline-collapse-icon">▾</span>
                     </button>
                   </div>
                 </div>
 
                 <!-- 8-Team Interactive Cards Strip -->
-                <div id="timeline-teams-rail" class="p-1.5 sm:p-2 grid grid-cols-4 lg:grid-cols-8 gap-1.5 sm:gap-2 transition-all duration-300">
+                <div id="timeline-teams-rail" class="is-single-mode p-1.5 sm:p-2 grid grid-cols-4 lg:grid-cols-8 gap-1.5 sm:gap-2 transition-all duration-300">
                   <!-- 8 Team Cards injected by render8TeamTimeline() -->
                 </div>
               </div>
@@ -6506,30 +6531,31 @@
       }
 
       // 8-Team Timeline Collapse / Expand Toggle
+      // Mặc định ban đầu chỉ hiển thị 1 card của 1 đội, click icon mũi tên mới đổ full 8 đội theo yêu cầu UI/UX
+      let isTimelineSingleMode = true;
       const toggleCollapseBtn = document.getElementById('timeline-toggle-collapse-btn');
       const collapseIcon = document.getElementById('timeline-collapse-icon');
       const teamsRail = document.getElementById('timeline-teams-rail');
-      if (toggleCollapseBtn && teamsRail && collapseIcon) {
-        let isCollapsed = localStorage.getItem('caosach_timeline_collapsed') === 'true';
-        const applyCollapseState = (collapsed) => {
-          if (collapsed) {
-            teamsRail.style.display = 'none';
-            collapseIcon.textContent = '▾';
-            toggleCollapseBtn.setAttribute('title', 'Mở rộng 8 cây');
-          } else {
-            teamsRail.style.display = '';
-            collapseIcon.textContent = '▴';
-            toggleCollapseBtn.setAttribute('title', 'Thu gọn 8 cây');
-          }
-        };
-        applyCollapseState(isCollapsed);
 
+      function applyTimelineDisplayMode(singleMode) {
+        if (!teamsRail) return;
+        if (singleMode) {
+          teamsRail.classList.add('is-single-mode');
+          if (collapseIcon) collapseIcon.textContent = '▾';
+          if (toggleCollapseBtn) toggleCollapseBtn.setAttribute('title', 'Mở rộng xem toàn cảnh 8 Đội');
+        } else {
+          teamsRail.classList.remove('is-single-mode');
+          if (collapseIcon) collapseIcon.textContent = '▴';
+          if (toggleCollapseBtn) toggleCollapseBtn.setAttribute('title', 'Thu gọn về 1 Đội');
+        }
+      }
+
+      if (toggleCollapseBtn) {
         toggleCollapseBtn.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          isCollapsed = !isCollapsed;
-          localStorage.setItem('caosach_timeline_collapsed', isCollapsed ? 'true' : 'false');
-          applyCollapseState(isCollapsed);
+          isTimelineSingleMode = !isTimelineSingleMode;
+          applyTimelineDisplayMode(isTimelineSingleMode);
         });
       }
 
@@ -6541,17 +6567,17 @@
         const myTeamId = (currentUser && !currentUser.isGuest && currentUser.team_id) ? currentUser.team_id : null;
 
         const TEAM_SHORT_NAMES = {
-          1: 'BO & SCU',
-          2: 'BU HCM & ĐNB',
-          3: 'BU Miền Bắc',
-          4: 'BU MT & NT',
-          5: 'FPL, AU & FU',
-          6: 'Khối FTI BU',
-          7: 'Khối FTI BA',
-          8: 'Hạ Tầng IMU'
+          1: 'Đội 1',
+          2: 'Đội 2',
+          3: 'Đội 3',
+          4: 'Đội 4',
+          5: 'Đội 5',
+          6: 'Đội 6',
+          7: 'Đội 7',
+          8: 'Đội 8'
         };
 
-        rail.innerHTML = allTeams.map(team => {
+        const cardsHtml = allTeams.map(team => {
           const isMyTeam = (team.id === myTeamId);
           const isSelected = (team.id === activeId);
           const isSprouted = team.is_sprouted || team.level >= 1;
@@ -6559,7 +6585,7 @@
             ? (team.level >= 5 ? '✨' : (team.level >= 4 ? '🌲' : (team.level >= 3 ? '🌳' : (team.level >= 2 ? '🌿' : '🌱'))))
             : '🌰';
           
-          const shortName = TEAM_SHORT_NAMES[team.id] || team.short_name || team.name;
+          const shortName = TEAM_SHORT_NAMES[team.id] || `Đội ${team.id}`;
           const progressVal = isSprouted
             ? `${(team.total_exp || 0).toLocaleString()} EXP`
             : `${team.tree_seeds || 0}/50 Hạt`;
@@ -6568,7 +6594,7 @@
             <div class="team-rail-card ${isMyTeam ? 'is-my-team' : ''} ${isSelected ? 'is-selected' : ''}"
                  data-team-id="${team.id}"
                  style="--team-color: ${team.color_code || '#0054A6'};"
-                 title="${escapeHtml(team.display_name || team.name)} - Click để xem Cây Tri Thức">
+                 title="Đội ${team.id} - Click để xem Cây Tri Thức">
               <div class="flex items-center justify-between gap-1 mb-1">
                 <div class="flex items-center gap-1.5 min-w-0">
                   <span class="team-rail-badge text-[9.5px] font-black px-1.5 py-0.2 rounded text-white shrink-0 shadow-2xs" style="background: ${team.color_code || '#0054A6'};">
@@ -6604,11 +6630,27 @@
           `;
         }).join('');
 
+        const expandBtnHtml = `
+          <button id="timeline-rail-expand-btn"
+                  class="team-rail-expand-btn h-full min-h-[66px] px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#0054A6] dark:hover:text-sky-400 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5 shrink-0 active:scale-95"
+                  title="Mở rộng xem toàn bộ 8 Đội">
+            <span class="font-black text-[11px]">8 Đội</span>
+            <span class="text-sm font-black">▾</span>
+          </button>
+        `;
+
+        rail.innerHTML = cardsHtml + expandBtnHtml;
+
         // Bind click listeners to cards
         rail.querySelectorAll('.team-rail-card').forEach(card => {
           card.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            if (isTimelineSingleMode) {
+              isTimelineSingleMode = false;
+              applyTimelineDisplayMode(isTimelineSingleMode);
+              return;
+            }
             const teamId = parseInt(card.getAttribute('data-team-id'), 10);
             const targetTeam = allTeams.find(t => t.id === teamId);
             if (targetTeam) {
@@ -6616,6 +6658,18 @@
             }
           });
         });
+
+        const railExpandBtn = rail.querySelector('#timeline-rail-expand-btn');
+        if (railExpandBtn) {
+          railExpandBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            isTimelineSingleMode = false;
+            applyTimelineDisplayMode(isTimelineSingleMode);
+          });
+        }
+
+        applyTimelineDisplayMode(isTimelineSingleMode);
 
         // Auto-scroll to active card on mobile
         const activeCard = rail.querySelector(`.team-rail-card[data-team-id="${activeId}"]`);
@@ -6642,7 +6696,7 @@
           hudTeamBadge.textContent = `ĐỘI ${team.id}`;
           if (team.color_code) hudTeamBadge.style.background = team.color_code;
         }
-        if (hudTeamName) hudTeamName.textContent = team.display_name || team.name;
+        if (hudTeamName) hudTeamName.textContent = `Đội ${team.id}`;
         if (hudInspectingTag) hudInspectingTag.style.display = isInspecting ? 'inline-block' : 'none';
         if (hudReturnBtn) hudReturnBtn.style.display = (isInspecting && myTeam) ? 'inline-flex' : 'none';
 
@@ -6685,12 +6739,17 @@
         if (groundActionHint) {
           if (isMyTeamActive) {
             groundActionHint.style.display = 'flex';
+            const hintPill = groundActionHint.querySelector('.ground-hint-pill');
+            if (hintPill && team.color_code) {
+              hintPill.style.borderColor = team.color_code;
+              hintPill.style.boxShadow = `0 12px 32px rgba(0, 0, 0, 0.45), 0 0 20px ${team.color_code}66`;
+            }
             const hintTextEl = document.getElementById('ground-action-hint-text');
             if (hintTextEl) {
               if (!isSprouted) {
-                hintTextEl.textContent = `Chạm vào đất để gieo hạt cho ${team.display_name} (${team.tree_seeds || 0}/50)`;
+                hintTextEl.textContent = `Chạm vào đất để gieo hạt cho Đội ${team.id} (${team.tree_seeds || 0}/50)`;
               } else {
-                hintTextEl.textContent = `Chạm vào đất để gieo thêm sách cho ${team.display_name}`;
+                hintTextEl.textContent = `Chạm vào đất để gieo thêm sách cho Đội ${team.id}`;
               }
             }
           } else {
@@ -6707,6 +6766,9 @@
         const isSprouted = team.is_sprouted || team.level >= 1;
         const teamGrowth = {
           _isTeamSync: true,
+          teamId: team.id,
+          team: team,
+          teamColor: team.color_code || team.color_primary,
           level: team.level || 0,
           levelName: team.level_name || 'Ủ Mầm Lòng Đất',
           isSprouted: isSprouted,
@@ -6727,7 +6789,7 @@
         sync3DTreeWithTeam(team);
         renderGroundSeeds();
         if (notify) {
-          showToast(`🌳 Đang ghé thăm Cây Tri Thức: ${team.display_name} - ${team.name}`);
+          showToast(`🌳 Đang ghé thăm Cây Tri Thức: Đội ${team.id}`);
         }
       }
 

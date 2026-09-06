@@ -470,10 +470,10 @@ export class TeamArenaModal {
               <div class="tam-team-info">
                 <div class="tam-team-name-row">
                   <span class="tam-team-icon">${t.icon || '🌳'}</span>
-                  <span class="tam-team-name" title="${t.display_name}">${t.display_name}</span>
+                  <span class="tam-team-name" title="Đội ${t.id}">Đội ${t.id}</span>
                   ${isMyTeam ? '<span class="tam-my-team-pill">Đội của bạn</span>' : ''}
                 </div>
-                <div class="tam-team-comp" title="${t.name}">${t.target_members} thành viên • ${t.full_composition || t.name}</div>
+                <div class="tam-team-comp">${t.target_members || 40} thành viên</div>
               </div>
             </div>
 

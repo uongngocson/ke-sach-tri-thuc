@@ -117,7 +117,7 @@ export class UserIdentityModal {
               <p class="ui-preview-meta" id="ui-preview-meta">thuhuong@fpt.com • 00000295</p>
               <div class="ui-preview-team-tag" id="ui-preview-team">
                 <span id="ui-preview-team-icon">⚡</span>
-                <span id="ui-preview-team-name">Đội 1: Khối BO & SCU</span>
+                <span id="ui-preview-team-name">Đội 1</span>
               </div>
             </div>
           </div>
@@ -631,7 +631,7 @@ export class UserIdentityModal {
           </div>
         </div>
         <div class="ui-suggestion-team-tag" style="border-left: 2px solid ${u.team_color || '#3b82f6'};">
-          ${u.team_display_name || 'Đội'}
+          ${u.team_id ? 'Đội ' + u.team_id : 'Đội'}
         </div>
       </div>
     `).join('');
@@ -651,8 +651,8 @@ export class UserIdentityModal {
 
     avatar.textContent = user.gender === 'Nữ' ? '🌸' : '⚡';
     name.textContent = user.full_name;
-    meta.textContent = `${user.email} • Mã NV: ${user.employee_code} • ${user.job_title || ''}`;
-    team.textContent = user.team_display_name || `Đội ${user.team_id}`;
+    meta.textContent = `${user.email} • Mã NV: ${user.employee_code}`;
+    team.textContent = user.team_id ? `Đội ${user.team_id}` : 'Đội';
 
     previewBox.style.display = 'block';
   }
@@ -664,14 +664,14 @@ export class UserIdentityModal {
 
       if (json.success && json.data) {
         feedback.className = 'ui-identity-feedback success';
-        feedback.textContent = `✓ Đã tìm thấy: ${json.data.full_name} (${json.data.team_display_name})`;
+        feedback.textContent = `✓ Đã tìm thấy: ${json.data.full_name} (Đội ${json.data.team_id})`;
         feedback.style.display = 'block';
         this.showPreview(json.data, previewBox);
         submitBtn.disabled = false;
         onSuccess(json.data);
       } else {
         feedback.className = 'ui-identity-feedback error';
-        feedback.textContent = '❌ Không tìm thấy nhân sự trong danh sách 288 BGD. Vui lòng kiểm tra lại email hoặc mã NV.';
+        feedback.textContent = '❌ Không tìm thấy nhân sự trong danh sách. Vui lòng kiểm tra lại email hoặc mã NV.';
         feedback.style.display = 'block';
         previewBox.style.display = 'none';
         submitBtn.disabled = true;
@@ -689,7 +689,7 @@ export class UserIdentityModal {
 
     // Trigger toast notification
     if (typeof window.showToast === 'function') {
-      window.showToast(`Chào mừng ${user.full_name} đã gia nhập ${user.team_display_name}! ✨`);
+      window.showToast(`Chào mừng ${user.full_name} đã gia nhập Đội ${user.team_id}! ✨`);
     }
 
     this.onUserIdentified(user);
