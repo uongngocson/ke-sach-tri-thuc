@@ -2,7 +2,7 @@
  * QuoteTreasuryModal.js
  * 🌟 KHO TÀNG TRI THỨC - THƯ VIỆN TRÍCH DẪN SỐ CÁO SÁCH 2026
  * Giao diện Clean Compact White Editorial - Tối ưu 100% Responsive & Zero Overflow
- * Bộ Lọc Chuyên Nghiệp (Professional Segmented Filters & Instant Search)
+ * Màu sắc đồng nhất, typography sắc nét, tên người gieo hiển thị đầy đủ 100%
  * Đồng bộ dữ liệu thật từ PostgreSQL (books, users, teams)
  */
 
@@ -61,7 +61,7 @@ export class QuoteTreasuryModal {
     style.id = 'quote-treasury-styles';
     style.textContent = `
       /* ==========================================================================
-         KHO TÀNG TRI THỨC - ULTRA CLEAN COMPACT WHITE THEME & PROFESSIONAL FILTERS
+         KHO TÀNG TRI THỨC - ULTRA CLEAN UNIFIED WHITE THEME
          ========================================================================== */
       .qtm-overlay {
         position: fixed;
@@ -105,7 +105,7 @@ export class QuoteTreasuryModal {
         transform: scale(1) translateY(0);
       }
 
-      /* Compact Top Header */
+      /* Compact Unified Header */
       .qtm-header {
         padding: 12px 18px;
         background: #ffffff;
@@ -133,13 +133,13 @@ export class QuoteTreasuryModal {
         width: 38px;
         height: 38px;
         border-radius: 11px;
-        background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+        background: linear-gradient(135deg, #0054A6 0%, #0284c7 100%);
         color: #ffffff;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 19px;
-        box-shadow: 0 6px 14px rgba(245, 158, 11, 0.25);
+        box-shadow: 0 4px 12px rgba(0, 84, 166, 0.22);
         flex-shrink: 0;
       }
       .qtm-title-area {
@@ -170,9 +170,9 @@ export class QuoteTreasuryModal {
         font-weight: 800;
         padding: 2px 9px;
         border-radius: 9999px;
-        background: #fef3c7;
-        color: #92400e;
-        border: 1px solid #fde68a;
+        background: #f1f5f9;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
         display: inline-flex;
         align-items: center;
         gap: 4px;
@@ -183,9 +183,9 @@ export class QuoteTreasuryModal {
         font-weight: 700;
         padding: 2px 8px;
         border-radius: 9999px;
-        background: #ecfdf5;
-        color: #065f46;
-        border: 1px solid #a7f3d0;
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
         display: none;
         white-space: nowrap;
       }
@@ -234,9 +234,7 @@ export class QuoteTreasuryModal {
         transform: rotate(90deg);
       }
 
-      /* ==========================================
-         PROFESSIONAL FILTER & SEARCH TOOLBAR
-         ========================================== */
+      /* Unified Filter Toolbar */
       .qtm-filters-bar {
         padding: 10px 16px;
         background: #fafafa;
@@ -254,7 +252,7 @@ export class QuoteTreasuryModal {
         }
       }
 
-      /* Unified Responsive Search & Sort Controls */
+      /* Search & Sort Row */
       .qtm-search-row {
         display: grid;
         grid-template-columns: 1fr;
@@ -301,8 +299,8 @@ export class QuoteTreasuryModal {
         color: #94a3b8;
       }
       .qtm-search-input:focus {
-        border-color: #f59e0b;
-        box-shadow: 0 0 0 2.5px rgba(245, 158, 11, 0.16);
+        border-color: #0054A6;
+        box-shadow: 0 0 0 2.5px rgba(0, 84, 166, 0.15);
       }
       .qtm-search-clear {
         position: absolute;
@@ -374,7 +372,7 @@ export class QuoteTreasuryModal {
         }
       }
       .qtm-sort-select:focus {
-        border-color: #f59e0b;
+        border-color: #0054A6;
       }
 
       /* Segmented Team Filter Tabs Strip */
@@ -389,7 +387,7 @@ export class QuoteTreasuryModal {
         gap: 6px;
         overflow-x: auto;
         padding-bottom: 2px;
-        scrollbar-width: none; /* Hide default scrollbar for cleaner look */
+        scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
         scroll-snap-type: x proximity;
       }
@@ -450,12 +448,12 @@ export class QuoteTreasuryModal {
         align-items: center;
         justify-content: space-between;
         padding: 6px 12px;
-        background: #eff6ff;
-        border: 1px solid #dbeafe;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
         border-radius: 8px;
         font-size: 11.5px;
         font-weight: 600;
-        color: #1e40af;
+        color: #334155;
       }
       .qtm-filter-status.active {
         display: flex;
@@ -463,7 +461,7 @@ export class QuoteTreasuryModal {
       .qtm-status-clear {
         background: none;
         border: none;
-        color: #2563eb;
+        color: #0054A6;
         font-weight: 800;
         font-size: 11px;
         cursor: pointer;
@@ -492,7 +490,7 @@ export class QuoteTreasuryModal {
         border-radius: 5px;
       }
 
-      /* Modern Editorial Responsive Grid (Max 3 columns for optimal card readability) */
+      /* Modern Editorial Responsive Grid */
       .qtm-grid {
         display: grid;
         grid-template-columns: minmax(0, 1fr);
@@ -513,7 +511,7 @@ export class QuoteTreasuryModal {
         }
       }
 
-      /* Clean Compact Card */
+      /* Clean Unified Quote Card */
       .qtm-quote-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
@@ -565,9 +563,9 @@ export class QuoteTreasuryModal {
         gap: 3px;
         font-size: 10.5px;
         font-weight: 700;
-        color: #059669;
-        background: #ecfdf5;
-        border: 1px solid #a7f3d0;
+        color: #166534;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
         padding: 2px 6px;
         border-radius: 6px;
       }
@@ -583,7 +581,7 @@ export class QuoteTreasuryModal {
         left: -2px;
         font-family: Georgia, 'Times New Roman', serif;
         font-size: 26px;
-        color: #fde68a;
+        color: #cbd5e1;
         line-height: 1;
         user-select: none;
         pointer-events: none;
@@ -649,31 +647,34 @@ export class QuoteTreasuryModal {
         font-weight: 500;
       }
 
-      /* Card Footer & Action Toolbar */
+      /* Card Footer & Action Toolbar - NO TRUNCATION */
       .qtm-card-footer {
         padding-top: 9px;
         border-top: 1px solid #f1f5f9;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 6px;
+        gap: 8px;
+        min-width: 0;
       }
       .qtm-contributor {
-        font-size: 11px;
-        color: #94a3b8;
-        max-width: 120px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 11.5px;
+        color: #64748b;
+        flex: 1;
+        min-width: 0;
         white-space: nowrap;
+        overflow: visible;
+        text-overflow: clip;
       }
       .qtm-contributor strong {
-        color: #334155;
+        color: #0f172a;
         font-weight: 700;
       }
       .qtm-actions {
         display: flex;
         align-items: center;
         gap: 4px;
+        flex-shrink: 0;
       }
       .qtm-btn-like {
         display: inline-flex;
@@ -719,12 +720,13 @@ export class QuoteTreasuryModal {
         transform: translateY(-1px);
       }
       .qtm-btn-icon.story {
-        background: #fef3c7;
-        border-color: #fde68a;
-        color: #b45309;
+        background: #f8fafc;
+        border-color: #e2e8f0;
+        color: #64748b;
       }
       .qtm-btn-icon.story:hover {
-        background: #fde68a;
+        background: #f1f5f9;
+        color: #0f172a;
       }
 
       /* Loading & Empty States */
@@ -740,8 +742,8 @@ export class QuoteTreasuryModal {
       .qtm-spinner {
         width: 36px;
         height: 36px;
-        border: 3.5px solid #fde68a;
-        border-top-color: #f59e0b;
+        border: 3.5px solid #e2e8f0;
+        border-top-color: #0054A6;
         border-radius: 50%;
         animation: qtm-spin 0.8s linear infinite;
         margin-bottom: 12px;
@@ -1131,8 +1133,8 @@ export class QuoteTreasuryModal {
         filterStatus.classList.add('active');
         let desc = [];
         if (this.selectedTeam !== 'all') desc.push(`Đội ${this.selectedTeam}`);
-        if (this.searchQuery) desc.push(`Từ khóa: "${this.searchQuery}"`);
-        statusText.innerHTML = `✨ Đang hiển thị: <strong>${desc.join(' • ')}</strong> (${filtered.length} kết quả)`;
+        if (this.searchQuery) desc.push(`"${this.searchQuery}"`);
+        statusText.innerHTML = `✨ Đang hiển thị: <strong>${desc.join(' • ')}</strong> (${filtered.length} trích dẫn)`;
       } else {
         filterStatus.classList.remove('active');
       }
@@ -1342,7 +1344,7 @@ export class QuoteTreasuryModal {
         format: 'story'
       });
     } else {
-      import('../services/QuoteCardExporter.js?v=20260906_v19').then(module => {
+      import('../services/QuoteCardExporter.js?v=20260906_v20').then(module => {
         if (module.QuoteCardExporter && typeof module.QuoteCardExporter.exportQuoteImage === 'function') {
           this.showToast('🎨 Đang kết xuất ảnh Story độ nét cao...');
           module.QuoteCardExporter.exportQuoteImage({

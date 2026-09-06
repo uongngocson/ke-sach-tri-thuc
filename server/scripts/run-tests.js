@@ -272,6 +272,16 @@ async function runAllTests() {
     }
     assert(dailyBlocked, 'Daily Quote: 2nd contribution on same day strictly blocked (HTTP 409 DAILY_QUOTE_LIMIT_EXCEEDED)');
 
+    // Clean up test books created during test run
+    if (contribution && contribution.book && contribution.book.id) {
+      await db.query('DELETE FROM exp_ledger WHERE reference_id = $1', [contribution.book.id]);
+      await db.query('DELETE FROM books WHERE id = $1', [contribution.book.id]);
+    }
+    if (dailyBook1 && dailyBook1.book && dailyBook1.book.id) {
+      await db.query('DELETE FROM exp_ledger WHERE reference_id = $1', [dailyBook1.book.id]);
+      await db.query('DELETE FROM daily_quotes WHERE book_id = $1', [dailyBook1.book.id]);
+      await db.query('DELETE FROM books WHERE id = $1', [dailyBook1.book.id]);
+    }
 
   } catch (err) {
     console.error('💥 Test suite encountered fatal error:', err);
