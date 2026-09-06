@@ -707,31 +707,6 @@ export class QuoteTreasuryModal {
       @keyframes qtm-spin {
         to { transform: rotate(360deg); }
       }
-
-      /* Compact Footer Bar */
-      .qtm-footer {
-        padding: 10px 18px;
-        background: #ffffff;
-        border-top: 1px solid #f1f5f9;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 11.5px;
-        color: #64748b;
-        flex-shrink: 0;
-      }
-      .qtm-footer-highlight {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .qtm-pulse-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: #10b981;
-        box-shadow: 0 0 0 2.5px rgba(16, 185, 129, 0.2);
-      }
     `;
     document.head.appendChild(style);
   }
@@ -835,18 +810,6 @@ export class QuoteTreasuryModal {
           </div>
         </div>
 
-        <!-- Footer Stats Bar -->
-        <div class="qtm-footer">
-          <div class="qtm-footer-highlight">
-            <span class="qtm-pulse-dot"></span>
-            <span>Mỗi lượt thả tim tiếp thêm <strong>+2 EXP</strong> nuôi dưỡng Cây Tri Thức</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <span style="color:#94a3b8; font-weight:600; font-size:11px;">Cáo Sách 2026</span>
-            <button id="footer-close-btn" style="background:none; border:none; color:#d97706; font-weight:800; cursor:pointer; font-size:12px;">✕ Đóng</button>
-          </div>
-        </div>
-
       </div>
     `;
 
@@ -858,7 +821,6 @@ export class QuoteTreasuryModal {
     if (!overlay) return;
 
     const closeBtn = overlay.querySelector('#close-treasury-btn');
-    const footerCloseBtn = overlay.querySelector('#footer-close-btn');
     const searchInput = overlay.querySelector('#treasury-search-input');
     const searchClear = overlay.querySelector('#treasury-search-clear');
     const sortSelect = overlay.querySelector('#treasury-sort-select');
@@ -867,7 +829,6 @@ export class QuoteTreasuryModal {
     const closeModal = () => this.close();
 
     closeBtn?.addEventListener('click', closeModal);
-    footerCloseBtn?.addEventListener('click', closeModal);
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) closeModal();
     });
