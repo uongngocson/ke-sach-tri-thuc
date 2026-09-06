@@ -1,11 +1,15 @@
 import db from '../config/database.js';
 import bcrypt from 'bcryptjs';
+import { seedTeamsAndUsers } from './seed-teams-users.js';
 
 async function seed() {
   console.log('🌱 Seeding initial Cáo Sách data...');
   
   try {
-    // 1. Seed Superadmin Account: admin / admin123
+    // 1. Seed 8 Teams & 288 FoxREAD Users
+    await seedTeamsAndUsers();
+
+    // 2. Seed Superadmin Account: admin / admin123
     const passwordHash = await bcrypt.hash('admin123', 10);
     await db.query(`
       INSERT INTO admin_users (username, password_hash, full_name, role)
@@ -14,7 +18,7 @@ async function seed() {
     `, ['admin', passwordHash, 'Super Admin Cáo Sách', 'admin']);
     console.log(' - Admin user seeded: admin / admin123');
 
-    // 2. Seed Curated Master Quotes
+    // 3. Seed Curated Master Quotes
     const masterQuotes = [
       {
         title: 'Hoàng Tử Bé (Le Petit Prince)',

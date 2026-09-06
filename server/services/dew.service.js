@@ -3,35 +3,124 @@ import { EXP_CONFIG } from '../config/constants.js';
 import GrowthService from './growth.service.js';
 import socketService from './socket.service.js';
 
+/**
+ * Returns YYYY-MM-DD in Asia/Ho_Chi_Minh timezone
+ */
+export function getVietnamDateString(d = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(d);
+}
+
 export class DewService {
-  static async claimDew(userFingerprint) {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  /**
+   * Claim daily dew for a registered user on their team's tree
+   * Rules:
+   * 1. 1 user (userId) is strictly allowed to water only 1 time per day (Asia/Ho_Chi_Minh).
+   * 2. Guests / non-logged in users CANNOT water.
+   * 3. Users can only water their own team's tree (teamId must match user's team_id).
+   */
+  static async claimDew({ userId, teamId, email, userFingerprint }) {
+    // 1. Check user login
+    if (!userId || userId === 'guest') {
+      const err = new Error('Vui lòng đăng nhập hoặc chọn danh tính thành viên để tưới cây!');
+      err.statusCode = 401;
+      err.code = 'LOGIN_REQUIRED';
+      throw err;
+    }
+
+    // 2. Query user from DB
+    const userRes = await db.query(
+      'SELECT id, email, full_name, team_id, total_exp_earned FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userRes.rows.length === 0) {
+      const err = new Error('Không tìm thấy thông tin thành viên. Vui lòng đăng nhập lại.');
+      err.statusCode = 404;
+      err.code = 'USER_NOT_FOUND';
+      throw err;
+    }
+
+    const user = userRes.rows[0];
+
+    if (!user.team_id) {
+      const err = new Error('Bạn chưa thuộc đội nào. Vui lòng liên hệ ban tổ chức để được xếp đội!');
+      err.statusCode = 400;
+      err.code = 'NO_TEAM_ASSIGNED';
+      throw err;
+    }
+
+    // 3. Prevent watering other team's tree
+    if (teamId && parseInt(teamId, 10) !== parseInt(user.team_id, 10)) {
+      const err = new Error('Bạn chỉ có thể tưới nước cho cây của đội mình! Hãy chuyển về cây đội bạn để chăm sóc.');
+      err.statusCode = 403;
+      err.code = 'FORBIDDEN_OTHER_TEAM_TREE';
+      throw err;
+    }
+
+    const todayVN = getVietnamDateString();
+    const effectiveFingerprint = userFingerprint || `fp_user_${user.id.substring(0, 8)}`;
 
     const result = await db.transaction(async (client) => {
-      // 1. Calculate streak from yesterday
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      // 4. Check if user already claimed today (Strict 1 user 1 day check)
+      const existingClaim = await client.query(
+        'SELECT id, claim_date, streak FROM daily_dews WHERE user_id = $1 AND claim_date = $2',
+        [user.id, todayVN]
+      );
+
+      if (existingClaim.rows.length > 0) {
+        const err = new Error('Hôm nay bạn đã tưới cây rồi. Hãy quay lại vào ngày mai nhé!');
+        err.statusCode = 409;
+        err.code = 'DUPLICATE_DEW_CLAIM';
+        throw err;
+      }
+
+      // 5. Calculate streak from yesterday (Asia/Ho_Chi_Minh)
+      const yesterday = new Date(Date.now() - 86400000);
+      const yesterdayVN = getVietnamDateString(yesterday);
       const prevDew = await client.query(
-        'SELECT streak FROM daily_dews WHERE user_fingerprint = $1 AND claim_date = $2',
-        [userFingerprint, yesterday]
+        'SELECT streak FROM daily_dews WHERE user_id = $1 AND claim_date = $2',
+        [user.id, yesterdayVN]
       );
       const streak = prevDew.rows.length > 0 ? prevDew.rows[0].streak + 1 : 1;
 
-      // 2. Insert Daily Dew with UNIQUE constraint on (user_fingerprint, claim_date)
+      // 6. Insert Daily Dew
       const dewInsert = await client.query(`
-        INSERT INTO daily_dews (user_fingerprint, claim_date, streak)
-        VALUES ($1, $2, $3)
+        INSERT INTO daily_dews (user_id, team_id, user_fingerprint, claim_date, streak)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING *
-      `, [userFingerprint, today, streak]);
+      `, [user.id, user.team_id, effectiveFingerprint, todayVN, streak]);
 
       const newDew = dewInsert.rows[0];
 
-      // 3. Insert into EXP Ledger (+1 EXP)
+      // 7. Insert into EXP Ledger (+1 EXP)
       await client.query(`
-        INSERT INTO exp_ledger (user_fingerprint, amount, type, reference_type, reference_id)
-        VALUES ($1, $2, 'DAILY_DEW', 'daily_dews', $3)
-      `, [userFingerprint, EXP_CONFIG.DAILY_DEW, newDew.id]);
+        INSERT INTO exp_ledger (user_id, team_id, user_fingerprint, amount, type, reference_type, reference_id)
+        VALUES ($1, $2, $3, $4, 'DAILY_DEW', 'daily_dews', $5)
+      `, [user.id, user.team_id, effectiveFingerprint, EXP_CONFIG.DAILY_DEW, newDew.id]);
 
-      // 4. Update community growth
+      // 8. Update User Total EXP
+      await client.query(`
+        UPDATE users
+        SET total_exp_earned = total_exp_earned + $1,
+            updated_at = NOW()
+        WHERE id = $2
+      `, [EXP_CONFIG.DAILY_DEW, user.id]);
+
+      // 9. Update Team Tree EXP
+      const teamRes = await client.query(`
+        UPDATE teams
+        SET tree_exp = tree_exp + $1,
+            updated_at = NOW()
+        WHERE id = $2
+        RETURNING id, code, display_name, tree_exp, tree_level
+      `, [EXP_CONFIG.DAILY_DEW, user.team_id]);
+
+      // 10. Update Community Growth
       const growthRes = await client.query(`
         UPDATE community_growth
         SET total_exp = total_exp + $1,
@@ -48,6 +137,12 @@ export class DewService {
         dew: newDew,
         streak,
         expEarned: EXP_CONFIG.DAILY_DEW,
+        team: teamRes.rows[0],
+        user: {
+          id: user.id,
+          fullName: user.full_name,
+          teamId: user.team_id
+        },
         growth: {
           totalEXP: newTotalExp,
           level: levelInfo.level,
@@ -57,26 +152,42 @@ export class DewService {
       };
     });
 
-    // Post-Commit Broadcast
+    // 11. Post-Commit Broadcast
     const fullGrowth = await GrowthService.getCommunityGrowth();
     socketService.broadcastGrowthUpdated(fullGrowth);
 
     return result;
   }
 
-  static async getDewStatus(userFingerprint) {
-    const today = new Date().toISOString().split('T')[0];
-    const res = await db.query(
-      'SELECT streak, claim_date FROM daily_dews WHERE user_fingerprint = $1 ORDER BY claim_date DESC LIMIT 1',
-      [userFingerprint]
-    );
+  /**
+   * Get Dew claim status for a user today
+   */
+  static async getDewStatus({ userId, userFingerprint }) {
+    const todayVN = getVietnamDateString();
+    let res;
+
+    if (userId && userId !== 'guest') {
+      res = await db.query(
+        'SELECT streak, claim_date FROM daily_dews WHERE user_id = $1 ORDER BY claim_date DESC LIMIT 1',
+        [userId]
+      );
+    } else if (userFingerprint) {
+      res = await db.query(
+        'SELECT streak, claim_date FROM daily_dews WHERE user_fingerprint = $1 ORDER BY claim_date DESC LIMIT 1',
+        [userFingerprint]
+      );
+    } else {
+      return { hasClaimedToday: false, streak: 0 };
+    }
 
     if (res.rows.length === 0) {
       return { hasClaimedToday: false, streak: 0 };
     }
 
     const last = res.rows[0];
-    const hasClaimedToday = last.claim_date.toISOString().split('T')[0] === today;
+    const lastClaimDateVN = getVietnamDateString(new Date(last.claim_date));
+    const hasClaimedToday = (lastClaimDateVN === todayVN);
+
     return {
       hasClaimedToday,
       streak: last.streak,

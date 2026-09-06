@@ -3,6 +3,7 @@ import GrowthService from '../services/growth.service.js';
 import DewService from '../services/dew.service.js';
 import QuoteService from '../services/quote.service.js';
 import ModerationService from '../services/moderation.service.js';
+import TesterService from '../services/tester.service.js';
 import db from '../config/database.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -15,6 +16,19 @@ export async function contributeBook(req, res, next) {
       success: true,
       message: 'Gieo mầm sách thành công (+15 EXP)!',
       data: result
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getDailyQuoteStatus(req, res, next) {
+  try {
+    const { userId, email, userFingerprint } = req.query;
+    const status = await BookService.getDailyQuoteStatus({ userId, email, userFingerprint });
+    res.json({
+      success: true,
+      data: status
     });
   } catch (err) {
     next(err);
@@ -66,7 +80,8 @@ export async function getGrowth(req, res, next) {
 // --- DEW CONTROLLER ---
 export async function claimDew(req, res, next) {
   try {
-    const result = await DewService.claimDew(req.body.userFingerprint);
+    const { userId, teamId, email, userFingerprint } = req.body;
+    const result = await DewService.claimDew({ userId, teamId, email, userFingerprint });
     res.status(201).json({
       success: true,
       message: 'Tưới cây thành công (+1 EXP)!',
@@ -79,8 +94,8 @@ export async function claimDew(req, res, next) {
 
 export async function getDewStatus(req, res, next) {
   try {
-    const fingerprint = req.query.userFingerprint || '';
-    const status = await DewService.getDewStatus(fingerprint);
+    const { userId, userFingerprint } = req.query;
+    const status = await DewService.getDewStatus({ userId, userFingerprint });
     res.json({
       success: true,
       data: status
@@ -295,3 +310,32 @@ export async function getAuditLogs(req, res, next) {
     next(err);
   }
 }
+
+export async function adminWipeData(req, res, next) {
+  try {
+    const { password } = req.body || {};
+    if (password !== 'Soncute@123') {
+      return res.status(403).json({
+        success: false,
+        message: 'Mật khẩu xác nhận không chính xác! Vui lòng kiểm tra lại.'
+      });
+    }
+
+    const ip = req.ip || req.connection?.remoteAddress || '';
+    const result = await TesterService.wipeDatabaseExceptAccounts(req.user, ip);
+
+    res.json({
+      success: true,
+      message: 'Đã dọn sạch toàn bộ dữ liệu hoạt động thành công (bảo lưu 288 tài khoản và 8 đội)!',
+      data: result
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export * from './team.controller.js';
+export * from './user.controller.js';
+export * from './round.controller.js';
+export * from './analytics.controller.js';
+export * from './settings.controller.js';

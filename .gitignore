@@ -22,3 +22,4 @@ scripts/deploy.*
 .vercel
 .DS_Store
 Thumbs.db
+*.xlsx

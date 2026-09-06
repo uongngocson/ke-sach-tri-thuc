@@ -22,6 +22,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 
+// Trust reverse proxy (Nginx / Cloudflare) to read real client IP & satisfy express-rate-limit
+app.set('trust proxy', 1);
+
 // 1. Security & Permissive CORS for Local / Network Dev
 app.use(helmet({
   contentSecurityPolicy: false,
@@ -54,7 +57,9 @@ const globalLimiter = rateLimit({
 app.use('/api/', globalLimiter);
 
 // 3. Static Admin & Public Client Servicing
+app.use('/assets', express.static(path.join(__dirname, '../assets')));
 app.use('/admin', express.static(path.join(__dirname, '../admin')));
+app.use(express.static(path.join(__dirname, '..')));
 
 // 4. API Routes
 app.use('/api/v1', apiRoutes);

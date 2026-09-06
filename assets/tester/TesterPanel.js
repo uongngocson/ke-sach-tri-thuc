@@ -1,5 +1,5 @@
-import { MockDataStore } from '../data/MockDataStore.js?v=20260905_v3';
-import { APP_CONFIG } from '../config/appEnv.js?v=20260905_v3';
+import { MockDataStore } from '../data/MockDataStore.js?v=20260906_v7';
+import { APP_CONFIG } from '../config/appEnv.js?v=20260906_v7';
 
 export class TesterPanel {
   constructor() {
@@ -38,12 +38,32 @@ export class TesterPanel {
       <div class="tester-header">
         <div class="tester-title">
           <span>🧪</span>
-          <span>BẢNG ĐIỀU KHIỂN TESTER (QUY TRÌNH 50 HẠT)</span>
+          <span>BẢNG ĐIỀU KHIỂN TESTER (8 CÂY TRI THỨC)</span>
         </div>
         <button class="tester-close-btn" id="tester-close-btn" title="Đóng bảng">✕</button>
       </div>
 
       <div class="tester-body">
+        <!-- 0. Multi-Team Target Selector -->
+        <div class="tester-section" style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="tester-section-label" style="margin:0; color:#38bdf8; font-weight:800;">🎯 Thử Nghiệm Cho Đội:</label>
+            <span id="tester-current-badge" style="font-size:10px; font-weight:700; padding:1px 6px; border-radius:8px; background:#0284c7; color:#fff;">Đang xem</span>
+          </div>
+          <select id="tester-team-select" style="width:100%; padding:7px 10px; border-radius:8px; background:#0f172a; color:#f8fafc; border:1px solid #334155; font-size:12px; font-weight:700; cursor:pointer; outline:none;">
+            <option value="active">🌳 Đội Đang Xem (Tự động theo màn hình)</option>
+            <option value="all">🌐 Toàn Bộ 8 Đội (Đồng bộ tất cả cây)</option>
+            <option value="1">Đội 1</option>
+            <option value="2">Đội 2</option>
+            <option value="3">Đội 3</option>
+            <option value="4">Đội 4</option>
+            <option value="5">Đội 5</option>
+            <option value="6">Đội 6</option>
+            <option value="7">Đội 7</option>
+            <option value="8">Đội 8</option>
+          </select>
+        </div>
+
         <!-- 1. Quick Stage Jumpers -->
         <div class="tester-section">
           <label class="tester-section-label">⚡ Chuyển Giai Đoạn Nhanh</label>
@@ -57,7 +77,7 @@ export class TesterPanel {
             <button class="tester-btn stage-btn" data-level="3">🌳 Lvl 3: Cây Tơ (400 EXP)</button>
             <button class="tester-btn stage-btn" data-level="4">🌲 Lvl 4: Trưởng Thành (1000 EXP)</button>
           </div>
-          <button class="tester-btn stage-btn" data-level="5" style="width:100%; margin-top:6px;">✨ Lvl 5: Đại Cổ Thụ (2500+ EXP)</button>
+          <button class="tester-btn stage-btn" data-level="5" style="width:100%; margin-top:6px; color:#f59e0b; font-weight:bold;">✨ Lvl 5: Đại Cổ Thụ (2500+ EXP)</button>
         </div>
 
         <!-- 2. Continuous EXP Slider -->
@@ -84,7 +104,7 @@ export class TesterPanel {
             <button class="tester-btn" id="tester-sim-1-seed">🌰 +1 Hạt Giống</button>
             <button class="tester-btn" id="tester-sim-10-seeds">🌰 +10 Hạt Giống</button>
             <button class="tester-btn" id="tester-sim-50-seeds" style="color:#70B928; font-weight:bold;">🌱 +50 Hạt (Nảy Mầm Ngay)</button>
-            <button class="tester-btn" id="tester-sim-heart">❤️ +10 Tim (+20 EXP)</button>
+            <button class="tester-btn" id="tester-sim-heart" style="color:#ec4899; font-weight:bold;">❤️ +10 Tim (+20 EXP)</button>
           </div>
           <button class="tester-btn-reset" id="tester-sim-reset-all" style="margin-top:6px;">↺ Reset Về Ban Đầu (0 Hạt, Mặt Đất Trống)</button>
           <button class="tester-btn-reset" id="tester-db-empty" style="margin-top:6px; background:#7f1d1d; border-color:#ef4444; color:#fca5a5;">🧹 Dọn Sạch CSDL (Empty CSDL - Giữ Tài Khoản)</button>
@@ -100,12 +120,30 @@ export class TesterPanel {
     const closeBtn = panel.querySelector('#tester-close-btn');
     const slider = panel.querySelector('#tester-exp-slider');
     const expVal = panel.querySelector('#tester-exp-val');
+    const teamSelect = panel.querySelector('#tester-team-select');
+    const currentBadge = panel.querySelector('#tester-current-badge');
+
+    const getTargetTeamId = () => {
+      if (!teamSelect) return 'active';
+      const val = teamSelect.value;
+      if (val === 'all') return 'all';
+      if (val === 'active') {
+        if (typeof window.getActiveTeam === 'function' && window.getActiveTeam()) {
+          return window.getActiveTeam().id;
+        }
+        return 1;
+      }
+      return parseInt(val, 10);
+    };
 
     const toggle = () => {
       this.isOpen = !this.isOpen;
       panel.style.display = this.isOpen ? 'block' : 'none';
       toggleBtn.classList.toggle('active', this.isOpen);
       if (this.isOpen) {
+        if (typeof window.closeWelcomeModal === 'function') {
+          window.closeWelcomeModal();
+        }
         this.syncCurrentState();
       }
     };
@@ -117,23 +155,60 @@ export class TesterPanel {
     window.addEventListener('keydown', (e) => {
       if (e.key === 't' || e.key === 'T') {
         const activeTag = document.activeElement ? document.activeElement.tagName : '';
-        if (activeTag !== 'INPUT' && activeTag !== 'TEXTAREA') {
+        if (activeTag !== 'INPUT' && activeTag !== 'TEXTAREA' && activeTag !== 'SELECT') {
           e.preventDefault();
           toggle();
         }
       }
     });
 
+    // Team selector change
+    if (teamSelect) {
+      teamSelect.addEventListener('change', async (e) => {
+        const val = e.target.value;
+        if (val === 'all') {
+          if (currentBadge) currentBadge.textContent = 'Cả 8 Đội';
+        } else if (val === 'active') {
+          if (currentBadge) currentBadge.textContent = 'Đang xem';
+        } else {
+          const tId = parseInt(val, 10);
+          if (currentBadge) currentBadge.textContent = `Đội ${tId}`;
+          let teams = (typeof window.getAllTeams === 'function' ? window.getAllTeams() : []) || [];
+          if (!teams.length && typeof MockDataStore.getTeams === 'function') {
+            teams = await MockDataStore.getTeams();
+          }
+          const target = teams.find(t => t.id === tId);
+          if (target && typeof window.inspectTeam === 'function') {
+            await window.inspectTeam(target, false);
+          }
+        }
+        await this.syncCurrentState();
+      });
+    }
+
+    // Refresh ground & UI helper
+    const refreshUI = async () => {
+      if (typeof window.loadUserTeamAndSync === 'function') {
+        await window.loadUserTeamAndSync();
+      } else if (typeof window.renderGroundSeeds === 'function') {
+        await window.renderGroundSeeds();
+      }
+      this.syncCurrentState();
+    };
+
     // Slider
     if (slider) {
       slider.addEventListener('input', async (e) => {
         const val = parseInt(e.target.value, 10);
         this.updateExpLabel(val, expVal);
-        if (typeof MockDataStore.setExp === 'function') {
-          await MockDataStore.setExp(val);
-        } else if (typeof MockDataStore.setTesterEXP === 'function') {
-          await MockDataStore.setTesterEXP(val);
+        const seeds = val < 50 ? val : 0;
+        const teamId = getTargetTeamId();
+        if (typeof MockDataStore.setTesterEXP === 'function') {
+          await MockDataStore.setTesterEXP(val, seeds, teamId);
+        } else if (typeof MockDataStore.setExp === 'function') {
+          await MockDataStore.setExp(val, seeds, teamId);
         }
+        await refreshUI();
       });
     }
 
@@ -141,68 +216,100 @@ export class TesterPanel {
     panel.querySelectorAll('.stage-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         let targetExp = 0;
-        if (btn.id === 'stage-btn-0-seeds') targetExp = 0;
-        else if (btn.id === 'stage-btn-15-seeds') targetExp = 15;
-        else if (btn.id === 'stage-btn-30-seeds') targetExp = 30;
-        else if (btn.id === 'stage-btn-45-seeds') targetExp = 45;
-        else if (btn.id === 'stage-btn-50-sprout') targetExp = 50;
+        let seedsCount = 0;
+        if (btn.id === 'stage-btn-0-seeds') { targetExp = 0; seedsCount = 0; }
+        else if (btn.id === 'stage-btn-15-seeds') { targetExp = 15; seedsCount = 15; }
+        else if (btn.id === 'stage-btn-30-seeds') { targetExp = 30; seedsCount = 30; }
+        else if (btn.id === 'stage-btn-45-seeds') { targetExp = 45; seedsCount = 45; }
+        else if (btn.id === 'stage-btn-50-sprout') { targetExp = 50; seedsCount = 0; }
         else if (btn.dataset.level) {
           const lvl = parseInt(btn.dataset.level, 10);
           const map = { 1: 50, 2: 150, 3: 400, 4: 1000, 5: 2500 };
           targetExp = map[lvl] || 0;
+          seedsCount = 0;
         }
         if (slider) slider.value = targetExp;
         this.updateExpLabel(targetExp, expVal);
-        if (typeof MockDataStore.setExp === 'function') {
-          await MockDataStore.setExp(targetExp);
-        } else if (typeof MockDataStore.setTesterEXP === 'function') {
-          await MockDataStore.setTesterEXP(targetExp);
+
+        const teamId = getTargetTeamId();
+        if (typeof MockDataStore.setTesterEXP === 'function') {
+          await MockDataStore.setTesterEXP(targetExp, seedsCount, teamId);
+        } else if (typeof MockDataStore.setExp === 'function') {
+          await MockDataStore.setExp(targetExp, seedsCount, teamId);
         }
+        await refreshUI();
       });
     });
 
     // Sim buttons
     const btnSim1 = panel.querySelector('#tester-sim-1-seed');
     if (btnSim1) btnSim1.addEventListener('click', async () => {
-      if (typeof MockDataStore.addSeeds === 'function') await MockDataStore.addSeeds(1);
-      else if (typeof MockDataStore.simulateSeedContribution === 'function') await MockDataStore.simulateSeedContribution(1);
+      const teamId = getTargetTeamId();
+      if (typeof MockDataStore.simulateSeedContribution === 'function') {
+        await MockDataStore.simulateSeedContribution(1, teamId);
+      } else if (typeof MockDataStore.addSeeds === 'function') {
+        await MockDataStore.addSeeds(1, teamId);
+      }
+      await refreshUI();
     });
 
     const btnSim10 = panel.querySelector('#tester-sim-10-seeds');
     if (btnSim10) btnSim10.addEventListener('click', async () => {
-      if (typeof MockDataStore.addSeeds === 'function') await MockDataStore.addSeeds(10);
-      else if (typeof MockDataStore.simulateSeedContribution === 'function') await MockDataStore.simulateSeedContribution(10);
+      const teamId = getTargetTeamId();
+      if (typeof MockDataStore.simulateSeedContribution === 'function') {
+        await MockDataStore.simulateSeedContribution(10, teamId);
+      } else if (typeof MockDataStore.addSeeds === 'function') {
+        await MockDataStore.addSeeds(10, teamId);
+      }
+      await refreshUI();
     });
 
     const btnSim50 = panel.querySelector('#tester-sim-50-seeds');
     if (btnSim50) btnSim50.addEventListener('click', async () => {
-      if (typeof MockDataStore.addSeeds === 'function') await MockDataStore.addSeeds(50);
-      else if (typeof MockDataStore.simulateSeedContribution === 'function') await MockDataStore.simulateSeedContribution(50);
+      const teamId = getTargetTeamId();
+      if (typeof MockDataStore.simulateSeedContribution === 'function') {
+        await MockDataStore.simulateSeedContribution(50, teamId);
+      } else if (typeof MockDataStore.addSeeds === 'function') {
+        await MockDataStore.addSeeds(50, teamId);
+      }
+      await refreshUI();
     });
 
     const btnSimHeart = panel.querySelector('#tester-sim-heart');
     if (btnSimHeart) btnSimHeart.addEventListener('click', async () => {
-      if (typeof MockDataStore.addHeart === 'function') await MockDataStore.addHeart();
+      const teamId = getTargetTeamId();
+      if (typeof MockDataStore.simulateHeart === 'function') {
+        await MockDataStore.simulateHeart(10, 20, teamId);
+      } else if (typeof MockDataStore.addHeart === 'function') {
+        await MockDataStore.addHeart(10, 20, teamId);
+      }
+      await refreshUI();
     });
 
     const btnResetAll = panel.querySelector('#tester-sim-reset-all');
     if (btnResetAll) btnResetAll.addEventListener('click', async () => {
-      if (typeof MockDataStore.resetToInitialState === 'function') await MockDataStore.resetToInitialState();
-      else if (typeof MockDataStore.setExp === 'function') await MockDataStore.setExp(0);
+      const teamId = getTargetTeamId();
+      if (typeof MockDataStore.resetToInitialState === 'function') {
+        await MockDataStore.resetToInitialState(teamId);
+      } else if (typeof MockDataStore.setExp === 'function') {
+        await MockDataStore.setExp(0, 0, teamId);
+      }
       if (slider) slider.value = 0;
       this.updateExpLabel(0, expVal);
+      await refreshUI();
     });
 
     const btnDbEmpty = panel.querySelector('#tester-db-empty');
     if (btnDbEmpty) btnDbEmpty.addEventListener('click', async () => {
-      if (confirm('Bạn có chắc chắn muốn dọn sạch dữ liệu CSDL? (Giữ lại tài khoản Admin)')) {
-        if (typeof MockDataStore.resetDatabase === 'function') {
-          await MockDataStore.resetDatabase();
-        } else if (typeof MockDataStore.wipeDatabaseExceptAccounts === 'function') {
+      if (confirm('Bạn có chắc chắn muốn dọn sạch dữ liệu CSDL? (Giữ lại tất cả tài khoản & đội nhóm)')) {
+        if (typeof MockDataStore.wipeDatabaseExceptAccounts === 'function') {
           await MockDataStore.wipeDatabaseExceptAccounts();
+        } else if (typeof MockDataStore.resetDatabase === 'function') {
+          await MockDataStore.resetDatabase();
         }
         if (slider) slider.value = 0;
         this.updateExpLabel(0, expVal);
+        await refreshUI();
       }
     });
 
@@ -223,25 +330,48 @@ export class TesterPanel {
       MockDataStore.subscribe('growth:updated', (data) => {
         updateUiFromGrowth(data);
       });
+      MockDataStore.subscribe('teams:updated', () => {
+        this.syncCurrentState();
+      });
     }
   }
 
   async syncCurrentState() {
-    let current = null;
-    if (typeof MockDataStore.getState === 'function') {
-      current = MockDataStore.getState();
-    }
-    if (!current || typeof current.totalEXP === 'undefined') {
-      if (typeof MockDataStore.getCommunityGrowth === 'function') {
-        current = await MockDataStore.getCommunityGrowth();
-      }
-    }
     const slider = document.getElementById('tester-exp-slider');
     const expVal = document.getElementById('tester-exp-val');
-    if (slider && current) {
-      const exp = typeof current.totalEXP === 'number' ? current.totalEXP : (current.totalSeeds || 0);
-      slider.value = exp;
+    const teamSelect = document.getElementById('tester-team-select');
+    const currentBadge = document.getElementById('tester-current-badge');
+
+    let targetTeam = null;
+    if (teamSelect && teamSelect.value !== 'all' && teamSelect.value !== 'active') {
+      const tId = parseInt(teamSelect.value, 10);
+      if (typeof window.getAllTeams === 'function') {
+        targetTeam = window.getAllTeams().find(t => t.id === tId);
+      }
+    } else {
+      if (typeof window.getActiveTeam === 'function') {
+        targetTeam = window.getActiveTeam();
+      }
+    }
+
+    if (targetTeam) {
+      const isSprouted = targetTeam.is_sprouted || targetTeam.level >= 1;
+      const exp = isSprouted ? (targetTeam.total_exp || 0) : (targetTeam.tree_seeds || 0);
+      if (slider) slider.value = exp;
       this.updateExpLabel(exp, expVal);
+      if (currentBadge && (!teamSelect || teamSelect.value === 'active')) {
+        currentBadge.textContent = `Đội ${targetTeam.id}`;
+      }
+    } else {
+      let current = null;
+      if (typeof MockDataStore.getState === 'function') {
+        current = MockDataStore.getState();
+      }
+      if (slider && current) {
+        const exp = typeof current.totalEXP === 'number' ? current.totalEXP : (current.totalSeeds || 0);
+        slider.value = exp;
+        this.updateExpLabel(exp, expVal);
+      }
     }
   }
 

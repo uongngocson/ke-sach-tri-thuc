@@ -36,10 +36,22 @@ class ApiDataStoreManager {
     this.cachedQuotes = [];
 
     this.initSocket();
+    if (typeof window !== 'undefined') {
+      setTimeout(() => this.recordVisit(), 150);
+    }
   }
 
   init() {
     return this;
+  }
+
+  updateActiveReadersUI(count) {
+    if (typeof document === 'undefined') return;
+    const num = Math.max(1, parseInt(count, 10) || 1).toLocaleString();
+    const headerReaders = document.getElementById('header-active-readers');
+    if (headerReaders) headerReaders.textContent = num;
+    const onchainReaders = document.getElementById('onchain-active-readers');
+    if (onchainReaders) onchainReaders.textContent = num;
   }
 
   getOrCreateFingerprint() {
@@ -72,7 +84,8 @@ class ApiDataStoreManager {
         this.socket.on('growth:updated', (growthData) => {
           console.log('🌱 Realtime Growth Received:', growthData);
           this.cachedGrowth = growthData;
-          this.emit('growth:updated', this.formatGrowthResponse(growthData));
+          const formatted = this.formatGrowthResponse(growthData);
+          this.emit('growth:updated', formatted);
         });
 
         this.socket.on('book:created', (bookData) => {
@@ -84,10 +97,30 @@ class ApiDataStoreManager {
         this.socket.on('quote:liked', (likeData) => {
           this.emit('quote:liked', likeData);
         });
+
+        this.socket.on('content:updated', (contentData) => {
+          console.log('🎨 Realtime Content Updated:', contentData);
+          this.emit('content:updated', contentData);
+        });
       } catch (err) {
         console.warn('Socket.io connection error:', err);
       }
     }
+  }
+
+  on(event, callback) {
+    return this.subscribe(event, callback);
+  }
+
+  async getContentSettings() {
+    try {
+      const res = await fetch(`${getApiBase()}/content/settings`);
+      const data = await res.json();
+      if (data.success) return data.data;
+    } catch (e) {
+      console.warn('Error fetching content settings:', e);
+    }
+    return null;
   }
 
   // Pub/Sub Events
@@ -121,27 +154,53 @@ class ApiDataStoreManager {
   }
 
   formatGrowthResponse(raw) {
-    const totalExp = raw.totalEXP || 0;
+    const totalExp = raw.totalEXP || raw.total_exp || 0;
     const level = raw.level || 0;
     const isSprouted = level > 0;
+    const readers = raw.activeReaders || raw.active_readers || 1;
+    this.updateActiveReadersUI(readers);
     return {
-      totalSeeds: raw.totalBooks || 0,
+      totalSeeds: raw.totalBooks || raw.total_books || 0,
       targetSeeds: raw.nextLevelExp || 1200,
-      currentStage: raw.levelName || 'Hạt Mầm Tri Thức',
+      currentStage: raw.levelName || raw.level_name || 'Hạt Mầm Tri Thức',
       level: level,
       levelIcon: level >= 5 ? '👑' : (level >= 4 ? '🍎' : (level >= 3 ? '🌳' : (level >= 2 ? '🌿' : (level >= 1 ? '🌱' : '🌰')))),
-      levelName: raw.levelName || 'Hạt Mầm Tri Thức',
-      levelDesc: raw.levelDesc || '',
+      levelName: raw.levelName || raw.level_name || 'Hạt Mầm Tri Thức',
+      levelDesc: raw.levelDesc || raw.level_description || '',
       isSprouted: isSprouted,
       seedsOnGroundVisible: !isSprouted,
-      progressPercent: raw.progressPercent || 0,
+      progressPercent: raw.progressPercent || raw.progress_percent || 0,
       totalEXP: totalExp,
       nextLevelEXP: raw.nextLevelExp || (level === 0 ? 50 : 150),
-      activeReaders: raw.activeReaders || 1
+      activeReaders: readers
     };
   }
 
   // --- API METHODS ---
+
+  async recordVisit() {
+    try {
+      const res = await fetch(`${getApiBase()}/growth/visit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userFingerprint: this.fingerprint
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        if (data.data.totalVisitors) {
+          this.updateActiveReadersUI(data.data.totalVisitors);
+        }
+        return data.data;
+      }
+    } catch (err) {
+      console.warn('API /growth/visit offline:', err);
+    }
+    return null;
+  }
 
   async getCommunityGrowth() {
     try {
@@ -180,6 +239,15 @@ class ApiDataStoreManager {
   async plantSeed(seedData) {
     try {
       const idempotencyKey = this.generateIdempotencyKey();
+      let session = null;
+      try {
+        session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+      } catch {}
+
+      const userId = seedData.userId || (session && session.id !== 'guest' ? session.id : null);
+      const teamId = seedData.teamId || (session && session.team_id ? session.team_id : null);
+      const email = seedData.email || (session && session.email ? session.email : null);
+
       const res = await fetch(`${getApiBase()}/books/contribute`, {
         method: 'POST',
         headers: {
@@ -191,7 +259,10 @@ class ApiDataStoreManager {
           author: seedData.author,
           quote: seedData.quote,
           category: seedData.category || 'Sách Tinh Hoa',
-          reader: seedData.reader || 'Độc giả yêu sách',
+          reader: seedData.reader || (session?.full_name) || 'Độc giả yêu sách',
+          email: email,
+          userId: userId,
+          teamId: teamId,
           userFingerprint: this.fingerprint
         })
       });
@@ -212,9 +283,61 @@ class ApiDataStoreManager {
     }
   }
 
-  async getMasterQuotes() {
+  async getTeams(forceRefresh = true) {
     try {
-      const res = await fetch(`${getApiBase()}/quotes?page=1&limit=100`);
+      const cacheBust = forceRefresh ? `?_t=${Date.now()}` : '';
+      const res = await fetch(`${getApiBase()}/teams${cacheBust}`);
+      const data = await res.json();
+      if (data.success) {
+        this.cachedTeams = data.data;
+        return data.data;
+      }
+    } catch (e) {
+      console.warn('Error fetching teams:', e);
+    }
+    return this.cachedTeams || [];
+  }
+
+  async getTeam(id) {
+    try {
+      const res = await fetch(`${getApiBase()}/teams/${id}`);
+      const data = await res.json();
+      if (data.success) return data.data;
+    } catch (e) {
+      console.warn(`Error fetching team ${id}:`, e);
+    }
+    return null;
+  }
+
+  async getDailyQuoteStatus({ userId, email, userFingerprint } = {}) {
+    try {
+      const params = new URLSearchParams();
+      if (userId) params.append('userId', userId);
+      if (email) params.append('email', email);
+      if (userFingerprint || this.fingerprint) params.append('userFingerprint', userFingerprint || this.fingerprint);
+      const res = await fetch(`${getApiBase()}/books/daily-status?${params.toString()}`);
+      const data = await res.json();
+      if (data.success) return data.data;
+    } catch (e) {
+      console.warn('Error fetching daily quote status:', e);
+    }
+    return { hasContributedToday: false, remainingToday: 1 };
+  }
+
+  async getCurrentRound() {
+    try {
+      const res = await fetch(`${getApiBase()}/rounds/current`);
+      const data = await res.json();
+      if (data.success) return data.data;
+    } catch (e) {
+      console.warn('Error fetching current round:', e);
+    }
+    return null;
+  }
+
+  async getMasterQuotes(forceRefresh = false) {
+    try {
+      const res = await fetch(`${getApiBase()}/quotes?page=1&limit=100&_t=${Date.now()}`);
       const data = await res.json();
       if (data.success && data.data && Array.isArray(data.data.quotes)) {
         const formatted = data.data.quotes.map(q => ({
@@ -224,6 +347,11 @@ class ApiDataStoreManager {
           quote: q.quote,
           category: q.category,
           reader: q.reader_name,
+          team_id: q.team_id,
+          team_name: q.team_name,
+          team_short_name: q.team_short_name,
+          team_display_name: q.team_display_name,
+          team_color: q.team_color,
           likes: q.likes_count || 0
         }));
         this.cachedQuotes = formatted;
@@ -244,19 +372,83 @@ class ApiDataStoreManager {
     return [];
   }
 
+  async getPublicQuotes(options = {}) {
+    try {
+      const params = new URLSearchParams();
+      if (options.page) params.set('page', options.page);
+      if (options.limit) params.set('limit', options.limit);
+      if (options.category && options.category !== 'all' && options.category !== 'Tất cả') {
+        params.set('category', options.category);
+      }
+      if (options.teamId) params.set('teamId', options.teamId);
+      if (options.search) params.set('search', options.search);
+      if (options.sortBy) params.set('sortBy', options.sortBy);
+      params.set('_t', Date.now());
+
+      const res = await fetch(`${getApiBase()}/quotes?${params.toString()}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        return data.data;
+      }
+    } catch (err) {
+      console.warn('Error fetching public quotes:', err);
+    }
+    return { quotes: [], pagination: { total: 0, page: 1, limit: 20, totalPages: 1 } };
+  }
+
   async getSeeds() {
-    const quotes = await this.getMasterQuotes();
-    return quotes.map((q, idx) => ({
-      id: q.id,
-      book: q.book,
-      author: q.author,
-      quote: q.quote,
-      reader: q.reader,
-      category: q.category,
-      likes: q.likes || 0,
-      x: 18 + ((idx * 27) % 64),
-      y: 38 + ((idx * 19) % 38)
-    }));
+    const quotes = await this.getMasterQuotes(true);
+    // Group quotes by team so that each team's seeds are ordered and clustered in that team's zone
+    const teamSeedCounts = {};
+    return quotes.map((q, idx) => {
+      const teamId = (q.team_id && q.team_id >= 1 && q.team_id <= 8) ? q.team_id : 1;
+      const teamIdx = teamId - 1; // 0 to 7
+      
+      const seedIndexInTeam = teamSeedCounts[teamId] || 0;
+      teamSeedCounts[teamId] = seedIndexInTeam + 1;
+
+      // Each of the 8 teams has a dedicated horizontal zone:
+      // Zone span: 8 zones from left to right (2.5% to 97.5%)
+      const zoneLeft = 2.5 + teamIdx * 11.9;
+      const zoneWidth = 10.4;
+
+      // Compact micro-grid inside the team zone (3 columns, up to 16 rows)
+      const col = seedIndexInTeam % 3;
+      const row = Math.floor(seedIndexInTeam / 3);
+      
+      const jitterX = ((seedIndexInTeam * 17 + teamId * 13) % 7) - 3;
+      const jitterY = ((seedIndexInTeam * 23 + teamId * 19) % 9) - 4;
+
+      const colX = zoneLeft + 1.2 + (col * (zoneWidth - 2.4) / 2.0);
+      const rowY = 32 + ((row % 4) * 15.0);
+
+      const finalX = Math.max(zoneLeft + 1.0, Math.min(zoneLeft + zoneWidth - 1.0, colX + jitterX * 0.35));
+      const finalY = Math.max(22, Math.min(88, rowY + jitterY * 0.7));
+
+      const zoneRelX = Math.max(18, Math.min(82, 22 + col * 28 + jitterX * 1.2));
+      const zoneRelY = Math.max(52, Math.min(90, 55 + (row % 3) * 15 + jitterY * 0.9));
+
+      return {
+        id: q.id,
+        book: q.book,
+        author: q.author,
+        quote: q.quote,
+        reader: q.reader,
+        category: q.category,
+        team_id: teamId,
+        team_name: q.team_name,
+        team_short_name: q.team_short_name,
+        team_display_name: q.team_display_name,
+        team_color: q.team_color,
+        likes: q.likes || 0,
+        x: parseFloat(finalX.toFixed(2)),
+        y: parseFloat(finalY.toFixed(2)),
+        zone_x: parseFloat(zoneRelX.toFixed(2)),
+        zone_y: parseFloat(zoneRelY.toFixed(2)),
+        zone_index: teamIdx,
+        seed_index_in_team: seedIndexInTeam
+      };
+    });
   }
 
   isLikedByUser(id) {
@@ -350,25 +542,41 @@ class ApiDataStoreManager {
     }
   }
 
-  async claimDailyDew() {
+  async claimDailyDew(payload = {}) {
     try {
       const idempotencyKey = this.generateIdempotencyKey();
+      const bodyPayload = {
+        userId: payload.userId || null,
+        teamId: payload.teamId ? parseInt(payload.teamId, 10) : null,
+        email: payload.email || null,
+        userFingerprint: payload.userFingerprint || this.fingerprint
+      };
       const res = await fetch(`${getApiBase()}/dew/claim`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Idempotency-Key': idempotencyKey
         },
-        body: JSON.stringify({ userFingerprint: this.fingerprint })
+        body: JSON.stringify(bodyPayload)
       });
 
       const data = await res.json();
       if (data.success) {
         const growth = await this.getCommunityGrowth();
         this.emit('growth:updated', growth);
-        return { success: true, streak: data.data.streak, expEarned: 1 };
+        return {
+          success: true,
+          streak: data.data.streak,
+          expEarned: data.data.expEarned || 1,
+          team: data.data.team,
+          growth: data.data.growth
+        };
       } else {
-        return { success: false, message: data.message };
+        return {
+          success: false,
+          code: data.error,
+          message: data.message
+        };
       }
     } catch (err) {
       console.error('Error claiming dew:', err);
@@ -417,19 +625,26 @@ class ApiDataStoreManager {
     return this.setTesterEXP(target.exp, target.seeds);
   }
 
-  async setTesterEXP(exp, seedsCount = null) {
+  async setTesterEXP(exp, seedsCount = null, teamId = null) {
     try {
       const res = await fetch(`${getApiBase()}/tester/set-exp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exp, seedsCount })
+        body: JSON.stringify({ exp, seedsCount, teamId })
       });
       const data = await res.json();
       if (data.success) {
         const formatted = this.formatGrowthResponse(data.data);
         this.cachedGrowth = data.data;
+        this.cachedQuotes = [];
+        this.cachedTeams = null; // Invalidate teams cache to fetch fresh team stats
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('caosach_cached_quotes');
+        }
+        await this.getTeams(true);
         this.emit('growth:updated', formatted);
         this.emit('seeds:updated');
+        this.emit('teams:updated');
         return formatted;
       }
     } catch (err) {
@@ -438,19 +653,26 @@ class ApiDataStoreManager {
     return this.getCommunityGrowth();
   }
 
-  async simulateSeedContribution(count = 1) {
+  async simulateSeedContribution(count = 1, teamId = null) {
     try {
       const res = await fetch(`${getApiBase()}/tester/add-seeds`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count })
+        body: JSON.stringify({ count, teamId })
       });
       const data = await res.json();
       if (data.success) {
         const formatted = this.formatGrowthResponse(data.data);
         this.cachedGrowth = data.data;
+        this.cachedQuotes = [];
+        this.cachedTeams = null;
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('caosach_cached_quotes');
+        }
+        await this.getTeams(true);
         this.emit('growth:updated', formatted);
         this.emit('seeds:updated');
+        this.emit('teams:updated');
         return formatted;
       }
     } catch (err) {
@@ -459,7 +681,28 @@ class ApiDataStoreManager {
     return this.getCommunityGrowth();
   }
 
-    async wipeDatabaseExceptAccounts() {
+  async simulateHeart(count = 10, exp = 20, teamId = null) {
+    try {
+      const res = await fetch(`${getApiBase()}/tester/add-heart`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count, exp, teamId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        this.cachedTeams = null;
+        await this.getTeams(true);
+        this.emit('growth:updated', { totalEXP: exp });
+        this.emit('teams:updated');
+        return data.data;
+      }
+    } catch (err) {
+      console.warn('Error simulating heart:', err);
+    }
+    return null;
+  }
+
+  async wipeDatabaseExceptAccounts() {
     try {
       const res = await fetch(`${getApiBase()}/tester/wipe-database`, {
         method: 'POST',
@@ -468,11 +711,15 @@ class ApiDataStoreManager {
       const data = await res.json();
       if (data.success) {
         this.cachedQuotes = [];
+        this.cachedTeams = null;
         if (typeof localStorage !== 'undefined') {
           localStorage.removeItem('caosach_cached_quotes');
           localStorage.removeItem('caosach_liked_quotes');
         }
+        await this.getTeams(true);
         this.emit('growth:updated', data.data);
+        this.emit('seeds:updated');
+        this.emit('teams:updated');
         return data.data;
       }
     } catch (err) {
@@ -481,18 +728,26 @@ class ApiDataStoreManager {
     return null;
   }
 
-  async resetToInitialState() {
+  async resetToInitialState(teamId = null) {
     try {
       const res = await fetch(`${getApiBase()}/tester/reset`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamId })
       });
       const data = await res.json();
       if (data.success) {
         const formatted = this.formatGrowthResponse(data.data);
         this.cachedGrowth = data.data;
+        this.cachedQuotes = [];
+        this.cachedTeams = null;
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('caosach_cached_quotes');
+        }
+        await this.getTeams(true);
         this.emit('growth:updated', formatted);
         this.emit('seeds:updated');
+        this.emit('teams:updated');
         return formatted;
       }
     } catch (err) {
@@ -564,6 +819,16 @@ class ApiDataStoreManager {
   }
 }
 
-export const ApiDataStore = new ApiDataStoreManager();
+if (typeof window !== 'undefined') {
+  if (!window.__CAOSACH_DATASTORE__) {
+    window.__CAOSACH_DATASTORE__ = new ApiDataStoreManager();
+  }
+  window.ApiDataStore = window.__CAOSACH_DATASTORE__;
+  window.MockDataStore = window.__CAOSACH_DATASTORE__;
+}
+
+export const ApiDataStore = (typeof window !== 'undefined' && window.__CAOSACH_DATASTORE__) 
+  ? window.__CAOSACH_DATASTORE__ 
+  : new ApiDataStoreManager();
 export const MockDataStore = ApiDataStore;
 export default ApiDataStore;

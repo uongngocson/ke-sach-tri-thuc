@@ -3,7 +3,7 @@ export function errorHandler(err, req, res, next) {
 
   // PostgreSQL Unique Constraint Violation (Anti-Spam)
   if (err.code === '23505') {
-    if (err.constraint === 'unq_user_dew_date') {
+    if (err.constraint === 'unq_user_dew_date' || err.constraint === 'unq_user_dew_daily_user_id') {
       return res.status(409).json({
         success: false,
         error: 'DUPLICATE_DEW_CLAIM',

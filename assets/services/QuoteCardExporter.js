@@ -269,17 +269,7 @@ export class QuoteCardExporter {
     ctx.restore();
 
     // ----------------------------------------------------
-    // 8. WATERMARK FOOTER (BELOW CARD)
-    // ----------------------------------------------------
-    ctx.save();
-    ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-    ctx.font = 'bold 20px monospace';
-    ctx.fillText('🌱 ke-sach-tri-thuc.vercel.app', width / 2, height - 40);
-    ctx.restore();
-
-    // ----------------------------------------------------
-    // 9. TRIGGER INSTANT DOWNLOAD
+    // 8. TRIGGER INSTANT DOWNLOAD
     // ----------------------------------------------------
     const safeTitle = book.replace(/[^a-zA-Z0-9À-ỹ]/g, '_').substring(0, 30);
     const link = document.createElement('a');

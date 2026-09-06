@@ -132,11 +132,170 @@ async function migrate() {
     );
 
     CREATE INDEX IF NOT EXISTS idx_site_visitors_fingerprint ON site_visitors(user_fingerprint);
+
+    -- 11. Teams Table (8 Teams / 8 Trees)
+    CREATE TABLE IF NOT EXISTS teams (
+      id INT PRIMARY KEY,
+      code VARCHAR(50) UNIQUE NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      display_name VARCHAR(100) NOT NULL,
+      full_composition TEXT,
+      target_members INT DEFAULT 0,
+      actual_members INT DEFAULT 0,
+      tree_exp BIGINT DEFAULT 0,
+      tree_level INT DEFAULT 0,
+      tree_seeds INT DEFAULT 0,
+      color_code VARCHAR(30) DEFAULT '#70B928',
+      color_primary VARCHAR(30) DEFAULT '#70B928',
+      color_secondary VARCHAR(30) DEFAULT '#0054A6',
+      leaf_color_hex VARCHAR(30) DEFAULT '#22c55e',
+      icon VARCHAR(50) DEFAULT '🌳',
+      slogan TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- 12. Users Table (288 BGD_TDV_CLB FoxREAD members)
+    CREATE TABLE IF NOT EXISTS users (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      employee_code VARCHAR(20) UNIQUE NOT NULL,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      full_name VARCHAR(150) NOT NULL,
+      gender VARCHAR(10),
+      branch VARCHAR(100),
+      parent_department VARCHAR(100),
+      child_department_1 VARCHAR(100),
+      child_department_2 VARCHAR(100),
+      officer_code VARCHAR(100),
+      job_title VARCHAR(255),
+      team_id INT REFERENCES teams(id),
+      role VARCHAR(20) DEFAULT 'member',
+      avatar_url VARCHAR(255),
+      contributed_books_count INT DEFAULT 0,
+      total_exp_earned INT DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_users_team_id ON users(team_id);
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+    CREATE INDEX IF NOT EXISTS idx_users_employee_code ON users(employee_code);
+
+    -- 13. Daily Quotes Table (1 quote per user/device per day)
+    CREATE TABLE IF NOT EXISTS daily_quotes (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+      user_fingerprint VARCHAR(100),
+      book_id UUID REFERENCES books(id) ON DELETE CASCADE,
+      quote_date DATE NOT NULL DEFAULT CURRENT_DATE,
+      team_id INT REFERENCES teams(id),
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      CONSTRAINT unq_user_daily_quote UNIQUE(user_id, quote_date)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_daily_quotes_user_date ON daily_quotes(user_id, quote_date);
+    CREATE INDEX IF NOT EXISTS idx_daily_quotes_fp_date ON daily_quotes(user_fingerprint, quote_date);
+    CREATE INDEX IF NOT EXISTS idx_daily_quotes_date ON daily_quotes(quote_date);
+
+    -- Alter existing tables to associate books and exp with teams/users
+    DO $$ 
+    BEGIN 
+      -- Ensure teams has all expected columns
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='display_name') THEN
+        ALTER TABLE teams ADD COLUMN display_name VARCHAR(100);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='full_composition') THEN
+        ALTER TABLE teams ADD COLUMN full_composition TEXT;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='actual_members') THEN
+        ALTER TABLE teams ADD COLUMN actual_members INT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='tree_exp') THEN
+        ALTER TABLE teams ADD COLUMN tree_exp BIGINT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='tree_level') THEN
+        ALTER TABLE teams ADD COLUMN tree_level INT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='tree_seeds') THEN
+        ALTER TABLE teams ADD COLUMN tree_seeds INT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='color_code') THEN
+        ALTER TABLE teams ADD COLUMN color_code VARCHAR(30) DEFAULT '#70B928';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='color_primary') THEN
+        ALTER TABLE teams ADD COLUMN color_primary VARCHAR(30) DEFAULT '#70B928';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='color_secondary') THEN
+        ALTER TABLE teams ADD COLUMN color_secondary VARCHAR(30) DEFAULT '#0054A6';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='leaf_color_hex') THEN
+        ALTER TABLE teams ADD COLUMN leaf_color_hex VARCHAR(30) DEFAULT '#22c55e';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='icon') THEN
+        ALTER TABLE teams ADD COLUMN icon VARCHAR(50) DEFAULT '🌳';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='slogan') THEN
+        ALTER TABLE teams ADD COLUMN slogan TEXT;
+      END IF;
+
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='user_id') THEN
+        ALTER TABLE books ADD COLUMN user_id UUID REFERENCES users(id);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='user_fingerprint') THEN
+        ALTER TABLE books ADD COLUMN user_fingerprint VARCHAR(100);
+      END IF;
+      -- Ensure foreign key references users(id) correctly
+      IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'books_user_id_fkey') THEN
+        ALTER TABLE books DROP CONSTRAINT books_user_id_fkey;
+      END IF;
+      ALTER TABLE books ADD CONSTRAINT books_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='team_id') THEN
+        ALTER TABLE books ADD COLUMN team_id INT REFERENCES teams(id);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='exp_ledger' AND column_name='team_id') THEN
+        ALTER TABLE exp_ledger ADD COLUMN team_id INT REFERENCES teams(id);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='exp_ledger' AND column_name='user_id') THEN
+        ALTER TABLE exp_ledger ADD COLUMN user_id UUID REFERENCES users(id);
+      END IF;
+      IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'exp_ledger_user_id_fkey') THEN
+        ALTER TABLE exp_ledger DROP CONSTRAINT exp_ledger_user_id_fkey;
+      END IF;
+      ALTER TABLE exp_ledger ADD CONSTRAINT exp_ledger_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='daily_dews' AND column_name='user_id') THEN
+        ALTER TABLE daily_dews ADD COLUMN user_id UUID REFERENCES users(id);
+      END IF;
+      IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'daily_dews_user_id_fkey') THEN
+        ALTER TABLE daily_dews DROP CONSTRAINT daily_dews_user_id_fkey;
+      END IF;
+      ALTER TABLE daily_dews ADD CONSTRAINT daily_dews_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='daily_dews' AND column_name='team_id') THEN
+        ALTER TABLE daily_dews ADD COLUMN team_id INT REFERENCES teams(id);
+      END IF;
+      -- Unique 1 dew per user per day constraint
+      CREATE UNIQUE INDEX IF NOT EXISTS unq_user_dew_daily_user_id ON daily_dews(user_id, claim_date) WHERE user_id IS NOT NULL;
+    END $$;
+
+    -- Backfill daily_quotes from existing books (if any)
+    INSERT INTO daily_quotes (user_id, user_fingerprint, book_id, quote_date, team_id, created_at)
+    SELECT DISTINCT ON (user_id, DATE(created_at))
+      user_id,
+      user_fingerprint,
+      id,
+      DATE(created_at),
+      team_id,
+      created_at
+    FROM books
+    WHERE user_id IS NOT NULL
+    ON CONFLICT (user_id, quote_date) DO NOTHING;
   `;
 
   try {
     await db.query(migrationSql);
-    console.log('✅ PostgreSQL Schema migrations completed successfully (10 tables ready)!');
+    console.log('✅ PostgreSQL Schema migrations completed successfully (13 tables ready)!');
   } catch (err) {
     console.error('❌ Migration failed:', err);
     process.exit(1);

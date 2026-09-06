@@ -13,31 +13,36 @@ export const LeafType = {
 };
 
 export class Tree {
-  constructor(THREE, params) {
+  constructor(THREE, params, sharedTextures = null) {
     this.THREE = THREE;
     this.params = params;
     this.group = new THREE.Group();
     this.group.name = 'Tree3D_Procedural';
 
-    this.loader = new THREE.TextureLoader();
-    this.barkTexture = this.loader.load('./assets/tree/textures/bark/bark.png');
-    this.barkTexture.colorSpace = THREE.SRGBColorSpace;
-    this.barkTexture.wrapS = THREE.RepeatWrapping;
-    this.barkTexture.wrapT = THREE.RepeatWrapping;
-    this.barkTexture.generateMipmaps = true;
-    this.barkTexture.minFilter = THREE.LinearMipmapLinearFilter;
-    this.barkTexture.magFilter = THREE.LinearFilter;
-    this.barkTexture.anisotropy = 4;
+    if (sharedTextures && sharedTextures.barkTexture) {
+      this.barkTexture = sharedTextures.barkTexture;
+      this.leafTextures = sharedTextures.leafTextures || [null, null, null, null];
+    } else {
+      this.loader = new THREE.TextureLoader();
+      this.barkTexture = this.loader.load('./assets/tree/textures/bark/bark.png');
+      this.barkTexture.colorSpace = THREE.SRGBColorSpace;
+      this.barkTexture.wrapS = THREE.RepeatWrapping;
+      this.barkTexture.wrapT = THREE.RepeatWrapping;
+      this.barkTexture.generateMipmaps = true;
+      this.barkTexture.minFilter = THREE.LinearMipmapLinearFilter;
+      this.barkTexture.magFilter = THREE.LinearFilter;
+      this.barkTexture.anisotropy = 4;
 
-    this.leafTextures = [null, null, null, null];
-    // Preload primary Oak texture (index 2)
-    const oakTex = this.loader.load('./assets/tree/textures/leaves/oak.png');
-    oakTex.colorSpace = THREE.SRGBColorSpace;
-    oakTex.generateMipmaps = true;
-    oakTex.minFilter = THREE.LinearMipmapLinearFilter;
-    oakTex.magFilter = THREE.LinearFilter;
-    oakTex.anisotropy = 4;
-    this.leafTextures[LeafType.Oak] = oakTex;
+      this.leafTextures = [null, null, null, null];
+      // Preload primary Oak texture (index 2)
+      const oakTex = this.loader.load('./assets/tree/textures/leaves/oak.png');
+      oakTex.colorSpace = THREE.SRGBColorSpace;
+      oakTex.generateMipmaps = true;
+      oakTex.minFilter = THREE.LinearMipmapLinearFilter;
+      oakTex.magFilter = THREE.LinearFilter;
+      oakTex.anisotropy = 4;
+      this.leafTextures[LeafType.Oak] = oakTex;
+    }
 
     this.branchesMesh = new THREE.Mesh();
     this.leavesMesh = new THREE.Mesh();
