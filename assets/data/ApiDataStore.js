@@ -224,15 +224,19 @@ class ApiDataStoreManager {
     }
   }
 
-  async getTeams() {
+  async getTeams(forceRefresh = true) {
     try {
-      const res = await fetch(`${getApiBase()}/teams`);
+      const cacheBust = forceRefresh ? `?_t=${Date.now()}` : '';
+      const res = await fetch(`${getApiBase()}/teams${cacheBust}`);
       const data = await res.json();
-      if (data.success) return data.data;
+      if (data.success) {
+        this.cachedTeams = data.data;
+        return data.data;
+      }
     } catch (e) {
       console.warn('Error fetching teams:', e);
     }
-    return [];
+    return this.cachedTeams || [];
   }
 
   async getTeam(id) {
@@ -295,7 +299,7 @@ class ApiDataStoreManager {
   }
 
   async getSeeds() {
-    const quotes = await this.getMasterQuotes();
+    const quotes = await this.getMasterQuotes(true);
     return quotes.map((q, idx) => {
       const row = Math.floor(idx / 8);
       const col = idx % 8;
@@ -310,6 +314,11 @@ class ApiDataStoreManager {
         quote: q.quote,
         reader: q.reader,
         category: q.category,
+        team_id: q.team_id,
+        team_name: q.team_name,
+        team_short_name: q.team_short_name,
+        team_display_name: q.team_display_name,
+        team_color: q.team_color,
         likes: q.likes || 0,
         x: Math.max(6, Math.min(94, baseX + jitterX)),
         y: Math.max(15, Math.min(88, baseY + jitterY))
@@ -475,23 +484,26 @@ class ApiDataStoreManager {
     return this.setTesterEXP(target.exp, target.seeds);
   }
 
-  async setTesterEXP(exp, seedsCount = null) {
+  async setTesterEXP(exp, seedsCount = null, teamId = null) {
     try {
       const res = await fetch(`${getApiBase()}/tester/set-exp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exp, seedsCount })
+        body: JSON.stringify({ exp, seedsCount, teamId })
       });
       const data = await res.json();
       if (data.success) {
         const formatted = this.formatGrowthResponse(data.data);
         this.cachedGrowth = data.data;
         this.cachedQuotes = [];
+        this.cachedTeams = null; // Invalidate teams cache to fetch fresh team stats
         if (typeof localStorage !== 'undefined') {
           localStorage.removeItem('caosach_cached_quotes');
         }
+        await this.getTeams(true);
         this.emit('growth:updated', formatted);
         this.emit('seeds:updated');
+        this.emit('teams:updated');
         return formatted;
       }
     } catch (err) {
@@ -500,23 +512,26 @@ class ApiDataStoreManager {
     return this.getCommunityGrowth();
   }
 
-  async simulateSeedContribution(count = 1) {
+  async simulateSeedContribution(count = 1, teamId = null) {
     try {
       const res = await fetch(`${getApiBase()}/tester/add-seeds`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count })
+        body: JSON.stringify({ count, teamId })
       });
       const data = await res.json();
       if (data.success) {
         const formatted = this.formatGrowthResponse(data.data);
         this.cachedGrowth = data.data;
         this.cachedQuotes = [];
+        this.cachedTeams = null;
         if (typeof localStorage !== 'undefined') {
           localStorage.removeItem('caosach_cached_quotes');
         }
+        await this.getTeams(true);
         this.emit('growth:updated', formatted);
         this.emit('seeds:updated');
+        this.emit('teams:updated');
         return formatted;
       }
     } catch (err) {
@@ -525,7 +540,28 @@ class ApiDataStoreManager {
     return this.getCommunityGrowth();
   }
 
-    async wipeDatabaseExceptAccounts() {
+  async simulateHeart(count = 10, exp = 20, teamId = null) {
+    try {
+      const res = await fetch(`${getApiBase()}/tester/add-heart`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count, exp, teamId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        this.cachedTeams = null;
+        await this.getTeams(true);
+        this.emit('growth:updated', { totalEXP: exp });
+        this.emit('teams:updated');
+        return data.data;
+      }
+    } catch (err) {
+      console.warn('Error simulating heart:', err);
+    }
+    return null;
+  }
+
+  async wipeDatabaseExceptAccounts() {
     try {
       const res = await fetch(`${getApiBase()}/tester/wipe-database`, {
         method: 'POST',
@@ -534,12 +570,15 @@ class ApiDataStoreManager {
       const data = await res.json();
       if (data.success) {
         this.cachedQuotes = [];
+        this.cachedTeams = null;
         if (typeof localStorage !== 'undefined') {
           localStorage.removeItem('caosach_cached_quotes');
           localStorage.removeItem('caosach_liked_quotes');
         }
+        await this.getTeams(true);
         this.emit('growth:updated', data.data);
         this.emit('seeds:updated');
+        this.emit('teams:updated');
         return data.data;
       }
     } catch (err) {
@@ -548,22 +587,26 @@ class ApiDataStoreManager {
     return null;
   }
 
-  async resetToInitialState() {
+  async resetToInitialState(teamId = null) {
     try {
       const res = await fetch(`${getApiBase()}/tester/reset`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamId })
       });
       const data = await res.json();
       if (data.success) {
         const formatted = this.formatGrowthResponse(data.data);
         this.cachedGrowth = data.data;
         this.cachedQuotes = [];
+        this.cachedTeams = null;
         if (typeof localStorage !== 'undefined') {
           localStorage.removeItem('caosach_cached_quotes');
         }
+        await this.getTeams(true);
         this.emit('growth:updated', formatted);
         this.emit('seeds:updated');
+        this.emit('teams:updated');
         return formatted;
       }
     } catch (err) {

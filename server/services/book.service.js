@@ -109,7 +109,7 @@ export class BookService {
 
     let query = `
       SELECT b.id, b.title, b.author, b.quote, b.category, b.reader_name, b.likes_count, b.moderation_status, b.created_at,
-             b.team_id, t.name as team_name, t.code as team_code, t.short_name as team_short_name, t.display_name as team_display_name, t.color_code as team_color
+             b.team_id, t.name as team_name, t.code as team_code, t.display_name as team_short_name, t.display_name as team_display_name, t.color_code as team_color
       FROM books b
       LEFT JOIN teams t ON b.team_id = t.id
       WHERE b.visibility_status = 'visible'

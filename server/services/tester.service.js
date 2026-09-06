@@ -182,36 +182,49 @@ export const MOCK_LIBRARY = [
 
 export class TesterService {
   /**
-   * Helper: Inserts real curated mock books into PostgreSQL
+   * Helper: Inserts real curated mock books into PostgreSQL with team_id
    */
-  static async insertMockBooks(client, count) {
+  static async insertMockBooks(client, count, teamId = 1) {
     if (count <= 0) return [];
     const totalMocks = MOCK_LIBRARY.length;
     const values = [];
     const valuePlaceholders = [];
+
+    const effectiveTeamId = (teamId && !isNaN(parseInt(teamId, 10))) ? parseInt(teamId, 10) : 1;
+
+    // Get real users for this team if present
+    let teamUsers = [];
+    try {
+      const uRes = await client.query('SELECT id, full_name FROM users WHERE team_id = $1 LIMIT 50', [effectiveTeamId]);
+      teamUsers = uRes.rows;
+    } catch (e) {}
 
     for (let i = 0; i < count; i++) {
       const template = MOCK_LIBRARY[i % totalMocks];
       const cycle = Math.floor(i / totalMocks);
       const titleSuffix = cycle > 0 ? ` (Quyển ${cycle + 1})` : '';
       const fullTitle = `${template.title}${titleSuffix}`;
-      const offset = i * 7;
+      const offset = i * 8;
 
-      valuePlaceholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, 'visible', 'reviewed', $${offset + 6}, NOW() - ($${offset + 7} || ' seconds')::interval)`);
+      const randomUser = teamUsers.length > 0 ? teamUsers[i % teamUsers.length] : null;
+      const readerName = randomUser ? randomUser.full_name : template.reader;
+
+      valuePlaceholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, 'visible', 'reviewed', $${offset + 6}, $${offset + 7}, NOW() - ($${offset + 8} || ' seconds')::interval)`);
 
       values.push(
         fullTitle,
         template.author,
         template.quote,
         template.category,
-        template.reader,
+        readerName,
         Math.floor(Math.random() * 20) + 5,
+        effectiveTeamId,
         (count - i) * 10
       );
     }
 
     const insertRes = await client.query(`
-      INSERT INTO books (title, author, quote, category, reader_name, visibility_status, moderation_status, likes_count, created_at)
+      INSERT INTO books (title, author, quote, category, reader_name, visibility_status, moderation_status, likes_count, team_id, created_at)
       VALUES ${valuePlaceholders.join(', ')}
       RETURNING *
     `, values);
@@ -219,33 +232,61 @@ export class TesterService {
     return insertRes.rows;
   }
 
-  static async setExp(exp, customSeedsCount = null) {
+  static async setExp(exp, customSeedsCount = null, teamId = null) {
     const levelInfo = calculateLevelFromExp(exp);
     const targetSeeds = customSeedsCount !== null ? customSeedsCount : (exp < 50 ? exp : 0);
+    const isSprouted = (levelInfo.level >= 1 || targetSeeds >= 50 || exp >= 50);
 
     const result = await db.transaction(async (client) => {
-      // 1. Sync real books in PostgreSQL
-      if (targetSeeds !== null && targetSeeds >= 0) {
-        const countRes = await client.query("SELECT COUNT(*) FROM books WHERE visibility_status = 'visible'");
-        const currentCount = parseInt(countRes.rows[0].count, 10);
-
-        if (currentCount < targetSeeds) {
-          await this.insertMockBooks(client, targetSeeds - currentCount);
-        } else if (currentCount > targetSeeds) {
-          await client.query(`
-            DELETE FROM books 
-            WHERE id IN (
-              SELECT id FROM books WHERE visibility_status = 'visible' ORDER BY created_at DESC LIMIT $1
-            )
-          `, [currentCount - targetSeeds]);
-        }
+      // 1. Determine target teams
+      let targetTeamIds = [];
+      if (teamId === 'all') {
+        const allRes = await client.query('SELECT id FROM teams ORDER BY id ASC');
+        targetTeamIds = allRes.rows.map(r => r.id);
+      } else if (teamId && !isNaN(parseInt(teamId, 10))) {
+        targetTeamIds = [parseInt(teamId, 10)];
+      } else {
+        // If teamId not specified, apply to all 8 teams so entire system is in sync!
+        const allRes = await client.query('SELECT id FROM teams ORDER BY id ASC');
+        targetTeamIds = allRes.rows.map(r => r.id);
       }
 
-      // 2. Count final books
+      // 2. Sync books and teams table for each target team
+      for (const tId of targetTeamIds) {
+        if (targetSeeds !== null && targetSeeds >= 0) {
+          const countRes = await client.query("SELECT COUNT(*) FROM books WHERE team_id = $1 AND visibility_status = 'visible'", [tId]);
+          const currentCount = parseInt(countRes.rows[0].count, 10);
+
+          if (currentCount < targetSeeds) {
+            await this.insertMockBooks(client, targetSeeds - currentCount, tId);
+          } else if (currentCount > targetSeeds) {
+            await client.query(`
+              DELETE FROM books 
+              WHERE id IN (
+                SELECT id FROM books WHERE team_id = $1 AND visibility_status = 'visible' ORDER BY created_at DESC LIMIT $2
+              )
+            `, [tId, currentCount - targetSeeds]);
+          }
+        }
+
+        // Update team in PostgreSQL
+        await client.query(`
+          UPDATE teams
+          SET total_exp = $1,
+              tree_exp = $1,
+              tree_seeds = $2,
+              level = $3,
+              tree_level = $3,
+              updated_at = NOW()
+          WHERE id = $4
+        `, [exp, targetSeeds, levelInfo.level, tId]);
+      }
+
+      // 3. Count final books
       const finalCountRes = await client.query("SELECT COUNT(*) FROM books WHERE visibility_status = 'visible'");
       const totalBooks = parseInt(finalCountRes.rows[0].count, 10);
 
-      // 3. Update community_growth
+      // 4. Update community_growth for legacy
       const growthRes = await client.query(`
         UPDATE community_growth
         SET total_exp = $1,
@@ -270,7 +311,8 @@ export class TesterService {
         totalDews: parseInt(updated.total_dews, 10),
         totalLikes: parseInt(updated.total_likes, 10),
         activeReaders: parseInt(updated.active_readers, 10),
-        seedsCount: targetSeeds
+        seedsCount: targetSeeds,
+        targetTeamId: targetTeamIds.length === 1 ? targetTeamIds[0] : 'all'
       };
 
       socketService.broadcastGrowthUpdated(fullGrowth);
@@ -282,30 +324,53 @@ export class TesterService {
     return result;
   }
 
-  static async addSeeds(count = 1) {
+  static async addSeeds(count = 1, teamId = null) {
     const result = await db.transaction(async (client) => {
-      // 1. Insert real mock books into PostgreSQL
-      await this.insertMockBooks(client, count);
+      let targetTeamIds = [];
+      if (teamId === 'all') {
+        const allRes = await client.query('SELECT id FROM teams ORDER BY id ASC');
+        targetTeamIds = allRes.rows.map(r => r.id);
+      } else if (teamId && !isNaN(parseInt(teamId, 10))) {
+        targetTeamIds = [parseInt(teamId, 10)];
+      } else {
+        targetTeamIds = [1];
+      }
 
-      // 2. Count final books
+      for (const tId of targetTeamIds) {
+        await this.insertMockBooks(client, count, tId);
+
+        const countRes = await client.query("SELECT COUNT(*) FROM books WHERE team_id = $1 AND visibility_status = 'visible'", [tId]);
+        const totalSeeds = parseInt(countRes.rows[0].count, 10);
+
+        const isSprouted = totalSeeds >= 50;
+        const newExp = totalSeeds < 50 ? totalSeeds : (totalSeeds * 10);
+        const levelInfo = calculateLevelFromExp(newExp);
+
+        await client.query(`
+          UPDATE teams
+          SET tree_seeds = $1,
+              total_exp = $2,
+              tree_exp = $2,
+              level = $3,
+              tree_level = $3,
+              updated_at = NOW()
+          WHERE id = $4
+        `, [totalSeeds, newExp, levelInfo.level, tId]);
+      }
+
       const finalCountRes = await client.query('SELECT COUNT(*) FROM books');
       const totalBooks = parseInt(finalCountRes.rows[0].count, 10);
-
-      // 3. Update community_growth
-      const newExp = totalBooks < 50 ? totalBooks : (totalBooks * 10);
-      const levelInfo = calculateLevelFromExp(newExp);
 
       const growthRes = await client.query(`
         UPDATE community_growth
         SET total_books = $1,
-            total_exp = $2,
-            level = $3,
             updated_at = NOW()
         WHERE id = 1
         RETURNING *
-      `, [totalBooks, newExp, levelInfo.level]);
+      `, [totalBooks]);
 
       const updated = growthRes.rows[0];
+      const levelInfo = calculateLevelFromExp(parseInt(updated.total_exp, 10));
 
       const fullGrowth = {
         totalEXP: parseInt(updated.total_exp, 10),
@@ -313,15 +378,11 @@ export class TesterService {
         levelName: levelInfo.levelName,
         levelDescription: levelInfo.levelDescription,
         progressPercent: levelInfo.progressPercent,
-        nextLevelThreshold: levelInfo.nextThreshold,
-        currentLevelFloor: levelInfo.currentFloor,
-        totalBooks: totalBooks,
-        totalDews: parseInt(updated.total_dews, 10),
-        totalLikes: parseInt(updated.total_likes, 10),
-        activeReaders: parseInt(updated.active_readers, 10)
+        totalBooks: totalBooks
       };
 
       socketService.broadcastGrowthUpdated(fullGrowth);
+      socketService.broadcastSeedsUpdated();
 
       return fullGrowth;
     });
@@ -329,50 +390,123 @@ export class TesterService {
     return result;
   }
 
-  static async resetToInitialState() {
-    return await db.transaction(async (client) => {
-      // 1. Delete dependent child records
-      await client.query('DELETE FROM quote_likes');
-      await client.query('DELETE FROM fruit_harvests');
-      await client.query('DELETE FROM daily_dews');
-      await client.query('DELETE FROM exp_ledger');
-      await client.query('DELETE FROM idempotency_keys');
-      await client.query('DELETE FROM audit_logs');
-      await client.query('DELETE FROM site_visitors');
+  static async addHeart(count = 10, expBonus = 20, teamId = null) {
+    const result = await db.transaction(async (client) => {
+      let targetTeamIds = [];
+      if (teamId === 'all') {
+        const allRes = await client.query('SELECT id FROM teams ORDER BY id ASC');
+        targetTeamIds = allRes.rows.map(r => r.id);
+      } else if (teamId && !isNaN(parseInt(teamId, 10))) {
+        targetTeamIds = [parseInt(teamId, 10)];
+      } else {
+        targetTeamIds = [1];
+      }
 
-      // 2. Delete all books to return to clean baseline
-      await client.query('DELETE FROM books');
+      for (const tId of targetTeamIds) {
+        await client.query("UPDATE books SET likes_count = likes_count + 1 WHERE team_id = $1", [tId]);
 
-      // 3. Reset community_growth to initial clean baseline (0 EXP, Level 0, 0 books)
-      const growthRes = await client.query(`
+        const teamRes = await client.query(`
+          UPDATE teams
+          SET total_exp = total_exp + $1,
+              total_likes = total_likes + $2,
+              updated_at = NOW()
+          WHERE id = $3
+          RETURNING *
+        `, [expBonus, count, tId]);
+
+        if (teamRes.rows.length > 0) {
+          const team = teamRes.rows[0];
+          const levelInfo = calculateLevelFromExp(parseInt(team.total_exp, 10));
+          await client.query(`
+            UPDATE teams
+            SET level = $1,
+                tree_level = $1,
+                tree_exp = total_exp
+            WHERE id = $2
+          `, [levelInfo.level, tId]);
+        }
+      }
+
+      await client.query(`
         UPDATE community_growth
-        SET total_exp = 0,
-            level = 0,
-            total_books = 0,
-            total_dews = 0,
-            total_likes = 0,
-            active_readers = 0,
+        SET total_exp = total_exp + $1,
+            total_likes = total_likes + $2,
             updated_at = NOW()
         WHERE id = 1
-        RETURNING *
-      `);
+      `, [expBonus, count]);
 
-      const levelInfo = calculateLevelFromExp(0);
+      socketService.broadcastGrowthUpdated({ totalEXP: expBonus });
+      socketService.broadcastSeedsUpdated();
+
+      return { success: true };
+    });
+
+    return result;
+  }
+
+  static async resetToInitialState(teamId = null) {
+    return await db.transaction(async (client) => {
+      if (teamId && teamId !== 'all' && !isNaN(parseInt(teamId, 10))) {
+        const tId = parseInt(teamId, 10);
+        await client.query('DELETE FROM books WHERE team_id = $1', [tId]);
+        await client.query('DELETE FROM round_contributions WHERE team_id = $1', [tId]);
+
+        await client.query(`
+          UPDATE teams
+          SET total_exp = 0,
+              tree_exp = 0,
+              tree_seeds = 0,
+              level = 0,
+              tree_level = 0,
+              total_likes = 0,
+              updated_at = NOW()
+          WHERE id = $1
+        `, [tId]);
+      } else {
+        await client.query('DELETE FROM quote_likes');
+        await client.query('DELETE FROM fruit_harvests');
+        await client.query('DELETE FROM daily_dews');
+        await client.query('DELETE FROM exp_ledger');
+        await client.query('DELETE FROM idempotency_keys');
+        await client.query('DELETE FROM audit_logs');
+        await client.query('DELETE FROM site_visitors');
+        await client.query('DELETE FROM round_contributions');
+        await client.query('DELETE FROM books');
+
+        await client.query(`
+          UPDATE teams
+          SET total_exp = 0,
+              tree_exp = 0,
+              tree_seeds = 0,
+              level = 0,
+              tree_level = 0,
+              total_likes = 0,
+              updated_at = NOW()
+        `);
+
+        await client.query(`
+          UPDATE community_growth
+          SET total_exp = 0,
+              level = 0,
+              total_books = 0,
+              total_dews = 0,
+              total_likes = 0,
+              active_readers = 0,
+              updated_at = NOW()
+          WHERE id = 1
+        `);
+      }
+
       const fullGrowth = {
         totalEXP: 0,
         level: 0,
-        levelName: levelInfo.levelName,
-        levelDescription: levelInfo.levelDescription,
+        levelName: 'Ủ Mầm Lòng Đất',
         progressPercent: 0,
-        nextLevelThreshold: levelInfo.nextThreshold,
-        currentLevelFloor: levelInfo.currentFloor,
-        totalBooks: 0,
-        totalDews: 0,
-        totalLikes: 0,
-        activeReaders: 0
+        totalBooks: 0
       };
 
       socketService.broadcastGrowthUpdated(fullGrowth);
+      socketService.broadcastSeedsUpdated();
 
       return fullGrowth;
     });
@@ -380,7 +514,6 @@ export class TesterService {
 
   static async wipeDatabaseExceptAccounts() {
     return await db.transaction(async (client) => {
-      // 1. Delete all dependent child records
       await client.query('DELETE FROM quote_likes');
       await client.query('DELETE FROM fruit_harvests');
       await client.query('DELETE FROM daily_dews');
@@ -388,12 +521,21 @@ export class TesterService {
       await client.query('DELETE FROM idempotency_keys');
       await client.query('DELETE FROM audit_logs');
       await client.query('DELETE FROM site_visitors');
-
-      // 2. Delete ALL books to make CSDL completely EMPTY
+      await client.query('DELETE FROM round_contributions');
       await client.query('DELETE FROM books');
 
-      // 3. Reset community_growth to completely empty baseline (0 EXP, 0 books, 0 dews, 0 likes)
-      const growthRes = await client.query(`
+      await client.query(`
+        UPDATE teams
+        SET total_exp = 0,
+            tree_exp = 0,
+            tree_seeds = 0,
+            level = 0,
+            tree_level = 0,
+            total_likes = 0,
+            updated_at = NOW()
+      `);
+
+      await client.query(`
         UPDATE community_growth
         SET total_exp = 0,
             level = 0,
@@ -403,27 +545,18 @@ export class TesterService {
             active_readers = 0,
             updated_at = NOW()
         WHERE id = 1
-        RETURNING *
       `);
 
-      // NOTE: admin_users table is 100% PRESERVED!
-
-      const levelInfo = calculateLevelFromExp(0);
       const fullGrowth = {
         totalEXP: 0,
         level: 0,
-        levelName: levelInfo.levelName,
-        levelDescription: levelInfo.levelDescription,
+        levelName: 'Ủ Mầm Lòng Đất',
         progressPercent: 0,
-        nextLevelThreshold: levelInfo.nextThreshold,
-        currentLevelFloor: levelInfo.currentFloor,
-        totalBooks: 0,
-        totalDews: 0,
-        totalLikes: 0,
-        activeReaders: 0
+        totalBooks: 0
       };
 
       socketService.broadcastGrowthUpdated(fullGrowth);
+      socketService.broadcastSeedsUpdated();
 
       return fullGrowth;
     });
