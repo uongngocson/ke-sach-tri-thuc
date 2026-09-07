@@ -383,6 +383,31 @@ async function migrate() {
     FROM books
     WHERE user_id IS NOT NULL
     ON CONFLICT (user_id, quote_date) DO NOTHING;
+
+    -- Backfill exp_ledger historical entries for users and teams
+    UPDATE exp_ledger el
+    SET user_id = u.id
+    FROM users u
+    WHERE el.user_id IS NULL
+      AND (
+        (el.user_fingerprint LIKE 'user_%' AND u.id::text = REPLACE(el.user_fingerprint, 'user_', ''))
+        OR (el.user_fingerprint = u.id::text)
+      );
+
+    UPDATE exp_ledger el
+    SET team_id = b.team_id
+    FROM books b
+    WHERE el.team_id IS NULL
+      AND el.reference_type = 'books'
+      AND el.reference_id = b.id
+      AND b.team_id IS NOT NULL;
+
+    UPDATE exp_ledger el
+    SET team_id = u.team_id
+    FROM users u
+    WHERE el.team_id IS NULL
+      AND el.user_id = u.id
+      AND u.team_id IS NOT NULL;
   `;
 
   try {

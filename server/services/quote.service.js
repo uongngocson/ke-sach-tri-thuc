@@ -4,7 +4,7 @@ import GrowthService from './growth.service.js';
 import socketService from './socket.service.js';
 
 export class QuoteService {
-  static async likeQuote(bookId, userFingerprint) {
+  static async likeQuote(bookId, userFingerprint, meta = {}) {
     const result = await db.transaction(async (client) => {
       // 1. Insert Quote Like with UNIQUE constraint on (user_fingerprint, book_id)
       const likeInsert = await client.query(`
@@ -36,11 +36,37 @@ export class QuoteService {
         `, [EXP_CONFIG.QUOTE_LIKE, likedTeamId]);
       }
 
+      // Resolve user_id if authenticated
+      let resolvedUserId = meta.userId || null;
+      if (!resolvedUserId && userFingerprint) {
+        if (userFingerprint.startsWith('user_')) {
+          const potentialId = userFingerprint.replace('user_', '');
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          if (uuidRegex.test(potentialId)) {
+            resolvedUserId = potentialId;
+          }
+        } else {
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          if (uuidRegex.test(userFingerprint)) {
+            resolvedUserId = userFingerprint;
+          }
+        }
+      }
+
+      if (resolvedUserId) {
+        const uCheck = await client.query('SELECT id, team_id FROM users WHERE id = $1', [resolvedUserId]);
+        if (uCheck.rows.length > 0) {
+          resolvedUserId = uCheck.rows[0].id;
+        } else {
+          resolvedUserId = null;
+        }
+      }
+
       // 3. Insert into EXP Ledger (+2 EXP)
       await client.query(`
-        INSERT INTO exp_ledger (user_fingerprint, amount, type, reference_type, reference_id)
-        VALUES ($1, $2, 'QUOTE_LIKE', 'books', $3)
-        `, [userFingerprint, EXP_CONFIG.QUOTE_LIKE, bookId]);
+        INSERT INTO exp_ledger (user_id, team_id, user_fingerprint, amount, type, reference_type, reference_id)
+        VALUES ($1, $2, $3, $4, 'QUOTE_LIKE', 'books', $5)
+      `, [resolvedUserId, likedTeamId || null, userFingerprint, EXP_CONFIG.QUOTE_LIKE, bookId]);
 
       // 4. Update community growth
       const growthRes = await client.query(`
@@ -136,7 +162,7 @@ export class QuoteService {
     return result;
   }
 
-  static async harvestFruit(fruitIndex, userFingerprint) {
+  static async harvestFruit(fruitIndex, userFingerprint, meta = {}) {
     const today = new Date().toISOString().split('T')[0];
 
     const result = await db.transaction(async (client) => {
@@ -162,11 +188,39 @@ export class QuoteService {
         quote: 'Điều cốt lõi thì vô hình trong mắt trần.'
       };
 
+      // Resolve user_id and team_id if authenticated
+      let resolvedUserId = meta.userId || null;
+      let userTeamId = meta.teamId || null;
+      if (!resolvedUserId && userFingerprint) {
+        if (userFingerprint.startsWith('user_')) {
+          const potentialId = userFingerprint.replace('user_', '');
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          if (uuidRegex.test(potentialId)) {
+            resolvedUserId = potentialId;
+          }
+        } else {
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          if (uuidRegex.test(userFingerprint)) {
+            resolvedUserId = userFingerprint;
+          }
+        }
+      }
+
+      if (resolvedUserId) {
+        const uCheck = await client.query('SELECT id, team_id FROM users WHERE id = $1', [resolvedUserId]);
+        if (uCheck.rows.length > 0) {
+          resolvedUserId = uCheck.rows[0].id;
+          if (!userTeamId) userTeamId = uCheck.rows[0].team_id;
+        } else {
+          resolvedUserId = null;
+        }
+      }
+
       // 3. Record in EXP Ledger (+5 EXP)
       await client.query(`
-        INSERT INTO exp_ledger (user_fingerprint, amount, type, reference_type, reference_id)
-        VALUES ($1, $2, 'FRUIT_HARVEST', 'fruit_harvests', $3)
-      `, [userFingerprint, EXP_CONFIG.FRUIT_HARVEST, harvestInsert.rows[0].id]);
+        INSERT INTO exp_ledger (user_id, team_id, user_fingerprint, amount, type, reference_type, reference_id)
+        VALUES ($1, $2, $3, $4, 'FRUIT_HARVEST', 'fruit_harvests', $5)
+      `, [resolvedUserId, userTeamId, userFingerprint, EXP_CONFIG.FRUIT_HARVEST, harvestInsert.rows[0].id]);
 
       // 4. Update community growth (+5 EXP)
       const growthRes = await client.query(`

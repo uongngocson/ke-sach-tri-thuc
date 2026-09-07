@@ -11,7 +11,9 @@ export const contributeBookSchema = z.object({
 });
 
 export const likeQuoteSchema = z.object({
-  userFingerprint: z.string().trim().min(1, 'Fingerprint thiết bị là bắt buộc')
+  userFingerprint: z.string().trim().min(1, 'Fingerprint thiết bị là bắt buộc'),
+  userId: z.string().trim().optional().nullable(),
+  teamId: z.number().int().min(1).max(8).optional().nullable()
 });
 
 export const claimDewSchema = z.object({
@@ -23,7 +25,9 @@ export const claimDewSchema = z.object({
 
 export const harvestFruitSchema = z.object({
   fruitIndex: z.number().int().min(0).max(100),
-  userFingerprint: z.string().trim().min(1, 'Fingerprint thiết bị là bắt buộc')
+  userFingerprint: z.string().trim().min(1, 'Fingerprint thiết bị là bắt buộc'),
+  userId: z.string().trim().optional().nullable(),
+  teamId: z.number().int().min(1).max(8).optional().nullable()
 });
 
 export const adminLoginSchema = z.object({

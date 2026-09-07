@@ -179,12 +179,12 @@ async function runStateIntegrityTests() {
     console.log('\n⚡ [3/6] Kiểm tra chống Race Condition & Xung đột State khi gửi đồng thời (Concurrency Stampede)...');
 
     // 3.1: Concurrent Daily Dew Stampede (12 requests cùng 1 mili-giây cho 1 user)
-    await db.query("DELETE FROM daily_dews WHERE user_id IN (SELECT id FROM users WHERE employee_code LIKE 'TEST_RACE_%')");
-    await db.query("DELETE FROM exp_ledger WHERE user_id IN (SELECT id FROM users WHERE employee_code LIKE 'TEST_RACE_%')");
-    await db.query("DELETE FROM users WHERE employee_code LIKE 'TEST_RACE_%'");
+    await db.query("DELETE FROM daily_dews WHERE user_id IN (SELECT id FROM users WHERE employee_code LIKE 'TR_%' OR employee_code LIKE 'TEST_RACE_%' OR employee_code LIKE 'RACE_%')");
+    await db.query("DELETE FROM exp_ledger WHERE user_id IN (SELECT id FROM users WHERE employee_code LIKE 'TR_%' OR employee_code LIKE 'TEST_RACE_%' OR employee_code LIKE 'RACE_%')");
+    await db.query("DELETE FROM users WHERE employee_code LIKE 'TR_%' OR employee_code LIKE 'TEST_RACE_%' OR employee_code LIKE 'RACE_%'");
 
     const testUserId = uuidv4();
-    const testEmployeeCode = `RACE_${Date.now()}`;
+    const testEmployeeCode = `TR_${Date.now()}`;
     await db.query(`
       INSERT INTO users (id, employee_code, full_name, email, team_id, total_exp_earned)
       VALUES ($1, $2, 'Độc Giả Test Race Condition', $3, 1, 0)
@@ -219,8 +219,16 @@ async function runStateIntegrityTests() {
     assert(dewsInDb === 1, 'Bảng daily_dews chỉ lưu ĐÚNG 1 BẢN GHI (0 bản ghi trùng lặp)');
 
     // 3.2: Concurrent Like Stampede (10 requests thả tim cùng 1 mili-giây cho 1 cuốn sách)
-    const testBookRes = await db.query('SELECT id, likes_count, team_id FROM books WHERE visibility_status = \'visible\' LIMIT 1');
-    const testBook = testBookRes.rows[0];
+    let testBookRes = await db.query('SELECT id, likes_count, team_id FROM books WHERE visibility_status = \'visible\' LIMIT 1');
+    let testBook = testBookRes.rows[0];
+    if (!testBook) {
+      const fallbackBookRes = await db.query(`
+        INSERT INTO books (title, author, quote, category, user_fingerprint, likes_count, visibility_status, team_id, reader_name)
+        VALUES ('Sách Test Toàn Vẹn', 'Tác Giả Test', 'Trích dẫn kiểm tra toàn vẹn dữ liệu hệ thống 2026', 'Tâm lý & Kỹ năng', 'fp_test_integrity', 0, 'visible', 1, 'Người Kiểm Thử')
+        RETURNING id, likes_count, team_id
+      `);
+      testBook = fallbackBookRes.rows[0];
+    }
     const initialLikes = testBook.likes_count;
     const testLikerFp = `fp_liker_stampede_${Date.now()}`;
 
@@ -450,6 +458,11 @@ async function runStateIntegrityTests() {
     console.error('💥 Lỗi ngoài dự kiến trong State Integrity Test:', err);
     failed++;
   } finally {
+    try {
+      await db.query("DELETE FROM daily_dews WHERE user_id IN (SELECT id FROM users WHERE employee_code LIKE 'TR_%' OR employee_code LIKE 'TEST_RACE_%' OR employee_code LIKE 'RACE_%')");
+      await db.query("DELETE FROM exp_ledger WHERE user_id IN (SELECT id FROM users WHERE employee_code LIKE 'TR_%' OR employee_code LIKE 'TEST_RACE_%' OR employee_code LIKE 'RACE_%')");
+      await db.query("DELETE FROM users WHERE employee_code LIKE 'TR_%' OR employee_code LIKE 'TEST_RACE_%' OR employee_code LIKE 'RACE_%'");
+    } catch {}
     if (serverInstance) {
       serverInstance.close();
     }
