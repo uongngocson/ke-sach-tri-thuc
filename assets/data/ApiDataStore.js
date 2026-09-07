@@ -547,13 +547,24 @@ class ApiDataStoreManager {
     try {
       const idempotencyKey = this.generateIdempotencyKey();
       const fp = this.getUserFingerprint();
+      let session = null;
+      try {
+        session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+      } catch {}
+      const userId = (session && session.id && session.id !== 'guest') ? session.id : null;
+      const teamId = (session && session.team_id) ? session.team_id : null;
+
       const res = await fetch(`${getApiBase()}/quotes/${quoteId}/unlike`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Idempotency-Key': idempotencyKey
         },
-        body: JSON.stringify({ userFingerprint: fp })
+        body: JSON.stringify({ 
+          userFingerprint: fp,
+          userId: userId,
+          teamId: teamId
+        })
       });
 
       const data = await res.json();
@@ -577,13 +588,24 @@ class ApiDataStoreManager {
     try {
       const idempotencyKey = this.generateIdempotencyKey();
       const fp = this.getUserFingerprint();
+      let session = null;
+      try {
+        session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+      } catch {}
+      const userId = (session && session.id && session.id !== 'guest') ? session.id : null;
+      const teamId = (session && session.team_id) ? session.team_id : null;
+
       const res = await fetch(`${getApiBase()}/quotes/${quoteId}/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Idempotency-Key': idempotencyKey
         },
-        body: JSON.stringify({ userFingerprint: fp })
+        body: JSON.stringify({ 
+          userFingerprint: fp,
+          userId: userId,
+          teamId: teamId
+        })
       });
 
       const data = await res.json();

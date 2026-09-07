@@ -122,7 +122,8 @@ export async function unlikeQuote(req, res, next) {
 
 export async function likeQuote(req, res, next) {
   try {
-    const result = await QuoteService.likeQuote(req.params.id, req.body.userFingerprint);
+    const { userFingerprint, userId, teamId } = req.body;
+    const result = await QuoteService.likeQuote(req.params.id, userFingerprint, { userId, teamId });
     res.json({
       success: true,
       message: 'Đã thích trích dẫn (+2 EXP)!',
@@ -135,7 +136,8 @@ export async function likeQuote(req, res, next) {
 
 export async function harvestFruit(req, res, next) {
   try {
-    const result = await QuoteService.harvestFruit(req.body.fruitIndex, req.body.userFingerprint);
+    const { fruitIndex, userFingerprint, userId, teamId } = req.body;
+    const result = await QuoteService.harvestFruit(fruitIndex, userFingerprint, { userId, teamId });
     res.json({
       success: true,
       message: 'Hái trái tri thức thành công (+5 EXP)!',

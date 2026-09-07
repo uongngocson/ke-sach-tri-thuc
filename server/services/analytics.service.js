@@ -255,10 +255,18 @@ export class AnalyticsService {
         el.id, el.amount, el.type, el.reference_type, el.reference_id, el.created_at,
         el.user_fingerprint,
         COALESCE(u.nickname, u.full_name) as user_name, u.nickname, u.email as user_email, u.employee_code,
-        t.id as team_id, t.name as team_name, t.display_name as team_display_name, t.color_code as team_color
+        COALESCE(t.id, bt.id, ut.id) as team_id,
+        COALESCE(t.name, bt.name, ut.name) as team_name,
+        COALESCE(t.display_name, bt.display_name, ut.display_name) as team_display_name,
+        COALESCE(t.color_code, bt.color_code, ut.color_code) as team_color
       FROM exp_ledger el
       LEFT JOIN users u ON el.user_id = u.id
+        OR (el.user_fingerprint LIKE 'user_%' AND u.id::text = REPLACE(el.user_fingerprint, 'user_', ''))
+        OR (el.user_fingerprint = u.id::text)
       LEFT JOIN teams t ON el.team_id = t.id
+      LEFT JOIN books b ON el.reference_type = 'books' AND el.reference_id = b.id
+      LEFT JOIN teams bt ON b.team_id = bt.id
+      LEFT JOIN teams ut ON u.team_id = ut.id
       WHERE 1=1
     `;
     const params = [];
@@ -269,7 +277,7 @@ export class AnalyticsService {
     }
     if (teamId) {
       params.push(parseInt(teamId, 10));
-      query += ` AND el.team_id = $${params.length}`;
+      query += ` AND COALESCE(el.team_id, b.team_id, u.team_id) = $${params.length}`;
     }
     if (search) {
       params.push(`%${search}%`);
