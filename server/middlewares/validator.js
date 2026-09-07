@@ -4,7 +4,7 @@ export const contributeBookSchema = z.object({
   title: z.string().trim().min(2, 'Tên sách phải từ 2 ký tự trở lên').max(200, 'Tên sách không vượt quá 200 ký tự'),
   author: z.string().trim().min(2, 'Tên tác giả phải từ 2 ký tự trở lên').max(150, 'Tên tác giả không vượt quá 150 ký tự'),
   quote: z.string().trim().min(10, 'Trích dẫn phải từ 10 ký tự trở lên').max(1000, 'Trích dẫn không vượt quá 1000 ký tự'),
-  category: z.string().trim().optional().default('Sách Tinh Hoa'),
+  category: z.string().trim().optional().nullable(),
   reader: z.string().trim().max(80, 'Tên người gieo không vượt quá 80 ký tự').optional().default('Độc giả yêu sách'),
   email: z.string().email('Email không hợp lệ').optional().nullable().or(z.literal('')),
   userFingerprint: z.string().trim().min(1, 'Fingerprint thiết bị là bắt buộc')

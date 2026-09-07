@@ -130,7 +130,7 @@ export class BookService {
         VALUES ($1, $2, $3, CURRENT_DATE, $4)
       `, [userId, userFingerprint, newBook.id, teamId]);
 
-      // 2. Insert into EXP Ledger (+15 EXP)
+      // 2. Insert into EXP Ledger (+5 EXP)
       await client.query(`
         INSERT INTO exp_ledger (user_id, team_id, user_fingerprint, amount, type, reference_type, reference_id)
         VALUES ($1, $2, $3, $4, 'BOOK_CONTRIBUTION', 'books', $5)
@@ -209,15 +209,24 @@ export class BookService {
     const teamId = options.teamId ? parseInt(options.teamId, 10) : null;
     const search = options.search ? options.search.trim() : null;
     const sortBy = options.sortBy || 'most_liked';
+    const userFingerprint = options.userFingerprint ? options.userFingerprint.trim() : null;
+
+    const params = [];
+    let isLikedSelect = 'false as is_liked';
+
+    if (userFingerprint) {
+      params.push(userFingerprint);
+      isLikedSelect = `EXISTS(SELECT 1 FROM quote_likes ql WHERE ql.book_id = b.id AND ql.user_fingerprint = $1) as is_liked`;
+    }
 
     let query = `
       SELECT b.id, b.title, b.author, b.quote, b.category, b.reader_name, b.likes_count, b.moderation_status, b.created_at,
-             b.team_id, t.name as team_name, t.code as team_code, t.display_name as team_short_name, t.display_name as team_display_name, t.color_code as team_color
+             b.team_id, t.name as team_name, t.code as team_code, t.display_name as team_short_name, t.display_name as team_display_name, t.color_code as team_color,
+             ${isLikedSelect}
       FROM books b
       LEFT JOIN teams t ON b.team_id = t.id
       WHERE b.visibility_status = 'visible'
     `;
-    const params = [];
 
     if (category && category !== 'all' && category !== 'Tất cả') {
       params.push(category);

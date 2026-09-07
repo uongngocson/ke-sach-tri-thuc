@@ -14,7 +14,7 @@ export async function contributeBook(req, res, next) {
     const result = await BookService.contributeBook(req.body);
     res.status(201).json({
       success: true,
-      message: 'Gieo mầm sách thành công (+15 EXP)!',
+      message: 'Gieo mầm sách thành công (+5 EXP)!',
       data: result
     });
   } catch (err) {
@@ -228,23 +228,28 @@ export async function getAdminBooks(req, res, next) {
     const visibilityStatus = req.query.visibility_status;
     const search = req.query.search;
 
-    let query = `SELECT * FROM books WHERE 1=1`;
+    let query = `
+      SELECT b.*, t.name as team_name, t.display_name as team_display_name, t.color_code as team_color 
+      FROM books b 
+      LEFT JOIN teams t ON b.team_id = t.id 
+      WHERE 1=1
+    `;
     const params = [];
 
     if (moderationStatus) {
       params.push(moderationStatus);
-      query += ` AND moderation_status = $${params.length}`;
+      query += ` AND b.moderation_status = $${params.length}`;
     }
     if (visibilityStatus) {
       params.push(visibilityStatus);
-      query += ` AND visibility_status = $${params.length}`;
+      query += ` AND b.visibility_status = $${params.length}`;
     }
     if (search) {
       params.push(`%${search}%`);
-      query += ` AND (title ILIKE $${params.length} OR author ILIKE $${params.length} OR reader_name ILIKE $${params.length})`;
+      query += ` AND (b.title ILIKE $${params.length} OR b.author ILIKE $${params.length} OR b.reader_name ILIKE $${params.length})`;
     }
 
-    query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    query += ` ORDER BY b.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(limit, offset);
 
     const booksRes = await db.query(query, params);

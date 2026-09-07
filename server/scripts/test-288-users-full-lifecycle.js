@@ -137,7 +137,7 @@ async function run288UsersFullLifecycleTest() {
         case4_DuplicateWaterBlockedPass++;
       }
 
-      // Case 5: Gieo câu trích dẫn sách (+15 EXP)
+      // Case 5: Gieo câu trích dẫn sách (+5 EXP)
       const bookContrib = await BookService.contributeBook({
         title: `Sách Tri Thức Tuyển Chọn #${userIdx}`,
         author: `Tác giả Tri Thức #${userIdx}`,
@@ -150,7 +150,7 @@ async function run288UsersFullLifecycleTest() {
         userFingerprint: `fp_user_${user.id.substring(0, 8)}`
       });
 
-      if (bookContrib && bookContrib.book && bookContrib.growth.expEarned === 15) {
+      if (bookContrib && bookContrib.book && bookContrib.growth.expEarned === 5) {
         case5_ContributeQuotePass++;
       }
 
@@ -184,12 +184,12 @@ async function run288UsersFullLifecycleTest() {
         case7_LikeQuotePass++;
       }
 
-      // Case 8: Kiểm tra cập nhật thống kê cá nhân người dùng (+1 sách, +17 EXP)
+      // Case 8: Kiểm tra cập nhật thống kê cá nhân người dùng (+1 sách, +7 EXP)
       const updatedUser = await UserService.getUserById(user.id);
       if (
         updatedUser &&
         parseInt(updatedUser.contributed_books_count, 10) === 1 &&
-        parseInt(updatedUser.total_exp_earned, 10) === 17 // 15 EXP sách + 2 EXP tưới
+        parseInt(updatedUser.total_exp_earned, 10) === 7 // 5 EXP sách + 2 EXP tưới
       ) {
         case8_UserStatsUpdatedPass++;
       }
@@ -203,7 +203,7 @@ async function run288UsersFullLifecycleTest() {
       if (
         ledgerCheck.rows.length >= 2 &&
         ledgerCheck.rows.some(r => r.type === 'DAILY_DEW' && r.amount === 2) &&
-        ledgerCheck.rows.some(r => r.type === 'BOOK_CONTRIBUTION' && r.amount === 15)
+        ledgerCheck.rows.some(r => r.type === 'BOOK_CONTRIBUTION' && r.amount === 5)
       ) {
         case9_LedgerAuditTrailPass++;
       }
@@ -234,7 +234,7 @@ async function run288UsersFullLifecycleTest() {
       `Verified: ${case4_DuplicateWaterBlockedPass}/288`);
 
     assert(case5_ContributeQuotePass === 288, 
-      '100% (288/288) độc giả gieo mầm trích dẫn thành công (+15 EXP ghi nhận)',
+      '100% (288/288) độc giả gieo mầm trích dẫn thành công (+5 EXP ghi nhận)',
       `Verified: ${case5_ContributeQuotePass}/288`);
 
     assert(case6_DuplicateQuoteBlockedPass === 288, 

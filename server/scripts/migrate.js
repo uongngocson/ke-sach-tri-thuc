@@ -42,7 +42,7 @@ async function migrate() {
       title VARCHAR(255) NOT NULL,
       author VARCHAR(255) NOT NULL,
       quote TEXT NOT NULL,
-      category VARCHAR(100) DEFAULT 'Sách Tinh Hoa',
+      category VARCHAR(100) DEFAULT NULL,
       reader_name VARCHAR(100) NOT NULL,
       reader_email VARCHAR(255),
       likes_count INT DEFAULT 0,

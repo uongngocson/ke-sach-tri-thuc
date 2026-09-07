@@ -38,7 +38,7 @@
 **Cáo Sách** là một nền tảng văn hóa đọc kết hợp đồ họa không gian 3D tương tác (**Three.js/WebGL**) và hệ thống máy chủ cơ sở dữ liệu thời gian thực (**Node.js Express + PostgreSQL trong Docker + Socket.io**).
 
 - **Gieo mầm tri thức**: Mỗi cuốn sách độc giả đóng góp hóa thành 1 hạt giống ủ mình dưới đất (giai đoạn hạt mầm) hoặc bón phân tiếp thêm dinh dưỡng giúp Cây Tri Thức vươn cành đón nắng.
-- **Tự động duyệt 100% (Auto-Approve)**: Sách sau khi gửi được hiển thị ngay lập tức trên hệ sinh thái và được cấp `+15 EXP` vào Cây thông qua giao dịch ACID PostgreSQL.
+- **Tự động duyệt 100% (Auto-Approve)**: Sách sau khi gửi được hiển thị ngay lập tức trên hệ sinh thái và được cấp `+5 EXP` vào Cây thông qua giao dịch ACID PostgreSQL.
 - **Hậu kiểm an toàn (Post-Moderation)**: Ban quản trị kiểm soát chất lượng nội dung thông qua Admin Portal chuyên biệt, có quyền chỉnh sửa, duyệt an toàn hoặc ẩn nội dung vi phạm.
 
 ---
@@ -89,8 +89,8 @@ Hệ thống sử dụng **PostgreSQL 16 Alpine** chạy trong Docker container 
 2. Server xác thực dữ liệu qua schema Zod.
 3. Mở **PostgreSQL Transaction**:
    - `INSERT INTO books` với `visibility_status = 'visible'` và `moderation_status = 'pending_review'`.
-   - `INSERT INTO exp_ledger` ghi nhận `+15 EXP` loại `BOOK_CONTRIBUTION`.
-   - `UPDATE community_growth` cộng thêm 15 EXP, cập nhật cấp độ cây (Level 0–5).
+   - `INSERT INTO exp_ledger` ghi nhận `+5 EXP` loại `BOOK_CONTRIBUTION`.
+   - `UPDATE community_growth` cộng thêm 5 EXP, cập nhật cấp độ cây (Level 0–5).
    - **COMMIT TRANSACTION**.
 4. Sau khi commit thành công: Socket.io phát sóng `growth:updated` và `book:created` tới toàn bộ client online để Cây 3D vươn cành tức thì.
 

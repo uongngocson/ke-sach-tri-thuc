@@ -1036,7 +1036,10 @@ export class QuoteTreasuryModal {
     if (empty) empty.style.display = 'none';
 
     try {
-      const res = await fetch(`${getApiBase()}/quotes?page=1&limit=200&_t=${Date.now()}`);
+      const store = window.MockDataStore || window.ApiDataStore;
+      const fp = store?.getUserFingerprint ? store.getUserFingerprint() : (store?.fingerprint || '');
+      const fpParam = fp ? `&userFingerprint=${encodeURIComponent(fp)}` : '';
+      const res = await fetch(`${getApiBase()}/quotes?page=1&limit=200${fpParam}&_t=${Date.now()}`);
       const json = await res.json();
       
       let quotesList = [];
@@ -1044,6 +1047,21 @@ export class QuoteTreasuryModal {
         quotesList = json.data.quotes;
       } else if (json.data && Array.isArray(json.data)) {
         quotesList = json.data;
+      }
+
+      // Sync backend is_liked into localStorage
+      if (typeof localStorage !== 'undefined') {
+        const liked = JSON.parse(localStorage.getItem('caosach_liked_quotes') || '{}');
+        let changed = false;
+        for (const q of quotesList) {
+          if (q.is_liked && !liked[q.id]) {
+            liked[q.id] = true;
+            changed = true;
+          }
+        }
+        if (changed) {
+          localStorage.setItem('caosach_liked_quotes', JSON.stringify(liked));
+        }
       }
 
       this.allQuotes = quotesList;
@@ -1202,7 +1220,7 @@ export class QuoteTreasuryModal {
 
     const likesCount = parseInt(quote.likes_count, 10) || 0;
     const store = window.MockDataStore || window.ApiDataStore;
-    const isLiked = store?.isLikedByUser ? store.isLikedByUser(quote.id) : false;
+    const isLiked = (store?.isLikedByUser ? store.isLikedByUser(quote.id) : false) || !!quote.is_liked;
 
     const bookTitle = quote.title || 'Sách Tri Thức';
     const authorName = quote.author || 'Khuyết danh';
@@ -1303,29 +1321,47 @@ export class QuoteTreasuryModal {
   }
 
   async handleLikeQuote(btn, quote) {
-    if (!quote) return;
-    const store = window.MockDataStore || window.ApiDataStore;
-    const numSpan = btn.querySelector('.like-num');
-    const heartSpan = btn.querySelector('span:first-child');
-    let currentCount = parseInt(numSpan?.textContent || '0', 10);
+    if (!quote || btn.dataset.loading === 'true') return;
+    btn.dataset.loading = 'true';
+    btn.style.pointerEvents = 'none';
 
-    const isLiked = store?.isLikedByUser ? store.isLikedByUser(quote.id) : btn.classList.contains('liked');
+    try {
+      const store = window.MockDataStore || window.ApiDataStore;
+      if (!store || !store.toggleLike) return;
 
-    if (isLiked) {
-      currentCount = Math.max(0, currentCount - 1);
-      btn.classList.remove('liked');
-      if (heartSpan) heartSpan.textContent = '🤍';
-      if (numSpan) numSpan.textContent = currentCount;
-      quote.likes_count = currentCount;
-      if (store?.unlikeQuote) await store.unlikeQuote(quote.id);
-    } else {
-      currentCount += 1;
-      btn.classList.add('liked');
-      if (heartSpan) heartSpan.textContent = '❤️';
-      if (numSpan) numSpan.textContent = currentCount;
-      quote.likes_count = currentCount;
-      this.showToast('❤️ Đã thả tim trích dẫn (+2 EXP cho Cây Tri Thức)!');
-      if (store?.likeQuote) await store.likeQuote(quote.id);
+      const res = await store.toggleLike(quote.id);
+      const numSpan = btn.querySelector('.like-num');
+      const heartSpan = btn.querySelector('span:first-child');
+
+      if (res && res.success) {
+        quote.likes_count = res.likes;
+        quote.is_liked = res.isLiked;
+        if (numSpan) numSpan.textContent = res.likes;
+
+        if (res.isLiked) {
+          btn.classList.add('liked');
+          if (heartSpan) heartSpan.textContent = '❤️';
+          const teamName = quote.team_short_name || (quote.team_id ? `Đội ${quote.team_id}` : 'Cây Tri Thức');
+          this.showToast(`💖 Đã thả tim: "${quote.title || quote.book || 'Trích dẫn'}" (+2 EXP cho ${teamName})`);
+        } else {
+          btn.classList.remove('liked');
+          if (heartSpan) heartSpan.textContent = '🤍';
+          this.showToast('Đã bỏ thích trích dẫn');
+        }
+      } else {
+        if (res && (res.error === 'DUPLICATE_QUOTE_LIKE' || res.isLiked)) {
+          btn.classList.add('liked');
+          if (heartSpan) heartSpan.textContent = '❤️';
+          quote.is_liked = true;
+        }
+        this.showToast(res?.message || 'Bạn đã thả tim trích dẫn này rồi!');
+      }
+    } catch (err) {
+      console.error('[QuoteTreasuryModal] handleLikeQuote error:', err);
+      this.showToast('Lỗi khi thao tác thả tim');
+    } finally {
+      btn.dataset.loading = 'false';
+      btn.style.pointerEvents = '';
     }
   }
 

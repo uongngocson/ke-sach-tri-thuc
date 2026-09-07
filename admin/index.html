@@ -164,7 +164,7 @@
             <!-- KPI 1: Total EXP -->
             <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #38bdf8, #0284c7);">
               <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
-                <span>Tổng EXP Toàn Cầu</span>
+                <span>Tổng EXP FULL ĐỘI</span>
                 <span class="text-base">✨</span>
               </div>
               <div class="text-2xl font-black text-white" id="kpi-total-exp">0</div>
@@ -264,14 +264,14 @@
               </div>
             </div>
 
-            <!-- Chart 2: Book Categories Donut (1 Col) -->
+            <!-- Chart 2: 8 Teams Contribution Donut (1 Col) -->
             <div class="chart-card">
               <div class="flex items-center justify-between mb-4">
                 <div>
                   <h3 class="text-sm font-black text-white flex items-center gap-2">
-                    <span>🍩</span><span>Cơ Cấu Thể Loại Sách</span>
+                    <span>🍩</span><span>Tỷ Trọng Đóng Góp 8 Đội</span>
                   </h3>
-                  <p class="text-xs text-slate-400 font-bold">Tỷ lệ các chủ đề tri thức được độc giả chia sẻ</p>
+                  <p class="text-xs text-slate-400 font-bold">Tỷ lệ sách đã gieo của 8 Cây Tri Thức</p>
                 </div>
               </div>
               <div class="chart-box flex items-center justify-center" style="height: 280px;">
@@ -279,56 +279,6 @@
               </div>
             </div>
 
-          </div>
-
-          <!-- Row 3: Charts Row 2 (8 Teams Standings + Branch Participation) -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Chart 3: 8 Teams Standings Bar Chart (2 Cols) -->
-            <div class="chart-card lg:col-span-2">
-              <div class="flex items-center justify-between mb-4">
-                <div>
-                  <h3 class="text-sm font-black text-white flex items-center gap-2">
-                    <span>🏆</span><span>Xếp Hạng Điểm Số & Cây Tri Thức Của 8 Đội</span>
-                  </h3>
-                  <p class="text-xs text-slate-400 font-bold">Tổng EXP tích lũy của từng Cây Tri Thức theo bảng xếp hạng thời gian thực</p>
-                </div>
-              </div>
-              <div class="chart-box" style="height: 280px;">
-                <canvas id="chart-teams-exp"></canvas>
-              </div>
-            </div>
-
-            <!-- Chart 4: Branch / Department Activity (1 Col) -->
-            <div class="chart-card">
-              <div class="flex items-center justify-between mb-4">
-                <div>
-                  <h3 class="text-sm font-black text-white flex items-center gap-2">
-                    <span>📊</span><span>Phân Bố Nhân Sự Theo Khối</span>
-                  </h3>
-                  <p class="text-xs text-slate-400 font-bold">Số lượng cán bộ thuộc BGD, TDV, CLB FoxREAD</p>
-                </div>
-              </div>
-              <div class="chart-box" style="height: 280px;">
-                <canvas id="chart-branches"></canvas>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Row 4: Multi-dimensional Radar Chart of Teams -->
-          <div class="chart-card">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h3 class="text-sm font-black text-white flex items-center gap-2">
-                  <span>🕸️</span><span>Biểu Đồ Radar: So Sánh Toàn Diện Sức Mạnh 8 Đội</span>
-                </h3>
-                <p class="text-xs text-slate-400 font-bold">Đánh giá đa chiều 5 tiêu chí: Tổng EXP, Sách đã gieo, Lượt tưới sương, Tỷ lệ tham gia vòng này, Tỷ lệ TB toàn giải</p>
-              </div>
-            </div>
-            <div class="chart-box" style="height: 360px;">
-              <canvas id="chart-radar-teams"></canvas>
-            </div>
           </div>
 
         </div>
@@ -423,45 +373,6 @@
                 </div>
               </div>
 
-              <!-- Card 4: Top Quotes & Depth -->
-              <div class="glass-panel p-4 space-y-3 border-t-2 border-t-indigo-400">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-black text-white flex items-center gap-1.5">
-                    <span class="text-base">✍️</span><span>Viết Câu Cốt Sâu Sắc & Nhiều Nhất</span>
-                  </span>
-                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">TOP 10</span>
-                </div>
-                <div id="deep-top-quotes-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                  <div class="text-xs text-slate-500 text-center py-4">Đang tải dữ liệu...</div>
-                </div>
-              </div>
-
-              <!-- Card 5: Top Appreciated -->
-              <div class="glass-panel p-4 space-y-3 border-t-2 border-t-rose-400">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-black text-white flex items-center gap-1.5">
-                    <span class="text-base">💖</span><span>Được Cảm Ơn / Ghi Nhận (Nhiều Like)</span>
-                  </span>
-                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300">TOP 10</span>
-                </div>
-                <div id="deep-top-appreciated-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                  <div class="text-xs text-slate-500 text-center py-4">Đang tải dữ liệu...</div>
-                </div>
-              </div>
-
-              <!-- Card 6: Top Visitors -->
-              <div class="glass-panel p-4 space-y-3 border-t-2 border-t-purple-400">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-black text-white flex items-center gap-1.5">
-                    <span class="text-base">👀</span><span>Độc Giả Ghé Thăm & Truy Cập Cây</span>
-                  </span>
-                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">TOP 10</span>
-                </div>
-                <div id="deep-top-visitors-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                  <div class="text-xs text-slate-500 text-center py-4">Đang tải dữ liệu...</div>
-                </div>
-              </div>
-
             </div>
           </div>
 
@@ -475,7 +386,7 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
-              <!-- Left: Top Books & Category Breakdown -->
+              <!-- Left: Top Books -->
               <div class="space-y-4">
                 
                 <!-- Top Books Table -->
@@ -491,7 +402,7 @@
                       <thead>
                         <tr>
                           <th>Tựa Sách & Tác Giả</th>
-                          <th>Thể Loại</th>
+                          <th>Đội Gieo Mầm</th>
                           <th class="text-center">Số Câu Cốt</th>
                           <th class="text-center">Lượt Tim</th>
                         </tr>
@@ -503,22 +414,9 @@
                   </div>
                 </div>
 
-                <!-- Top Categories -->
-                <div class="glass-panel p-4 space-y-3">
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs font-black text-white flex items-center gap-2">
-                      <span>🏷️</span><span>Chủ Đề / Thể Loại Xuất Hiện Nhiều Nhất</span>
-                    </span>
-                    <span class="text-[10px] font-bold text-slate-400">Tỷ trọng thể loại</span>
-                  </div>
-                  <div id="deep-categories-breakdown" class="space-y-2.5">
-                    <div class="text-xs text-slate-500 text-center py-4">Đang tải dữ liệu chủ đề...</div>
-                  </div>
-                </div>
-
               </div>
 
-              <!-- Right: Highlighted Quotes & Interactors -->
+              <!-- Right: Highlighted Quotes -->
               <div class="space-y-4">
                 
                 <!-- Highlighted Interactive Quotes -->
@@ -531,19 +429,6 @@
                   </div>
                   <div id="deep-top-quotes-cards" class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
                     <div class="text-xs text-slate-500 text-center py-4">Đang tải câu cốt tâm đắc...</div>
-                  </div>
-                </div>
-
-                <!-- Active Interactors -->
-                <div class="glass-panel p-4 space-y-3">
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs font-black text-white flex items-center gap-2">
-                      <span>❤️</span><span>Thành Viên Tích Cực Tương Tác & Lan Tỏa Tri Thức</span>
-                    </span>
-                    <span class="text-[10px] font-bold text-slate-400">Số lượt gửi tim</span>
-                  </div>
-                  <div id="deep-top-interactors-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                    <div class="text-xs text-slate-500 text-center py-4">Đang tải danh sách tương tác...</div>
                   </div>
                 </div>
 
@@ -776,7 +661,7 @@
                 <h3 class="text-sm font-black text-white flex items-center gap-2">
                   <span>📚</span><span>TRUNG TÂM HẬU KIỂM SÁCH & TRÍCH DẪN</span>
                 </h3>
-                <p class="text-xs text-slate-400 font-bold">Toàn bộ sách được auto-approve lên cây ngay lập tức (+15 EXP) và kiểm duyệt hậu kiểm tại đây</p>
+                <p class="text-xs text-slate-400 font-bold">Toàn bộ sách được auto-approve lên cây ngay lập tức (+5 EXP) và kiểm duyệt hậu kiểm tại đây</p>
               </div>
             </div>
 
@@ -844,12 +729,12 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
               <select id="ledger-filter-type" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
                 <option value="">Tất cả loại giao dịch</option>
-                <option value="BOOK_CONTRIBUTION">Gieo Sách (+15 EXP)</option>
+                <option value="BOOK_CONTRIBUTION">Gieo Sách (+5 EXP)</option>
                 <option value="DAILY_DEW">Tưới Sương (+2 EXP)</option>
                 <option value="QUOTE_LIKE">Thích Trích Dẫn (+2 EXP)</option>
                 <option value="FRUIT_HARVEST">Hái Quả Tri Thức (+5 EXP)</option>
                 <option value="ADMIN_BONUS">Thưởng Quản Trị Viên (Bonus)</option>
-                <option value="MODERATION_PENALTY">Phạt Vi Phạm (-15 EXP)</option>
+                <option value="MODERATION_PENALTY">Phạt Vi Phạm (-5 EXP)</option>
               </select>
 
               <select id="ledger-filter-team" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
@@ -1362,7 +1247,7 @@
 
         <div id="mod-penalty-group" class="flex items-center gap-2 pt-1">
           <input type="checkbox" id="mod-deduct-exp" class="rounded bg-slate-900 border-slate-700 text-rose-500">
-          <label for="mod-deduct-exp" class="text-xs text-rose-400 font-bold">Trừ phạt -15 EXP (Nếu là hành vi cố ý spam hoặc nội dung không hợp lệ)</label>
+          <label for="mod-deduct-exp" class="text-xs text-rose-400 font-bold">Trừ phạt -5 EXP (Nếu là hành vi cố ý spam hoặc nội dung không hợp lệ)</label>
         </div>
       </div>
 

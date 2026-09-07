@@ -82,11 +82,11 @@ async function runAllTests() {
 
     assert(contribution.book.visibility_status === 'visible', 'Auto-Approve: visibility_status is "visible" immediately');
     assert(contribution.book.moderation_status === 'pending_review', 'Auto-Approve: moderation_status is "pending_review" for post-moderation');
-    assert(contribution.growth.expEarned === 15, 'Ledger: Exactly +15 EXP earned per book contribution');
+    assert(contribution.growth.expEarned === 5, 'Ledger: Exactly +5 EXP earned per book contribution');
 
     const updatedGrowth = await db.query('SELECT total_exp FROM community_growth WHERE id = 1');
     const endExp = parseInt(updatedGrowth.rows[0].total_exp, 10);
-    assert(endExp === startExp + 15, `ACID Transaction: Database total_exp increased by 15 (${startExp} -> ${endExp})`);
+    assert(endExp === startExp + 5, `ACID Transaction: Database total_exp increased by 5 (${startExp} -> ${endExp})`);
 
     // Verify EXP Ledger Entry
     const ledgerRes = await db.query('SELECT * FROM exp_ledger WHERE reference_id = $1', [contribution.book.id]);
