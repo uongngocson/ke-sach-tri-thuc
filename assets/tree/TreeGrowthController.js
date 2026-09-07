@@ -7,13 +7,14 @@
  * - Level 2-5: Progressively grows into compact, majestic oak trees scaled to 0.8.
  * - Manages all 8 teams concurrently across the grand landscape.
  */
-import { MockDataStore } from '../data/MockDataStore.js?v=20260907_v1';
+import { MockDataStore } from '../data/MockDataStore.js?v=20260907_v3';
 
 export class TreeGrowthController {
   constructor(treeManager) {
     this.treeManager = treeManager;
-    this.currentLevel = 0;
-    this.currentEXP = 0;
+    this.teamStates = new Map(); // teamId -> { level, isSprouted, totalEXP, treeSeeds }
+    this.isInitialized = false;
+    this.activeToastTimeout = null;
 
     // Presets for Sprouted Stages (Levels 1 to 5) - Compact Botanical Proportions for 8-Team Panorama
     this.STAGE_PRESETS = {
@@ -37,7 +38,6 @@ export class TreeGrowthController {
       },
       3: {
         // Stage 3: Cây Tơ Vươn Cành (Young Growing Tree: 400 - 1000 EXP)
-        // Tall dignified trunk with elegant canopy
         name: 'Cây Tơ Vươn Cành',
         maturity: 0.78,
         trunk: { length: 13.0, radius: 1.05, flare: 1.35 },
@@ -86,7 +86,7 @@ export class TreeGrowthController {
       });
     }
 
-    // Initial load: sync all 8 teams into the panorama
+    // Initial load: sync all 8 teams into the panorama without triggering any level-up toasts
     try {
       if (store && typeof store.getTeams === 'function') {
         const teams = await store.getTeams(true);
@@ -96,17 +96,9 @@ export class TreeGrowthController {
       }
     } catch (e) {
       console.warn('TreeGrowthController: Failed initial teams load:', e);
-    }
-
-    try {
-      if (store && typeof store.getCommunityGrowth === 'function') {
-        const initialGrowth = await store.getCommunityGrowth();
-        if (initialGrowth) {
-          this.applyGrowth(initialGrowth, true);
-        }
-      }
-    } catch (e) {
-      console.warn('TreeGrowthController: Failed initial community growth:', e);
+    } finally {
+      // Mark initialized only after the initial team states are firmly recorded
+      this.isInitialized = true;
     }
   }
 
@@ -118,13 +110,35 @@ export class TreeGrowthController {
   syncAllTeams(teams) {
     if (!this.treeManager || !teams || !teams.length) return;
     teams.forEach(team => {
+      const teamId = team.id;
+      const prev = this.teamStates.get(teamId);
+      const isSprouted = team.is_sprouted || team.level >= 1 || (team.tree_seeds >= 50) || ((team.total_exp || 0) >= 50);
+      const newLevel = isSprouted ? Math.max(1, Math.min(5, team.level || 1)) : 0;
+
       this.syncSingleTeam(team);
+
+      // Trigger level-up celebration ONLY if initialized, team previously known, and level strictly increased!
+      if (this.isInitialized && prev && newLevel > prev.level && newLevel >= 1) {
+        this.triggerTeamLevelUp(team, prev.level, newLevel);
+      }
+
+      this.teamStates.set(teamId, {
+        level: newLevel,
+        isSprouted,
+        totalEXP: team.total_exp || 0,
+        treeSeeds: team.tree_seeds || 0,
+        name: team.display_name || team.name || `Đội ${teamId}`
+      });
     });
+
+    if (!this.isInitialized) {
+      this.isInitialized = true;
+    }
   }
 
   syncSingleTeam(team) {
     if (!this.treeManager || !team || !team.id) return;
-    const isSprouted = team.is_sprouted || team.level >= 1;
+    const isSprouted = team.is_sprouted || team.level >= 1 || (team.tree_seeds >= 50) || ((team.total_exp || 0) >= 50);
     const teamId = team.id;
     const level = isSprouted ? Math.max(1, Math.min(5, team.level || 1)) : 0;
     const stagePreset = isSprouted ? this.getStagePreset(level) : null;
@@ -144,78 +158,86 @@ export class TreeGrowthController {
   handleGrowthUpdated(growth) {
     if (!growth) return;
 
-    // If update is targeted at a specific team
+    // 1. UI Navigation / Inspection Sync - Never trigger level up notifications
+    if (growth._isTeamSync) {
+      if (growth.teamId && typeof this.treeManager.setActiveTeam === 'function') {
+        this.treeManager.setActiveTeam(growth.teamId);
+      }
+      return;
+    }
+
+    // 2. Targeted Team Growth Update
     if (growth.teamId) {
       const teamId = growth.teamId;
-      const isSprouted = growth.isSprouted || growth.level >= 1;
-      const level = isSprouted ? Math.max(1, Math.min(5, growth.level || 1)) : 0;
-      const stagePreset = isSprouted ? this.getStagePreset(level) : null;
+      const prev = this.teamStates.get(teamId);
+      const isSprouted = growth.isSprouted || growth.level >= 1 || (growth.totalSeeds >= 50) || ((growth.totalEXP || 0) >= 50);
+      const newLevel = isSprouted ? Math.max(1, Math.min(5, growth.level || 1)) : 0;
+      const stagePreset = isSprouted ? this.getStagePreset(newLevel) : null;
 
       if (typeof this.treeManager.updateTeamTreeState === 'function') {
         this.treeManager.updateTeamTreeState(teamId, {
-          level,
+          level: newLevel,
           isSprouted,
           totalEXP: growth.totalEXP || 0,
           stagePreset
         });
       }
-    } else {
-      // Global growth: sync all teams
-      const store = this.getStore();
-      if (store && typeof store.getTeams === 'function') {
-        store.getTeams(true).then(teams => {
-          if (teams && teams.length) this.syncAllTeams(teams);
-        }).catch(() => {});
+
+      // Check strictly if this specific team leveled up
+      if (this.isInitialized && prev && newLevel > prev.level && newLevel >= 1) {
+        this.triggerTeamLevelUp(growth, prev.level, newLevel);
       }
-    }
 
-    // Apply active growth to primary focus
-    this.applyGrowth(growth);
-  }
-
-  applyGrowth(growth, isInitial = false) {
-    if (!this.treeManager || !this.treeManager.treeParams) return;
-
-    const { level, isSprouted, progressPercent, totalEXP } = growth;
-    const hasLevelChanged = this.currentLevel !== level;
-    this.currentLevel = level || 0;
-    this.currentEXP = totalEXP || 0;
-
-    if (growth.teamId) {
-      if (typeof this.treeManager.setActiveTeam === 'function') {
-        this.treeManager.setActiveTeam(growth.teamId);
-      }
-      this.syncSingleTeam({
-        id: growth.teamId,
-        level: growth.level,
-        is_sprouted: isSprouted,
-        total_exp: totalEXP
+      this.teamStates.set(teamId, {
+        level: newLevel,
+        isSprouted,
+        totalEXP: growth.totalEXP || 0
       });
+      return;
     }
 
-    // Level-up toast notification
-    if (!isInitial && hasLevelChanged && level >= 1 && growth.levelName) {
-      this.triggerLevelUpEffects(growth);
+    // 3. Global Community Growth (from quote likes, visits, harvests, etc.)
+    // Sync all 8 teams consistently without triggering bogus community level toasts
+    const store = this.getStore();
+    if (store && typeof store.getTeams === 'function') {
+      store.getTeams(true).then(teams => {
+        if (teams && teams.length) this.syncAllTeams(teams);
+      }).catch(() => {});
     }
   }
 
-  triggerLevelUpEffects(growth) {
+  triggerTeamLevelUp(teamData, oldLevel, newLevel) {
+    // Deduplicate: Cleanly remove any existing level-up toast
+    const existing = document.querySelectorAll('.tree-level-up-toast');
+    existing.forEach(el => el.remove());
+    if (this.activeToastTimeout) {
+      clearTimeout(this.activeToastTimeout);
+      this.activeToastTimeout = null;
+    }
+
+    const teamId = teamData.id || teamData.teamId || 1;
+    const teamName = teamData.display_name || teamData.name || `Đội ${teamId}`;
+    const preset = this.getStagePreset(newLevel);
+    const stageName = preset ? preset.name : (teamData.levelName || 'Cây Tri Thức');
+    const exp = (teamData.total_exp || teamData.totalEXP || 0).toLocaleString();
+    const icon = newLevel >= 5 ? '👑' : (newLevel >= 4 ? '🌲' : (newLevel >= 3 ? '🌳' : (newLevel >= 2 ? '🌿' : '🌱')));
+
     const notification = document.createElement('div');
     notification.className = 'tree-level-up-toast';
     notification.innerHTML = `
       <div class="level-up-inner">
-        <div class="level-up-icon">${growth.levelIcon || '🌱'}</div>
+        <div class="level-up-icon">${icon}</div>
         <div class="level-up-text">
-          <div class="level-up-title">${growth.level === 1 ? 'CÂY ĐÃ CHÍNH THỨC NẢY MẦM!' : 'CÂY TRI THỨC VƯƠN MÌNH!'}</div>
-          <div class="level-up-subtitle">Đạt ${growth.levelName} (${(growth.totalEXP || 0).toLocaleString()} EXP)</div>
+          <div class="level-up-title">${newLevel === 1 ? `🌱 CÂY ${teamName.toUpperCase()} ĐÃ CHÍNH THỨC NẢY MẦM!` : `🌳 CÂY ${teamName.toUpperCase()} ĐÃ LÊN CẤP ${newLevel}!`}</div>
+          <div class="level-up-subtitle">Đạt ${stageName} (${exp} EXP)</div>
         </div>
       </div>
     `;
     document.body.appendChild(notification);
 
-    setTimeout(() => {
+    this.activeToastTimeout = setTimeout(() => {
       notification.classList.add('fade-out');
       setTimeout(() => notification.remove(), 600);
-    }, 3800);
+    }, 4000);
   }
 }

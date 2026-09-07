@@ -11,7 +11,7 @@ import { Stars } from './Stars.js';
 import { AtmosphericPost } from './AtmosphericPost.js';
 import { calculateCelestialState } from '../lib/astronomy.js';
 import { detectQualitySettings } from '../lib/quality.js';
-import { TreeManager } from '../../tree/TreeManager.js?v=20260907_v1';
+import { TreeManager } from '../../tree/TreeManager.js?v=20260907_v3';
 import { Ground } from '../../ground/Ground.js?v=20260907_v1';
 
 export class SkyCanvas {

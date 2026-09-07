@@ -1,4 +1,4 @@
-import { MockDataStore } from '../data/MockDataStore.js?v=20260907_v1';
+import { MockDataStore } from '../data/MockDataStore.js?v=20260907_v3';
 import { APP_CONFIG } from '../config/appEnv.js?v=20260907_v1';
 
 export class TesterPanel {

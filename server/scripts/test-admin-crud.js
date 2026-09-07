@@ -293,12 +293,21 @@ async function runAdminCrudTests() {
 
     // Thử xóa Superadmin duy nhất còn lại -> Phải bị chặn
     let lastAdminBlocked = false;
+    const activeOtherAdmins = (await db.query("SELECT id FROM admin_users WHERE role = 'admin' AND id != $1 AND is_active = true", [superAdmin.id])).rows;
+    if (activeOtherAdmins.length > 0) {
+      await db.query("UPDATE admin_users SET is_active = false WHERE role = 'admin' AND id != $1", [superAdmin.id]);
+    }
     try {
       // Giả sử actor là một admin khác nhưng cố xóa admin duy nhất
       await AdminUserService.deleteAdminUser(superAdmin.id, { id: '00000000-0000-0000-0000-000000000000', role: 'admin' });
     } catch (err) {
       if (err.statusCode === 400 && err.code === 'LAST_ADMIN_CANNOT_BE_DELETED') {
         lastAdminBlocked = true;
+      }
+    } finally {
+      if (activeOtherAdmins.length > 0) {
+        const ids = activeOtherAdmins.map(r => `'${r.id}'`).join(',');
+        await db.query(`UPDATE admin_users SET is_active = true WHERE id IN (${ids})`);
       }
     }
     assert(lastAdminBlocked, 'Bảo vệ thành công: Chặn xóa Superadmin duy nhất còn lại trong hệ thống (HTTP 400 LAST_ADMIN_CANNOT_BE_DELETED)');
