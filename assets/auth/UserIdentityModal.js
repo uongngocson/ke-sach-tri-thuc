@@ -9,12 +9,22 @@
  * - Account switcher trigger
  */
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function getApiBase() {
   if (typeof window === 'undefined') return 'http://127.0.0.1:5000/api/v1';
   const hostname = window.location.hostname || 'localhost';
   const protocol = window.location.protocol || 'http:';
   const port = window.location.port;
-  if (!port || port === '80' || port === '443') {
+  if (!port || port === '80' || port === '443' || port === '5000') {
     return `${protocol}//${window.location.host}/api/v1`;
   }
   return `${protocol}//${hostname}:5000/api/v1`;
@@ -66,8 +76,10 @@ export class UserIdentityModal {
 
     overlay.innerHTML = `
       <div class="ui-identity-card" id="user-identity-card">
-        <div class="ui-identity-glow-1"></div>
-        <div class="ui-identity-glow-2"></div>
+        <div class="ui-identity-glow-wrapper">
+          <div class="ui-identity-glow-1"></div>
+          <div class="ui-identity-glow-2"></div>
+        </div>
 
         <!-- Header -->
         <div class="ui-identity-header">
@@ -173,7 +185,7 @@ export class UserIdentityModal {
         position: relative;
         width: 100%;
         max-width: 480px;
-        background: rgba(15, 23, 42, 0.92);
+        background: rgba(15, 23, 42, 0.95);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 24px;
         padding: 24px;
@@ -181,10 +193,18 @@ export class UserIdentityModal {
         color: #f8fafc;
         transform: scale(0.92) translateY(10px);
         transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        overflow: hidden;
+        overflow: visible;
       }
       .ui-identity-overlay.active .ui-identity-card {
         transform: scale(1) translateY(0);
+      }
+      .ui-identity-glow-wrapper {
+        position: absolute;
+        inset: 0;
+        border-radius: 24px;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 0;
       }
       .ui-identity-glow-1 {
         position: absolute;
@@ -205,6 +225,8 @@ export class UserIdentityModal {
         pointer-events: none;
       }
       .ui-identity-header {
+        position: relative;
+        z-index: 1;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -243,6 +265,8 @@ export class UserIdentityModal {
         transform: rotate(90deg);
       }
       .ui-identity-title-block {
+        position: relative;
+        z-index: 1;
         text-align: center;
         margin-bottom: 20px;
       }
@@ -261,6 +285,7 @@ export class UserIdentityModal {
       }
       .ui-identity-form-group {
         position: relative;
+        z-index: 20;
         margin-bottom: 16px;
       }
       .ui-identity-label {
@@ -311,13 +336,21 @@ export class UserIdentityModal {
         left: 0;
         right: 0;
         background: rgba(15, 23, 42, 0.98);
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        border: 1.5px solid rgba(59, 130, 246, 0.4);
         border-radius: 16px;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
-        max-height: 240px;
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 84, 166, 0.25);
+        max-height: 260px;
         overflow-y: auto;
-        z-index: 100;
+        z-index: 9999;
         padding: 6px;
+        backdrop-filter: blur(16px);
+      }
+      .ui-suggestion-empty {
+        padding: 14px 12px;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 12.5px;
+        font-weight: 500;
       }
       .ui-suggestion-item {
         display: flex;
@@ -537,13 +570,20 @@ export class UserIdentityModal {
       input.focus();
     });
 
+    // Close suggestions on outside click
+    document.addEventListener('click', (e) => {
+      if (!input.contains(e.target) && !suggestionsBox.contains(e.target)) {
+        suggestionsBox.style.display = 'none';
+      }
+    });
+
     // Real-time Autocomplete Debounce
     input.addEventListener('input', (e) => {
       const val = e.target.value.trim();
       clearBtn.style.display = val.length > 0 ? 'block' : 'none';
       feedback.style.display = 'none';
 
-      if (val.length < 2) {
+      if (val.length < 1) {
         suggestionsBox.style.display = 'none';
         previewBox.style.display = 'none';
         submitBtn.disabled = true;
@@ -554,26 +594,35 @@ export class UserIdentityModal {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = setTimeout(async () => {
         try {
-          const res = await fetch(`${getApiBase()}/users/suggest?q=${encodeURIComponent(val)}&limit=6`);
+          const res = await fetch(`${getApiBase()}/users/suggest?q=${encodeURIComponent(val)}&limit=8`);
           const json = await res.json();
 
           if (json.success && json.data && json.data.length > 0) {
             this.renderSuggestions(json.data, suggestionsBox, (user) => {
               selectedUser = user;
               const displayName = user.nickname || user.full_name;
-              input.value = `${displayName} (Đội ${user.team_id})`;
+              input.value = `${displayName} (${user.team_display_name || 'Đội ' + user.team_id})`;
               suggestionsBox.style.display = 'none';
               this.showPreview(user, previewBox);
               submitBtn.disabled = false;
             });
             suggestionsBox.style.display = 'block';
           } else {
-            suggestionsBox.style.display = 'none';
+            this.renderSuggestions([], suggestionsBox, () => {}, val);
+            suggestionsBox.style.display = 'block';
           }
         } catch (err) {
           console.warn('Error fetching suggestions:', err);
         }
-      }, 150);
+      }, 120);
+    });
+
+    // Show suggestions again on focus if text exists
+    input.addEventListener('focus', () => {
+      const val = input.value.trim();
+      if (val.length >= 1 && !selectedUser) {
+        input.dispatchEvent(new Event('input'));
+      }
     });
 
     // Enter key submit
@@ -627,21 +676,31 @@ export class UserIdentityModal {
     });
   }
 
-  renderSuggestions(users, container, onSelect) {
+  renderSuggestions(users, container, onSelect, searchKeyword = '') {
+    if (!users || users.length === 0) {
+      container.innerHTML = `
+        <div class="ui-suggestion-empty">
+          🔍 Không tìm thấy Nick Danh phù hợp ${searchKeyword ? `cho "<strong>${escapeHtml(searchKeyword)}</strong>"` : ''}
+        </div>
+      `;
+      return;
+    }
+
     container.innerHTML = users.map(u => {
       const displayName = u.nickname || u.full_name;
       const teamLabel = u.team_display_name || (u.team_id ? 'Đội ' + u.team_id : 'Thành viên');
+      const branchMeta = u.job_title || u.branch || teamLabel;
       return `
-      <div class="ui-suggestion-item" data-id="${u.id}">
+      <div class="ui-suggestion-item" data-id="${escapeHtml(u.id)}">
         <div class="ui-suggestion-left">
-          <div class="ui-suggestion-avatar">${displayName.slice(0, 1)}</div>
+          <div class="ui-suggestion-avatar">${escapeHtml(displayName.slice(0, 1))}</div>
           <div class="ui-suggestion-details">
-            <div class="ui-suggestion-name">${displayName}</div>
-            <div class="ui-suggestion-meta">${escapeHtml(u.branch || teamLabel)}</div>
+            <div class="ui-suggestion-name">${escapeHtml(displayName)}</div>
+            <div class="ui-suggestion-meta">${escapeHtml(branchMeta)}</div>
           </div>
         </div>
-        <div class="ui-suggestion-team-tag" style="border-left: 2px solid ${u.team_color || '#3b82f6'};">
-          ${teamLabel}
+        <div class="ui-suggestion-team-tag" style="border-left: 2px solid ${escapeHtml(u.team_color || '#3b82f6')};">
+          ${escapeHtml(teamLabel)}
         </div>
       </div>
     `;
@@ -672,17 +731,29 @@ export class UserIdentityModal {
 
   async directLookup(query, feedback, previewBox, submitBtn, onSuccess) {
     try {
+      // 1. Try exact/primary lookup
       const res = await fetch(`${getApiBase()}/users/lookup?q=${encodeURIComponent(query)}`);
       const json = await res.json();
 
-      if (json.success && json.data) {
-        const displayName = json.data.nickname || json.data.full_name;
+      let matchedUser = (json.success && json.data) ? json.data : null;
+
+      // 2. If no exact match, fallback to suggest (first result)
+      if (!matchedUser) {
+        const sRes = await fetch(`${getApiBase()}/users/suggest?q=${encodeURIComponent(query)}&limit=1`);
+        const sJson = await sRes.json();
+        if (sJson.success && sJson.data && sJson.data.length > 0) {
+          matchedUser = sJson.data[0];
+        }
+      }
+
+      if (matchedUser) {
+        const displayName = matchedUser.nickname || matchedUser.full_name;
         feedback.className = 'ui-identity-feedback success';
-        feedback.textContent = `✓ Đã tìm thấy: ${displayName} (Đội ${json.data.team_id})`;
+        feedback.textContent = `✓ Đã tìm thấy: ${displayName} (${matchedUser.team_display_name || 'Đội ' + matchedUser.team_id})`;
         feedback.style.display = 'block';
-        this.showPreview(json.data, previewBox);
+        this.showPreview(matchedUser, previewBox);
         submitBtn.disabled = false;
-        onSuccess(json.data);
+        onSuccess(matchedUser);
       } else {
         feedback.className = 'ui-identity-feedback error';
         feedback.textContent = '❌ Không tìm thấy nhân sự trong danh sách. Vui lòng kiểm tra lại nick danh.';
@@ -691,6 +762,7 @@ export class UserIdentityModal {
         submitBtn.disabled = true;
       }
     } catch (err) {
+      console.warn('Error in directLookup:', err);
       feedback.className = 'ui-identity-feedback error';
       feedback.textContent = '❌ Lỗi kết nối máy chủ. Vui lòng thử lại.';
       feedback.style.display = 'block';
