@@ -96,7 +96,7 @@ async function migrateSettings() {
   console.log('✅ System Settings migration & seeding completed successfully!');
 }
 
-if (process.argv[1].endsWith('migrate_settings.js')) {
+if (process.argv[1] && process.argv[1].endsWith('migrate_settings.js')) {
   migrateSettings().then(() => process.exit(0)).catch(err => {
     console.error('❌ Migration failed:', err);
     process.exit(1);

@@ -100,6 +100,10 @@
             <span class="text-base">⚙️</span>
             <span>Điều Phối & Audit Logs</span>
           </div>
+          <div class="nav-item" data-tab="admin-accounts">
+            <span class="text-base">🛡️</span>
+            <span>Tài Khoản Quản Trị</span>
+          </div>
         </nav>
       </div>
 
@@ -1208,6 +1212,125 @@
 
         </div>
 
+        <!-- ============================================== -->
+        <!-- TAB 9: ADMIN ACCOUNTS MANAGEMENT (CRUD)       -->
+        <!-- ============================================== -->
+        <div id="tab-pane-admin-accounts" class="tab-content space-y-6">
+          
+          <!-- Top KPI Cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #38bdf8, #0284c7);">
+              <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                <span>Tổng Quản Trị Viên</span>
+                <span class="text-base">🛡️</span>
+              </div>
+              <div class="text-2xl font-black text-white" id="kpi-admin-total">0</div>
+              <div class="text-[10.5px] text-sky-400 font-extrabold flex items-center gap-1 mt-1">
+                <span id="kpi-admin-active">0 đang hoạt động</span>
+              </div>
+            </div>
+
+            <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #a855f7, #9333ea);">
+              <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                <span>Quản Trị Cấp Cao (Admin)</span>
+                <span class="text-base">👑</span>
+              </div>
+              <div class="text-2xl font-black text-purple-400" id="kpi-admin-super">0</div>
+              <div class="text-[10.5px] text-slate-400 font-semibold mt-1">
+                Toàn quyền hệ thống
+              </div>
+            </div>
+
+            <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #06b6d4, #0891b2);">
+              <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                <span>Điều Phối Viên (Moderator)</span>
+                <span class="text-base">⚖️</span>
+              </div>
+              <div class="text-2xl font-black text-cyan-400" id="kpi-admin-mods">0</div>
+              <div class="text-[10.5px] text-slate-400 font-semibold mt-1">
+                Hậu kiểm & giám sát
+              </div>
+            </div>
+
+            <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #10b981, #059669);">
+              <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                <span>Chế Độ Phân Quyền</span>
+                <span class="text-base">🔒</span>
+              </div>
+              <div class="text-2xl font-black text-emerald-400">RBAC</div>
+              <div class="text-[10.5px] text-emerald-400 font-extrabold mt-1">
+                Bảo mật đa tầng
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Table & Filter Container -->
+          <div class="glass-panel p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="text-sm font-black text-white flex items-center gap-2">
+                  <span>🛡️</span><span>DANH SÁCH TÀI KHOẢN QUẢN TRỊ & ĐIỀU PHỐI VIÊN</span>
+                </h3>
+                <p class="text-xs text-slate-400 font-bold">Thêm mới, phân quyền phân cấp, chỉnh sửa thông tin hoặc khóa tài khoản quản trị Command Center.</p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button id="btn-refresh-admins" class="btn btn-ghost text-xs py-2 px-3">
+                  <span>🔄</span><span>Làm Mới</span>
+                </button>
+                <button id="btn-open-create-admin" class="btn btn-primary text-xs py-2 px-3.5 font-black shadow-lg">
+                  <span>➕</span><span>Thêm Quản Trị Viên Mới</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Filters Bar -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div class="relative">
+                <input type="text" id="admin-search-input" placeholder="Tìm theo tên đăng nhập hoặc họ tên..."
+                  class="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">🔍</span>
+              </div>
+
+              <select id="admin-filter-role" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
+                <option value="">Tất cả vai trò phân quyền</option>
+                <option value="admin">👑 Quản Trị Cấp Cao (Admin)</option>
+                <option value="moderator">⚖️ Điều Phối Viên (Moderator)</option>
+                <option value="reader">👀 Người Quan Sát (Reader)</option>
+              </select>
+
+              <select id="admin-filter-status" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active">🟢 Đang hoạt động</option>
+                <option value="inactive">🔴 Đang bị khóa</option>
+              </select>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Quản Trị Viên</th>
+                    <th>Tên Đăng Nhập</th>
+                    <th>Vai Trò (Role)</th>
+                    <th>Trạng Thái</th>
+                    <th>Ngày Khởi Tạo</th>
+                    <th class="text-right">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-accounts-table-body">
+                  <tr>
+                    <td colspan="6" class="p-8 text-center text-slate-500 font-bold">
+                      <span class="inline-block animate-spin mr-2">⏳</span> Đang tải danh sách quản trị viên...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </main>
@@ -1349,6 +1472,139 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: CREATE / EDIT ADMIN ACCOUNT -->
+  <div id="modal-admin-account" class="modal-backdrop">
+    <div class="modal-card max-w-lg space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">🛡️</span>
+          <h4 id="admin-modal-title" class="text-sm font-black text-white">Thêm Quản Trị Viên Mới</h4>
+        </div>
+        <button id="admin-modal-close" class="text-slate-400 hover:text-white text-base font-bold">✕</button>
+      </div>
+
+      <form id="form-admin-account" class="space-y-4 text-xs">
+        <input type="hidden" id="admin-form-id">
+
+        <!-- Username -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">
+            Tên Đăng Nhập (Username) <span class="text-rose-400">*</span>
+          </label>
+          <input type="text" id="admin-form-username" placeholder="Ví dụ: sonun, admin_fpt, mod_vanhoc..." required
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none placeholder-slate-500">
+          <p id="admin-username-hint" class="text-[11px] text-slate-400 mt-1">Từ 3-50 ký tự, chỉ gồm chữ cái, số, gạch dưới hoặc chấm.</p>
+        </div>
+
+        <!-- Full Name -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">
+            Họ và Tên Quản Trị Viên <span class="text-rose-400">*</span>
+          </label>
+          <input type="text" id="admin-form-fullname" placeholder="Ví dụ: Uông Ngọc Sơn, Nguyễn Văn A..." required
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none placeholder-slate-500">
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">
+            <span id="admin-pwd-label">Mật Khẩu Đăng Nhập</span> <span id="admin-pwd-required" class="text-rose-400">*</span>
+          </label>
+          <div class="relative">
+            <input type="password" id="admin-form-password" placeholder="Tối thiểu 6 ký tự..." autocomplete="new-password"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none placeholder-slate-500 pr-10">
+            <button type="button" id="btn-toggle-admin-pwd" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs font-bold" title="Hiện/Ẩn mật khẩu">
+              👁️
+            </button>
+          </div>
+          <p id="admin-pwd-hint" class="text-[11px] text-slate-400 mt-1">Mật khẩu tối thiểu 6 ký tự được mã hóa an toàn bằng thuật toán Bcrypt.</p>
+        </div>
+
+        <!-- Role -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">
+            Vai Trò & Phân Quyền Hạn (Role) <span class="text-rose-400">*</span>
+          </label>
+          <select id="admin-form-role" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none">
+            <option value="moderator">⚖️ Điều Phối Viên (Moderator) — Kiểm duyệt sách, xem thống kê & báo cáo</option>
+            <option value="admin">👑 Quản Trị Cấp Cao (Superadmin) — Toàn quyền hệ thống & quản lý tài khoản</option>
+            <option value="reader">👀 Người Quan Sát (Reader) — Chỉ xem số liệu thống kê tổng quan</option>
+          </select>
+        </div>
+
+        <!-- Is Active Toggle -->
+        <div class="flex items-center gap-3 pt-1">
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="admin-form-active" class="sr-only peer" checked>
+            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+          </label>
+          <span class="text-xs font-bold text-slate-200">Kích hoạt tài khoản ngay (Cho phép đăng nhập)</span>
+        </div>
+
+        <!-- Error message box -->
+        <div id="admin-form-error" class="hidden text-xs text-rose-400 font-bold p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2">
+          <span>❌</span>
+          <span id="admin-form-error-msg"></span>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" id="admin-modal-cancel" class="btn btn-ghost text-xs py-2 px-3.5">
+            Hủy Bỏ
+          </button>
+          <button type="submit" id="btn-submit-admin-form" class="btn btn-primary text-xs py-2 px-4 font-black shadow-md flex items-center gap-1.5">
+            <span id="admin-form-spinner" class="hidden animate-spin">⏳</span>
+            <span>💾</span>
+            <span id="admin-form-btn-text">Lưu Quản Trị Viên</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 5: CONFIRM DELETE ADMIN ACCOUNT -->
+  <div id="modal-admin-delete" class="modal-backdrop">
+    <div class="modal-card max-w-md space-y-4 border-rose-500/40 shadow-2xl shadow-rose-950/60">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2 text-rose-400 font-black text-sm">
+          <span class="text-lg">🗑️</span>
+          <span>XÁC NHẬN XÓA TÀI KHOẢN</span>
+        </div>
+        <button id="admin-delete-modal-close" class="text-slate-400 hover:text-white text-base font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div class="p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-200 leading-relaxed space-y-1.5">
+          <p class="font-bold text-white">Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản quản trị sau?</p>
+          <div class="p-2.5 rounded-lg bg-slate-900/80 border border-rose-500/20 text-slate-300 font-semibold space-y-1">
+            <p>Họ tên: <strong id="delete-admin-fullname" class="text-white">...</strong></p>
+            <p>Username: <strong id="delete-admin-username" class="text-sky-300">...</strong></p>
+            <p>Vai trò: <span id="delete-admin-role" class="text-amber-300">...</span></p>
+          </div>
+          <p class="text-[11px] text-slate-400 pt-1">
+            * Các nhật ký kiểm toán và dữ liệu hậu kiểm trước đây của tài khoản này sẽ được bảo lưu an toàn (tự động gán NULL).
+          </p>
+        </div>
+
+        <div id="delete-admin-error" class="hidden text-xs text-rose-400 font-bold p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2">
+          <span>❌</span>
+          <span id="delete-admin-error-msg"></span>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <button type="button" id="admin-delete-cancel" class="btn btn-ghost text-xs py-2 px-3.5">
+            Hủy Bỏ
+          </button>
+          <button type="button" id="btn-confirm-delete-admin" class="btn btn-danger text-xs py-2 px-4 font-black shadow-md flex items-center gap-1.5">
+            <span id="admin-delete-spinner" class="hidden animate-spin">⏳</span>
+            <span>🗑️</span>
+            <span>Xác Nhận Xóa</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>

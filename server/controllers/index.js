@@ -340,3 +340,4 @@ export * from './user.controller.js';
 export * from './round.controller.js';
 export * from './analytics.controller.js';
 export * from './settings.controller.js';
+export * from './admin-user.controller.js';

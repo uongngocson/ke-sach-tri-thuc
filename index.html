@@ -4205,7 +4205,7 @@
                   </div>
 
                   <!-- Mobile / Tablet Right Scroll Hint Floating Indicator -->
-                  <button id="fpt-ground-scroll-hint" class="fpt-ground-scroll-hint max-[1199px]:flex hidden items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 backdrop-blur-md border border-sky-400/40 text-sky-200 text-xs font-semibold shadow-lg shadow-black/60 select-none cursor-pointer hover:bg-slate-800 transition-all duration-300 active:scale-95 z-[60]" title="Trượt để xem tiếp các đội khác">
+                  <button id="fpt-ground-scroll-hint" class="fpt-ground-scroll-hint items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 backdrop-blur-md border border-sky-400/40 text-sky-200 text-xs font-semibold shadow-lg shadow-black/60 select-none cursor-pointer hover:bg-slate-800 transition-all duration-300 active:scale-95 z-[60]" title="Trượt để xem tiếp các đội khác">
                     <span class="text-[11px] font-medium tracking-wide">Trượt xem tiếp</span>
                     <span class="inline-block animate-pulse text-amber-400 font-bold text-sm">👉</span>
                     <span class="text-sky-300 font-bold text-xs scroll-chevron-bounce">➔</span>
@@ -5504,8 +5504,14 @@
       right: 12px;
       bottom: 36px;
       z-index: 60 !important;
+      display: none;
       pointer-events: auto;
       transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    @media (max-width: 1199px) {
+      .fpt-ground-scroll-hint {
+        display: inline-flex !important;
+      }
     }
     .fpt-ground-scroll-hint.is-hidden {
       opacity: 0 !important;
@@ -6492,7 +6498,7 @@
     import { NourishmentFX } from './assets/effects/NourishmentFX.js?v=20260907_v1';
     import { DailyDewService } from './assets/services/DailyDewService.js?v=20260907_v1';
     import { QuoteCardExporter } from './assets/services/QuoteCardExporter.js?v=20260907_v1';
-    import { UserIdentityModal } from './assets/auth/UserIdentityModal.js?v=20260907_v1';
+    import { UserIdentityModal } from './assets/auth/UserIdentityModal.js?v=20260907_v2';
     import { TeamArenaModal } from './assets/teams/TeamArenaModal.js?v=20260907_v1';
     import { QuoteTreasuryModal } from './assets/quotes/QuoteTreasuryModal.js?v=20260907_v1';
 
@@ -7239,24 +7245,30 @@
         return offsets;
       }
 
-      let renderGroundSeedsToken = 0;
+      let isRenderingGroundSeeds = false;
+      let pendingGroundSeedsRender = false;
       async function renderGroundSeeds() {
         const groundContainer = document.querySelector('.fpt-ground-inner');
         if (!groundContainer) return;
 
-        const currentToken = ++renderGroundSeedsToken;
-
-        // Ensure all 8 teams are available
-        if (!allTeams || !allTeams.length) {
-          try {
-            allTeams = await MockDataStore.getTeams(true);
-          } catch (e) {
-            allTeams = [];
-          }
+        if (isRenderingGroundSeeds) {
+          pendingGroundSeedsRender = true;
+          return;
         }
+        isRenderingGroundSeeds = true;
+        pendingGroundSeedsRender = false;
 
-        const allSeeds = await MockDataStore.getSeeds();
-        if (currentToken !== renderGroundSeedsToken) return;
+        try {
+          // Ensure all 8 teams are available
+          if (!allTeams || !allTeams.length) {
+            try {
+              allTeams = await MockDataStore.getTeams(true);
+            } catch (e) {
+              allTeams = [];
+            }
+          }
+
+          const allSeeds = await MockDataStore.getSeeds();
 
         groundContainer.innerHTML = '';
         const fragment = document.createDocumentFragment();
@@ -7524,7 +7536,13 @@
             }
           }, 800);
         }
+      } finally {
+        isRenderingGroundSeeds = false;
+        if (pendingGroundSeedsRender) {
+          renderGroundSeeds();
+        }
       }
+    }
 
       function updateGroundScrollHint() {
         const groundCont = document.querySelector('.fpt-ground-container');
@@ -8448,7 +8466,7 @@
   </script>
   <!-- REALISTIC DAY/NIGHT SKY SYSTEM (THREE.JS + PROCEDURAL GLSL SHADERS) -->
   <script src="./assets/sky/three.min.js"></script>
-  <script type="module" src="./assets/sky/RealisticSky.js?v=20260907_v1"></script>
+  <script type="module" src="./assets/sky/RealisticSky.js?v=20260907_v2"></script>
 </body>
 
 </html>

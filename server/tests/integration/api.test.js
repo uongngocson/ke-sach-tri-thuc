@@ -135,4 +135,64 @@ describe('Integration Tests: Cáo Sách API & Database Transactions', () => {
     expect(auditRes.status).toBe(200);
     expect(auditRes.body.data.length).toBeGreaterThan(0);
   });
+
+  test('Admin Accounts CRUD HTTP Endpoints & RBAC Security', async () => {
+    // 1. Unauthorized without token -> 401
+    const unauthRes = await request(app).get('/api/v1/admin/accounts');
+    expect(unauthRes.status).toBe(401);
+
+    // 2. Create Moderator Account via Superadmin
+    const testUsername = `mod_test_${Date.now()}`;
+    const createRes = await request(app)
+      .post('/api/v1/admin/accounts')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        username: testUsername,
+        password: 'secure_password_123',
+        full_name: 'Test Moderator HTTP',
+        role: 'moderator',
+        is_active: true
+      });
+
+    expect(createRes.status).toBe(201);
+    expect(createRes.body.data.username).toBe(testUsername);
+    expect(createRes.body.data.password_hash).toBeUndefined();
+    const createdId = createRes.body.data.id;
+
+    // 3. Moderator Token cannot access Admin CRUD -> 403 Forbidden
+    const modToken = jwt.sign(
+      { id: createdId, username: testUsername, role: 'moderator' },
+      process.env.JWT_SECRET || 'caosach_super_secure_jwt_secret_2026_production',
+      { expiresIn: '1h' }
+    );
+    const forbiddenRes = await request(app)
+      .get('/api/v1/admin/accounts')
+      .set('Authorization', `Bearer ${modToken}`);
+    expect(forbiddenRes.status).toBe(403);
+
+    // 4. Update Account
+    const updateRes = await request(app)
+      .put(`/api/v1/admin/accounts/${createdId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        full_name: 'Updated Moderator Name',
+        is_active: true
+      });
+    expect(updateRes.status).toBe(200);
+    expect(updateRes.body.data.full_name).toBe('Updated Moderator Name');
+
+    // 5. Get Account Stats
+    const statsRes = await request(app)
+      .get('/api/v1/admin/accounts/stats')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(statsRes.status).toBe(200);
+    expect(statsRes.body.data.total).toBeGreaterThan(0);
+
+    // 6. Delete Account
+    const deleteRes = await request(app)
+      .delete(`/api/v1/admin/accounts/${createdId}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(deleteRes.status).toBe(200);
+    expect(deleteRes.body.data.deleted).toBe(true);
+  });
 });
