@@ -6507,7 +6507,7 @@
     import { NourishmentFX } from './assets/effects/NourishmentFX.js?v=20260907_v1';
     import { DailyDewService } from './assets/services/DailyDewService.js?v=20260907_v1';
     import { QuoteCardExporter } from './assets/services/QuoteCardExporter.js?v=20260907_v1';
-    import { UserIdentityModal } from './assets/auth/UserIdentityModal.js?v=20260907_v2';
+    import { UserIdentityModal } from './assets/auth/UserIdentityModal.js?v=20260907_v3';
     import { TeamArenaModal } from './assets/teams/TeamArenaModal.js?v=20260907_v1';
     import { QuoteTreasuryModal } from './assets/quotes/QuoteTreasuryModal.js?v=20260907_v1';
 
@@ -6758,6 +6758,7 @@
           await loadUserTeamAndSync();
         }
       });
+      window.userIdentityModal = userIdentityModal;
 
       const teamArenaModal = new TeamArenaModal({
         onInspectTeam: async (team) => {

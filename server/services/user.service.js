@@ -87,18 +87,50 @@ export class UserService {
   static async suggestUsers(keyword = '', limit = 8) {
     if (!keyword || !keyword.trim()) return [];
     const term = `%${keyword.trim()}%`;
-    const res = await db.query(`
-      SELECT 
-        u.id, u.employee_code, u.nickname, u.email, u.gender,
-        u.branch, u.parent_department, u.officer_code, u.job_title,
-        u.team_id, t.display_name as team_display_name, t.color_code as team_color
-      FROM users u
-      LEFT JOIN teams t ON u.team_id = t.id
-      WHERE u.nickname ILIKE $1 OR u.employee_code ILIKE $1 OR u.email ILIKE $1 OR u.full_name ILIKE $1
-      ORDER BY COALESCE(u.nickname, u.full_name) ASC
-      LIMIT $2
-    `, [term, limit]);
-    return res.rows;
+    const prefixTerm = `${keyword.trim()}%`;
+
+    try {
+      const res = await db.query(`
+        SELECT 
+          u.id, u.employee_code, u.nickname, u.email, u.gender,
+          u.branch, u.parent_department, u.officer_code, u.job_title,
+          u.team_id, t.display_name as team_display_name, t.color_code as team_color
+        FROM users u
+        LEFT JOIN teams t ON u.team_id = t.id
+        WHERE unaccent(COALESCE(u.nickname, '')) ILIKE unaccent($1)
+           OR unaccent(COALESCE(u.full_name, '')) ILIKE unaccent($1)
+           OR u.employee_code ILIKE $1
+           OR u.email ILIKE $1
+        ORDER BY 
+          CASE 
+            WHEN unaccent(COALESCE(u.nickname, '')) ILIKE unaccent($2) THEN 1
+            WHEN unaccent(COALESCE(u.full_name, '')) ILIKE unaccent($2) THEN 2
+            ELSE 3 
+          END ASC,
+          COALESCE(u.nickname, u.full_name) ASC
+        LIMIT $3
+      `, [term, prefixTerm, limit]);
+      return res.rows;
+    } catch {
+      const res = await db.query(`
+        SELECT 
+          u.id, u.employee_code, u.nickname, u.email, u.gender,
+          u.branch, u.parent_department, u.officer_code, u.job_title,
+          u.team_id, t.display_name as team_display_name, t.color_code as team_color
+        FROM users u
+        LEFT JOIN teams t ON u.team_id = t.id
+        WHERE u.nickname ILIKE $1 OR u.employee_code ILIKE $1 OR u.email ILIKE $1 OR u.full_name ILIKE $1
+        ORDER BY 
+          CASE 
+            WHEN u.nickname ILIKE $2 THEN 1
+            WHEN u.full_name ILIKE $2 THEN 2
+            ELSE 3 
+          END ASC,
+          COALESCE(u.nickname, u.full_name) ASC
+        LIMIT $3
+      `, [term, prefixTerm, limit]);
+      return res.rows;
+    }
   }
 
   /**
@@ -108,21 +140,54 @@ export class UserService {
     if (!query) return null;
     const cleanQuery = query.trim().toLowerCase();
     const queryWithDomain = cleanQuery.includes('@') ? cleanQuery : `${cleanQuery}@fpt.com`;
+    const term = `%${query.trim()}%`;
 
-    const res = await db.query(`
-      SELECT 
-        u.*,
-        t.display_name as team_display_name,
-        t.name as team_name,
-        t.code as team_code,
-        t.color_code as team_color
-      FROM users u
-      LEFT JOIN teams t ON u.team_id = t.id
-      WHERE LOWER(u.nickname) = $1 OR LOWER(u.email) = $1 OR LOWER(u.email) = $2 OR u.employee_code = $3
-      LIMIT 1
-    `, [cleanQuery, queryWithDomain, query.trim()]);
+    try {
+      const res = await db.query(`
+        SELECT 
+          u.*,
+          t.display_name as team_display_name,
+          t.name as team_name,
+          t.code as team_code,
+          t.color_code as team_color
+        FROM users u
+        LEFT JOIN teams t ON u.team_id = t.id
+        WHERE LOWER(u.nickname) = $1 
+           OR LOWER(u.email) = $1 
+           OR LOWER(u.email) = $2 
+           OR u.employee_code = $3
+           OR unaccent(LOWER(u.nickname)) = unaccent($1)
+           OR u.nickname ILIKE $4
+           OR unaccent(u.nickname) ILIKE unaccent($4)
+        ORDER BY 
+          CASE 
+            WHEN LOWER(u.nickname) = $1 THEN 1
+            WHEN unaccent(LOWER(u.nickname)) = unaccent($1) THEN 2
+            WHEN u.employee_code = $3 THEN 3
+            WHEN LOWER(u.email) = $1 OR LOWER(u.email) = $2 THEN 4
+            ELSE 5 
+          END ASC
+        LIMIT 1
+      `, [cleanQuery, queryWithDomain, query.trim(), term]);
 
-    return res.rows[0] || null;
+      return res.rows[0] || null;
+    } catch {
+      const res = await db.query(`
+        SELECT 
+          u.*,
+          t.display_name as team_display_name,
+          t.name as team_name,
+          t.code as team_code,
+          t.color_code as team_color
+        FROM users u
+        LEFT JOIN teams t ON u.team_id = t.id
+        WHERE LOWER(u.nickname) = $1 OR LOWER(u.email) = $1 OR LOWER(u.email) = $2 OR u.employee_code = $3 OR u.nickname ILIKE $4
+        ORDER BY CASE WHEN LOWER(u.nickname) = $1 THEN 1 ELSE 2 END ASC
+        LIMIT 1
+      `, [cleanQuery, queryWithDomain, query.trim(), term]);
+
+      return res.rows[0] || null;
+    }
   }
 
   /**

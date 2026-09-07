@@ -6,6 +6,7 @@ async function migrate() {
   const migrationSql = `
     -- Enable UUID extension if available
     CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+    CREATE EXTENSION IF NOT EXISTS "unaccent";
 
     -- 1. Admin Users Table (RBAC)
     CREATE TABLE IF NOT EXISTS admin_users (
