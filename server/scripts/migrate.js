@@ -171,6 +171,7 @@ async function migrate() {
       employee_code VARCHAR(20) UNIQUE NOT NULL,
       email VARCHAR(255) UNIQUE NOT NULL,
       full_name VARCHAR(150) NOT NULL,
+      nickname VARCHAR(100),
       gender VARCHAR(10),
       branch VARCHAR(100),
       parent_department VARCHAR(100),
@@ -187,9 +188,11 @@ async function migrate() {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS nickname VARCHAR(100);
     CREATE INDEX IF NOT EXISTS idx_users_team_id ON users(team_id);
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_employee_code ON users(employee_code);
+    CREATE INDEX IF NOT EXISTS idx_users_nickname ON users(nickname);
 
     -- 13. Daily Quotes Table (1 quote per user/device per day)
     CREATE TABLE IF NOT EXISTS daily_quotes (

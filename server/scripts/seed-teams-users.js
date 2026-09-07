@@ -64,17 +64,31 @@ export async function seedTeamsAndUsers() {
         }
       }
     }
-    for (const u of users) {
+    const LITERARY_PREFIXES = [
+      'Cáo Tri Thức', 'Người Gieo Mầm', 'Độc Giả Tinh Hoa', 'Tâm Hồn Sách', 'Kẻ Mộng Mơ',
+      'Hạt Mầm Xanh', 'Cú Mèo Uyên Bác', 'Trang Sách Bay', 'Ngọn Lửa Nhỏ', 'Hạt Sương Mai',
+      'Ánh Sao Đêm', 'Cánh Hạc Trắng', 'Suối Nguồn', 'Người Lữ Hành', 'Bình Minh Đọc Sách',
+      'Cánh Buồm Tri Thức', 'Người Đưa Đò', 'Tầm Nhìn Xa', 'Trúc Lâm', 'Hải Đăng Soi Sáng',
+      'Khát Vọng Xanh', 'Thuyền Trí Tuệ', 'Gió Mùa Thu', 'Dấu Chân Tri Thức', 'Vườn Tâm Hồn'
+    ];
+
+    for (let i = 0; i < users.length; i++) {
+      const u = users[i];
+      const prefix = LITERARY_PREFIXES[i % LITERARY_PREFIXES.length];
+      const suffix = (u.employee_code || '').slice(-4) || String(i + 1).padStart(4, '0');
+      const nickname = u.nickname || `${prefix} #${suffix}`;
+
       await client.query(`
         INSERT INTO users (
-          employee_code, email, full_name, gender, branch, 
+          employee_code, email, full_name, nickname, gender, branch, 
           parent_department, child_department_1, child_department_2, 
           officer_code, job_title, team_id
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         ON CONFLICT (employee_code) DO UPDATE SET
           email = EXCLUDED.email,
           full_name = EXCLUDED.full_name,
+          nickname = COALESCE(users.nickname, EXCLUDED.nickname),
           gender = EXCLUDED.gender,
           branch = EXCLUDED.branch,
           parent_department = EXCLUDED.parent_department,
@@ -88,6 +102,7 @@ export async function seedTeamsAndUsers() {
         u.employee_code,
         u.email,
         u.full_name,
+        nickname,
         u.gender,
         u.branch,
         u.parent_department,

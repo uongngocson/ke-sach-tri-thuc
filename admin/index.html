@@ -525,18 +525,53 @@
         <!-- TAB 2: 8 TEAMS DEEP-DIVE TABLE & DRAWER        -->
         <!-- ============================================== -->
         <div id="tab-pane-teams" class="tab-content space-y-4">
-          <div class="glass-panel p-5">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div class="glass-panel p-5 space-y-4">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
                 <h3 class="text-sm font-black text-white flex items-center gap-2">
                   <span>🏆</span><span>BẢNG XẾP HẠNG THỜI GIAN THỰC 8 ĐỘI THI ĐUA</span>
                 </h3>
                 <p class="text-xs text-slate-400 font-bold">Chi tiết Cây Tri Thức, tỷ lệ tham gia mỗi ngày, chỉ tiêu thành viên và các mốc vươn cấp</p>
               </div>
-              <div class="flex items-center gap-2">
-                <button id="btn-export-teams" class="btn btn-ghost text-xs">
-                  <span>📥</span><span>Xuất Báo Cáo 8 Đội</span>
+
+              <!-- Filter Toolbar & Export Actions -->
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 rounded-xl px-2.5 py-1">
+                  <span class="text-xs">📅</span>
+                  <label for="teams-filter-date" class="text-[11px] font-bold text-slate-300">Chọn ngày:</label>
+                  <input type="date" id="teams-filter-date" class="bg-transparent text-white font-mono text-xs focus:outline-none border-0 p-0 cursor-pointer">
+                </div>
+                <div class="flex items-center gap-1">
+                  <button type="button" id="btn-teams-date-today" class="btn btn-ghost text-[11px] py-1 px-2.5 border border-slate-700 hover:border-sky-400" title="Chọn ngày hôm nay">
+                    Hôm nay
+                  </button>
+                  <button type="button" id="btn-teams-date-yesterday" class="btn btn-ghost text-[11px] py-1 px-2.5 border border-slate-700 hover:border-sky-400" title="Chọn ngày hôm qua">
+                    Hôm qua
+                  </button>
+                  <button type="button" id="btn-teams-apply-filter" class="btn btn-primary text-[11px] py-1 px-3 flex items-center gap-1">
+                    <span>🔍</span><span>Lọc</span>
+                  </button>
+                  <button type="button" id="btn-teams-reset-filter" class="btn btn-ghost text-[11px] py-1 px-2 text-slate-400 hover:text-white" title="Trở về mặc định (Hôm nay)">
+                    <span>↺</span>
+                  </button>
+                </div>
+                <button id="btn-export-teams" class="btn btn-success text-xs py-1.5 px-3 flex items-center gap-1.5 font-bold shadow-sm">
+                  <span>📥</span><span id="btn-export-teams-text">Xuất Báo Cáo 8 Đội (CSV/Excel)</span>
                 </button>
+              </div>
+            </div>
+
+            <!-- Active Date Status & Highlights Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="text-sky-400 font-black">🌱 Vườn Tri Thức:</span>
+                <span id="teams-active-date-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                  Đang xem: Hôm nay
+                </span>
+                <span class="text-slate-400 text-[11px]">• 1 Quote / Ngày / Thành Viên</span>
+              </div>
+              <div id="teams-date-summary" class="text-[11px] text-slate-400 flex items-center gap-3">
+                <!-- Injected via JS -->
               </div>
             </div>
 
@@ -550,10 +585,10 @@
                     <th>Tổng EXP</th>
                     <th>Hạt Giống</th>
                     <th>Thành Viên (Thực Tế/Chỉ Tiêu)</th>
-                    <th>Tham Gia Hôm Nay</th>
+                    <th id="th-teams-date-col">Tham Gia Hôm Nay</th>
                     <th>Tỷ Lệ Trung Bình</th>
-                    <th>Sách Gieo</th>
-                    <th>Lượt Tưới</th>
+                    <th id="th-teams-books-col">Sách Gieo</th>
+                    <th id="th-teams-dews-col">Lượt Tưới</th>
                     <th class="text-right">Thao Tác</th>
                   </tr>
                 </thead>
@@ -577,14 +612,47 @@
                 </h3>
                 <p class="text-xs text-slate-400 font-bold">Quản lý và tra cứu trạng thái tham gia thi đua của 100% cán bộ</p>
               </div>
-              <button id="btn-export-users-csv" class="btn btn-success text-xs">
-                <span>📥</span><span>Xuất Danh Sách Excel/CSV</span>
-              </button>
+
+              <!-- Filter Toolbar & Export Actions -->
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 rounded-xl px-2.5 py-1">
+                  <span class="text-xs">📅</span>
+                  <label for="users-filter-date" class="text-[11px] font-bold text-slate-300">Chọn ngày:</label>
+                  <input type="date" id="users-filter-date" class="bg-transparent text-white font-mono text-xs focus:outline-none border-0 p-0 cursor-pointer">
+                </div>
+                <div class="flex items-center gap-1">
+                  <button type="button" id="btn-users-date-today" class="btn btn-ghost text-[11px] py-1 px-2.5 border border-slate-700 hover:border-sky-400" title="Chọn ngày hôm nay">
+                    Hôm nay
+                  </button>
+                  <button type="button" id="btn-users-date-yesterday" class="btn btn-ghost text-[11px] py-1 px-2.5 border border-slate-700 hover:border-sky-400" title="Chọn ngày hôm qua">
+                    Hôm qua
+                  </button>
+                  <button type="button" id="btn-users-apply-filter" class="btn btn-primary text-[11px] py-1 px-3 flex items-center gap-1">
+                    <span>🔍</span><span>Lọc</span>
+                  </button>
+                  <button type="button" id="btn-users-reset-date" class="btn btn-ghost text-[11px] py-1 px-2 text-slate-400 hover:text-white" title="Trở về mặc định (Hôm nay)">
+                    <span>↺</span>
+                  </button>
+                </div>
+                <button id="btn-export-users-csv" class="btn btn-success text-xs py-1.5 px-3 flex items-center gap-1.5 font-bold shadow-sm">
+                  <span>📥</span><span id="btn-export-users-text">Xuất Danh Sách Excel/CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Active Date Status Bar for Users -->
+            <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="text-sky-400 font-black">🌱 Vườn Tri Thức • 1 Quote / Ngày / Thành Viên:</span>
+                <span id="users-active-date-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                  Đang xem: Hôm nay
+                </span>
+              </div>
             </div>
 
             <!-- Filters Toolbar -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2">
-              <input type="text" id="users-search" placeholder="🔍 Tìm tên, email, mã NV..."
+              <input type="text" id="users-search" placeholder="🔍 Tìm nick danh, khối, phòng ban..."
                 class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400">
               
               <select id="users-filter-team" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
@@ -600,16 +668,16 @@
               </select>
 
               <select id="users-filter-status" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
-                <option value="">Tất cả trạng thái hôm nay</option>
-                <option value="participated">✅ Đã gieo sách hôm nay</option>
-                <option value="not_participated">⏳ Chưa gieo sách hôm nay</option>
+                <option value="">Tất cả trạng thái (ngày đã chọn)</option>
+                <option value="participated">✅ Đã gieo sách ngày này</option>
+                <option value="not_participated">⏳ Chưa gieo sách ngày này</option>
               </select>
 
               <div class="flex items-center gap-2">
                 <button id="btn-search-users" class="btn btn-primary text-xs w-full">
                   <span>🔎</span><span>Lọc Nhân Sự</span>
                 </button>
-                <button id="btn-reset-users-filter" class="btn btn-ghost text-xs">
+                <button id="btn-reset-users-filter" class="btn btn-ghost text-xs" title="Xóa bộ lọc tìm kiếm">
                   <span>✕</span>
                 </button>
               </div>
@@ -620,12 +688,12 @@
               <table class="admin-table">
                 <thead>
                   <tr>
-                    <th>Mã NV</th>
-                    <th>Họ & Tên</th>
-                    <th>Email</th>
+                    <th class="w-12 text-center">STT</th>
+                    <th>Nick Danh Độc Giả</th>
                     <th>Khối / Chi Nhánh</th>
+                    <th>Phòng Ban</th>
                     <th>Đội Thi Đua</th>
-                    <th>Hôm Nay (1 Quote)</th>
+                    <th id="th-users-date-col">Hôm Nay (1 Quote)</th>
                     <th>Sách Đã Gieo</th>
                     <th>EXP Cá Nhân</th>
                   </tr>
@@ -1279,11 +1347,11 @@
         <table class="admin-table">
           <thead>
             <tr>
-              <th>Mã NV</th>
-              <th>Họ & Tên</th>
-              <th>Email</th>
+              <th class="w-12 text-center">STT</th>
+              <th>Nick Danh Độc Giả</th>
               <th>Khối / Phòng Ban</th>
-              <th>Vòng Này</th>
+              <th>Chức Danh</th>
+              <th id="team-modal-date-th">Trạng Thái</th>
               <th>Sách Gieo</th>
               <th>EXP Đóng Góp</th>
             </tr>
