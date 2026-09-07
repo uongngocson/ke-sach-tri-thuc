@@ -357,8 +357,9 @@ class ApiDataStoreManager {
           const liked = JSON.parse(localStorage.getItem('caosach_liked_quotes') || '{}');
           let changed = false;
           for (const q of data.data.quotes) {
-            if (q.is_liked && !liked[q.id]) {
-              liked[q.id] = true;
+            const serverLiked = !!q.is_liked;
+            if (!!liked[q.id] !== serverLiked) {
+              liked[q.id] = serverLiked;
               changed = true;
             }
           }
@@ -420,8 +421,9 @@ class ApiDataStoreManager {
           const liked = JSON.parse(localStorage.getItem('caosach_liked_quotes') || '{}');
           let changed = false;
           for (const q of data.data.quotes) {
-            if (q.is_liked && !liked[q.id]) {
-              liked[q.id] = true;
+            const serverLiked = !!q.is_liked;
+            if (!!liked[q.id] !== serverLiked) {
+              liked[q.id] = serverLiked;
               changed = true;
             }
           }
@@ -629,6 +631,25 @@ class ApiDataStoreManager {
     } catch (err) {
       console.error('Error liking quote:', err);
       return { success: false, message: 'Lỗi kết nối máy chủ' };
+    }
+  }
+
+  async getDewStatus(userId) {
+    try {
+      const fp = this.getUserFingerprint();
+      const params = new URLSearchParams();
+      if (userId && userId !== 'guest') params.append('userId', userId);
+      if (fp) params.append('userFingerprint', fp);
+
+      const res = await fetch(`${getApiBase()}/dew/status?${params.toString()}`);
+      const data = await res.json();
+      if (data && data.success && data.data) {
+        return data.data; // { hasClaimedToday, streak, lastClaimDate }
+      }
+      return { hasClaimedToday: false, streak: 0 };
+    } catch (e) {
+      console.warn('Error fetching dew status from server:', e);
+      return { hasClaimedToday: false, streak: 0 };
     }
   }
 

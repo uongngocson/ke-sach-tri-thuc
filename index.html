@@ -5037,37 +5037,49 @@
 
     .bq-quote-box {
       position: relative;
-      background: linear-gradient(135deg, rgba(0, 84, 166, 0.06) 0%, rgba(112, 185, 40, 0.06) 100%);
-      border-left: 4px solid #F36F21;
-      border-radius: 16px;
-      padding: 14px 18px;
+      background: linear-gradient(135deg, rgba(0, 84, 166, 0.04) 0%, rgba(243, 111, 33, 0.04) 100%);
+      border: 1px solid rgba(226, 232, 240, 0.85);
+      border-left: 4.5px solid #0054A6;
+      border-radius: 18px;
+      padding: 16px 20px;
       margin: 16px 0;
+      box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.05);
     }
 
     html.dark .bq-quote-box {
-      background: linear-gradient(135deg, rgba(0, 84, 166, 0.15) 0%, rgba(17, 28, 56, 0.6) 100%);
-      border-left-color: #F36F21;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 41, 59, 0.7) 100%);
+      border-color: rgba(51, 65, 85, 0.85);
+      border-left-color: #38bdf8;
+      box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.4);
     }
 
     .bq-quote-mark {
-      font-family: Georgia, serif;
-      font-size: 28px;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 32px;
       line-height: 1;
-      color: #F36F21;
-      opacity: 0.8;
+      color: #0054A6;
+      opacity: 0.35;
+      user-select: none;
+    }
+
+    html.dark .bq-quote-mark {
+      color: #38bdf8;
+      opacity: 0.45;
     }
 
     .bq-quote-text {
       font-size: 14.5px;
-      line-height: 1.6;
-      font-weight: 700;
-      font-style: italic;
+      line-height: 1.68;
+      font-weight: 600;
+      font-style: normal;
+      font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       color: #0f172a;
-      margin: 4px 0;
+      margin: 6px 0;
+      letter-spacing: normal;
     }
 
     html.dark .bq-quote-text {
-      color: #f8fafc;
+      color: #f1f5f9;
     }
 
     .bq-reader-bar {
@@ -5076,15 +5088,15 @@
       justify-content: space-between;
       padding: 10px 14px;
       border-radius: 14px;
-      background: #f0f7ff;
-      border: 1px solid #bfdbfe;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
       font-size: 12px;
       margin-bottom: 18px;
     }
 
     html.dark .bq-reader-bar {
       background: rgba(15, 23, 42, 0.6);
-      border-color: rgba(0, 84, 166, 0.4);
+      border-color: rgba(51, 65, 85, 0.8);
     }
 
     /* LIKE / THẢ TIM BUTTONS & ANIMATIONS */
@@ -6509,7 +6521,7 @@
     import { QuoteCardExporter } from './assets/services/QuoteCardExporter.js?v=20260907_v1';
     import { UserIdentityModal } from './assets/auth/UserIdentityModal.js?v=20260907_v3';
     import { TeamArenaModal } from './assets/teams/TeamArenaModal.js?v=20260907_v1';
-    import { QuoteTreasuryModal } from './assets/quotes/QuoteTreasuryModal.js?v=20260907_v1';
+    import { QuoteTreasuryModal } from './assets/quotes/QuoteTreasuryModal.js?v=20260907_v3';
 
     (async function () {
       // Initialize Mock Store, Tester Panel & Nourishment Particle FX
