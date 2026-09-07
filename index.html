@@ -6591,6 +6591,17 @@
       }
       window.updateDewButtonState = updateDewButtonState;
 
+      // Midnight date rollover detector (Auto-refresh on day change)
+      let lastKnownDate = DailyDewService.getTodayDateString();
+      setInterval(() => {
+        const currentDate = DailyDewService.getTodayDateString();
+        if (currentDate !== lastKnownDate) {
+          lastKnownDate = currentDate;
+          DailyDewService.invalidateCache();
+          updateDewButtonState();
+        }
+      }, 30000);
+
       async function handleDailyDewClaim(e) {
         if (e) {
           e.preventDefault();
@@ -6767,7 +6778,9 @@
           if (currentUser && currentUser.team_id) {
             localStorage.setItem('caosach_current_team_id', currentUser.team_id.toString());
           }
+          DailyDewService.invalidateCache(currentUser?.id);
           await loadUserTeamAndSync();
+          await updateDewButtonState();
         }
       });
       window.userIdentityModal = userIdentityModal;
