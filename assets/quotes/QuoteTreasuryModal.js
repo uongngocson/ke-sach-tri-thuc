@@ -835,6 +835,9 @@ export class QuoteTreasuryModal {
             <span id="treasury-status-text">Đang lọc: Tất Cả</span>
             <button id="treasury-status-clear" class="qtm-status-clear">Đặt lại bộ lọc</button>
           </div>
+
+          <!-- Sprouting Progress Banner for Level 0 Seedbeds -->
+          <div id="treasury-sprouting-banner" class="qtm-sprouting-banner" style="display:none;"></div>
         </div>
 
         <!-- Main Quotes Content Viewport -->
@@ -1137,6 +1140,44 @@ export class QuoteTreasuryModal {
         statusText.innerHTML = `✨ Đang hiển thị: <strong>${desc.join(' • ')}</strong> (${filtered.length} trích dẫn)`;
       } else {
         filterStatus.classList.remove('active');
+      }
+    }
+
+    // Sprouting Progress Banner for Level 0 Seedbeds
+    const sproutingBanner = overlay.querySelector('#treasury-sprouting-banner');
+    if (sproutingBanner) {
+      if (this.selectedTeam !== 'all') {
+        const tId = parseInt(this.selectedTeam, 10);
+        const allTeams = (typeof window !== 'undefined' && window.getAllTeams) ? window.getAllTeams() : [];
+        const teamObj = allTeams.find(t => t.id === tId);
+        const isSprouted = teamObj ? (teamObj.is_sprouted || teamObj.level >= 1 || (teamObj.tree_seeds || 0) >= 50) : false;
+        const seedCount = this.teamCounts[tId] || (teamObj ? teamObj.tree_seeds : 0) || 0;
+        const targetSeeds = 50;
+
+        if (!isSprouted) {
+          const progressPct = Math.min(100, Math.round((seedCount / targetSeeds) * 100));
+          const remaining = Math.max(0, targetSeeds - seedCount);
+          const teamColor = TEAMS_INFO[tId]?.color || '#F36F21';
+          sproutingBanner.style.display = 'block';
+          sproutingBanner.innerHTML = `
+            <div style="background: linear-gradient(135deg, rgba(243,111,33,0.06), rgba(15,23,42,0.03)); border: 1px solid ${teamColor}40; border-radius: 12px; padding: 10px 14px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 800; color: #0f172a;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                  <span>🌰</span>
+                  <span>Vườn Ươm Tri Thức Đội ${tId}: <strong>${seedCount} / ${targetSeeds} Hạt</strong></span>
+                </span>
+                <span style="color: ${teamColor}; font-size: 11.5px;">${remaining > 0 ? `Còn ${remaining} hạt để Cây nảy mầm đâm chồi 🌱` : '🌱 Sẵn sàng nảy mầm!'}</span>
+              </div>
+              <div style="width: 100%; height: 7px; background: #e2e8f0; border-radius: 999px; overflow: hidden; position: relative;">
+                <div style="width: ${progressPct}%; height: 100%; background: linear-gradient(90deg, ${teamColor}, #10b981); border-radius: 999px; transition: width 0.4s ease;"></div>
+              </div>
+            </div>
+          `;
+        } else {
+          sproutingBanner.style.display = 'none';
+        }
+      } else {
+        sproutingBanner.style.display = 'none';
       }
     }
 

@@ -1662,7 +1662,7 @@ function renderLedgerTable(ledger) {
 
   const typeLabels = {
     'BOOK_CONTRIBUTION': '📚 Gieo Sách (+15 EXP)',
-    'DAILY_DEW': '💧 Tưới Sương (+1 EXP)',
+    'DAILY_DEW': '💧 Tưới Sương (+2 EXP)',
     'QUOTE_LIKE': '❤️ Thích Trích Dẫn (+2 EXP)',
     'FRUIT_HARVEST': '🍎 Hái Quả (+5 EXP)',
     'ADMIN_BONUS': '🎁 Thưởng Sự Kiện',

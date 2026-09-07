@@ -3450,24 +3450,28 @@
       transform: none !important;
       width: 100% !important;
       position: relative !important;
-      z-index: 25 !important;
+      z-index: 15 !important;
       pointer-events: auto !important;
       overflow: visible !important;
     }
 
     .fpt-ground-container {
-      min-height: 160px !important;
-      height: 20vh !important;
-      max-height: 210px !important;
+      min-height: 180px !important;
+      height: 22vh !important;
+      max-height: 220px !important;
       width: 100% !important;
       cursor: pointer !important;
       pointer-events: auto !important;
-      touch-action: manipulation !important;
+      touch-action: pan-x !important;
       position: relative !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: none;
     }
 
     .fpt-ground-inner {
-      min-height: 160px !important;
+      min-height: 180px !important;
       height: 100% !important;
       width: 100% !important;
       pointer-events: auto !important;
@@ -3883,16 +3887,19 @@
       }
 
       .fpt-ground-container {
-        min-height: 110px !important;
-        height: 16dvh !important;
-        max-height: 140px !important;
-        padding-bottom: calc(44px + env(safe-area-inset-bottom, 0px)) !important;
+        min-height: 155px !important;
+        height: 20dvh !important;
+        max-height: 180px !important;
+        padding-top: 8px !important;
+        padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px)) !important;
         pointer-events: auto !important;
-        touch-action: manipulation !important;
+        touch-action: pan-x !important;
         position: relative !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
       }
       .fpt-ground-inner {
-        min-height: 110px !important;
+        min-height: 155px !important;
         height: 100% !important;
         pointer-events: auto !important;
         position: relative !important;
@@ -3931,7 +3938,7 @@
           <canvas _ngcontent-ng-c4179040905="" class="fixed inset-0 pointer-events-none z-0" height="730"
             width="1536"></canvas>
           <header _ngcontent-ng-c4179040905=""
-            class="sticky top-0 z-40 w-full bg-transparent border-b-0 shadow-none">
+            class="sticky top-0 z-50 w-full bg-transparent border-b-0 shadow-none">
             <div _ngcontent-ng-c4179040905=""
               class="max-w-[1530px] mx-auto px-3 sm:px-6 py-2 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
               <div _ngcontent-ng-c4179040905=""
@@ -4054,7 +4061,7 @@
           </header>
           <main _ngcontent-ng-c4179040905="" class="relative z-10 flex-1 w-full flex flex-col justify-between">
             <!-- 8-Team Panoramic Interactive Timeline Dock -->
-            <div id="panoramic-team-timeline" style="display: none;" class="w-full max-w-[1530px] mx-auto px-3 sm:px-6 pt-1 sm:pt-2 z-30 relative pointer-events-auto">
+            <div id="panoramic-team-timeline" style="display: none;" class="w-full max-w-[1530px] mx-auto px-3 sm:px-6 pt-1 sm:pt-2 z-50 relative pointer-events-auto">
               <div class="team-timeline-dock backdrop-blur-xl bg-white/85 dark:bg-slate-900/85 border border-slate-200/70 dark:border-slate-800/80 rounded-2xl shadow-lg overflow-hidden transition-all duration-300">
                 <!-- Top Micro Bar: Round Info, Active Viewing Team & Actions -->
                 <div class="timeline-subbar flex items-center justify-between px-3 sm:px-4 py-1.5 border-b border-slate-200/60 dark:border-slate-800/70 bg-gradient-to-r from-slate-50/70 via-white/50 to-slate-50/70 dark:from-slate-900/70 dark:via-slate-800/50 dark:to-slate-900/70 text-[11px] sm:text-xs">
@@ -4105,7 +4112,7 @@
             </div>
 
             <!-- Quote Aside Wrapper (Clean Left Alignment, never blocks center 3D canvas) -->
-            <div class="w-full max-w-[1530px] mx-auto px-3 sm:px-6 pt-1.5 z-25 relative flex flex-col pointer-events-none">
+            <div class="w-full max-w-[1530px] mx-auto px-3 sm:px-6 pt-1.5 z-50 relative flex flex-col pointer-events-none">
 
               <aside _ngcontent-ng-c4179040905=""
                 class="relative transition-all duration-300 pointer-events-auto self-start" id="app-info-aside">
@@ -4119,7 +4126,7 @@
                 </button>
                 <!-- Expanded Quote Widget Card -->
                 <div
-                  class="aside-quote-widget absolute top-0 left-0 w-[340px] backdrop-blur-md rounded-2xl border p-3 shadow-xl z-40 transition-all duration-300 pointer-events-auto"
+                  class="aside-quote-widget absolute top-0 left-0 w-[340px] backdrop-blur-md rounded-2xl border p-3 shadow-xl z-50 transition-all duration-300 pointer-events-auto"
                   id="aside-content-box">
                   <!-- Header Bar -->
                   <div class="aside-quote-header flex items-center justify-between pb-1.5 mb-2 border-b">
@@ -4185,8 +4192,7 @@
               <div _ngcontent-ng-c4179040905="" class="w-full relative z-15 pointer-events-auto">
                 <div _ngcontent-ng-c4179040905="" class="w-full relative">
                   <div _ngcontent-ng-c4179040905=""
-                    class="w-full min-h-[170px] md:min-h-[180px] fpt-ground-container cursor-pointer relative transition-all duration-300 group pb-10 overflow-visible"
-                    title="Click bất kỳ vị trí nào trên bãi tri thức để góp sách">
+                    class="w-full min-h-[170px] md:min-h-[180px] fpt-ground-container cursor-pointer relative transition-all duration-300 group pb-10 overflow-visible">
                     <div _ngcontent-ng-c4179040905=""
                       class="absolute inset-0 rounded-t-[50%_14px] sm:rounded-t-[50%_18px] fpt-ground-arc shadow-2xl overflow-hidden pointer-events-none">
                       <!-- Organic root ambient occlusion shadow -->
@@ -5415,17 +5421,17 @@
     }
 
     .fpt-ground-container {
-      min-height: 190px !important;
-      height: 28vh !important;
-      max-height: 250px !important;
+      min-height: 180px !important;
+      height: 22vh !important;
+      max-height: 220px !important;
       width: 100% !important;
       cursor: pointer !important;
       pointer-events: auto !important;
-      touch-action: manipulation !important;
+      touch-action: pan-x !important;
       -webkit-tap-highlight-color: transparent !important;
       position: relative !important;
       overflow-x: auto !important;
-      overflow-y: visible !important;
+      overflow-y: hidden !important;
       -webkit-overflow-scrolling: touch !important;
       scrollbar-width: none;
     }
@@ -5434,7 +5440,7 @@
     }
 
     .fpt-ground-inner {
-      min-height: 190px !important;
+      min-height: 180px !important;
       height: 100% !important;
       width: 100% !important;
       min-width: 960px;
@@ -5486,7 +5492,7 @@
     /* Botanical Garden Signpost Plaque planted in the dirt in front of the tree root */
     .root-garden-plaque {
       position: absolute;
-      top: 30px;
+      top: 80px;
       left: 50%;
       transform: translateX(-50%);
       display: inline-flex;
@@ -5500,7 +5506,7 @@
       border: 1px solid rgba(255, 255, 255, 0.18);
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
       white-space: nowrap;
-      z-index: 35;
+      z-index: 75 !important;
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       pointer-events: auto;
       cursor: pointer;
@@ -5508,18 +5514,28 @@
 
     @media (max-width: 768px) {
       .root-garden-plaque {
-        top: 22px;
+        top: 74px;
       }
     }
 
     /* Plaque position when team is in unsprouted seed stage, framing the front edge of the root ring */
     .team-root-plot.is-unsprouted .root-garden-plaque {
-      top: 44px;
+      top: 80px;
     }
     @media (max-width: 768px) {
       .team-root-plot.is-unsprouted .root-garden-plaque {
-        top: 36px;
+        top: 74px;
       }
+    }
+
+    .plaque-inspect-icon {
+      font-size: 10px;
+      margin-left: 2px;
+      opacity: 0.85;
+      transition: transform 0.2s;
+    }
+    .root-garden-plaque:hover .plaque-inspect-icon {
+      transform: scale(1.2);
     }
 
     /* Clean organic ground seed item without artificial circular background */
@@ -5600,19 +5616,22 @@
     @media (max-width: 768px) {
       div[class*="z-15"] {
         transform: none !important;
-        z-index: 30 !important;
+        z-index: 15 !important;
       }
       .fpt-ground-container {
-        min-height: 110px !important;
-        height: 16dvh !important;
-        max-height: 140px !important;
-        padding-bottom: calc(44px + env(safe-area-inset-bottom, 0px)) !important;
+        min-height: 155px !important;
+        height: 20dvh !important;
+        max-height: 180px !important;
+        padding-top: 8px !important;
+        padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px)) !important;
         pointer-events: auto !important;
-        touch-action: manipulation !important;
+        touch-action: pan-x !important;
         position: relative !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
       }
       .fpt-ground-inner {
-        min-height: 110px !important;
+        min-height: 155px !important;
         height: 100% !important;
         pointer-events: auto !important;
         position: relative !important;
@@ -5665,9 +5684,9 @@
 
     @media (min-width: 769px) {
       .fpt-ground-container, .fpt-ground-inner {
-        min-height: 160px !important;
-        height: 20vh !important;
-        max-height: 200px !important;
+        min-height: 180px !important;
+        height: 22vh !important;
+        max-height: 220px !important;
       }
     }
 
@@ -6463,7 +6482,7 @@
 
         // Case 1: Guest / Not logged in
         if (!currentUser || currentUser.isGuest || currentUser.id === 'guest' || !currentUser.team_id) {
-          if (mainDewText) mainDewText.textContent = 'Tưới Nước (+1 EXP)';
+          if (mainDewText) mainDewText.textContent = 'Tưới Nước';
           if (mainDewBtn) {
             mainDewBtn.classList.remove('opacity-75');
             mainDewBtn.title = 'Đăng nhập để tưới nước cho cây tri thức của đội bạn!';
@@ -6500,14 +6519,14 @@
             mobileDewBtn.title = 'Tưới nước cho cây đội bạn!';
           }
         } else {
-          if (mainDewText) mainDewText.textContent = 'Tưới Nước (+1 EXP)';
+          if (mainDewText) mainDewText.textContent = 'Tưới Nước';
           if (mainDewBtn) {
             mainDewBtn.classList.remove('opacity-75');
-            mainDewBtn.title = 'Tưới nước cho cây tri thức đội bạn (+1 EXP/ngày)';
+            mainDewBtn.title = 'Tưới nước cho cây tri thức đội bạn (+2 EXP/ngày)';
           }
           if (mobileDewBtn) {
             mobileDewBtn.classList.remove('opacity-75');
-            mobileDewBtn.title = 'Tưới nước cho cây (+1 EXP)';
+            mobileDewBtn.title = 'Tưới nước cho cây (+2 EXP)';
           }
         }
       }
@@ -6555,7 +6574,7 @@
         });
 
         if (result.success) {
-          showToast(`💧 Bạn đã tưới nước cho cây đội mình thành công (+1 EXP)! Chuỗi chăm sóc: ${result.streak} ngày liên tiếp 🌱`);
+          showToast(`💧 Bạn đã tưới nước cho cây đội mình thành công (+2 EXP)! Chuỗi chăm sóc: ${result.streak} ngày liên tiếp 🌱`);
           await loadUserTeamAndSync();
           updateDewButtonState();
         } else {
@@ -6657,7 +6676,13 @@
       }
 
       /* 2. MASTER 8-TEAM GROWTH HUD & STATE SYNC */
+      const urlParams = new URLSearchParams(window.location.search);
       let currentUser = UserIdentityModal.getStoredSession();
+      if (!currentUser && urlParams.get('guest') === '1') {
+        currentUser = { id: 'guest', full_name: 'Khách Tham Quan', isGuest: true, team_id: null };
+        UserIdentityModal.saveSession(currentUser);
+        localStorage.setItem('caosach_welcome_seen', 'true');
+      }
       if (currentUser && (currentUser.isGuest || currentUser.id === 'guest')) {
         currentUser.team_id = null;
       }
@@ -7101,72 +7126,81 @@
       ];
 
       /**
-       * Deterministic geometric distribution for seeds nestled inside the 3D root ring
-       * Guarantees 0% collision, no overlap, and strictly stays inside the ring boundary
+       * Deterministic 2D Botanical Sunflower / Phyllotaxis Spiral Distribution
+      /**
+       * Staggered Elliptical Ranks Distribution.
+       * Distributes up to 49 seeds uniformly across the full 2D elliptical garden plot
+       * in staggered horizontal ranks, ensuring maximum negative space (>=10px) between
+       * every seed, zero clumping, zero vertical overlap, and effortless clickability.
        */
-      function getSeedOffsets(totalCount, rx, ry) {
+      function getSeedOffsets(totalCount, rx, ry, isMobile = false) {
         if (totalCount <= 0) return [];
-        if (totalCount === 1) {
-          return [{ dx: 0, dy: 0 }];
-        }
-        if (totalCount === 2) {
-          return [
-            { dx: -rx * 0.45, dy: 0 },
-            { dx: rx * 0.45, dy: 0 }
-          ];
-        }
-        if (totalCount === 3) {
-          return [
-            { dx: 0, dy: -ry * 0.65 },
-            { dx: -rx * 0.52, dy: ry * 0.48 },
-            { dx: rx * 0.52, dy: ry * 0.48 }
-          ];
-        }
-        if (totalCount === 4) {
-          return [
-            { dx: 0, dy: -ry * 0.72 },
-            { dx: rx * 0.58, dy: 0 },
-            { dx: 0, dy: ry * 0.68 },
-            { dx: -rx * 0.58, dy: 0 }
-          ];
-        }
-        if (totalCount === 5) {
-          return [
-            { dx: 0, dy: 0 },
-            { dx: 0, dy: -ry * 0.78 },
-            { dx: rx * 0.62, dy: -ry * 0.15 },
-            { dx: rx * 0.42, dy: ry * 0.68 },
-            { dx: -rx * 0.42, dy: ry * 0.68 }
-          ];
+        if (totalCount === 1) return [{ dx: 0, dy: 0 }];
+        if (totalCount === 2) return [
+          { dx: -rx * 0.38, dy: 0 },
+          { dx: rx * 0.38, dy: 0 }
+        ];
+        if (totalCount === 3) return [
+          { dx: -rx * 0.38, dy: ry * 0.28 },
+          { dx: 0, dy: -ry * 0.38 },
+          { dx: rx * 0.38, dy: ry * 0.28 }
+        ];
+        if (totalCount === 4) return [
+          { dx: 0, dy: -ry * 0.44 },
+          { dx: rx * 0.42, dy: 0 },
+          { dx: 0, dy: ry * 0.44 },
+          { dx: -rx * 0.42, dy: 0 }
+        ];
+
+        // For totalCount >= 5: Determine optimal number of rows
+        let numRows;
+        if (totalCount <= 8) numRows = 2;
+        else if (totalCount <= 18) numRows = 3;
+        else if (totalCount <= 32) numRows = 4;
+        else numRows = 5;
+
+        // Normalized Y coordinates for rows (-0.75 to +0.75 of ry)
+        const maxNormY = 0.75;
+        const rowYNorms = [];
+        for (let r = 0; r < numRows; r++) {
+          rowYNorms.push(-maxNormY + (2 * maxNormY * r) / (numRows - 1));
         }
 
-        // For totalCount >= 6: deterministic concentric distribution
-        const offsets = [{ dx: 0, dy: 0 }];
-        const remaining = totalCount - 1;
+        // Available width ratio for each row: sqrt(1 - yNorm^2)
+        const rowWidthFactors = rowYNorms.map(y => Math.sqrt(Math.max(0.18, 1 - y * y)));
+        const sumWidthFactors = rowWidthFactors.reduce((a, b) => a + b, 0);
 
-        if (remaining <= 7) {
-          for (let k = 0; k < remaining; k++) {
-            const angle = (2 * Math.PI * k) / remaining;
-            offsets.push({
-              dx: Math.cos(angle) * rx * 0.72,
-              dy: Math.sin(angle) * ry * 0.72
-            });
+        // Distribute seeds proportionally to row widths
+        const rowCounts = rowWidthFactors.map(w => Math.max(1, Math.round((w / sumWidthFactors) * totalCount)));
+        let currentSum = rowCounts.reduce((a, b) => a + b, 0);
+        while (currentSum !== totalCount) {
+          if (currentSum < totalCount) {
+            rowCounts[Math.floor(numRows / 2)]++;
+            currentSum++;
+          } else {
+            let maxIdx = 0;
+            for (let i = 1; i < numRows; i++) {
+              if (rowCounts[i] > rowCounts[maxIdx]) maxIdx = i;
+            }
+            rowCounts[maxIdx]--;
+            currentSum--;
           }
-        } else {
-          const innerCount = Math.min(6, Math.floor(remaining * 0.36));
-          const outerCount = remaining - innerCount;
-          for (let k = 0; k < innerCount; k++) {
-            const angle = (2 * Math.PI * k) / innerCount + 0.3;
+        }
+
+        const offsets = [];
+        const maxRxNorm = 0.88; // Stays safely 12% inside the neon ring perimeter
+        for (let r = 0; r < numRows; r++) {
+          const yNorm = rowYNorms[r];
+          const count = rowCounts[r];
+          const widthFactor = rowWidthFactors[r] * maxRxNorm;
+          for (let c = 0; c < count; c++) {
+            let xNorm = 0;
+            if (count > 1) {
+              xNorm = -widthFactor + (2 * widthFactor * c) / (count - 1);
+            }
             offsets.push({
-              dx: Math.cos(angle) * rx * 0.44,
-              dy: Math.sin(angle) * ry * 0.44
-            });
-          }
-          for (let k = 0; k < outerCount; k++) {
-            const angle = (2 * Math.PI * k) / outerCount;
-            offsets.push({
-              dx: Math.cos(angle) * rx * 0.82,
-              dy: Math.sin(angle) * ry * 0.82
+              dx: xNorm * rx,
+              dy: yNorm * ry
             });
           }
         }
@@ -7194,6 +7228,7 @@
 
         groundContainer.innerHTML = '';
         const fragment = document.createDocumentFragment();
+        const unsproutedTeamZones = [];
 
         // Render each of the 8 team zones
         for (let i = 0; i < 8; i++) {
@@ -7227,83 +7262,84 @@
           const isMyTeam = (myTeam && myTeam.id === teamId);
           const myTeamTag = isMyTeam ? `<span class="plaque-myteam">★ Tôi</span>` : '';
 
+          const teamSeeds = isSprouted ? [] : allSeeds.filter(s => s.team_id === teamId);
+          const totalTeamSeeds = teamSeeds.length;
+
           // Botanical Garden Signpost Plaque planted in the soil at tree foot
           let innerContent = `
             <!-- Garden Signpost Plaque planted in the soil at tree foot -->
-            <div class="root-garden-plaque" title="Click để xem chi tiết Đội ${teamId}">
+            <div class="root-garden-plaque" title="Click để xem toàn bộ trích dẫn Đội ${teamId}">
               <span class="plaque-badge" style="background: ${teamColor};">#${teamId}</span>
-              <span class="plaque-title">${escapeHtml(team.short_name || (`Đội ${teamId}`))}</span>
               ${isSprouted 
                 ? `<span class="plaque-status status-sprouted">${levelIcon} Lv.${level}</span>`
-                : `<span class="plaque-status status-seed">🌰 ${team.tree_seeds || 0}/50</span>`
+                : `<span class="plaque-status status-seed">🌰 ${team.tree_seeds || 0}/50 Hạt</span>`
               }
               ${myTeamTag}
+              ${!isSprouted && totalTeamSeeds > 0 ? `<span class="plaque-inspect-icon" title="Xem danh sách trích dẫn">📖</span>` : ''}
             </div>
           `;
 
           zoneEl.innerHTML = innerContent;
 
-          // If Level 0 (seeds nestled naturally inside the root ring), populate interactive seed buttons
-          if (!isSprouted) {
-            const teamSeeds = allSeeds.filter(s => s.team_id === teamId);
-            const totalTeamSeeds = teamSeeds.length;
-            const isMobile = window.innerWidth < 768;
+          // Plaque Click & Touch: Open Quote Treasury filtered to this team
+          const plaque = zoneEl.querySelector('.root-garden-plaque');
+          if (plaque) {
+            let plaqueTouchMoved = false;
+            let pStartX = 0, pStartY = 0;
 
-            // 3D root ring center & safe inner radii inside .team-root-plot
-            const ringCenterY = isMobile ? 18 : 25;
-            const maxRx = isMobile ? 24 : 36; // Horizontal pixel radius safely inside ring
-            const maxRy = isMobile ? 8 : 12;   // Vertical pixel radius safely inside ring
+            const handlePlaqueTrigger = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (window.quoteTreasuryModal && typeof window.quoteTreasuryModal.open === 'function') {
+                window.quoteTreasuryModal.open(teamId);
+              } else if (!activeTeam || activeTeam.id !== teamId) {
+                const targetTeam = allTeams.find(t => t.id === teamId) || team;
+                inspectTeam(targetTeam);
+              }
+            };
 
-            // Deterministic, non-overlapping geometric packaging of seeds inside the ring
-            const seedOffsets = getSeedOffsets(totalTeamSeeds, maxRx, maxRy);
+            plaque.addEventListener('touchstart', (e) => {
+              plaqueTouchMoved = false;
+              if (e.touches && e.touches[0]) {
+                pStartX = e.touches[0].clientX;
+                pStartY = e.touches[0].clientY;
+              }
+            }, { passive: true });
 
-            teamSeeds.forEach((seed, idx) => {
-              const offset = seedOffsets[idx] || { dx: 0, dy: 0 };
-              const btn = document.createElement('button');
-              btn.className = 'absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-140 hover:z-50 focus:z-50 z-30 group/fl flex flex-col items-center ground-seed-item';
-              btn.style.left = `calc(50% + ${offset.dx.toFixed(1)}px)`;
-              btn.style.top = `${(ringCenterY + offset.dy).toFixed(1)}px`;
-              btn.setAttribute('data-seed-id', seed.id);
-              btn.setAttribute('title', `${seed.book} (${seed.author})`);
+            plaque.addEventListener('touchmove', (e) => {
+              if (e.touches && e.touches[0]) {
+                const dx = Math.abs(e.touches[0].clientX - pStartX);
+                const dy = Math.abs(e.touches[0].clientY - pStartY);
+                if (dx > 8 || dy > 8) plaqueTouchMoved = true;
+              }
+            }, { passive: true });
 
-              const teamTag = seed.team_short_name || (`Đội ${teamId}`);
-              const teamTagHtml = `<span style="background:${teamColor}; color:#fff; font-size:9px; padding:1px 5px; border-radius:4px; margin-right:4px;">${escapeHtml(teamTag)}</span>`;
+            plaque.addEventListener('touchend', (e) => {
+              if (plaqueTouchMoved) return;
+              handlePlaqueTrigger(e);
+            }, { passive: false });
 
-              btn.innerHTML = `
-                <div class="absolute pointer-events-none opacity-0 group-hover/fl:opacity-100 transition-all duration-200 z-50 whitespace-nowrap bottom-full mb-2 left-1/2 -translate-x-1/2">
-                  <div class="px-2.5 py-1 rounded-xl bg-[#0054A6]/95 dark:bg-slate-900/95 backdrop-blur-md text-white dark:text-slate-100 text-xs font-bold shadow-xl border border-sky-300/40 dark:border-slate-700 flex items-center gap-1.5">
-                    <span>🌰</span>
-                    ${teamTagHtml}
-                    <span>${escapeHtml(seed.reader || 'Độc giả')}</span>
-                    <span class="text-[10px] text-amber-300/80 dark:text-amber-400 font-normal">(${escapeHtml(seed.book)})</span>
-                  </div>
-                  <div class="w-2 h-2 bg-[#0054A6]/95 dark:bg-slate-900/95 rotate-45 mx-auto -mt-1 border-r border-b border-sky-300/40 dark:border-slate-700"></div>
-                </div>
-                <div class="relative flex items-center justify-center select-none transform transition-all duration-200 group-hover/fl:scale-135 group-hover/fl:-translate-y-0.5 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
-                  <span class="text-lg sm:text-xl leading-none cursor-pointer">🌰</span>
-                </div>
-              `;
-
-              btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                openQuoteModal(seed);
-              });
-
-              zoneEl.appendChild(btn);
-            });
+            plaque.addEventListener('click', handlePlaqueTrigger);
           }
 
-          // Zone Click Listener: Switch inspection or trigger ground action
+          // Zone Click Listener: Switch inspection or open treasury / plant
           zoneEl.addEventListener('click', (e) => {
-            if (e.target.closest('.ground-seed-item')) return;
+            if (e.target.closest && e.target.closest('.ground-seed-item, .root-garden-plaque')) return;
             if (!activeTeam || activeTeam.id !== teamId) {
               const targetTeam = allTeams.find(t => t.id === teamId) || team;
               inspectTeam(targetTeam);
             } else {
-              handleGroundAction(e);
+              if (!isSprouted && window.quoteTreasuryModal && typeof window.quoteTreasuryModal.open === 'function') {
+                window.quoteTreasuryModal.open(teamId);
+              } else {
+                handleGroundAction(e);
+              }
             }
           });
+
+          if (!isSprouted && totalTeamSeeds > 0) {
+            unsproutedTeamZones.push({ zoneEl, teamId, teamSeeds, teamColor, totalTeamSeeds });
+          }
 
           fragment.appendChild(zoneEl);
         }
@@ -7312,8 +7348,127 @@
 
         // Synchronize 3D tree roots with live DOM plots and rings
         if (window.treeManager && typeof window.treeManager.updateAnchorTransform === 'function') {
-          requestAnimationFrame(() => window.treeManager.updateAnchorTransform());
+          window.treeManager.updateAnchorTransform();
         }
+
+        // Populate interactive seeds inside each unsprouted team plot using 100% 3D ring projection
+        const isMobile = window.innerWidth < 768;
+        unsproutedTeamZones.forEach(({ zoneEl, teamId, teamSeeds, teamColor, totalTeamSeeds }) => {
+          let ringCenterX = zoneEl.offsetWidth / 2;
+          let ringCenterY = isMobile ? 38 : 44;
+          let rx = isMobile ? 26 : 38;
+          let ry = isMobile ? 10 : 13;
+
+          // Project 3D ring screen metrics if TreeManager is initialized
+          const ringMetrics = (window.treeManager && typeof window.treeManager.getTeamRingScreenMetrics === 'function')
+            ? window.treeManager.getTeamRingScreenMetrics(teamId)
+            : null;
+
+          if (ringMetrics) {
+            const plotRect = zoneEl.getBoundingClientRect();
+            if (plotRect.width > 0) {
+              ringCenterX = ringMetrics.screenCenterX - plotRect.left;
+              ringCenterY = ringMetrics.screenCenterY - plotRect.top;
+              // Calibrated 2D scattering radii: Utilize full interior of the 3D botanical ring
+              rx = Math.max(isMobile ? 28 : 46, ringMetrics.rx * (isMobile ? 0.92 : 0.96));
+              ry = Math.max(isMobile ? 15 : 20, ringMetrics.ry * (isMobile ? 0.82 : 0.90));
+            }
+          } else {
+            rx = isMobile ? 36 : 60;
+            ry = isMobile ? 16 : 24;
+          }
+
+          // Safety clamp: Keep seeds comfortably inside the plot
+          ringCenterY = Math.max(ry + 14, ringCenterY);
+
+          // Deterministic concentric elliptical distribution
+          const seedOffsets = getSeedOffsets(totalTeamSeeds, rx, ry, isMobile);
+
+          // Calibrate seed icon scale smoothly based on total count
+          let seedSizeClass = 'text-base sm:text-lg';
+          let seedDropShadow = 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]';
+          if (totalTeamSeeds > 30) {
+            seedSizeClass = isMobile ? 'text-[9.5px]' : 'text-[11.5px]';
+            seedDropShadow = 'drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]';
+          } else if (totalTeamSeeds > 15) {
+            seedSizeClass = isMobile ? 'text-[11px]' : 'text-sm';
+            seedDropShadow = 'drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.85)]';
+          } else if (totalTeamSeeds > 6) {
+            seedSizeClass = isMobile ? 'text-xs' : 'text-base';
+          }
+
+          teamSeeds.forEach((seed, idx) => {
+            const offset = seedOffsets[idx] || { dx: 0, dy: 0 };
+            const btn = document.createElement('button');
+            btn.className = 'absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-transform duration-200 hover:scale-175 hover:z-[70] focus:z-[70] group/fl flex items-center justify-center ground-seed-item';
+            btn.style.left = `${(ringCenterX + offset.dx).toFixed(1)}px`;
+            btn.style.top = `${(ringCenterY + offset.dy).toFixed(1)}px`;
+            btn.style.width = isMobile ? '18px' : '22px';
+            btn.style.height = isMobile ? '18px' : '22px';
+
+            // Natural 3D Y-depth sorting (z-index 18 - 58, strictly below plaque at 75)
+            const zNorm = (offset.dy + ry) / (2 * Math.max(1, ry));
+            const zIndex = Math.round(18 + Math.max(0, Math.min(1, zNorm)) * 40);
+            btn.style.zIndex = zIndex;
+
+            btn.setAttribute('data-seed-id', seed.id);
+            btn.setAttribute('title', `${seed.book} (${seed.author})`);
+
+            const teamTag = seed.team_short_name || (`Đội ${teamId}`);
+            const teamTagHtml = `<span style="background:${teamColor}; color:#fff; font-size:9px; padding:1px 5px; border-radius:4px; margin-right:4px;">${escapeHtml(teamTag)}</span>`;
+
+            btn.innerHTML = `
+              <div class="absolute pointer-events-none opacity-0 group-hover/fl:opacity-100 transition-all duration-200 z-[80] whitespace-nowrap bottom-full mb-2 left-1/2 -translate-x-1/2">
+                <div class="px-2.5 py-1 rounded-xl bg-[#0054A6]/95 dark:bg-slate-900/95 backdrop-blur-md text-white dark:text-slate-100 text-xs font-bold shadow-xl border border-sky-300/40 dark:border-slate-700 flex items-center gap-1.5">
+                  <span>🌰</span>
+                  ${teamTagHtml}
+                  <span>${escapeHtml(seed.reader || 'Độc giả')}</span>
+                  <span class="text-[10px] text-amber-300/80 dark:text-amber-400 font-normal">(${escapeHtml(seed.book)})</span>
+                </div>
+                <div class="w-2 h-2 bg-[#0054A6]/95 dark:bg-slate-900/95 rotate-45 mx-auto -mt-1 border-r border-b border-sky-300/40 dark:border-slate-700"></div>
+              </div>
+              <div class="relative flex items-center justify-center select-none transform transition-all duration-200 group-hover/fl:scale-135 group-hover/fl:-translate-y-0.5 filter ${seedDropShadow}">
+                <span class="${seedSizeClass} leading-none cursor-pointer">🌰</span>
+              </div>
+            `;
+
+            let seedTouchMoved = false;
+            let seedTouchStartX = 0;
+            let seedTouchStartY = 0;
+
+            const handleSeedTrigger = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              openQuoteModal(seed);
+            };
+
+            btn.addEventListener('touchstart', (e) => {
+              e.stopPropagation();
+              seedTouchMoved = false;
+              if (e.touches && e.touches[0]) {
+                seedTouchStartX = e.touches[0].clientX;
+                seedTouchStartY = e.touches[0].clientY;
+              }
+            }, { passive: true });
+
+            btn.addEventListener('touchmove', (e) => {
+              if (e.touches && e.touches[0]) {
+                const dx = Math.abs(e.touches[0].clientX - seedTouchStartX);
+                const dy = Math.abs(e.touches[0].clientY - seedTouchStartY);
+                if (dx > 8 || dy > 8) seedTouchMoved = true;
+              }
+            }, { passive: true });
+
+            btn.addEventListener('touchend', (e) => {
+              if (seedTouchMoved) return;
+              handleSeedTrigger(e);
+            }, { passive: false });
+
+            btn.addEventListener('click', handleSeedTrigger);
+
+            zoneEl.appendChild(btn);
+          });
+        });
 
         // Auto-center active plot on mobile screen
         if (activeTeam && window.innerWidth < 1024) {
@@ -7321,6 +7476,16 @@
           if (activePlot) {
             activePlot.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
           }
+        }
+
+        // Automated touch verification hook for testing
+        if (new URLSearchParams(window.location.search).get('testTouchSeed')) {
+          setTimeout(() => {
+            const seedBtn = groundContainer.querySelector('.ground-seed-item');
+            if (seedBtn) {
+              seedBtn.dispatchEvent(new Event('touchend', { bubbles: true, cancelable: true }));
+            }
+          }, 800);
         }
       }
 
@@ -7765,7 +7930,7 @@
         let isTouchMoved = false;
 
         const handleGroundAction = (e) => {
-          if (e.target.closest && e.target.closest('.ground-seed-item')) return;
+          if (e.target && e.target.closest && e.target.closest('.ground-seed-item, .root-garden-plaque')) return;
 
           // 1. Kiểm tra đăng nhập
           if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
@@ -7786,6 +7951,7 @@
         };
 
         el.addEventListener('touchstart', (e) => {
+          if (e.target && e.target.closest && e.target.closest('.ground-seed-item, .root-garden-plaque')) return;
           if (e.touches && e.touches[0]) {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
@@ -7794,6 +7960,7 @@
         }, { passive: true });
 
         el.addEventListener('touchmove', (e) => {
+          if (e.target && e.target.closest && e.target.closest('.ground-seed-item, .root-garden-plaque')) return;
           if (e.touches && e.touches[0]) {
             const dx = Math.abs(e.touches[0].clientX - touchStartX);
             const dy = Math.abs(e.touches[0].clientY - touchStartY);
@@ -7802,6 +7969,7 @@
         }, { passive: true });
 
         el.addEventListener('touchend', (e) => {
+          if (e.target && e.target.closest && e.target.closest('.ground-seed-item, .root-garden-plaque')) return;
           if (isTouchMoved) return;
           e.preventDefault();
           e.stopPropagation();
@@ -7809,13 +7977,21 @@
         }, { passive: false });
 
         el.addEventListener('click', (e) => {
+          if (e.target && e.target.closest && e.target.closest('.ground-seed-item, .root-garden-plaque')) return;
           e.preventDefault();
           e.stopPropagation();
           handleGroundAction(e);
         });
       }
 
-      bindGroundModalTrigger(document.querySelector('.fpt-ground-container'));
+      const groundContEl = document.querySelector('.fpt-ground-container');
+      if (groundContEl) {
+        bindGroundModalTrigger(groundContEl);
+        // Lock vertical scrolling permanently so ground content is never buried under soil
+        groundContEl.addEventListener('scroll', () => {
+          if (groundContEl.scrollTop !== 0) groundContEl.scrollTop = 0;
+        }, { passive: true });
+      }
       bindGroundModalTrigger(document.querySelector('.fpt-ground-inner'));
       bindGroundModalTrigger(document.getElementById('ground-action-hint'));
 

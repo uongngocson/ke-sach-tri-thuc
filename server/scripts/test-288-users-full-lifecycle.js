@@ -118,9 +118,9 @@ async function run288UsersFullLifecycleTest() {
         case3_CrossWaterBlockedPass++;
       }
 
-      // Case 3: Tưới nước đúng cây đội mình (+1 EXP)
+      // Case 3: Tưới nước đúng cây đội mình (+2 EXP)
       const dewRes = await DewService.claimDew({ userId: user.id, teamId: user.team_id });
-      if (dewRes && dewRes.dew && dewRes.expEarned === 1) {
+      if (dewRes && dewRes.dew && dewRes.expEarned === 2) {
         case2_WaterOwnPass++;
       }
 
@@ -184,12 +184,12 @@ async function run288UsersFullLifecycleTest() {
         case7_LikeQuotePass++;
       }
 
-      // Case 8: Kiểm tra cập nhật thống kê cá nhân người dùng (+1 sách, +16 EXP)
+      // Case 8: Kiểm tra cập nhật thống kê cá nhân người dùng (+1 sách, +17 EXP)
       const updatedUser = await UserService.getUserById(user.id);
       if (
         updatedUser &&
         parseInt(updatedUser.contributed_books_count, 10) === 1 &&
-        parseInt(updatedUser.total_exp_earned, 10) === 16 // 15 EXP sách + 1 EXP tưới
+        parseInt(updatedUser.total_exp_earned, 10) === 17 // 15 EXP sách + 2 EXP tưới
       ) {
         case8_UserStatsUpdatedPass++;
       }
@@ -202,7 +202,7 @@ async function run288UsersFullLifecycleTest() {
       `, [user.id]);
       if (
         ledgerCheck.rows.length >= 2 &&
-        ledgerCheck.rows.some(r => r.type === 'DAILY_DEW' && r.amount === 1) &&
+        ledgerCheck.rows.some(r => r.type === 'DAILY_DEW' && r.amount === 2) &&
         ledgerCheck.rows.some(r => r.type === 'BOOK_CONTRIBUTION' && r.amount === 15)
       ) {
         case9_LedgerAuditTrailPass++;
@@ -226,7 +226,7 @@ async function run288UsersFullLifecycleTest() {
       `Verified: ${case3_CrossWaterBlockedPass}/288`);
 
     assert(case2_WaterOwnPass === 288, 
-      '100% (288/288) độc giả tưới nước cây đội mình thành công (+1 EXP ghi nhận)',
+      '100% (288/288) độc giả tưới nước cây đội mình thành công (+2 EXP ghi nhận)',
       `Verified: ${case2_WaterOwnPass}/288`);
 
     assert(case4_DuplicateWaterBlockedPass === 288, 
@@ -246,7 +246,7 @@ async function run288UsersFullLifecycleTest() {
       `Verified: ${case7_LikeQuotePass}/288`);
 
     assert(case8_UserStatsUpdatedPass === 288, 
-      '100% (288/288) hồ sơ độc giả được cập nhật chính xác: 1 cuốn sách, 16 EXP kiếm được',
+      '100% (288/288) hồ sơ độc giả được cập nhật chính xác: 1 cuốn sách, 17 EXP kiếm được',
       `Verified: ${case8_UserStatsUpdatedPass}/288`);
 
     assert(case9_LedgerAuditTrailPass === 288, 

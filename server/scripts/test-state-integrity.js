@@ -209,13 +209,13 @@ async function runStateIntegrityTests() {
     assert(successDews.length === 1, 'Chính xác DUY NHẤT 1 request tưới cây thành công', `Thành công: ${successDews.length}/12`);
     assert(rejectedDews.length === 11, '11 request còn lại bị chặn hoàn toàn (ACID Race Protection)', `Bị chặn: ${rejectedDews.length}/12`);
     
-    // Kiểm tra CSDL chỉ tăng đúng +1 EXP
+    // Kiểm tra CSDL chỉ tăng đúng +2 EXP
     const userExpAfterDew = (await db.query('SELECT total_exp_earned FROM users WHERE id = $1', [testUserId])).rows[0].total_exp_earned;
     const team1ExpAfterDew = (await db.query('SELECT tree_exp FROM teams WHERE id = 1')).rows[0].tree_exp;
     const dewsInDb = (await db.query('SELECT COUNT(*)::INT as count FROM daily_dews WHERE user_id = $1', [testUserId])).rows[0].count;
 
-    assert(userExpAfterDew === userExpBeforeDew + 1, 'User EXP CHỈ TĂNG ĐÚNG +1 EXP (Không bị nhân đôi/nhân 12)', `Trước: ${userExpBeforeDew}, Sau: ${userExpAfterDew}`);
-    assert(parseInt(team1ExpAfterDew, 10) === parseInt(team1ExpBeforeDew, 10) + 1, 'Team tree_exp CHỈ TĂNG ĐÚNG +1 EXP (Không bị race condition)');
+    assert(userExpAfterDew === userExpBeforeDew + 2, 'User EXP CHỈ TĂNG ĐÚNG +2 EXP (Không bị nhân đôi/nhân 12)', `Trước: ${userExpBeforeDew}, Sau: ${userExpAfterDew}`);
+    assert(parseInt(team1ExpAfterDew, 10) === parseInt(team1ExpBeforeDew, 10) + 2, 'Team tree_exp CHỈ TĂNG ĐÚNG +2 EXP (Không bị race condition)');
     assert(dewsInDb === 1, 'Bảng daily_dews chỉ lưu ĐÚNG 1 BẢN GHI (0 bản ghi trùng lặp)');
 
     // 3.2: Concurrent Like Stampede (10 requests thả tim cùng 1 mili-giây cho 1 cuốn sách)

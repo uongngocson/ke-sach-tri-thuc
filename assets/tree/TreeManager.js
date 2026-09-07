@@ -135,7 +135,7 @@ export class TreeManager {
 
       // 3D Botanical Root Ring encircling the tree root on the soil
       // Uses depthTest: true so the tree trunk geometry occludes the back half of the ring
-      const ringGeo = new THREE.PlaneGeometry(16, 16);
+      const ringGeo = new THREE.PlaneGeometry(24, 24);
       ringGeo.rotateX(-Math.PI / 2);
       const ringTex = this.#createRingTexture(DEFAULT_TEAM_COLORS[i]);
       const ringMat = new THREE.MeshBasicMaterial({
@@ -178,8 +178,10 @@ export class TreeManager {
 
     // Resize & scroll listener for continuous grounding
     window.addEventListener('resize', () => this.updateAnchorTransform(), { passive: true });
+    window.addEventListener('scroll', () => this.updateAnchorTransform(), { passive: true });
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', () => this.updateAnchorTransform(), { passive: true });
+      window.visualViewport.addEventListener('scroll', () => this.updateAnchorTransform(), { passive: true });
     }
     const groundCont = document.querySelector('.fpt-ground-container');
     if (groundCont) {
@@ -228,6 +230,51 @@ export class TreeManager {
     texture.generateMipmaps = true;
     texture.minFilter = this.THREE.LinearMipmapLinearFilter;
     return texture;
+  }
+
+  /**
+   * Project 3D root ring to exact 2D screen viewport coordinates (centerX, centerY, rx, ry)
+   * Guaranteed 0.0px mathematical alignment with Three.js camera and canvas
+   */
+  getTeamRingScreenMetrics(teamId) {
+    const index = teamId - 1;
+    if (index < 0 || index >= 8) return null;
+    const anchor = this.teamAnchors[index];
+    const ringMesh = this.teamRings[index];
+    if (!anchor || !ringMesh || !this.camera) return null;
+
+    anchor.updateMatrixWorld(true);
+    ringMesh.updateMatrixWorld(true);
+
+    const vpWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    const vpHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+
+    // 1. Center of the ring in 3D world space projected to screen
+    const centerWorld = new this.THREE.Vector3(0, 0.12, 0);
+    centerWorld.applyMatrix4(ringMesh.matrixWorld);
+    centerWorld.project(this.camera);
+
+    const screenCenterX = (centerWorld.x * 0.5 + 0.5) * vpWidth;
+    const screenCenterY = (-(centerWorld.y * 0.5) + 0.5) * vpHeight;
+
+    // 2. Active botanical ring radius in world space (Geometry is 24x24, active radius is ~9.8)
+    const activeRadius = 9.8;
+
+    // 3. Right edge projected to get screen horizontal radius rx
+    const rightWorld = new this.THREE.Vector3(activeRadius, 0.12, 0);
+    rightWorld.applyMatrix4(ringMesh.matrixWorld);
+    rightWorld.project(this.camera);
+    const screenRightX = (rightWorld.x * 0.5 + 0.5) * vpWidth;
+    const rx = Math.abs(screenRightX - screenCenterX);
+
+    // 4. Front edge projected to get screen vertical radius ry (perspective foreshortening)
+    const frontWorld = new this.THREE.Vector3(0, 0.12, activeRadius);
+    frontWorld.applyMatrix4(ringMesh.matrixWorld);
+    frontWorld.project(this.camera);
+    const screenFrontY = (-(frontWorld.y * 0.5) + 0.5) * vpHeight;
+    const ry = Math.abs(screenFrontY - screenCenterY);
+
+    return { screenCenterX, screenCenterY, rx, ry };
   }
 
   /**
@@ -359,7 +406,7 @@ export class TreeManager {
     const tanHalfFov = Math.tan(vFovRad / 2.0);
 
     // Responsive canopy scale factor calibrated for elegant, tall, and non-colliding tree canopies
-    const mobileScaleFactor = isSmallMobile ? 0.70 : (isMobile ? 0.78 : (vpWidth < 1024 ? 0.88 : 1.0));
+    const mobileScaleFactor = isSmallMobile ? 0.90 : (isMobile ? 0.95 : (vpWidth < 1024 ? 0.95 : 1.0));
 
     // Direct DOM query for 100% pixel-perfect lock with the team root plots
     const plotEls = document.querySelectorAll('.team-root-plot');
@@ -380,12 +427,12 @@ export class TreeManager {
         const plotRect = plotEl.getBoundingClientRect();
         // Exact horizontal center of this team's garden plot
         centerX = plotRect.left + plotRect.width / 2.0;
-        // The tree root base sits gracefully right at the ground plot plaque line
-        centerY = plotRect.top + (isMobile ? 18.0 : 26.0);
+        // The tree root base sits gracefully right inside the ground plot
+        centerY = plotRect.top + (isMobile ? 38.0 : 44.0);
       } else if (containerRect && containerRect.width > 0) {
         const slotWidth = containerRect.width / 8.0;
         centerX = containerRect.left + (i + 0.5) * slotWidth;
-        centerY = containerRect.top + (isMobile ? 18.0 : 26.0);
+        centerY = containerRect.top + (isMobile ? 38.0 : 44.0);
       } else {
         centerX = ((i + 0.5) / 8.0) * vpWidth;
         centerY = vpHeight * (isMobile ? 0.78 : 0.74);

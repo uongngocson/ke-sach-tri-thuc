@@ -64,7 +64,7 @@ describe('Integration Tests: Cáo Sách API & Database Transactions', () => {
     expect(duplicateRes.body.data.book.id).toBe(res.body.data.book.id);
   });
 
-  test('POST /api/v1/dew/claim - Daily Dew (+1 EXP) & Anti-Spam unique constraint on same day', async () => {
+  test('POST /api/v1/dew/claim - Daily Dew (+2 EXP) & Anti-Spam unique constraint on same day', async () => {
     const dewFingerprint = `dew_user_${Date.now()}`;
 
     // Claim 1st time -> Success
@@ -73,7 +73,7 @@ describe('Integration Tests: Cáo Sách API & Database Transactions', () => {
       .send({ userFingerprint: dewFingerprint });
 
     expect(res1.status).toBe(201);
-    expect(res1.body.data.expEarned).toBe(1);
+    expect(res1.body.data.expEarned).toBe(2);
 
     // Claim 2nd time on same day -> 409 Conflict (Database-Level Constraint Enforced)
     const res2 = await request(app)

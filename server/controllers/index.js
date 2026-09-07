@@ -85,7 +85,7 @@ export async function claimDew(req, res, next) {
     const result = await DewService.claimDew({ userId, teamId, email, userFingerprint });
     res.status(201).json({
       success: true,
-      message: 'Tưới cây thành công (+1 EXP)!',
+      message: 'Tưới cây thành công (+2 EXP)!',
       data: result
     });
   } catch (err) {

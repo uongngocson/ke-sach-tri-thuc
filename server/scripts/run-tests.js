@@ -131,7 +131,7 @@ async function runAllTests() {
       email: validUser.email,
       userFingerprint: dewFp
     });
-    assert(dew1.expEarned === 1, 'Daily Dew: First claim on own team tree succeeds (+1 EXP)');
+    assert(dew1.expEarned === 2, 'Daily Dew: First claim on own team tree succeeds (+2 EXP)');
     assert(dew1.team.id === validUser.team_id, 'Daily Dew: Team tree EXP is credited to the correct team');
 
     // Daily Dew 2nd time on same date -> Must throw 409 DUPLICATE_DEW_CLAIM
