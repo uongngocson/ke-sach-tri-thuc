@@ -9,7 +9,8 @@
     "dev": "nodemon server.js",
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed.js",
-    "test": "node scripts/run-tests.js && node scripts/test-modal-keys.js && node scripts/test-content-settings.js && node scripts/test-unit-suite.js && node scripts/test-teams-and-users-fullkey.js && node scripts/test-admin-analytics-deepdive.js && node scripts/test-state-integrity.js && node scripts/test-admin-crud.js",
+    "test": "node scripts/run-tests.js && node scripts/test-modal-keys.js && node scripts/test-content-settings.js && node scripts/test-unit-suite.js && node scripts/test-teams-and-users-fullkey.js && node scripts/test-admin-analytics-deepdive.js && node scripts/test-state-integrity.js && node scripts/test-admin-crud.js && node scripts/test-watering-and-likes-fullkey.js",
+    "test:watering": "node scripts/test-watering-and-likes-fullkey.js",
     "test:lifecycle": "node scripts/test-288-users-full-lifecycle.js",
     "test:all": "npm test && npm run test:lifecycle"
   },

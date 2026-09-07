@@ -23,7 +23,7 @@ export class DewService {
    * 2. Guests / non-logged in users CANNOT water.
    * 3. Users can only water their own team's tree (teamId must match user's team_id).
    */
-  static async claimDew({ userId, teamId, email, userFingerprint }) {
+  static async claimDew({ userId, teamId, email, userFingerprint, customDate }) {
     // 1. Check user login
     if (!userId || userId === 'guest') {
       const err = new Error('Vui lòng đăng nhập hoặc chọn danh tính thành viên để tưới cây!');
@@ -62,7 +62,7 @@ export class DewService {
       throw err;
     }
 
-    const todayVN = getVietnamDateString();
+    const todayVN = customDate || getVietnamDateString();
     const effectiveFingerprint = userFingerprint || `fp_user_${user.id.substring(0, 8)}`;
 
     const result = await db.transaction(async (client) => {
@@ -79,9 +79,11 @@ export class DewService {
         throw err;
       }
 
-      // 5. Calculate streak from yesterday (Asia/Ho_Chi_Minh)
-      const yesterday = new Date(Date.now() - 86400000);
-      const yesterdayVN = getVietnamDateString(yesterday);
+      // 5. Calculate streak from yesterday (Exact YYYY-MM-DD calculation)
+      const [y, m, d] = todayVN.split('-').map(Number);
+      const yesterdayObj = new Date(Date.UTC(y, m - 1, d - 1));
+      const yesterdayVN = yesterdayObj.toISOString().split('T')[0];
+
       const prevDew = await client.query(
         'SELECT streak FROM daily_dews WHERE user_id = $1 AND claim_date = $2',
         [user.id, yesterdayVN]
@@ -162,18 +164,18 @@ export class DewService {
   /**
    * Get Dew claim status for a user today
    */
-  static async getDewStatus({ userId, userFingerprint }) {
-    const todayVN = getVietnamDateString();
+  static async getDewStatus({ userId, userFingerprint, customDate }) {
+    const todayVN = customDate || getVietnamDateString();
     let res;
 
     if (userId && userId !== 'guest') {
       res = await db.query(
-        'SELECT streak, claim_date FROM daily_dews WHERE user_id = $1 ORDER BY claim_date DESC LIMIT 1',
+        'SELECT streak, claim_date::text as claim_date FROM daily_dews WHERE user_id = $1 ORDER BY claim_date DESC LIMIT 1',
         [userId]
       );
     } else if (userFingerprint) {
       res = await db.query(
-        'SELECT streak, claim_date FROM daily_dews WHERE user_fingerprint = $1 ORDER BY claim_date DESC LIMIT 1',
+        'SELECT streak, claim_date::text as claim_date FROM daily_dews WHERE user_fingerprint = $1 ORDER BY claim_date DESC LIMIT 1',
         [userFingerprint]
       );
     } else {
@@ -185,7 +187,7 @@ export class DewService {
     }
 
     const last = res.rows[0];
-    const lastClaimDateVN = getVietnamDateString(new Date(last.claim_date));
+    const lastClaimDateVN = String(last.claim_date);
     const hasClaimedToday = (lastClaimDateVN === todayVN);
 
     return {

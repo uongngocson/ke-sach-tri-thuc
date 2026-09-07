@@ -45,15 +45,23 @@ export class DailyDewService {
   static async hasCheckedInToday(userId, forceRefresh = false) {
     if (!userId || userId === 'guest') return false;
 
-    if (!forceRefresh && this._serverStatusCache[userId] !== undefined) {
-      return this._serverStatusCache[userId].hasClaimedToday;
+    const today = this.getTodayDateString();
+    const cached = this._serverStatusCache[userId];
+
+    if (!forceRefresh && cached && cached.cacheDate === today) {
+      return cached.hasClaimedToday;
     }
 
     try {
       if (MockDataStore && MockDataStore.getDewStatus) {
         const status = await MockDataStore.getDewStatus(userId);
         if (status) {
-          this._serverStatusCache[userId] = status;
+          this._serverStatusCache[userId] = {
+            hasClaimedToday: !!status.hasClaimedToday,
+            streak: status.streak,
+            lastClaimDate: status.lastClaimDate,
+            cacheDate: today
+          };
           const key = this.getStorageKey(userId);
           localStorage.setItem(key, status.hasClaimedToday ? 'true' : 'false');
           if (status.streak !== undefined) {
@@ -80,14 +88,21 @@ export class DailyDewService {
    */
   static async getStreak(userId) {
     if (!userId || userId === 'guest') return 0;
-    if (this._serverStatusCache[userId]?.streak !== undefined) {
-      return this._serverStatusCache[userId].streak;
+    const today = this.getTodayDateString();
+    const cached = this._serverStatusCache[userId];
+    if (cached && cached.cacheDate === today && cached.streak !== undefined) {
+      return cached.streak;
     }
     try {
       if (MockDataStore && MockDataStore.getDewStatus) {
         const status = await MockDataStore.getDewStatus(userId);
         if (status) {
-          this._serverStatusCache[userId] = status;
+          this._serverStatusCache[userId] = {
+            hasClaimedToday: !!status.hasClaimedToday,
+            streak: status.streak,
+            lastClaimDate: status.lastClaimDate,
+            cacheDate: today
+          };
           return status.streak || 0;
         }
       }
@@ -157,7 +172,8 @@ export class DailyDewService {
       if (apiRes.code === 'DUPLICATE_DEW_CLAIM') {
         this._serverStatusCache[currentUser.id] = {
           hasClaimedToday: true,
-          streak: apiRes.streak || (await this.getStreak(currentUser.id))
+          streak: apiRes.streak || (await this.getStreak(currentUser.id)),
+          cacheDate: today
         };
         localStorage.setItem(this.getStorageKey(currentUser.id), 'true');
       }
@@ -173,7 +189,8 @@ export class DailyDewService {
     this._serverStatusCache[currentUser.id] = {
       hasClaimedToday: true,
       streak: currentStreak,
-      lastClaimDate: today
+      lastClaimDate: today,
+      cacheDate: today
     };
     localStorage.setItem(this.getStorageKey(currentUser.id), 'true');
     localStorage.setItem(this.getStreakKey(currentUser.id), String(currentStreak));
