@@ -4203,6 +4203,13 @@
                       <!-- Dynamically populated seeds by MockDataStore (Starts empty) -->
                     </div>
                   </div>
+
+                  <!-- Mobile / Tablet Right Scroll Hint Floating Indicator -->
+                  <button id="fpt-ground-scroll-hint" class="fpt-ground-scroll-hint max-[1199px]:flex hidden items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 backdrop-blur-md border border-sky-400/40 text-sky-200 text-xs font-semibold shadow-lg shadow-black/60 select-none cursor-pointer hover:bg-slate-800 transition-all duration-300 active:scale-95 z-[60]" title="Trượt để xem tiếp các đội khác">
+                    <span class="text-[11px] font-medium tracking-wide">Trượt xem tiếp</span>
+                    <span class="inline-block animate-pulse text-amber-400 font-bold text-sm">👉</span>
+                    <span class="text-sky-300 font-bold text-xs scroll-chevron-bounce">➔</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -5443,13 +5450,13 @@
       min-height: 180px !important;
       height: 100% !important;
       width: 100% !important;
-      min-width: 960px;
+      min-width: 1440px;
       pointer-events: auto !important;
       position: relative !important;
       display: flex !important;
       justify-content: space-between !important;
       align-items: stretch !important;
-      padding: 0 1% !important;
+      padding: 0 24px !important;
     }
 
     @media (min-width: 1200px) {
@@ -5458,12 +5465,13 @@
       }
       .fpt-ground-inner {
         min-width: 100% !important;
+        padding: 0 1% !important;
       }
     }
 
     @media (max-width: 1199px) {
       .fpt-ground-arc {
-        min-width: 960px !important;
+        min-width: 1440px !important;
       }
     }
 
@@ -5471,9 +5479,9 @@
     .team-root-plot {
       position: relative;
       flex: 1 1 0;
-      min-width: 108px;
+      min-width: 154px !important;
+      margin: 0 14px !important;
       height: 100%;
-      margin: 0;
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
@@ -5485,14 +5493,38 @@
 
     @media (min-width: 1200px) {
       .team-root-plot {
-        min-width: 0;
+        min-width: 0 !important;
+        margin: 0 !important;
       }
+    }
+
+    /* Mobile Ground Scroll Hint Indicator */
+    .fpt-ground-scroll-hint {
+      position: absolute;
+      right: 12px;
+      bottom: 36px;
+      z-index: 60 !important;
+      pointer-events: auto;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .fpt-ground-scroll-hint.is-hidden {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: translateX(12px) !important;
+    }
+    @keyframes scrollChevronPulse {
+      0%, 100% { transform: translateX(0); opacity: 0.85; }
+      50% { transform: translateX(5px); opacity: 1; }
+    }
+    .scroll-chevron-bounce {
+      display: inline-block;
+      animation: scrollChevronPulse 1.2s ease-in-out infinite;
     }
 
     /* Botanical Garden Signpost Plaque planted in the dirt in front of the tree root */
     .root-garden-plaque {
       position: absolute;
-      top: 80px;
+      top: 98px;
       left: 50%;
       transform: translateX(-50%);
       display: inline-flex;
@@ -5514,17 +5546,17 @@
 
     @media (max-width: 768px) {
       .root-garden-plaque {
-        top: 74px;
+        top: 88px;
       }
     }
 
     /* Plaque position when team is in unsprouted seed stage, framing the front edge of the root ring */
     .team-root-plot.is-unsprouted .root-garden-plaque {
-      top: 80px;
+      top: 98px;
     }
     @media (max-width: 768px) {
       .team-root-plot.is-unsprouted .root-garden-plaque {
-        top: 74px;
+        top: 88px;
       }
     }
 
@@ -7478,6 +7510,11 @@
           }
         }
 
+        // Mobile Right Scroll Hint Visibility Update
+        if (typeof updateGroundScrollHint === 'function') {
+          updateGroundScrollHint();
+        }
+
         // Automated touch verification hook for testing
         if (new URLSearchParams(window.location.search).get('testTouchSeed')) {
           setTimeout(() => {
@@ -7488,6 +7525,40 @@
           }, 800);
         }
       }
+
+      function updateGroundScrollHint() {
+        const groundCont = document.querySelector('.fpt-ground-container');
+        const hintBtn = document.getElementById('fpt-ground-scroll-hint');
+        if (!groundCont || !hintBtn) return;
+        if (window.innerWidth >= 1200) {
+          hintBtn.classList.add('is-hidden');
+          return;
+        }
+        const maxScroll = groundCont.scrollWidth - groundCont.clientWidth;
+        if (maxScroll <= 20 || groundCont.scrollLeft >= maxScroll - 35) {
+          hintBtn.classList.add('is-hidden');
+        } else {
+          hintBtn.classList.remove('is-hidden');
+        }
+      }
+
+      function initGroundScrollHint() {
+        const groundCont = document.querySelector('.fpt-ground-container');
+        const hintBtn = document.getElementById('fpt-ground-scroll-hint');
+        if (!groundCont || !hintBtn) return;
+
+        groundCont.addEventListener('scroll', updateGroundScrollHint, { passive: true });
+        window.addEventListener('resize', updateGroundScrollHint, { passive: true });
+        
+        hintBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          groundCont.scrollBy({ left: 200, behavior: 'smooth' });
+        });
+
+        setTimeout(updateGroundScrollHint, 500);
+      }
+      initGroundScrollHint();
 
       window.renderGroundSeeds = renderGroundSeeds;
       window.loadUserTeamAndSync = loadUserTeamAndSync;
