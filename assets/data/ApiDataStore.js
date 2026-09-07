@@ -530,8 +530,6 @@ class ApiDataStoreManager {
 
       const data = await res.json();
       if (data.success) {
-        const growth = await this.getCommunityGrowth();
-        this.emit('growth:updated', growth);
         return { success: true, likes: data.data.newLikesCount };
       } else {
         return { success: false, message: data.message };

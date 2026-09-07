@@ -3,7 +3,7 @@
  * Botanical Particle & Bio-luminescence Effects Coordinator
  * Renders high-performance particle streams for Fertilizer (Golden Spores) and Watering (Dew Drops)
  */
-import { MockDataStore } from '../data/MockDataStore.js?v=20260907_v1';
+import { MockDataStore } from '../data/MockDataStore.js?v=20260907_v3';
 
 export class NourishmentFX {
   constructor() {

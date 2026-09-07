@@ -6,7 +6,7 @@
  */
 import { Tree, LeafStyle, LeafType } from './tree.js?v=20260907_v1';
 import GUI from './lil-gui.module.min.js?v=20260907_v1';
-import { TreeGrowthController } from './TreeGrowthController.js?v=20260907_v1';
+import { TreeGrowthController } from './TreeGrowthController.js?v=20260907_v3';
 import { WisdomFruitManager } from './WisdomFruitManager.js?v=20260907_v1';
 
 const DEFAULT_TEAM_COLORS = [

@@ -3,7 +3,7 @@
  * Master 3D Botanical Fruit Coordinator
  * 100% Dynamically Anchored to REAL Procedural 3D Branch & Leaf Joints for EVERY Growth Stage
  */
-import { MockDataStore } from '../data/MockDataStore.js?v=20260907_v1';
+import { MockDataStore } from '../data/MockDataStore.js?v=20260907_v3';
 
 export class WisdomFruitManager {
   constructor(THREE, scene, camera, treeAnchor, treeManager) {

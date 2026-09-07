@@ -3,7 +3,7 @@
  * Daily Dew Check-in Service & Wisdom Blessing Generator
  * Enforces 1 dew per user per day in Asia/Ho_Chi_Minh timezone, checks user identity & team
  */
-import { MockDataStore } from '../data/MockDataStore.js?v=20260907_v1';
+import { MockDataStore } from '../data/MockDataStore.js?v=20260907_v3';
 
 export class DailyDewService {
   /**
