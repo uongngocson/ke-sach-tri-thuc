@@ -81,7 +81,7 @@ export class UserIdentityModal {
         <div class="ui-identity-title-block">
           <h2 class="ui-identity-title">Chào Mừng Đến Vườn Cây Tri Thức</h2>
           <p class="ui-identity-subtitle">
-            Nhập <strong>Email FPT</strong> hoặc <strong>Mã Nhân Viên</strong> để nhận diện Đội và cùng đồng đội chăm sóc Cây Tri Thức của bạn.
+            Nhập <strong>Email</strong> hoặc <strong>Mã Nhân Viên</strong> để nhận diện Đội và cùng đồng đội chăm sóc Cây Tri Thức của bạn.
           </p>
         </div>
 
@@ -89,14 +89,14 @@ export class UserIdentityModal {
         <div class="ui-identity-form-group">
           <label class="ui-identity-label">
             <span>👤</span>
-            <span>Email FPT hoặc Mã Nhân Viên:</span>
+            <span>Email hoặc Mã Nhân Viên:</span>
           </label>
           <div class="ui-identity-input-wrapper">
             <input 
               type="text" 
               id="ui-identity-input" 
               class="ui-identity-input" 
-              placeholder="Ví dụ: thuhuong@fpt.com hoặc 00000295..."
+              placeholder="Ví dụ: thuhuong hoặc 00000295..."
               autocomplete="off"
             />
             <button class="ui-identity-clear-btn" id="ui-identity-clear-btn" style="display:none;">✕</button>
@@ -114,7 +114,7 @@ export class UserIdentityModal {
             <div class="ui-identity-preview-avatar" id="ui-preview-avatar">🦊</div>
             <div class="ui-identity-preview-info">
               <h4 class="ui-preview-name" id="ui-preview-name">Nguyễn Thu Hương</h4>
-              <p class="ui-preview-meta" id="ui-preview-meta">thuhuong@fpt.com • 00000295</p>
+              <p class="ui-preview-meta" id="ui-preview-meta">thuhuong • 00000295</p>
               <div class="ui-preview-team-tag" id="ui-preview-team">
                 <span id="ui-preview-team-icon">⚡</span>
                 <span id="ui-preview-team-name">Đội 1</span>
@@ -496,6 +496,11 @@ export class UserIdentityModal {
     document.head.appendChild(style);
   }
 
+  static maskEmail(email) {
+    if (!email) return '';
+    return email.replace(/@fpt\.com$/i, '');
+  }
+
   bindEvents(overlay) {
     const input = overlay.querySelector('#ui-identity-input');
     const clearBtn = overlay.querySelector('#ui-identity-clear-btn');
@@ -555,7 +560,7 @@ export class UserIdentityModal {
           if (json.success && json.data && json.data.length > 0) {
             this.renderSuggestions(json.data, suggestionsBox, (user) => {
               selectedUser = user;
-              input.value = `${user.full_name} (${user.email})`;
+              input.value = `${user.full_name} (${UserIdentityModal.maskEmail(user.email)})`;
               suggestionsBox.style.display = 'none';
               this.showPreview(user, previewBox);
               submitBtn.disabled = false;
@@ -609,7 +614,7 @@ export class UserIdentityModal {
       const guestSession = {
         id: 'guest',
         full_name: 'Khách Tham Quan',
-        email: 'guest@fpt.com',
+        email: 'guest',
         isGuest: true,
         team_id: null, // Guests do not belong to any team
         team_display_name: 'Khách Tham Quan'
@@ -627,7 +632,7 @@ export class UserIdentityModal {
           <div class="ui-suggestion-avatar">${u.full_name.slice(0, 1)}</div>
           <div class="ui-suggestion-details">
             <div class="ui-suggestion-name">${u.full_name}</div>
-            <div class="ui-suggestion-meta">${u.email} • ${u.employee_code}</div>
+            <div class="ui-suggestion-meta">${UserIdentityModal.maskEmail(u.email)} • ${u.employee_code}</div>
           </div>
         </div>
         <div class="ui-suggestion-team-tag" style="border-left: 2px solid ${u.team_color || '#3b82f6'};">
@@ -651,7 +656,7 @@ export class UserIdentityModal {
 
     avatar.textContent = user.gender === 'Nữ' ? '🌸' : '⚡';
     name.textContent = user.full_name;
-    meta.textContent = `${user.email} • Mã NV: ${user.employee_code}`;
+    meta.textContent = `${UserIdentityModal.maskEmail(user.email)} • Mã NV: ${user.employee_code}`;
     team.textContent = user.team_id ? `Đội ${user.team_id}` : 'Đội';
 
     previewBox.style.display = 'block';

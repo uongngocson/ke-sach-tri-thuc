@@ -106,7 +106,8 @@ function bindSidebarEvents() {
     'moderation': '📚 Trung Tâm Hậu Kiểm Sách & Trích Dẫn',
     'ledger': '📑 Sổ Cái EXP Minh Bạch Toàn Giải',
     'content-rules': '🎨 Tùy Biến Thể Lệ & Giao Diện Chào Mừng',
-    'tools': '⚙️ Công Cụ Điều Phối & Nhật Ký Kiểm Toán'
+    'tools': '⚙️ Công Cụ Điều Phối & Nhật Ký Kiểm Toán',
+    'admin-accounts': '🛡️ Quản Trị Viên & Phân Quyền Command Center'
   };
 
   navItems.forEach(item => {
@@ -139,12 +140,17 @@ function bindSidebarEvents() {
       if (tab === 'ledger') loadLedger();
       if (tab === 'content-rules') loadContentSettings();
       if (tab === 'tools') loadAuditLogs();
+      if (tab === 'admin-accounts') {
+        loadAdminAccounts();
+        loadAdminAccountStats();
+      }
     });
   });
 }
 
 function bindActionEvents() {
   bindContentRulesEvents();
+  bindAdminAccountEvents();
   // Login Form
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
@@ -1662,7 +1668,7 @@ function renderLedgerTable(ledger) {
 
   const typeLabels = {
     'BOOK_CONTRIBUTION': '📚 Gieo Sách (+15 EXP)',
-    'DAILY_DEW': '💧 Tưới Sương (+1 EXP)',
+    'DAILY_DEW': '💧 Tưới Sương (+2 EXP)',
     'QUOTE_LIKE': '❤️ Thích Trích Dẫn (+2 EXP)',
     'FRUIT_HARVEST': '🍎 Hái Quả (+5 EXP)',
     'ADMIN_BONUS': '🎁 Thưởng Sự Kiện',
@@ -2172,3 +2178,554 @@ function closeWipeModal() {
   if (pwdInput) pwdInput.value = '';
   if (errEl) errEl.classList.add('hidden');
 }
+
+// =========================================================================
+// ADMIN ACCOUNTS MANAGEMENT MODULE (CRUD)
+// =========================================================================
+
+let adminAccountsList = [];
+let pendingDeleteAdminId = null;
+
+function bindAdminAccountEvents() {
+  // Search and Filter Events
+  const searchInput = document.getElementById('admin-search-input');
+  if (searchInput) {
+    let debounceTimer;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadAdminAccounts();
+      }, 300);
+    });
+  }
+
+  const roleFilter = document.getElementById('admin-filter-role');
+  if (roleFilter) {
+    roleFilter.addEventListener('change', () => loadAdminAccounts());
+  }
+
+  const statusFilter = document.getElementById('admin-filter-status');
+  if (statusFilter) {
+    statusFilter.addEventListener('change', () => loadAdminAccounts());
+  }
+
+  const btnRefresh = document.getElementById('btn-refresh-admins');
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', () => {
+      loadAdminAccounts();
+      loadAdminAccountStats();
+    });
+  }
+
+  // Create Modal Open
+  const btnOpenCreate = document.getElementById('btn-open-create-admin');
+  if (btnOpenCreate) {
+    btnOpenCreate.addEventListener('click', () => openCreateAdminModal());
+  }
+
+  // Form Submit
+  const adminForm = document.getElementById('form-admin-account');
+  if (adminForm) {
+    adminForm.addEventListener('submit', handleAdminFormSubmit);
+  }
+
+  // Form Modal Close
+  const closeBtn = document.getElementById('admin-modal-close');
+  const cancelBtn = document.getElementById('admin-modal-cancel');
+  const modalAccount = document.getElementById('modal-admin-account');
+  if (closeBtn) closeBtn.addEventListener('click', closeAdminModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeAdminModal);
+  if (modalAccount) {
+    modalAccount.addEventListener('click', (e) => {
+      if (e.target === modalAccount) closeAdminModal();
+    });
+  }
+
+  // Toggle Password Visibility in Modal
+  const btnTogglePwd = document.getElementById('btn-toggle-admin-pwd');
+  const pwdInput = document.getElementById('admin-form-password');
+  if (btnTogglePwd && pwdInput) {
+    btnTogglePwd.addEventListener('click', () => {
+      const isPwd = pwdInput.type === 'password';
+      pwdInput.type = isPwd ? 'text' : 'password';
+      btnTogglePwd.textContent = isPwd ? '🙈' : '👁️';
+    });
+  }
+
+  // Delete Modal Close
+  const delCloseBtn = document.getElementById('admin-delete-modal-close');
+  const delCancelBtn = document.getElementById('admin-delete-cancel');
+  const modalDelete = document.getElementById('modal-admin-delete');
+  if (delCloseBtn) delCloseBtn.addEventListener('click', closeDeleteAdminModal);
+  if (delCancelBtn) delCancelBtn.addEventListener('click', closeDeleteAdminModal);
+  if (modalDelete) {
+    modalDelete.addEventListener('click', (e) => {
+      if (e.target === modalDelete) closeDeleteAdminModal();
+    });
+  }
+
+  // Confirm Delete Button
+  const btnConfirmDelete = document.getElementById('btn-confirm-delete-admin');
+  if (btnConfirmDelete) {
+    btnConfirmDelete.addEventListener('click', handleConfirmDeleteAdmin);
+  }
+
+  // ESC key to close modals
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (modalAccount?.classList.contains('show')) closeAdminModal();
+      if (modalDelete?.classList.contains('show')) closeDeleteAdminModal();
+    }
+  });
+}
+
+async function loadAdminAccounts() {
+  const tbody = document.getElementById('admin-accounts-table-body');
+  if (!tbody) return;
+
+  const search = document.getElementById('admin-search-input')?.value.trim() || '';
+  const role = document.getElementById('admin-filter-role')?.value || '';
+  const status = document.getElementById('admin-filter-status')?.value || '';
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="6" class="p-8 text-center text-slate-500 font-bold">
+        <span class="inline-block animate-spin mr-2">⏳</span> Đang tải danh sách quản trị viên...
+      </td>
+    </tr>
+  `;
+
+  try {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (role) params.append('role', role);
+    if (status) params.append('status', status);
+
+    const res = await fetch(`${API_BASE}/admin/accounts?${params.toString()}`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    if (res.status === 403) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="p-8 text-center text-rose-400 font-bold">
+            🔒 Bạn không có quyền xem danh sách quản trị viên (Chỉ dành riêng cho Superadmin).
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    const data = await res.json();
+    if (!data.success) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="p-8 text-center text-rose-400 font-bold">
+            ❌ Lỗi tải dữ liệu: ${data.message || 'Không thể kết nối đến máy chủ.'}
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    adminAccountsList = data.data || [];
+    renderAdminAccountsTable(adminAccountsList);
+  } catch (err) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="p-8 text-center text-rose-400 font-bold">
+          ❌ Không thể tải danh sách tài khoản: ${err.message}
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function renderAdminAccountsTable(accounts) {
+  const tbody = document.getElementById('admin-accounts-table-body');
+  if (!tbody) return;
+
+  if (accounts.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="p-8 text-center text-slate-400 font-bold">
+          📭 Không tìm thấy tài khoản quản trị nào phù hợp với điều kiện lọc.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = accounts.map(item => {
+    const isSelf = currentUser && (currentUser.id === item.id || currentUser.username === item.username);
+    
+    // Role styling
+    let roleBadge = '';
+    let avatarGradient = 'linear-gradient(135deg, #64748b, #475569)';
+    if (item.role === 'admin') {
+      roleBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-purple-500/15 border border-purple-500/30 text-purple-300">👑 Superadmin</span>';
+      avatarGradient = 'linear-gradient(135deg, #a855f7, #6366f1)';
+    } else if (item.role === 'moderator') {
+      roleBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-cyan-500/15 border border-cyan-500/30 text-cyan-300">⚖️ Điều Phối Viên</span>';
+      avatarGradient = 'linear-gradient(135deg, #06b6d4, #0284c7)';
+    } else {
+      roleBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-slate-500/15 border border-slate-500/30 text-slate-300">👀 Quan Sát</span>';
+    }
+
+    // Status styling
+    const statusBadge = item.is_active 
+      ? '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">🟢 Hoạt Động</span>'
+      : '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-500/15 border border-rose-500/30 text-rose-400">🔴 Đang Khóa</span>';
+
+    // Date formatting
+    const createdDate = item.created_at ? new Date(item.created_at).toLocaleString('vi-VN', {
+      hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
+    }) : '—';
+
+    // Initials for Avatar
+    const initials = (item.full_name || item.username || 'AD')
+      .split(' ')
+      .filter(Boolean)
+      .map(w => w[0])
+      .slice(-2)
+      .join('')
+      .toUpperCase();
+
+    return `
+      <tr class="hover:bg-slate-800/40 transition-colors">
+        <td>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black text-white shadow-md shrink-0" style="background: ${avatarGradient};">
+              ${initials}
+            </div>
+            <div>
+              <div class="font-bold text-white flex items-center gap-2">
+                <span>${item.full_name}</span>
+                ${isSelf ? '<span class="px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 text-[10px] font-extrabold border border-sky-400/30">Bạn</span>' : ''}
+              </div>
+              <div class="text-[11px] text-slate-400 font-mono">${item.id}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="font-mono text-xs font-bold text-sky-300">@${item.username}</span>
+        </td>
+        <td>${roleBadge}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <span class="text-xs text-slate-300 font-bold">${createdDate}</span>
+        </td>
+        <td class="text-right">
+          <div class="flex items-center justify-end gap-1.5">
+            <button class="btn btn-ghost px-2.5 py-1.5 text-xs text-sky-400 hover:text-white" 
+              onclick="window.editAdminAccount('${item.id}')" title="Chỉnh sửa thông tin">
+              ✏️ Sửa
+            </button>
+            
+            ${isSelf ? `
+              <button class="btn btn-ghost px-2.5 py-1.5 text-xs text-slate-600 cursor-not-allowed opacity-50" 
+                title="Không thể tự khóa tài khoản của chính mình" disabled>
+                🔒 Khóa
+              </button>
+              <button class="btn btn-ghost px-2.5 py-1.5 text-xs text-slate-600 cursor-not-allowed opacity-50" 
+                title="Không thể tự xóa tài khoản của chính mình" disabled>
+                🗑️
+              </button>
+            ` : `
+              <button class="btn btn-ghost px-2.5 py-1.5 text-xs ${item.is_active ? 'text-amber-400 hover:text-amber-300' : 'text-emerald-400 hover:text-emerald-300'}" 
+                onclick="window.toggleAdminStatus('${item.id}', ${item.is_active})" 
+                title="${item.is_active ? 'Khóa tài khoản này' : 'Mở khóa tài khoản'}">
+                ${item.is_active ? '🔒 Khóa' : '🔓 Mở'}
+              </button>
+              <button class="btn btn-ghost px-2.5 py-1.5 text-xs text-rose-400 hover:text-rose-300" 
+                onclick="window.openDeleteAdminModal('${item.id}', '${item.username}', '${item.full_name}', '${item.role}')" 
+                title="Xóa vĩnh viễn tài khoản">
+                🗑️
+              </button>
+            `}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function loadAdminAccountStats() {
+  try {
+    const res = await fetch(`${API_BASE}/admin/accounts/stats`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.success && data.data) {
+      const s = data.data;
+      const totalEl = document.getElementById('kpi-admin-total');
+      const activeEl = document.getElementById('kpi-admin-active');
+      const superEl = document.getElementById('kpi-admin-super');
+      const modsEl = document.getElementById('kpi-admin-mods');
+
+      if (totalEl) totalEl.textContent = s.total || 0;
+      if (activeEl) activeEl.textContent = `${s.active || 0} đang hoạt động (${s.inactive || 0} bị khóa)`;
+      if (superEl) superEl.textContent = s.admins || 0;
+      if (modsEl) modsEl.textContent = s.moderators || 0;
+    }
+  } catch (err) {
+    console.warn('Could not load admin stats:', err);
+  }
+}
+
+function openCreateAdminModal() {
+  const modal = document.getElementById('modal-admin-account');
+  const title = document.getElementById('admin-modal-title');
+  const idInput = document.getElementById('admin-form-id');
+  const usernameInput = document.getElementById('admin-form-username');
+  const fullnameInput = document.getElementById('admin-form-fullname');
+  const pwdInput = document.getElementById('admin-form-password');
+  const pwdRequired = document.getElementById('admin-pwd-required');
+  const pwdLabel = document.getElementById('admin-pwd-label');
+  const pwdHint = document.getElementById('admin-pwd-hint');
+  const roleSelect = document.getElementById('admin-form-role');
+  const activeCheck = document.getElementById('admin-form-active');
+  const errBox = document.getElementById('admin-form-error');
+
+  if (title) title.textContent = 'Thêm Quản Trị Viên Mới';
+  if (idInput) idInput.value = '';
+  if (usernameInput) {
+    usernameInput.value = '';
+    usernameInput.disabled = false;
+    usernameInput.classList.remove('opacity-60', 'cursor-not-allowed');
+  }
+  if (fullnameInput) fullnameInput.value = '';
+  if (pwdInput) {
+    pwdInput.value = '';
+    pwdInput.required = true;
+    pwdInput.placeholder = 'Tối thiểu 6 ký tự...';
+  }
+  if (pwdRequired) pwdRequired.classList.remove('hidden');
+  if (pwdLabel) pwdLabel.textContent = 'Mật Khẩu Đăng Nhập';
+  if (pwdHint) pwdHint.textContent = 'Mật khẩu tối thiểu 6 ký tự được mã hóa an toàn bằng thuật toán Bcrypt.';
+  if (roleSelect) roleSelect.value = 'moderator';
+  if (activeCheck) activeCheck.checked = true;
+  if (errBox) errBox.classList.add('hidden');
+
+  if (modal) {
+    modal.classList.add('show');
+    setTimeout(() => usernameInput?.focus(), 150);
+  }
+}
+
+function openEditAdminModal(account) {
+  const modal = document.getElementById('modal-admin-account');
+  const title = document.getElementById('admin-modal-title');
+  const idInput = document.getElementById('admin-form-id');
+  const usernameInput = document.getElementById('admin-form-username');
+  const fullnameInput = document.getElementById('admin-form-fullname');
+  const pwdInput = document.getElementById('admin-form-password');
+  const pwdRequired = document.getElementById('admin-pwd-required');
+  const pwdLabel = document.getElementById('admin-pwd-label');
+  const pwdHint = document.getElementById('admin-pwd-hint');
+  const roleSelect = document.getElementById('admin-form-role');
+  const activeCheck = document.getElementById('admin-form-active');
+  const errBox = document.getElementById('admin-form-error');
+
+  if (title) title.textContent = `Chỉnh Sửa Tài Khoản: @${account.username}`;
+  if (idInput) idInput.value = account.id;
+  if (usernameInput) {
+    usernameInput.value = account.username;
+    usernameInput.disabled = true;
+    usernameInput.classList.add('opacity-60', 'cursor-not-allowed');
+  }
+  if (fullnameInput) fullnameInput.value = account.full_name || '';
+  if (pwdInput) {
+    pwdInput.value = '';
+    pwdInput.required = false;
+    pwdInput.placeholder = 'Để trống nếu không muốn đổi mật khẩu';
+  }
+  if (pwdRequired) pwdRequired.classList.add('hidden');
+  if (pwdLabel) pwdLabel.textContent = 'Đổi Mật Khẩu Mới (Tùy chọn)';
+  if (pwdHint) pwdHint.textContent = 'Nhập mật khẩu mới nếu muốn cấp lại cho thành viên, hoặc để trống để giữ nguyên.';
+  if (roleSelect) roleSelect.value = account.role || 'moderator';
+  if (activeCheck) activeCheck.checked = Boolean(account.is_active);
+  if (errBox) errBox.classList.add('hidden');
+
+  if (modal) {
+    modal.classList.add('show');
+    setTimeout(() => fullnameInput?.focus(), 150);
+  }
+}
+
+function closeAdminModal() {
+  const modal = document.getElementById('modal-admin-account');
+  if (modal) modal.classList.remove('show');
+  const errBox = document.getElementById('admin-form-error');
+  if (errBox) errBox.classList.add('hidden');
+}
+
+async function handleAdminFormSubmit(e) {
+  e.preventDefault();
+  const idInput = document.getElementById('admin-form-id');
+  const usernameInput = document.getElementById('admin-form-username');
+  const fullnameInput = document.getElementById('admin-form-fullname');
+  const pwdInput = document.getElementById('admin-form-password');
+  const roleSelect = document.getElementById('admin-form-role');
+  const activeCheck = document.getElementById('admin-form-active');
+  const errBox = document.getElementById('admin-form-error');
+  const errMsg = document.getElementById('admin-form-error-msg');
+  const submitBtn = document.getElementById('btn-submit-admin-form');
+  const spinner = document.getElementById('admin-form-spinner');
+
+  const id = idInput ? idInput.value : '';
+  const isEditing = Boolean(id);
+
+  const payload = {
+    full_name: fullnameInput.value.trim(),
+    role: roleSelect.value,
+    is_active: activeCheck.checked
+  };
+
+  if (!isEditing) {
+    payload.username = usernameInput.value.trim();
+    payload.password = pwdInput.value;
+  } else {
+    if (pwdInput.value && pwdInput.value.trim().length >= 6) {
+      payload.password = pwdInput.value.trim();
+    }
+  }
+
+  // Clear previous errors
+  if (errBox) errBox.classList.add('hidden');
+  if (submitBtn) submitBtn.disabled = true;
+  if (spinner) spinner.classList.remove('hidden');
+
+  try {
+    const url = isEditing 
+      ? `${API_BASE}/admin/accounts/${id}` 
+      : `${API_BASE}/admin/accounts`;
+    const method = isEditing ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Thao tác không thành công.');
+    }
+
+    closeAdminModal();
+    loadAdminAccounts();
+    loadAdminAccountStats();
+  } catch (err) {
+    if (errBox && errMsg) {
+      errMsg.textContent = err.message || 'Có lỗi xảy ra.';
+      errBox.classList.remove('hidden');
+    }
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+    if (spinner) spinner.classList.add('hidden');
+  }
+}
+
+async function toggleAdminStatus(id, currentStatus) {
+  try {
+    const res = await fetch(`${API_BASE}/admin/accounts/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ is_active: !currentStatus })
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      alert(`⚠️ ${data.message}`);
+      return;
+    }
+
+    loadAdminAccounts();
+    loadAdminAccountStats();
+  } catch (err) {
+    alert(`❌ Không thể thay đổi trạng thái: ${err.message}`);
+  }
+}
+
+function openDeleteAdminModal(id, username, fullName, role) {
+  pendingDeleteAdminId = id;
+  const modal = document.getElementById('modal-admin-delete');
+  const nameEl = document.getElementById('delete-admin-fullname');
+  const usernameEl = document.getElementById('delete-admin-username');
+  const roleEl = document.getElementById('delete-admin-role');
+  const errBox = document.getElementById('delete-admin-error');
+
+  if (nameEl) nameEl.textContent = fullName;
+  if (usernameEl) usernameEl.textContent = `@${username}`;
+  if (roleEl) roleEl.textContent = role === 'admin' ? 'Superadmin' : (role === 'moderator' ? 'Điều Phối Viên' : 'Người Quan Sát');
+  if (errBox) errBox.classList.add('hidden');
+
+  if (modal) modal.classList.add('show');
+}
+
+function closeDeleteAdminModal() {
+  pendingDeleteAdminId = null;
+  const modal = document.getElementById('modal-admin-delete');
+  if (modal) modal.classList.remove('show');
+  const errBox = document.getElementById('delete-admin-error');
+  if (errBox) errBox.classList.add('hidden');
+}
+
+async function handleConfirmDeleteAdmin() {
+  if (!pendingDeleteAdminId) return;
+
+  const btnConfirm = document.getElementById('btn-confirm-delete-admin');
+  const spinner = document.getElementById('admin-delete-spinner');
+  const errBox = document.getElementById('delete-admin-error');
+  const errMsg = document.getElementById('delete-admin-error-msg');
+
+  if (btnConfirm) btnConfirm.disabled = true;
+  if (spinner) spinner.classList.remove('hidden');
+  if (errBox) errBox.classList.add('hidden');
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/accounts/${pendingDeleteAdminId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Không thể xóa tài khoản này.');
+    }
+
+    closeDeleteAdminModal();
+    loadAdminAccounts();
+    loadAdminAccountStats();
+  } catch (err) {
+    if (errBox && errMsg) {
+      errMsg.textContent = err.message || 'Có lỗi xảy ra.';
+      errBox.classList.remove('hidden');
+    }
+  } finally {
+    if (btnConfirm) btnConfirm.disabled = false;
+    if (spinner) spinner.classList.add('hidden');
+  }
+}
+
+// Attach global window handlers
+window.editAdminAccount = function(id) {
+  const account = adminAccountsList.find(a => a.id === id);
+  if (account) {
+    openEditAdminModal(account);
+  }
+};
+window.toggleAdminStatus = toggleAdminStatus;
+window.openDeleteAdminModal = openDeleteAdminModal;

@@ -44,6 +44,24 @@ export const adminBonusExpSchema = z.object({
   reason: z.string().trim().min(3).max(255)
 });
 
+export const createAdminAccountSchema = z.object({
+  username: z.string().trim()
+    .min(3, 'Tên đăng nhập phải từ 3 đến 50 ký tự')
+    .max(50, 'Tên đăng nhập không được quá 50 ký tự')
+    .regex(/^[a-zA-Z0-9_.-]+$/, 'Tên đăng nhập chỉ chứa chữ cái, chữ số, dấu chấm, gạch ngang hoặc gạch dưới'),
+  password: z.string().min(6, 'Mật khẩu phải từ 6 ký tự trở lên'),
+  full_name: z.string().trim().min(2, 'Họ và tên phải từ 2 ký tự trở lên').max(100, 'Họ và tên không quá 100 ký tự'),
+  role: z.enum(['admin', 'moderator', 'reader']).default('moderator'),
+  is_active: z.boolean().optional().default(true)
+});
+
+export const updateAdminAccountSchema = z.object({
+  password: z.string().min(6, 'Mật khẩu phải từ 6 ký tự trở lên').optional().or(z.literal('')),
+  full_name: z.string().trim().min(2, 'Họ và tên phải từ 2 ký tự trở lên').max(100, 'Họ và tên không quá 100 ký tự').optional(),
+  role: z.enum(['admin', 'moderator', 'reader']).optional(),
+  is_active: z.boolean().optional()
+});
+
 export function validateBody(schema) {
   return (req, res, next) => {
     try {

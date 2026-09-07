@@ -134,8 +134,9 @@ export class DailyDewService {
     }
 
     // 8. Broadcast event for UI and Particle FX
+    const expGained = (apiRes && (apiRes.expEarned || apiRes.expGained)) || 2;
     MockDataStore.emitEvent('dew:collected', {
-      expGained: 1,
+      expGained: expGained,
       streak: currentStreak,
       quote: luckyQuote,
       team: apiRes.team,
@@ -145,7 +146,7 @@ export class DailyDewService {
 
     return {
       success: true,
-      expGained: 1,
+      expGained: expGained,
       streak: currentStreak,
       quote: luckyQuote,
       team: apiRes.team,

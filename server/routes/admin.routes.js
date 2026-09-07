@@ -4,10 +4,15 @@ import {
   adminBonusExp, getAuditLogs, getAdminAnalytics, getAdminLedger, 
   getAdminUsersDirectory, advanceAdminRound,
   getAdminContentSettings, updateAdminContentSetting, resetAdminContentSetting,
-  adminWipeData, getAdminDeepDiveAnalytics
+  adminWipeData, getAdminDeepDiveAnalytics,
+  getAdminAccounts, getAdminAccountStats, getAdminAccountById,
+  createAdminAccount, updateAdminAccount, deleteAdminAccount
 } from '../controllers/index.js';
 import { authenticate, authorizeRoles } from '../middlewares/auth.js';
-import { validateBody, adminLoginSchema, updateBookStatusSchema, adminBonusExpSchema } from '../middlewares/validator.js';
+import { 
+  validateBody, adminLoginSchema, updateBookStatusSchema, adminBonusExpSchema,
+  createAdminAccountSchema, updateAdminAccountSchema
+} from '../middlewares/validator.js';
 
 const router = express.Router();
 
@@ -16,6 +21,14 @@ router.post('/auth/login', validateBody(adminLoginSchema), adminLogin);
 
 // Protected Moderator & Admin Routes
 router.use(authenticate);
+
+// Admin Accounts Management (RBAC: Superadmin Only)
+router.get('/accounts/stats', authorizeRoles('admin'), getAdminAccountStats);
+router.get('/accounts', authorizeRoles('admin'), getAdminAccounts);
+router.get('/accounts/:id', authorizeRoles('admin'), getAdminAccountById);
+router.post('/accounts', authorizeRoles('admin'), validateBody(createAdminAccountSchema), createAdminAccount);
+router.put('/accounts/:id', authorizeRoles('admin'), validateBody(updateAdminAccountSchema), updateAdminAccount);
+router.delete('/accounts/:id', authorizeRoles('admin'), deleteAdminAccount);
 
 // Realtime Analytics & KPIs
 router.get('/analytics/overview', authorizeRoles('moderator', 'admin'), getAdminAnalytics);

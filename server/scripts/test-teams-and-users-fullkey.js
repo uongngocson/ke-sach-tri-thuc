@@ -258,14 +258,14 @@ async function runFullKeyTeamsAndUsersTest() {
     }
     assert(guestWaterBlocked, 'Bảo vệ thành công: Khách vãng lai (Guest) chưa nhận diện danh tính bị chặn tưới cây (HTTP 401)');
 
-    // 3.3: Thực hành Tưới Cây hợp lệ cho đúng cây đội mình (+1 EXP)
+    // 3.3: Thực hành Tưới Cây hợp lệ cho đúng cây đội mình (+2 EXP)
     const todayStr = new Date().toISOString().split('T')[0];
     await db.query("DELETE FROM daily_dews WHERE user_id = $1", [userTeam1.id]);
     await db.query("DELETE FROM exp_ledger WHERE user_id = $1 AND type = 'DAILY_DEW'", [userTeam1.id]);
 
     const dewResult = await DewService.claimDew({ userId: userTeam1.id, teamId: 1 });
-    assert(dewResult && dewResult.dew && dewResult.expEarned === 1, 
-      'Tưới cây hợp lệ thành công: Độc giả Đội 1 tưới cây Đội 1 nhận thành công +1 EXP',
+    assert(dewResult && dewResult.dew && dewResult.expEarned === 2, 
+      'Tưới cây hợp lệ thành công: Độc giả Đội 1 tưới cây Đội 1 nhận thành công +2 EXP',
       `Dew ID: ${dewResult.dew.id}, Streak: ${dewResult.streak}`);
 
     // Thử tưới lần 2 trong cùng ngày -> Bị chặn 409 DUPLICATE_DEW_CLAIM

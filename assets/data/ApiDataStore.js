@@ -567,7 +567,7 @@ class ApiDataStoreManager {
         return {
           success: true,
           streak: data.data.streak,
-          expEarned: data.data.expEarned || 1,
+          expEarned: data.data.expEarned || 2,
           team: data.data.team,
           growth: data.data.growth
         };
@@ -757,7 +757,7 @@ class ApiDataStoreManager {
   }
 
   async addEXP(amount) {
-    if (amount === 1) {
+    if (amount === 2 || amount === 1) {
       await this.claimDailyDew();
     } else if (amount === 5) {
       await this.harvestFruit(0);

@@ -33,7 +33,7 @@ services:
     environment:
       PORT: ${PORT:-5006}
       NODE_ENV: ${NODE_ENV:-staging}
-      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-https://stagcaosach.soninfra.cloud}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-https://stagfoxread.soninfra.cloud}
       DB_HOST: 127.0.0.1
       DB_PORT: ${DB_PORT:-5437}
       DB_NAME: ${DB_NAME:-caosach_staging_db}

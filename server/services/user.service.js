@@ -1,4 +1,4 @@
-﻿import db from '../config/database.js';
+import db from '../config/database.js';
 
 export class UserService {
   /**
@@ -100,11 +100,12 @@ export class UserService {
   }
 
   /**
-   * Find user by Email or Employee Code (for book contribution & lookup)
+   * Find user by Email, Username, or Employee Code (for book contribution & lookup)
    */
   static async lookupUser(query) {
     if (!query) return null;
     const cleanQuery = query.trim().toLowerCase();
+    const queryWithDomain = cleanQuery.includes('@') ? cleanQuery : `${cleanQuery}@fpt.com`;
 
     const res = await db.query(`
       SELECT 
@@ -115,9 +116,9 @@ export class UserService {
         t.color_code as team_color
       FROM users u
       LEFT JOIN teams t ON u.team_id = t.id
-      WHERE LOWER(u.email) = $1 OR u.employee_code = $2
+      WHERE LOWER(u.email) = $1 OR LOWER(u.email) = $2 OR u.employee_code = $3
       LIMIT 1
-    `, [cleanQuery, query.trim()]);
+    `, [cleanQuery, queryWithDomain, query.trim()]);
 
     return res.rows[0] || null;
   }
