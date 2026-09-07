@@ -11,7 +11,7 @@ export class TesterPanel {
     const urlParams = new URLSearchParams(window.location.search);
     const forceTester = urlParams.get('tester') === 'true' || urlParams.get('dev') === 'true';
 
-    const isProductionDomain = window.location.hostname === 'caosach.soninfra.cloud';
+    const isProductionDomain = window.location.hostname === 'foxread.soninfra.cloud';
     const isMainBranch = APP_CONFIG.BRANCH === 'main' || !APP_CONFIG.SHOW_TESTER;
 
     if ((isMainBranch || isProductionDomain) && !forceTester) {

@@ -74,7 +74,7 @@ jobs:
         run: npm test
 
   deploy-staging:
-    name: Deploy to Staging (https://stagcaosach.soninfra.cloud)
+    name: Deploy to Staging (https://stagfoxread.soninfra.cloud)
     runs-on: ubuntu-latest
     needs: test
     if: github.ref == 'refs/heads/development' && github.event_name == 'push'
@@ -97,7 +97,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no sonun@${{ secrets.SERVER_HOST }} "cd /home/sonun/deployments/caosach-staging && docker compose -f docker-compose.staging.yml up -d --build --force-recreate"
 
   deploy-prod:
-    name: Deploy to Production (https://caosach.soninfra.cloud)
+    name: Deploy to Production (https://foxread.soninfra.cloud)
     runs-on: ubuntu-latest
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
