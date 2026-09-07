@@ -23,6 +23,27 @@ let socket = null;
 let analyticsCache = null;
 let currentBookInModal = null;
 let charts = {};
+let teamsFilterDate = new Date().toISOString().slice(0, 10);
+let usersFilterDate = new Date().toISOString().slice(0, 10);
+
+function formatDateVN(dateStr) {
+  if (!dateStr) return '';
+  const parts = String(dateStr).split('-');
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return dateStr;
+}
+
+function getTodayISODate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getYesterdayISODate() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
 
 // Pagination States
 let usersPageState = { page: 1, limit: 25, total: 0, totalPages: 1 };
@@ -227,6 +248,14 @@ function bindActionEvents() {
   document.getElementById('users-search')?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') { usersPageState.page = 1; loadUsers(); }
   });
+  document.getElementById('users-filter-team')?.addEventListener('change', () => {
+    usersPageState.page = 1;
+    loadUsers();
+  });
+  document.getElementById('users-filter-status')?.addEventListener('change', () => {
+    usersPageState.page = 1;
+    loadUsers();
+  });
 
   // Users Pagination
   document.getElementById('users-prev-page')?.addEventListener('click', () => {
@@ -343,8 +372,124 @@ function bindActionEvents() {
   // Deep-Dive Analytics Controls
   bindDeepDiveAnalyticsEvents();
 
+  // 8 Teams Date Filter Controls
+  bindTeamsFilterEvents();
+
+  // 288 Personnel Directory Date Filter Controls
+  bindUsersFilterEvents();
+
   // Danger Zone: Wipe Full Operational Data
   bindWipeDataEvents();
+}
+
+function bindTeamsFilterEvents() {
+  const dateInput = document.getElementById('teams-filter-date');
+  const btnToday = document.getElementById('btn-teams-date-today');
+  const btnYesterday = document.getElementById('btn-teams-date-yesterday');
+  const btnApply = document.getElementById('btn-teams-apply-filter');
+  const btnReset = document.getElementById('btn-teams-reset-filter');
+
+  if (dateInput) {
+    dateInput.value = teamsFilterDate || getTodayISODate();
+    dateInput.addEventListener('change', () => {
+      if (dateInput.value) {
+        loadTeamsData(dateInput.value);
+      }
+    });
+  }
+
+  if (btnToday) {
+    btnToday.addEventListener('click', () => {
+      const today = getTodayISODate();
+      if (dateInput) dateInput.value = today;
+      loadTeamsData(today);
+    });
+  }
+
+  if (btnYesterday) {
+    btnYesterday.addEventListener('click', () => {
+      const yesterday = getYesterdayISODate();
+      if (dateInput) dateInput.value = yesterday;
+      loadTeamsData(yesterday);
+    });
+  }
+
+  if (btnApply) {
+    btnApply.addEventListener('click', () => {
+      const val = dateInput ? dateInput.value : '';
+      if (val) {
+        loadTeamsData(val);
+      }
+    });
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      const today = getTodayISODate();
+      if (dateInput) dateInput.value = today;
+      loadTeamsData(today);
+    });
+  }
+}
+
+function bindUsersFilterEvents() {
+  const dateInput = document.getElementById('users-filter-date');
+  const btnToday = document.getElementById('btn-users-date-today');
+  const btnYesterday = document.getElementById('btn-users-date-yesterday');
+  const btnApply = document.getElementById('btn-users-apply-filter');
+  const btnReset = document.getElementById('btn-users-reset-date');
+
+  if (dateInput) {
+    dateInput.value = usersFilterDate || getTodayISODate();
+    dateInput.addEventListener('change', () => {
+      if (dateInput.value) {
+        usersFilterDate = dateInput.value;
+        usersPageState.page = 1;
+        loadUsers();
+      }
+    });
+  }
+
+  if (btnToday) {
+    btnToday.addEventListener('click', () => {
+      const today = getTodayISODate();
+      usersFilterDate = today;
+      if (dateInput) dateInput.value = today;
+      usersPageState.page = 1;
+      loadUsers();
+    });
+  }
+
+  if (btnYesterday) {
+    btnYesterday.addEventListener('click', () => {
+      const yesterday = getYesterdayISODate();
+      usersFilterDate = yesterday;
+      if (dateInput) dateInput.value = yesterday;
+      usersPageState.page = 1;
+      loadUsers();
+    });
+  }
+
+  if (btnApply) {
+    btnApply.addEventListener('click', () => {
+      const val = dateInput ? dateInput.value : '';
+      if (val) {
+        usersFilterDate = val;
+        usersPageState.page = 1;
+        loadUsers();
+      }
+    });
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      const today = getTodayISODate();
+      usersFilterDate = today;
+      if (dateInput) dateInput.value = today;
+      usersPageState.page = 1;
+      loadUsers();
+    });
+  }
 }
 
 async function loadAllDashboardData() {
@@ -363,7 +508,10 @@ async function loadAllDashboardData() {
 // =========================================================================
 async function loadAnalytics() {
   try {
-    const res = await fetch(`${API_BASE}/admin/analytics/overview`, {
+    const url = teamsFilterDate 
+      ? `${API_BASE}/admin/analytics/overview?date=${encodeURIComponent(teamsFilterDate)}`
+      : `${API_BASE}/admin/analytics/overview`;
+    const res = await fetch(url, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     const data = await res.json();
@@ -373,6 +521,7 @@ async function loadAnalytics() {
     updateKPICards(analyticsCache.kpi);
     renderCharts(analyticsCache);
     updateAdvanceRoundSelect(analyticsCache.rounds, analyticsCache.kpi.currentRound);
+    if (isTabActive('teams')) renderTeamsTable();
   } catch (err) {
     console.error('Error loading analytics:', err);
   }
@@ -636,11 +785,10 @@ function renderDeepContributors(contributors) {
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-amber-400' : 'text-slate-500'}">${medal}</span>
               <div class="min-w-0">
-                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.full_name)}</div>
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || u.full_name)}</div>
                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-                  <span class="font-mono">${escapeHtml(u.employee_code || '')}</span>
-                  <span>•</span>
                   <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
+                  ${u.branch ? `<span class="text-slate-500">• ${escapeHtml(u.branch)}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -669,11 +817,10 @@ function renderDeepContributors(contributors) {
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-sky-400' : 'text-slate-500'}">${medal}</span>
               <div class="min-w-0">
-                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.full_name)}</div>
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || u.full_name)}</div>
                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-                  <span class="font-mono">${escapeHtml(u.employee_code || '')}</span>
-                  <span>•</span>
                   <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
+                  ${u.branch ? `<span class="text-slate-500">• ${escapeHtml(u.branch)}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -702,11 +849,10 @@ function renderDeepContributors(contributors) {
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-emerald-400' : 'text-slate-500'}">${medal}</span>
               <div class="min-w-0">
-                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.full_name)}</div>
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || u.full_name)}</div>
                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-                  <span class="font-mono">${escapeHtml(u.employee_code || '')}</span>
-                  <span>•</span>
                   <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
+                  ${u.branch ? `<span class="text-slate-500">• ${escapeHtml(u.branch)}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -906,8 +1052,8 @@ function renderDeepGrowth(growth) {
                 <span class="text-lg">${m.team_icon || '🌱'}</span>
                 <span class="text-[11px] font-black truncate" style="color: ${color};">${escapeHtml(m.team_display_name || m.team_name)}</span>
               </div>
-              <div class="font-black text-white text-xs truncate">${escapeHtml(m.full_name)}</div>
-              <div class="text-[10px] text-slate-400 truncate mb-2.5">${escapeHtml(m.job_title || m.employee_code || '')}</div>
+              <div class="font-black text-white text-xs truncate">${escapeHtml(m.nickname || m.full_name)}</div>
+              <div class="text-[10px] text-slate-400 truncate mb-2.5">${escapeHtml(m.job_title || m.branch || 'Thành viên')}</div>
             </div>
             <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10.5px]">
               <span class="text-slate-400 font-medium">✨ ${m.contributed_books_count || 0} sách</span>
@@ -923,12 +1069,107 @@ function renderDeepGrowth(growth) {
 // =========================================================================
 // 2. 8 TEAMS MANAGEMENT & DETAIL MODAL
 // =========================================================================
+async function loadTeamsData(targetDate) {
+  const dateStr = targetDate || teamsFilterDate || getTodayISODate();
+  teamsFilterDate = dateStr;
+
+  const dateInput = document.getElementById('teams-filter-date');
+  if (dateInput) dateInput.value = dateStr;
+
+  const tbody = document.getElementById('teams-table-body');
+  if (tbody) {
+    tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-slate-500 font-bold"><span class="inline-block animate-spin mr-2">⏳</span> Đang tải số liệu 8 đội ngày ${formatDateVN(dateStr)}...</td></tr>`;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/analytics/overview?date=${encodeURIComponent(dateStr)}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+    if (!data.success) {
+      if (tbody) tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center text-rose-400">Lỗi tải dữ liệu 8 đội</td></tr>';
+      return;
+    }
+
+    if (!analyticsCache) analyticsCache = {};
+    analyticsCache.teams = data.data.teams;
+    analyticsCache.kpi = data.data.kpi;
+    analyticsCache.filterDate = data.data.filterDate || dateStr;
+
+    renderTeamsTable();
+  } catch (err) {
+    console.error('Error fetching teams data by date:', err);
+    if (tbody) tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center text-rose-400">Lỗi kết nối máy chủ backend</td></tr>';
+  }
+}
+
 function renderTeamsTable() {
   const tbody = document.getElementById('teams-table-body');
   if (!tbody || !analyticsCache || !analyticsCache.teams) return;
 
   const teams = analyticsCache.teams;
+  const todayStr = getTodayISODate();
+  const currentDate = teamsFilterDate || analyticsCache.filterDate || todayStr;
+  const isToday = currentDate === todayStr;
+  const formattedDate = formatDateVN(currentDate);
+
+  // Update date badge
+  const dateBadge = document.getElementById('teams-active-date-badge');
+  if (dateBadge) {
+    if (isToday) {
+      dateBadge.textContent = `Đang xem: Hôm nay (${formattedDate})`;
+      dateBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+    } else {
+      dateBadge.textContent = `Đang xem: Ngày ${formattedDate}`;
+      dateBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+    }
+  }
+
+  // Update summary counts for this date
+  const totalDateParticipants = teams.reduce((acc, t) => acc + (t.date_participants !== undefined ? t.date_participants : (t.today_participants || 0)), 0);
+  const totalDateBooks = teams.reduce((acc, t) => acc + (t.date_books_count || 0), 0);
+  const totalDateDews = teams.reduce((acc, t) => acc + (t.date_dews_count || 0), 0);
+
+  const summaryEl = document.getElementById('teams-date-summary');
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <span>👥 Cán bộ tham gia: <strong class="text-white font-mono font-bold">${totalDateParticipants}</strong></span>
+      <span>•</span>
+      <span>🌱 Sách gieo: <strong class="text-emerald-400 font-mono font-bold">${totalDateBooks}</strong></span>
+      <span>•</span>
+      <span>💧 Lượt tưới: <strong class="text-cyan-400 font-mono font-bold">${totalDateDews}</strong></span>
+    `;
+  }
+
+  // Update table header text
+  const thDateCol = document.getElementById('th-teams-date-col');
+  if (thDateCol) {
+    thDateCol.textContent = isToday ? 'Tham Gia Hôm Nay' : `Tham Gia (${formattedDate})`;
+  }
+  const thBooksCol = document.getElementById('th-teams-books-col');
+  if (thBooksCol) {
+    thBooksCol.textContent = isToday ? 'Sách Gieo' : `Sách Gieo (${formattedDate})`;
+  }
+  const thDewsCol = document.getElementById('th-teams-dews-col');
+  if (thDewsCol) {
+    thDewsCol.textContent = isToday ? 'Lượt Tưới' : `Lượt Tưới (${formattedDate})`;
+  }
+  const exportBtnText = document.getElementById('btn-export-teams-text');
+  if (exportBtnText) {
+    exportBtnText.textContent = `Xuất Báo Cáo Ngày ${formattedDate} (CSV)`;
+  }
+
+  const dateInput = document.getElementById('teams-filter-date');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = currentDate;
+  }
+
   tbody.innerHTML = teams.map(t => {
+    const partCount = t.date_participants !== undefined ? t.date_participants : (t.today_participants || 0);
+    const partRate = t.date_participation_rate !== undefined ? t.date_participation_rate : (t.today_participation_rate || 0);
+    const dateBooks = t.date_books_count !== undefined ? t.date_books_count : 0;
+    const dateDews = t.date_dews_count !== undefined ? t.date_dews_count : 0;
+
     return `
       <tr class="hover:bg-slate-800/40 transition-colors">
         <td class="p-3.5">
@@ -958,17 +1199,19 @@ function renderTeamsTable() {
           ${t.actual_members || 0} / ${t.target_members || 40}
         </td>
         <td class="p-3.5">
-          <div class="font-extrabold text-white">${t.today_participation_rate ?? t.current_participation_rate ?? 0}%</div>
-          <div class="text-[10px] text-slate-400">${t.today_participants ?? t.current_round_participants ?? 0} cán bộ hôm nay</div>
+          <div class="font-extrabold text-white">${partRate}%</div>
+          <div class="text-[10px] text-slate-400">${partCount} cán bộ ${isToday ? 'hôm nay' : 'ngày này'}</div>
         </td>
         <td class="p-3.5 font-bold text-slate-400">
           ${parseFloat(t.avg_participation_rate || 0).toFixed(1)}%
         </td>
         <td class="p-3.5 font-extrabold text-emerald-400">
-          ${t.books_count || 0}
+          <div>${dateBooks}</div>
+          <div class="text-[10px] text-slate-400 font-normal">Tổng: ${t.books_count || 0}</div>
         </td>
         <td class="p-3.5 font-extrabold text-cyan-400">
-          ${t.dews_count || 0}
+          <div>${dateDews}</div>
+          <div class="text-[10px] text-slate-400 font-normal">Tổng: ${t.dews_count || 0}</div>
         </td>
         <td class="p-3.5 text-right">
           <button onclick="openTeamModal(${t.id})" class="btn btn-ghost text-[11px] py-1 px-2.5">
@@ -985,34 +1228,46 @@ window.openTeamModal = async function(teamId) {
   const tbody = document.getElementById('team-modal-members-body');
   const nameEl = document.getElementById('team-modal-name');
   const subEl = document.getElementById('team-modal-sub');
+  const dateTh = document.getElementById('team-modal-date-th');
 
   if (!modal || !tbody) return;
+
+  const dateStr = teamsFilterDate || getTodayISODate();
+  const dateLabel = formatDateVN(dateStr);
+  const isToday = dateStr === getTodayISODate();
+
+  if (dateTh) {
+    dateTh.textContent = isToday ? 'Trạng Thái (Hôm Nay)' : `Trạng Thái (${dateLabel})`;
+  }
 
   const team = analyticsCache?.teams?.find(t => t.id === teamId);
   if (team) {
     nameEl.innerHTML = `<span>🏆</span><span>${escapeHtml(team.display_name || team.name)}</span>`;
-    subEl.textContent = `Tổng cộng ${team.actual_members || 0} cán bộ · Đạt ${team.tree_exp.toLocaleString()} EXP`;
+    subEl.textContent = `Tổng cộng ${team.actual_members || 0} cán bộ · Đạt ${team.tree_exp.toLocaleString()} EXP · Ngày xem: ${dateLabel}`;
   }
 
   modal.classList.add('show');
-  tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">Đang tải danh sách thành viên...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500 font-bold"><span class="inline-block animate-spin mr-2">⏳</span> Đang tải danh sách thành viên...</td></tr>';
 
   try {
-    const res = await fetch(`${API_BASE}/teams/${teamId}/members`);
+    const res = await fetch(`${API_BASE}/teams/${teamId}/members?date=${encodeURIComponent(dateStr)}`);
     const data = await res.json();
     if (data.success && data.data) {
-      tbody.innerHTML = data.data.map(m => `
+      tbody.innerHTML = data.data.map((m, idx) => `
         <tr class="hover:bg-slate-800/40">
-          <td class="p-3 font-mono text-slate-400 text-xs">${escapeHtml(m.employee_code || '')}</td>
-          <td class="p-3 font-bold text-white">${escapeHtml(m.full_name)}</td>
-          <td class="p-3 text-slate-400">${escapeHtml(m.email)}</td>
-          <td class="p-3 text-slate-400">${escapeHtml(m.branch || m.parent_department || 'FPT')}</td>
+          <td class="p-3 text-center text-slate-500 font-bold text-xs">${idx + 1}</td>
+          <td class="p-3 font-bold text-white">${escapeHtml(m.nickname || m.full_name || '')}</td>
+          <td class="p-3 text-slate-300 text-xs">${escapeHtml(m.branch || m.parent_department || 'FPT')}</td>
+          <td class="p-3 text-slate-400 text-xs">${escapeHtml(m.job_title || '-')}</td>
           <td class="p-3">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${m.contributed_books_count > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'}">
-              ${m.contributed_books_count > 0 ? '✅ Đã tham gia' : '⏳ Chưa tham gia'}
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${m.participated_on_date ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-500'}">
+              ${m.participated_on_date ? `✅ Đã tham gia (${dateLabel})` : '⏳ Chưa tham gia'}
             </span>
           </td>
-          <td class="p-3 font-bold text-white">${m.contributed_books_count || 0}</td>
+          <td class="p-3 font-bold text-white">
+            <div>${m.date_books_count || 0} (${dateLabel})</div>
+            <div class="text-[10px] text-slate-500">Tổng: ${m.contributed_books_count || 0}</div>
+          </td>
           <td class="p-3 font-extrabold text-sky-400">${(m.total_exp_earned || 0).toLocaleString()}</td>
         </tr>
       `).join('');
@@ -1037,10 +1292,17 @@ async function loadUsers() {
   const teamId = document.getElementById('users-filter-team')?.value || '';
   const status = document.getElementById('users-filter-status')?.value || '';
 
+  const dateStr = usersFilterDate || getTodayISODate();
+  usersFilterDate = dateStr;
+
+  const dateInput = document.getElementById('users-filter-date');
+  if (dateInput && !dateInput.value) dateInput.value = dateStr;
+
   let url = `${API_BASE}/admin/users?page=${usersPageState.page}&limit=${usersPageState.limit}`;
   if (search) url += `&search=${encodeURIComponent(search)}`;
   if (teamId) url += `&teamId=${teamId}`;
   if (status) url += `&status=${status}`;
+  if (dateStr) url += `&date=${encodeURIComponent(dateStr)}`;
 
   try {
     const res = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
@@ -1067,24 +1329,47 @@ function renderUsersTable(users) {
   const tbody = document.getElementById('users-table-body');
   if (!tbody) return;
 
+  const todayStr = getTodayISODate();
+  const currentDate = usersFilterDate || todayStr;
+  const isToday = currentDate === todayStr;
+  const formattedDate = formatDateVN(currentDate);
+
+  // Update date column header
+  const thDateCol = document.getElementById('th-users-date-col');
+  if (thDateCol) {
+    thDateCol.textContent = isToday ? 'Hôm Nay (1 Quote)' : `Ngày ${formattedDate.slice(0, 5)} (1 Quote)`;
+  }
+
+  // Update active date badge
+  const dateBadge = document.getElementById('users-active-date-badge');
+  if (dateBadge) {
+    if (isToday) {
+      dateBadge.textContent = `Đang xem: Hôm nay (${formattedDate})`;
+      dateBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+    } else {
+      dateBadge.textContent = `Đang xem: Ngày ${formattedDate}`;
+      dateBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+    }
+  }
+
   if (!users || users.length === 0) {
     tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-500">Không tìm thấy nhân sự nào phù hợp.</td></tr>';
     return;
   }
 
-  tbody.innerHTML = users.map(u => `
+  tbody.innerHTML = users.map((u, idx) => `
     <tr class="hover:bg-slate-800/40 transition-colors">
-      <td class="p-3 font-mono text-slate-400 text-xs">${escapeHtml(u.employee_code || '')}</td>
+      <td class="p-3 text-center text-slate-500 font-bold text-xs">${(usersPageState.page - 1) * usersPageState.limit + idx + 1}</td>
       <td class="p-3 font-bold text-white">
-        ${escapeHtml(u.full_name)}
+        ${escapeHtml(u.nickname || u.full_name)}
         <div class="text-[10px] text-slate-500">${escapeHtml(u.job_title || '')}</div>
       </td>
-      <td class="p-3 text-slate-400">${escapeHtml(u.email)}</td>
       <td class="p-3 text-slate-300">
         <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-bold">
           ${escapeHtml(u.branch || 'BGD/TDV/CLB')}
         </span>
       </td>
+      <td class="p-3 text-slate-400 text-xs">${escapeHtml(u.parent_department || u.child_department_1 || '-')}</td>
       <td class="p-3">
         <span class="px-2 py-0.5 rounded text-[10.5px] font-bold" style="background: ${(u.team_color || '#0284c7')}22; color: ${u.team_color || '#38bdf8'}; border: 1px solid ${(u.team_color || '#0284c7')}44;">
           ${escapeHtml(u.team_display_name || ('Đội ' + u.team_id))}
@@ -1103,27 +1388,30 @@ function renderUsersTable(users) {
 
 async function exportUsersCSV() {
   try {
-    const res = await fetch(`${API_BASE}/admin/users?limit=300`, {
+    const dateStr = usersFilterDate || getTodayISODate();
+    const formattedDate = formatDateVN(dateStr);
+    const dateLabel = (dateStr === getTodayISODate()) ? 'Gieo Hôm Nay' : `Gieo Ngày ${formattedDate}`;
+
+    const res = await fetch(`${API_BASE}/admin/users?limit=300&date=${encodeURIComponent(dateStr)}`, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     const data = await res.json();
     if (!data.success || !data.data.users) return;
 
     const rows = [
-      ['Mã Nhân Viên', 'Họ Tên', 'Email', 'Giới Tính', 'Chi Nhánh / Khối', 'Phòng Ban', 'Chức Danh', 'Đội Thi Đua', 'Gieo Hôm Nay', 'Sách Đã Gieo', 'EXP Kiếm Được']
+      ['STT', 'Nick Danh Độc Giả', 'Giới Tính', 'Chi Nhánh / Khối', 'Phòng Ban', 'Chức Danh', 'Đội Thi Đua', dateLabel, 'Sách Đã Gieo', 'EXP Kiếm Được']
     ];
 
-    data.data.users.forEach(u => {
+    data.data.users.forEach((u, idx) => {
       rows.push([
-        `"${u.employee_code || ''}"`,
-        `"${u.full_name || ''}"`,
-        `"${u.email || ''}"`,
+        idx + 1,
+        `"${u.nickname || u.full_name || ''}"`,
         `"${u.gender || ''}"`,
         `"${u.branch || ''}"`,
         `"${u.parent_department || ''}"`,
         `"${u.job_title || ''}"`,
         `"${u.team_display_name || ('Đội ' + u.team_id)}"`,
-        `"${(u.participated_today || u.participated_current_round) ? 'Đã gieo hôm nay' : 'Chưa gieo hôm nay'}"`,
+        `"${(u.participated_today || u.participated_current_round) ? `Đã gieo (${formattedDate})` : `Chưa gieo (${formattedDate})`}"`,
         u.contributed_books_count || 0,
         u.total_exp_earned || 0
       ]);
@@ -1133,7 +1421,7 @@ async function exportUsersCSV() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Danh_Ba_288_Nhan_Su_FoxREAD_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `Danh_Ba_288_Nhan_Su_FoxREAD_${dateStr}.csv`;
     link.click();
   } catch (err) {
     alert('Lỗi xuất file CSV');
@@ -1142,11 +1430,35 @@ async function exportUsersCSV() {
 
 function exportTeamsCSV() {
   if (!analyticsCache || !analyticsCache.teams) return;
+  const dateStr = teamsFilterDate || getTodayISODate();
+  const dateLabel = formatDateVN(dateStr);
+
   const rows = [
-    ['Hạng', 'Mã Đội', 'Tên Đội', 'Cấp Độ Cây', 'Tổng EXP', 'Hạt Giống', 'Thực Tế', 'Chỉ Tiêu', 'Tỷ Lệ Vòng Này (%)', 'Tỷ Lệ TB Giải (%)', 'Sách Gieo', 'Lượt Tưới']
+    [
+      'Hạng',
+      'Mã Đội',
+      'Tên Đội',
+      'Cấp Độ Cây',
+      'Tổng EXP Toàn Giải',
+      'Hạt Giống (Mầm)',
+      'Cán Bộ Thực Tế',
+      'Chỉ Tiêu',
+      `Số Cán Bộ Tham Gia (${dateLabel})`,
+      `Tỷ Lệ Tham Gia (${dateLabel}) (%)`,
+      'Tỷ Lệ TB Toàn Giải (%)',
+      `Sách Gieo (${dateLabel})`,
+      'Tổng Sách Gieo Toàn Giải',
+      `Lượt Tưới (${dateLabel})`,
+      'Tổng Lượt Tưới Toàn Giải'
+    ]
   ];
 
   analyticsCache.teams.forEach(t => {
+    const partCount = t.date_participants !== undefined ? t.date_participants : (t.today_participants || 0);
+    const partRate = t.date_participation_rate !== undefined ? t.date_participation_rate : (t.today_participation_rate || 0);
+    const dateBooks = t.date_books_count !== undefined ? t.date_books_count : 0;
+    const dateDews = t.date_dews_count !== undefined ? t.date_dews_count : 0;
+
     rows.push([
       t.rank,
       `"${t.code}"`,
@@ -1156,9 +1468,12 @@ function exportTeamsCSV() {
       t.tree_seeds,
       t.actual_members,
       t.target_members,
-      t.current_participation_rate,
+      partCount,
+      partRate,
       parseFloat(t.avg_participation_rate || 0).toFixed(1),
+      dateBooks,
       t.books_count,
+      dateDews,
       t.dews_count
     ]);
   });
@@ -1167,7 +1482,7 @@ function exportTeamsCSV() {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `Bang_Xep_Hang_8_Doi_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `Bao_Cao_Xep_Hang_8_Doi_Ngay_${dateStr}.csv`;
   link.click();
 }
 
@@ -1282,7 +1597,7 @@ function renderBooksTable(books) {
         </td>
         <td class="p-3.5">
           <div class="font-bold text-white">${escapeHtml(b.reader_name)}</div>
-          <div class="text-[10px] text-slate-400">${b.reader_email ? escapeHtml(b.reader_email) : 'Không có email'}</div>
+          <div class="text-[10px] text-emerald-400 font-bold">${escapeHtml(b.team_display_name || b.team_name || (b.team_id ? `Đội ${b.team_id}` : 'Thành viên'))}</div>
           <div class="text-[9.5px] text-slate-500 mt-1">${new Date(b.created_at).toLocaleString('vi-VN')}</div>
         </td>
         <td class="p-3.5 space-y-1">
@@ -1315,7 +1630,8 @@ window.openModModal = async function(bookId) {
     document.getElementById('mod-book-title').textContent = book.title;
     document.getElementById('mod-book-author').textContent = book.author;
     document.getElementById('mod-book-quote').textContent = `"${book.quote}"`;
-    document.getElementById('mod-book-sender').textContent = `Người gửi: ${book.reader_name} (${book.reader_email || 'N/A'}) - Gieo lúc: ${new Date(book.created_at).toLocaleString('vi-VN')}`;
+    const senderTeam = book.team_display_name || book.team_name || (book.team_id ? `Đội ${book.team_id}` : 'Thành viên');
+    document.getElementById('mod-book-sender').textContent = `Người gửi: ${book.reader_name} (${senderTeam}) - Gieo lúc: ${new Date(book.created_at).toLocaleString('vi-VN')}`;
     document.getElementById('mod-notes').value = book.moderation_notes || '';
     document.getElementById('mod-deduct-exp').checked = false;
 

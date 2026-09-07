@@ -104,8 +104,14 @@ export class BookService {
         }
       }
 
-      // 1. Assign anonymous pen name (Bút danh)
+      // 1. Assign anonymous pen name (Bút danh / Nick danh)
       let penName = (reader || '').trim();
+      if (!penName && userId) {
+        const userRes = await client.query('SELECT nickname FROM users WHERE id = $1', [userId]);
+        if (userRes.rows[0]?.nickname) {
+          penName = userRes.rows[0].nickname;
+        }
+      }
       if (!penName) {
         const fallbackPenNames = [
           'Người Gieo Mầm Tri Thức', 'Bạn Đọc Cáo Sách', 'Độc Giả Tinh Hoa',

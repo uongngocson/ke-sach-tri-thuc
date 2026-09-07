@@ -5,7 +5,10 @@ export class AnalyticsService {
   /**
    * Lấy toàn bộ dữ liệu tổng quan cho Executive Dashboard & Charts
    */
-  static async getOverview() {
+  static async getOverview(options = {}) {
+    const filterDate = (options.date && /^\d{4}-\d{2}-\d{2}$/.test(String(options.date).trim()))
+      ? String(options.date).trim()
+      : null;
     // 1. Current Active Round
     const roundRes = await db.query(
       'SELECT * FROM rounds WHERE is_active = true LIMIT 1'
@@ -97,12 +100,15 @@ export class AnalyticsService {
         t.avg_participation_rate, t.perfect_rounds_count,
         t.milestone_150_at, t.milestone_400_at, t.milestone_1000_at, t.milestone_2500_at,
         (SELECT COUNT(*) FROM books b WHERE b.team_id = t.id) as books_count,
+        (SELECT COUNT(*) FROM books b WHERE b.team_id = t.id AND DATE(b.created_at) = COALESCE($2::date, CURRENT_DATE)) as date_books_count,
         (SELECT COUNT(*) FROM daily_dews d WHERE d.team_id = t.id) as dews_count,
+        (SELECT COUNT(*) FROM daily_dews d WHERE d.team_id = t.id AND d.claim_date = COALESCE($2::date, CURRENT_DATE)) as date_dews_count,
         (SELECT COUNT(DISTINCT dq.user_id) FROM daily_quotes dq WHERE dq.team_id = t.id AND dq.quote_date = CURRENT_DATE) as today_participants,
+        (SELECT COUNT(DISTINCT dq.user_id) FROM daily_quotes dq WHERE dq.team_id = t.id AND dq.quote_date = COALESCE($2::date, CURRENT_DATE)) as date_participants,
         (SELECT COUNT(DISTINCT rc.user_id) FROM round_contributions rc WHERE rc.team_id = t.id AND rc.round_number = $1) as current_round_participants
       FROM teams t
       ORDER BY t.tree_exp DESC, t.id ASC
-    `, [currentRound.round_number]);
+    `, [currentRound.round_number, filterDate]);
 
     const TEAM_SHORT_NAMES = {
       1: 'Đội 1', 2: 'Đội 2', 3: 'Đội 3', 4: 'Đội 4',
@@ -112,7 +118,9 @@ export class AnalyticsService {
     const teams = teamsRes.rows.map((team, index) => {
       const target = team.target_members || 40;
       const todayParticipants = parseInt(team.today_participants || team.current_round_participants || 0, 10);
+      const dateParticipants = parseInt(team.date_participants || 0, 10);
       const currentRate = target > 0 ? parseFloat(((todayParticipants / target) * 100).toFixed(1)) : 0;
+      const dateRate = target > 0 ? parseFloat(((dateParticipants / target) * 100).toFixed(1)) : 0;
       const isSprouted = (team.tree_seeds >= 50) || (team.tree_level >= 1);
       const levelNames = ['Ủ Mầm (Hạt)', 'Cây Nảy Mầm', 'Cây Con', 'Cây Phát Triển', 'Cây Cổ Thụ', 'Đại Cổ Thụ'];
 
@@ -123,11 +131,15 @@ export class AnalyticsService {
         levelName: levelNames[team.tree_level] || 'Ủ Mầm',
         isSprouted,
         books_count: parseInt(team.books_count || 0, 10),
+        date_books_count: parseInt(team.date_books_count || 0, 10),
         dews_count: parseInt(team.dews_count || 0, 10),
+        date_dews_count: parseInt(team.date_dews_count || 0, 10),
         today_participants: todayParticipants,
+        date_participants: dateParticipants,
         current_round_participants: todayParticipants,
         current_participation_rate: currentRate,
-        today_participation_rate: currentRate
+        today_participation_rate: currentRate,
+        date_participation_rate: dateRate
       };
     });
 
@@ -186,6 +198,16 @@ export class AnalyticsService {
     const todayActiveUsers = parseInt(todayActiveUsersRes.rows[0]?.active_count || 0, 10);
     const todayParticipationRate = totalUsers > 0 ? parseFloat(((todayActiveUsers / totalUsers) * 100).toFixed(1)) : 0;
 
+    const dateActiveUsersRes = await db.query(`
+      SELECT COUNT(DISTINCT user_id) as active_count
+      FROM daily_quotes
+      WHERE quote_date = COALESCE($1::date, CURRENT_DATE)
+    `, [filterDate]);
+    const dateActiveUsers = parseInt(dateActiveUsersRes.rows[0]?.active_count || 0, 10);
+    const dateParticipationRate = totalUsers > 0 ? parseFloat(((dateActiveUsers / totalUsers) * 100).toFixed(1)) : 0;
+
+    const effectiveDate = filterDate || new Date().toISOString().slice(0, 10);
+
     return {
       kpi: {
         totalExp,
@@ -204,10 +226,14 @@ export class AnalyticsService {
         totalMembers: totalUsers,
         todayActiveUsers,
         todayParticipationRate,
+        dateActiveUsers,
+        dateParticipationRate,
+        filterDate: effectiveDate,
         activeRoundUsers: todayActiveUsers,
         overallParticipationRate: todayParticipationRate,
         currentRound
       },
+      filterDate: effectiveDate,
       timeline,
       teams,
       categories: catRes.rows,
@@ -228,7 +254,7 @@ export class AnalyticsService {
       SELECT 
         el.id, el.amount, el.type, el.reference_type, el.reference_id, el.created_at,
         el.user_fingerprint,
-        u.full_name as user_name, u.email as user_email, u.employee_code,
+        COALESCE(u.nickname, u.full_name) as user_name, u.nickname, u.email as user_email, u.employee_code,
         t.id as team_id, t.name as team_name, t.display_name as team_display_name, t.color_code as team_color
       FROM exp_ledger el
       LEFT JOIN users u ON el.user_id = u.id
@@ -247,7 +273,7 @@ export class AnalyticsService {
     }
     if (search) {
       params.push(`%${search}%`);
-      query += ` AND (u.full_name ILIKE $${params.length} OR u.email ILIKE $${params.length} OR u.employee_code ILIKE $${params.length})`;
+      query += ` AND (u.nickname ILIKE $${params.length} OR u.full_name ILIKE $${params.length} OR u.email ILIKE $${params.length} OR u.employee_code ILIKE $${params.length})`;
     }
 
     const countQuery = `SELECT COUNT(*) FROM (${query}) as filtered_ledger`;
@@ -273,7 +299,7 @@ export class AnalyticsService {
   /**
    * Danh bạ 288 nhân sự kèm trạng thái tham gia chặng hiện tại
    */
-  static async getUsersDirectory({ page = 1, limit = 50, teamId, branch, status, search }) {
+  static async getUsersDirectory({ page = 1, limit = 50, teamId, branch, status, search, date }) {
     page = Math.max(1, parseInt(page, 10) || 1);
     limit = Math.min(300, Math.max(1, parseInt(limit, 10) || 50));
     const offset = (page - 1) * limit;
@@ -282,9 +308,11 @@ export class AnalyticsService {
     const roundRes = await db.query('SELECT round_number FROM rounds WHERE is_active = true LIMIT 1');
     const currentRoundNum = roundRes.rows[0]?.round_number || 1;
 
+    const targetDate = (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) ? date : null;
+
     let query = `
       SELECT 
-        u.id, u.employee_code, u.email, u.full_name, u.gender,
+        u.id, u.employee_code, u.email, u.full_name, u.nickname, u.gender,
         u.branch, u.parent_department, u.child_department_1, u.child_department_2,
         u.job_title, u.team_id, u.role, u.avatar_url,
         u.contributed_books_count, u.total_exp_earned, u.created_at,
@@ -294,10 +322,10 @@ export class AnalyticsService {
         dq.created_at as today_contribution_time
       FROM users u
       LEFT JOIN teams t ON u.team_id = t.id
-      LEFT JOIN daily_quotes dq ON u.id = dq.user_id AND dq.quote_date = CURRENT_DATE
+      LEFT JOIN daily_quotes dq ON u.id = dq.user_id AND dq.quote_date = COALESCE($1::date, CURRENT_DATE)
       WHERE 1=1
     `;
-    const params = [];
+    const params = [targetDate];
 
     if (teamId) {
       params.push(parseInt(teamId, 10));
@@ -314,14 +342,14 @@ export class AnalyticsService {
     }
     if (search) {
       params.push(`%${search}%`);
-      query += ` AND (u.full_name ILIKE $${params.length} OR u.email ILIKE $${params.length} OR u.employee_code ILIKE $${params.length} OR u.job_title ILIKE $${params.length})`;
+      query += ` AND (u.nickname ILIKE $${params.length} OR u.full_name ILIKE $${params.length} OR u.email ILIKE $${params.length} OR u.employee_code ILIKE $${params.length} OR u.job_title ILIKE $${params.length})`;
     }
 
     const countQuery = `SELECT COUNT(*) FROM (${query}) as filtered_users`;
     const countRes = await db.query(countQuery, params);
     const total = parseInt(countRes.rows[0].count, 10);
 
-    query += ` ORDER BY u.team_id ASC, u.full_name ASC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    query += ` ORDER BY u.team_id ASC, COALESCE(u.nickname, u.full_name) ASC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(limit, offset);
 
     const res = await db.query(query, params);
@@ -329,6 +357,7 @@ export class AnalyticsService {
     return {
       users: res.rows,
       currentRoundNumber: currentRoundNum,
+      filterDate: targetDate,
       pagination: {
         page,
         limit,
@@ -396,7 +425,7 @@ export class AnalyticsService {
     ] = await Promise.all([
       // 1.1: Ai đóng góp nhiều điểm EXP nhất
       db.query(`
-        SELECT u.id, u.employee_code, u.full_name, u.email, u.job_title, u.branch, u.team_id,
+        SELECT u.id, u.employee_code, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.email, u.job_title, u.branch, u.team_id,
                t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
                u.total_exp_earned, u.contributed_books_count
         FROM users u
@@ -408,7 +437,7 @@ export class AnalyticsService {
 
       // 1.2: Ai là người tưới cây nhiều nhất (kèm chuỗi streak)
       db.query(`
-        SELECT u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id,
+        SELECT u.id, u.employee_code, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.email, u.job_title, u.team_id,
                t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
                COUNT(d.id)::INT as total_dews,
                COALESCE(MAX(d.streak), 1)::INT as max_streak,
@@ -417,14 +446,14 @@ export class AnalyticsService {
         JOIN users u ON d.user_id = u.id
         LEFT JOIN teams t ON u.team_id = t.id
         WHERE ($1::INT IS NULL OR d.team_id = $1)
-        GROUP BY u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id, t.name, t.display_name, t.color_code
+        GROUP BY u.id, u.employee_code, u.full_name, u.nickname, u.email, u.job_title, u.team_id, t.name, t.display_name, t.color_code
         ORDER BY total_dews DESC, max_streak DESC
         LIMIT 10
       `, [filterTeamId]),
 
       // 1.3: Ai là người gieo mầm nhiều nhất
       db.query(`
-        SELECT u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id,
+        SELECT u.id, u.employee_code, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.email, u.job_title, u.team_id,
                t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
                COUNT(b.id)::INT as books_count,
                COALESCE(SUM(b.likes_count), 0)::INT as total_likes_received
@@ -432,7 +461,7 @@ export class AnalyticsService {
         JOIN users u ON b.user_id = u.id
         LEFT JOIN teams t ON u.team_id = t.id
         WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
-        GROUP BY u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id, t.name, t.display_name, t.color_code
+        GROUP BY u.id, u.employee_code, u.full_name, u.nickname, u.email, u.job_title, u.team_id, t.name, t.display_name, t.color_code
         ORDER BY books_count DESC, total_likes_received DESC
         LIMIT 10
       `, [filterTeamId]),
@@ -532,7 +561,7 @@ export class AnalyticsService {
       // 2.3: Những câu cốt được nhiều thành viên tương tác nhất
       db.query(`
         SELECT b.id, b.title, b.author, b.quote, b.likes_count, b.created_at,
-               u.id as user_id, u.full_name as reader_name, u.employee_code,
+               u.id as user_id, COALESCE(u.nickname, u.full_name) as reader_name, u.nickname, u.employee_code,
                t.id as team_id, t.name as team_name, t.display_name as team_display_name, t.color_code as team_color
         FROM books b
         LEFT JOIN users u ON b.user_id = u.id
@@ -610,7 +639,7 @@ export class AnalyticsService {
       // 3.3: Gương mặt tiêu biểu số 1 (MVP) của từng đội trong 8 đội
       db.query(`
         SELECT DISTINCT ON (u.team_id)
-               u.id, u.employee_code, u.full_name, u.email, u.job_title, u.avatar_url,
+               u.id, u.employee_code, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.email, u.job_title, u.avatar_url,
                u.contributed_books_count, u.total_exp_earned,
                t.id as team_id, t.name as team_name, t.display_name as team_display_name, 
                t.color_code as team_color, t.icon as team_icon

@@ -81,7 +81,7 @@ export class UserIdentityModal {
         <div class="ui-identity-title-block">
           <h2 class="ui-identity-title">Chào Mừng Đến Vườn Cây Tri Thức</h2>
           <p class="ui-identity-subtitle">
-            Nhập <strong>Email</strong> hoặc <strong>Mã Nhân Viên</strong> để nhận diện Đội và cùng đồng đội chăm sóc Cây Tri Thức của bạn.
+            Nhập <strong>Nick Danh</strong> để nhận diện Đội và cùng đồng đội chăm sóc Cây Tri Thức của bạn.
           </p>
         </div>
 
@@ -89,14 +89,14 @@ export class UserIdentityModal {
         <div class="ui-identity-form-group">
           <label class="ui-identity-label">
             <span>👤</span>
-            <span>Email hoặc Mã Nhân Viên:</span>
+            <span>Nick Danh:</span>
           </label>
           <div class="ui-identity-input-wrapper">
             <input 
               type="text" 
               id="ui-identity-input" 
               class="ui-identity-input" 
-              placeholder="Ví dụ: thuhuong hoặc 00000295..."
+              placeholder="Ví dụ: Cáo Tri Thức, Sách Hay, Hoa Sen..." 
               autocomplete="off"
             />
             <button class="ui-identity-clear-btn" id="ui-identity-clear-btn" style="display:none;">✕</button>
@@ -113,8 +113,8 @@ export class UserIdentityModal {
           <div class="ui-identity-preview-inner">
             <div class="ui-identity-preview-avatar" id="ui-preview-avatar">🦊</div>
             <div class="ui-identity-preview-info">
-              <h4 class="ui-preview-name" id="ui-preview-name">Nguyễn Thu Hương</h4>
-              <p class="ui-preview-meta" id="ui-preview-meta">thuhuong • 00000295</p>
+              <h4 class="ui-preview-name" id="ui-preview-name">Cáo Tri Thức</h4>
+              <p class="ui-preview-meta" id="ui-preview-meta">Thành viên Đội 1</p>
               <div class="ui-preview-team-tag" id="ui-preview-team">
                 <span id="ui-preview-team-icon">⚡</span>
                 <span id="ui-preview-team-name">Đội 1</span>
@@ -560,7 +560,8 @@ export class UserIdentityModal {
           if (json.success && json.data && json.data.length > 0) {
             this.renderSuggestions(json.data, suggestionsBox, (user) => {
               selectedUser = user;
-              input.value = `${user.full_name} (${UserIdentityModal.maskEmail(user.email)})`;
+              const displayName = user.nickname || user.full_name;
+              input.value = `${displayName} (Đội ${user.team_id})`;
               suggestionsBox.style.display = 'none';
               this.showPreview(user, previewBox);
               submitBtn.disabled = false;
@@ -614,6 +615,7 @@ export class UserIdentityModal {
       const guestSession = {
         id: 'guest',
         full_name: 'Khách Tham Quan',
+        nickname: 'Khách Tham Quan',
         email: 'guest',
         isGuest: true,
         team_id: null, // Guests do not belong to any team
@@ -626,20 +628,24 @@ export class UserIdentityModal {
   }
 
   renderSuggestions(users, container, onSelect) {
-    container.innerHTML = users.map(u => `
+    container.innerHTML = users.map(u => {
+      const displayName = u.nickname || u.full_name;
+      const teamLabel = u.team_display_name || (u.team_id ? 'Đội ' + u.team_id : 'Thành viên');
+      return `
       <div class="ui-suggestion-item" data-id="${u.id}">
         <div class="ui-suggestion-left">
-          <div class="ui-suggestion-avatar">${u.full_name.slice(0, 1)}</div>
+          <div class="ui-suggestion-avatar">${displayName.slice(0, 1)}</div>
           <div class="ui-suggestion-details">
-            <div class="ui-suggestion-name">${u.full_name}</div>
-            <div class="ui-suggestion-meta">${UserIdentityModal.maskEmail(u.email)} • ${u.employee_code}</div>
+            <div class="ui-suggestion-name">${displayName}</div>
+            <div class="ui-suggestion-meta">${escapeHtml(u.branch || teamLabel)}</div>
           </div>
         </div>
         <div class="ui-suggestion-team-tag" style="border-left: 2px solid ${u.team_color || '#3b82f6'};">
-          ${u.team_id ? 'Đội ' + u.team_id : 'Đội'}
+          ${teamLabel}
         </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     container.querySelectorAll('.ui-suggestion-item').forEach((item, index) => {
       item.addEventListener('click', () => {
@@ -654,10 +660,12 @@ export class UserIdentityModal {
     const meta = previewBox.querySelector('#ui-preview-meta');
     const team = previewBox.querySelector('#ui-preview-team-name');
 
+    const displayName = user.nickname || user.full_name;
+    const teamLabel = user.team_display_name || (user.team_id ? `Đội ${user.team_id}` : 'Thành viên');
     avatar.textContent = user.gender === 'Nữ' ? '🌸' : '⚡';
-    name.textContent = user.full_name;
-    meta.textContent = `${UserIdentityModal.maskEmail(user.email)} • Mã NV: ${user.employee_code}`;
-    team.textContent = user.team_id ? `Đội ${user.team_id}` : 'Đội';
+    name.textContent = displayName;
+    meta.textContent = user.branch || user.job_title || teamLabel;
+    team.textContent = teamLabel;
 
     previewBox.style.display = 'block';
   }
@@ -668,15 +676,16 @@ export class UserIdentityModal {
       const json = await res.json();
 
       if (json.success && json.data) {
+        const displayName = json.data.nickname || json.data.full_name;
         feedback.className = 'ui-identity-feedback success';
-        feedback.textContent = `✓ Đã tìm thấy: ${json.data.full_name} (Đội ${json.data.team_id})`;
+        feedback.textContent = `✓ Đã tìm thấy: ${displayName} (Đội ${json.data.team_id})`;
         feedback.style.display = 'block';
         this.showPreview(json.data, previewBox);
         submitBtn.disabled = false;
         onSuccess(json.data);
       } else {
         feedback.className = 'ui-identity-feedback error';
-        feedback.textContent = '❌ Không tìm thấy nhân sự trong danh sách. Vui lòng kiểm tra lại email hoặc mã NV.';
+        feedback.textContent = '❌ Không tìm thấy nhân sự trong danh sách. Vui lòng kiểm tra lại nick danh.';
         feedback.style.display = 'block';
         previewBox.style.display = 'none';
         submitBtn.disabled = true;
@@ -692,9 +701,10 @@ export class UserIdentityModal {
     UserIdentityModal.saveSession(user);
     this.close();
 
+    const displayName = user.nickname || user.full_name;
     // Trigger toast notification
     if (typeof window.showToast === 'function') {
-      window.showToast(`Chào mừng ${user.full_name} đã gia nhập Đội ${user.team_id}! ✨`);
+      window.showToast(`Chào mừng ${displayName} đã gia nhập Đội ${user.team_id}! ✨`);
     }
 
     this.onUserIdentified(user);

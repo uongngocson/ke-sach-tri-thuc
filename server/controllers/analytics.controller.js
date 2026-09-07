@@ -2,7 +2,8 @@ import AnalyticsService from '../services/analytics.service.js';
 
 export async function getAdminAnalytics(req, res, next) {
   try {
-    const data = await AnalyticsService.getOverview();
+    const { date } = req.query;
+    const data = await AnalyticsService.getOverview({ date });
     res.json({
       success: true,
       data
@@ -27,8 +28,8 @@ export async function getAdminLedger(req, res, next) {
 
 export async function getAdminUsersDirectory(req, res, next) {
   try {
-    const { page, limit, teamId, branch, status, search } = req.query;
-    const data = await AnalyticsService.getUsersDirectory({ page, limit, teamId, branch, status, search });
+    const { page, limit, teamId, branch, status, search, date } = req.query;
+    const data = await AnalyticsService.getUsersDirectory({ page, limit, teamId, branch, status, search, date });
     res.json({
       success: true,
       data

@@ -1,4 +1,4 @@
-﻿import { TeamService } from '../services/team.service.js';
+import { TeamService } from '../services/team.service.js';
 
 export async function getTeams(req, res, next) {
   try {
@@ -35,7 +35,8 @@ export async function getTeamById(req, res, next) {
 export async function getTeamMembers(req, res, next) {
   try {
     const { id } = req.params;
-    const members = await TeamService.getTeamMembers(parseInt(id, 10));
+    const { date } = req.query;
+    const members = await TeamService.getTeamMembers(parseInt(id, 10), date);
     res.json({
       success: true,
       data: members

@@ -270,7 +270,7 @@ class ApiDataStoreManager {
           author: seedData.author,
           quote: seedData.quote,
           category: seedData.category || null,
-          reader: seedData.reader || (session?.full_name) || 'Độc giả yêu sách',
+          reader: seedData.reader || (session?.nickname || session?.full_name) || 'Độc giả yêu sách',
           email: email,
           userId: userId,
           teamId: teamId,

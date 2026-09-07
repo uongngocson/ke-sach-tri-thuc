@@ -21,6 +21,7 @@ export class UserService {
     if (keyword && keyword.trim()) {
       values.push(`%${keyword.trim()}%`);
       whereClauses.push(`(
+        u.nickname ILIKE $${values.length} OR
         u.full_name ILIKE $${values.length} OR 
         u.email ILIKE $${values.length} OR 
         u.employee_code ILIKE $${values.length} OR
@@ -47,6 +48,7 @@ export class UserService {
         u.employee_code,
         u.email,
         u.full_name,
+        u.nickname,
         u.gender,
         u.branch,
         u.parent_department,
@@ -67,7 +69,7 @@ export class UserService {
       FROM users u
       LEFT JOIN teams t ON u.team_id = t.id
       ${whereStr}
-      ORDER BY u.team_id ASC, u.full_name ASC
+      ORDER BY u.team_id ASC, COALESCE(u.nickname, u.full_name) ASC
       LIMIT $${limitIdx} OFFSET $${offsetIdx}
     `, values);
 
@@ -80,27 +82,27 @@ export class UserService {
   }
 
   /**
-   * Fast autocomplete suggestions for Email / Employee Code input
+   * Fast autocomplete suggestions for Nickname / Email / Employee Code input
    */
   static async suggestUsers(keyword = '', limit = 8) {
     if (!keyword || !keyword.trim()) return [];
     const term = `%${keyword.trim()}%`;
     const res = await db.query(`
       SELECT 
-        u.id, u.employee_code, u.email, u.full_name, u.gender,
+        u.id, u.employee_code, u.nickname, u.email, u.gender,
         u.branch, u.parent_department, u.officer_code, u.job_title,
         u.team_id, t.display_name as team_display_name, t.color_code as team_color
       FROM users u
       LEFT JOIN teams t ON u.team_id = t.id
-      WHERE u.full_name ILIKE $1 OR u.email ILIKE $1 OR u.employee_code ILIKE $1
-      ORDER BY u.full_name ASC
+      WHERE u.nickname ILIKE $1 OR u.employee_code ILIKE $1 OR u.email ILIKE $1 OR u.full_name ILIKE $1
+      ORDER BY COALESCE(u.nickname, u.full_name) ASC
       LIMIT $2
     `, [term, limit]);
     return res.rows;
   }
 
   /**
-   * Find user by Email, Username, or Employee Code (for book contribution & lookup)
+   * Find user by Nickname, Email, Username, or Employee Code (for book contribution & lookup)
    */
   static async lookupUser(query) {
     if (!query) return null;
@@ -116,7 +118,7 @@ export class UserService {
         t.color_code as team_color
       FROM users u
       LEFT JOIN teams t ON u.team_id = t.id
-      WHERE LOWER(u.email) = $1 OR LOWER(u.email) = $2 OR u.employee_code = $3
+      WHERE LOWER(u.nickname) = $1 OR LOWER(u.email) = $1 OR LOWER(u.email) = $2 OR u.employee_code = $3
       LIMIT 1
     `, [cleanQuery, queryWithDomain, query.trim()]);
 

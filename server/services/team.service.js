@@ -186,18 +186,31 @@ export class TeamService {
   }
 
   /**
-   * Get members of a specific team
+   * Get members of a specific team with participation status on specific date
    */
-  static async getTeamMembers(teamId) {
+  static async getTeamMembers(teamId, filterDate = null) {
+    const validDate = (filterDate && /^\d{4}-\d{2}-\d{2}$/.test(String(filterDate).trim()))
+      ? String(filterDate).trim()
+      : null;
+
     const result = await db.query(`
       SELECT 
-        id, employee_code, email, full_name, gender, branch,
-        parent_department, child_department_1, child_department_2,
-        officer_code, job_title, team_id, role, avatar_url, contributed_books_count, total_exp_earned
-      FROM users
-      WHERE team_id = $1
-      ORDER BY full_name ASC
-    `, [teamId]);
+        u.id, u.employee_code, u.email, u.full_name, u.gender, u.branch,
+        u.parent_department, u.child_department_1, u.child_department_2,
+        u.officer_code, u.job_title, u.team_id, u.role, u.avatar_url, 
+        u.contributed_books_count, u.total_exp_earned,
+        EXISTS (
+          SELECT 1 FROM daily_quotes dq 
+          WHERE dq.user_id = u.id AND dq.quote_date = COALESCE($2::date, CURRENT_DATE)
+        ) as participated_on_date,
+        (
+          SELECT COUNT(*) FROM books b 
+          WHERE b.user_id = u.id AND DATE(b.created_at) = COALESCE($2::date, CURRENT_DATE)
+        ) as date_books_count
+      FROM users u
+      WHERE u.team_id = $1
+      ORDER BY u.full_name ASC
+    `, [teamId, validDate]);
 
     return result.rows;
   }
