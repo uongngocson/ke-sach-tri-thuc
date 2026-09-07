@@ -95,7 +95,7 @@ async function testContributeModalKeys() {
     assert(res3.status === 400 && data3.success === false, 'Chặn thành công khi bỏ trống Trích Dẫn (HTTP 400 Bad Request)', `Message: ${data3.message || data3.error}`);
 
     // -------------------------------------------------------------
-    // TEST KEY 4: STANDARD VALID SUBMISSION (AUTO-APPROVE 100% & +15 EXP)
+    // TEST KEY 4: STANDARD VALID SUBMISSION (AUTO-APPROVE 100% & +5 EXP)
     // -------------------------------------------------------------
     console.log('\n📦 [4/8] Test Key 4: Gieo mầm sách hợp lệ đầy đủ thông tin...');
     const growthBefore = await fetch(`${BASE_URL}/growth`).then(r => r.json());
@@ -118,11 +118,11 @@ async function testContributeModalKeys() {
     assert(res4.status === 201 && data4.success === true, 'Gieo mầm sách thành công (HTTP 201 Created)');
     assert(data4.data.book.visibility_status === 'visible', 'Auto-Approve: visibility_status = "visible" ngay lập tức');
     assert(data4.data.book.moderation_status === 'pending_review', 'Auto-Approve: moderation_status = "pending_review" để hậu kiểm an toàn');
-    assert(data4.data.growth.expEarned === 15, 'Tích lũy chính xác +15 EXP vào hệ sinh thái Cây Tri Thức');
+    assert(data4.data.growth.expEarned === 5, 'Tích lũy chính xác +5 EXP vào hệ sinh thái Cây Tri Thức');
 
     const growthAfter = await fetch(`${BASE_URL}/growth`).then(r => r.json());
     const expAfter = growthAfter.data.totalEXP;
-    assert(expAfter === expBefore + 15, `PostgreSQL Total EXP tăng từ ${expBefore} lên ${expAfter} (+15 EXP)`);
+    assert(expAfter === expBefore + 5, `PostgreSQL Total EXP tăng từ ${expBefore} lên ${expAfter} (+5 EXP)`);
 
     // -------------------------------------------------------------
     // TEST KEY 5: ANONYMOUS SUBMISSION (DEFAULT READER NAME)

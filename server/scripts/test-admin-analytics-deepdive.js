@@ -108,12 +108,12 @@ async function runDeepDiveAnalyticsTests() {
         `Top 1 sách: "${topBooks[0].title}" (${topBooks[0].author}) - ${topBooks[0].quote_count} trích dẫn`);
     }
 
-    // 2.2: Chủ đề / Thể loại sách xuất hiện nhiều nhất
+    // 2.2: Tỷ trọng đóng góp tri thức của 8 Đội thi đua (Không phân loại sách)
     assert(Array.isArray(topCategories), 'topCategories là một danh sách mảng');
     if (topCategories.length > 0) {
       assert(topCategories[0].category && typeof topCategories[0].percentage === 'number', 
-        'Top chủ đề tính toán tỷ lệ phần trăm chính xác',
-        `Top 1 chủ đề: ${topCategories[0].category} - ${topCategories[0].book_count} cuốn (${topCategories[0].percentage}%)`);
+        'Tỷ trọng đóng góp theo Đội thi đua tính toán tỷ lệ phần trăm chính xác',
+        `Top 1 đội: ${topCategories[0].category} - ${topCategories[0].book_count} cuốn (${topCategories[0].percentage}%)`);
     }
 
     // 2.3: Câu cốt được nhiều thành viên tương tác nhất

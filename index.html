@@ -8258,7 +8258,6 @@
             book: bookTitleVal,
             author: bookAuthorVal,
             quote: bookQuoteVal,
-            category: 'Sách Tinh Hoa',
             reader: readerVal,
             userId: currentUser?.id !== 'guest' ? currentUser?.id : null,
             teamId: targetTeamId,
@@ -8268,7 +8267,7 @@
           if (res.success) {
             contributeForm.reset();
             closeContributeModal();
-            showToast(`🎉 Gieo mầm thành công: "${bookTitleVal}" đã được gieo mầm (+15 EXP)!`);
+            showToast(`🎉 Gieo mầm thành công: "${bookTitleVal}" đã được gieo mầm (+5 EXP)!`);
           } else {
             showToast(`⚠️ ${res.message || 'Mỗi ngày mỗi thành viên chỉ được gieo đúng 1 câu quote!'}`);
           }

@@ -131,15 +131,21 @@ export class AnalyticsService {
       };
     });
 
-    // 5. Category Breakdown
+    // 5. 8 Teams Contribution Breakdown (Thay thế Thể loại sách bằng 8 Đội thi đua)
     const catRes = await db.query(`
       SELECT 
-        COALESCE(NULLIF(category, ''), 'Sách Tinh Hoa') as category,
-        COUNT(*) as count,
-        COALESCE(SUM(likes_count), 0) as total_likes
-      FROM books
-      GROUP BY category
-      ORDER BY count DESC
+        t.id,
+        t.name,
+        t.display_name,
+        t.display_name as category,
+        t.color_code,
+        COUNT(b.id)::INT as count,
+        COALESCE(SUM(b.likes_count), 0)::INT as total_likes,
+        t.tree_exp
+      FROM teams t
+      LEFT JOIN books b ON t.id = b.team_id AND b.visibility_status = 'visible'
+      GROUP BY t.id, t.name, t.display_name, t.color_code, t.tree_exp
+      ORDER BY t.id ASC
     `);
 
     // 6. Branch / Department Breakdown
@@ -490,35 +496,42 @@ export class AnalyticsService {
       // 2.1: Cuốn sách nào được trích dẫn nhiều nhất
       db.query(`
         SELECT b.title, b.author,
-               COALESCE(NULLIF(b.category, ''), 'Sách Tinh Hoa') as category,
+               COALESCE(t.display_name, t.name, 'Đội ' || b.team_id, 'Toàn Vườn') as team_display_name,
+               t.color_code as team_color,
                COUNT(b.id)::INT as quote_count,
                COALESCE(SUM(b.likes_count), 0)::INT as total_likes,
                MAX(b.created_at) as latest_shared_at
         FROM books b
+        LEFT JOIN teams t ON b.team_id = t.id
         WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
-        GROUP BY b.title, b.author, COALESCE(NULLIF(b.category, ''), 'Sách Tinh Hoa')
+        GROUP BY b.title, b.author, t.display_name, t.name, b.team_id, t.color_code
         ORDER BY quote_count DESC, total_likes DESC
         LIMIT 10
       `, [filterTeamId]),
 
-      // 2.2: Chủ đề / Thể loại sách xuất hiện nhiều nhất
+      // 2.2: Tỷ trọng đóng góp tri thức của 8 Đội thi đua (Không phân loại sách)
       db.query(`
-        SELECT COALESCE(NULLIF(b.category, ''), 'Sách Tinh Hoa') as category,
+        SELECT t.id as team_id,
+               t.name as team_name,
+               t.display_name as category,
+               t.display_name as team_display_name,
+               t.color_code as team_color,
                COUNT(b.id)::INT as book_count,
                COALESCE(SUM(b.likes_count), 0)::INT as total_likes,
                ROUND(
                  (COUNT(b.id)::numeric / NULLIF((SELECT COUNT(*) FROM books WHERE visibility_status = 'visible' AND ($1::INT IS NULL OR team_id = $1)), 0)) * 100, 
                  1
                )::FLOAT as percentage
-        FROM books b
-        WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
-        GROUP BY category
-        ORDER BY book_count DESC
+        FROM teams t
+        LEFT JOIN books b ON t.id = b.team_id AND b.visibility_status = 'visible'
+        WHERE ($1::INT IS NULL OR t.id = $1)
+        GROUP BY t.id, t.name, t.display_name, t.color_code
+        ORDER BY book_count DESC, t.id ASC
       `, [filterTeamId]),
 
       // 2.3: Những câu cốt được nhiều thành viên tương tác nhất
       db.query(`
-        SELECT b.id, b.title, b.author, b.quote, b.category, b.likes_count, b.created_at,
+        SELECT b.id, b.title, b.author, b.quote, b.likes_count, b.created_at,
                u.id as user_id, u.full_name as reader_name, u.employee_code,
                t.id as team_id, t.name as team_name, t.display_name as team_display_name, t.color_code as team_color
         FROM books b

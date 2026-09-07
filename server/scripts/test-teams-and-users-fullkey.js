@@ -279,7 +279,7 @@ async function runFullKeyTeamsAndUsersTest() {
     }
     assert(duplicateDewBlocked, 'Bảo vệ thành công: Chặn độc giả tưới cây lần 2 trong ngày (HTTP 409 DUPLICATE_DEW_CLAIM)');
 
-    // 3.4: Thực hành Gieo Sách / Trích Dẫn Tri Thức (+15 EXP) & Giới hạn 1 Quote/Ngày
+    // 3.4: Thực hành Gieo Sách / Trích Dẫn Tri Thức (+5 EXP) & Giới hạn 1 Quote/Ngày
     console.log('\n📌 [Thực hành 3] Thực hành Gieo Mầm Tri Thức (1 Quote / Ngày / User):');
     const userTeam3 = await UserService.lookupUser(refUsers.find(u => u.team_id === 3).email);
 
@@ -303,8 +303,8 @@ async function runFullKeyTeamsAndUsersTest() {
       userFingerprint: `fp_test_u3_${Date.now()}`
     });
 
-    assert(bookContrib && bookContrib.book && bookContrib.growth.expEarned === 15, 
-      'Độc giả Đội 3 gieo mầm trích dẫn sách thành công (+15 EXP ghi nhận vào sổ cái)',
+    assert(bookContrib && bookContrib.book && bookContrib.growth.expEarned === 5, 
+      'Độc giả Đội 3 gieo mầm trích dẫn sách thành công (+5 EXP ghi nhận vào sổ cái)',
       `Book ID: ${bookContrib.book.id}, Level: ${bookContrib.growth.level}`);
 
     // Gieo lần 2 trong cùng ngày -> Phải bị chặn 409

@@ -494,22 +494,27 @@ function renderCharts(data) {
     });
   }
 
-  // --- CHART 2: Book Categories Doughnut ---
+  // --- CHART 2: 8 Teams Contribution Doughnut (Zero Book Categories - Only 8 Teams) ---
   const ctxCat = document.getElementById('chart-categories')?.getContext('2d');
   if (ctxCat) {
     if (charts.categories) charts.categories.destroy();
 
-    const catLabels = data.categories.map(c => c.category);
-    const catCounts = data.categories.map(c => parseInt(c.count, 10));
-    const catColors = ['#38bdf8', '#10b981', '#f59e0b', '#a855f7', '#f43f5e', '#3b82f6', '#14b8a6', '#eab308'];
+    const teamItems = (data.categories && data.categories.length > 0) 
+      ? data.categories 
+      : ((data.teams && data.teams.length > 0) ? data.teams : []);
+
+    const defaultColors = ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#70B928'];
+    const catLabels = teamItems.map((t, idx) => t.display_name || t.name || t.category || `Đội ${t.id || (idx + 1)}`);
+    const catCounts = teamItems.map(t => parseInt(t.count ?? t.total_books ?? t.books_count ?? t.tree_exp ?? 0, 10));
+    const catColors = teamItems.map((t, idx) => t.color_code || defaultColors[idx % defaultColors.length]);
 
     charts.categories = new Chart(ctxCat, {
       type: 'doughnut',
       data: {
-        labels: catLabels.length ? catLabels : ['Chưa có dữ liệu'],
+        labels: catLabels.length ? catLabels : ['8 Đội Thi Đua'],
         datasets: [{
           data: catCounts.length ? catCounts : [1],
-          backgroundColor: catColors.slice(0, Math.max(1, catLabels.length)),
+          backgroundColor: catColors,
           borderColor: '#0f172a',
           borderWidth: 2
         }]
@@ -519,149 +524,28 @@ function renderCharts(data) {
         maintainAspectRatio: false,
         cutout: '66%',
         plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 10 } } }
-        }
-      }
-    });
-  }
-
-  // --- CHART 3: 8 Teams Standings Horizontal Bar ---
-  const ctxTeams = document.getElementById('chart-teams-exp')?.getContext('2d');
-  if (ctxTeams) {
-    if (charts.teams) charts.teams.destroy();
-
-    const teamLabels = data.teams.map(t => `#${t.id} ${t.shortName}`);
-    const teamExp = data.teams.map(t => parseInt(t.tree_exp, 10));
-    const teamColors = data.teams.map(t => t.color_code || '#0284c7');
-
-    charts.teams = new Chart(ctxTeams, {
-      type: 'bar',
-      data: {
-        labels: teamLabels,
-        datasets: [{
-          label: 'Tổng EXP Cây Tri Thức',
-          data: teamExp,
-          backgroundColor: teamColors,
-          borderRadius: 6,
-          borderWidth: 1,
-          borderColor: 'rgba(255, 255, 255, 0.15)'
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
+          legend: { 
+            position: 'bottom', 
+            labels: { 
+              boxWidth: 10, 
+              padding: 8, 
+              font: { size: 10, weight: 'bold' },
+              color: '#94a3b8'
+            } 
+          },
           tooltip: {
             callbacks: {
-              label: (ctx) => `EXP: ${ctx.raw.toLocaleString()} EXP`
+              label: function(ctx) {
+                const val = ctx.raw || 0;
+                return ` ${ctx.label}: ${val} sách đã gieo`;
+              }
             }
           }
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-            ticks: { callback: (v) => v.toLocaleString() }
-          },
-          y: { grid: { display: false } }
         }
       }
     });
   }
 
-  // --- CHART 4: Branch Distribution ---
-  const ctxBranches = document.getElementById('chart-branches')?.getContext('2d');
-  if (ctxBranches) {
-    if (charts.branches) charts.branches.destroy();
-
-    const branchLabels = data.branches.map(b => b.branch);
-    const totalMembers = data.branches.map(b => parseInt(b.total_members, 10));
-    const activeMembers = data.branches.map(b => parseInt(b.active_round_members, 10));
-
-    charts.branches = new Chart(ctxBranches, {
-      type: 'bar',
-      data: {
-        labels: branchLabels,
-        datasets: [
-          {
-            label: 'Tổng Nhân Sự',
-            data: totalMembers,
-            backgroundColor: 'rgba(56, 189, 248, 0.65)',
-            borderRadius: 5
-          },
-          {
-            label: 'Đã Tham Gia Vòng Này',
-            data: activeMembers,
-            backgroundColor: 'rgba(243, 111, 33, 0.85)',
-            borderRadius: 5
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'top', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }
-        },
-        scales: {
-          x: { grid: { display: false } },
-          y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, beginAtZero: true }
-        }
-      }
-    });
-  }
-
-  // --- CHART 5: 8 Teams Radar Multi-Criteria Analysis ---
-  const ctxRadar = document.getElementById('chart-radar-teams')?.getContext('2d');
-  if (ctxRadar && data.teams.length) {
-    if (charts.radar) charts.radar.destroy();
-
-    // Normalize metrics 0 - 100 for top 4 teams
-    const top4 = data.teams.slice(0, 4);
-    const maxExp = Math.max(...data.teams.map(t => parseInt(t.tree_exp, 10)), 1);
-    const maxBooks = Math.max(...data.teams.map(t => t.books_count), 1);
-    const maxDews = Math.max(...data.teams.map(t => t.dews_count), 1);
-
-    const radarDatasets = top4.map(t => ({
-      label: t.shortName,
-      data: [
-        Math.round((t.tree_exp / maxExp) * 100),
-        Math.round((t.books_count / maxBooks) * 100),
-        Math.round((t.dews_count / maxDews) * 100),
-        Math.round(t.current_participation_rate || 0),
-        Math.round(parseFloat(t.avg_participation_rate || 0))
-      ],
-      borderColor: t.color_code || '#38bdf8',
-      backgroundColor: (t.color_code || '#38bdf8') + '33',
-      borderWidth: 2,
-      pointRadius: 3
-    }));
-
-    charts.radar = new Chart(ctxRadar, {
-      type: 'radar',
-      data: {
-        labels: ['Tổng EXP', 'Sách Đã Gieo', 'Lượt Tưới', 'Tham Gia Vòng Này (%)', 'Tỷ Lệ TB Giải (%)'],
-        datasets: radarDatasets
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'right', labels: { boxWidth: 12, padding: 12 } }
-        },
-        scales: {
-          r: {
-            angleLines: { color: 'rgba(255, 255, 255, 0.08)' },
-            grid: { color: 'rgba(255, 255, 255, 0.08)' },
-            suggestedMin: 0,
-            suggestedMax: 100,
-            pointLabels: { font: { size: 11, weight: 'bold' }, color: '#cbd5e1' }
-          }
-        }
-      }
-    });
-  }
 }
 
 function updateAdvanceRoundSelect(rounds, currentRound) {
@@ -835,104 +719,6 @@ function renderDeepContributors(contributors) {
       }).join('');
     }
   }
-
-  // 1.4: Top Quote Writers & Depth
-  const quotesContainer = document.getElementById('deep-top-quotes-list');
-  if (quotesContainer) {
-    const list = contributors.topQuoteWriters || [];
-    if (list.length === 0) {
-      quotesContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có câu cốt nào</div>';
-    } else {
-      quotesContainer.innerHTML = list.map((u, idx) => {
-        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
-        const color = u.team_color || '#818cf8';
-        return `
-          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:border-indigo-400/40 transition">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-indigo-400' : 'text-slate-500'}">${medal}</span>
-              <div class="min-w-0">
-                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.full_name)}</div>
-                <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-                  <span class="font-mono">${escapeHtml(u.employee_code || '')}</span>
-                  <span>•</span>
-                  <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_name || 'Đội ' + u.team_id)}</span>
-                </div>
-              </div>
-            </div>
-            <div class="text-right shrink-0">
-              <span class="text-xs font-black text-indigo-400">${u.quotes_count || 0} câu</span>
-              <div class="text-[9.5px] text-slate-400">~${u.avg_quote_length || 0} ký tự/câu</div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-  }
-
-  // 1.5: Top Appreciated (Nhiều người cảm ơn / like nhất)
-  const appContainer = document.getElementById('deep-top-appreciated-list');
-  if (appContainer) {
-    const list = contributors.topAppreciated || [];
-    if (list.length === 0) {
-      appContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có tương tác cảm ơn</div>';
-    } else {
-      appContainer.innerHTML = list.map((u, idx) => {
-        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
-        const color = u.team_color || '#f43f5e';
-        return `
-          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:border-rose-400/40 transition">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-rose-400' : 'text-slate-500'}">${medal}</span>
-              <div class="min-w-0">
-                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.full_name)}</div>
-                <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-                  <span class="font-mono">${escapeHtml(u.employee_code || '')}</span>
-                  <span>•</span>
-                  <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
-                </div>
-              </div>
-            </div>
-            <div class="text-right shrink-0">
-              <span class="text-xs font-black text-rose-400">💖 ${u.total_likes_received || 0} tim</span>
-              <div class="text-[9.5px] text-slate-400">${u.books_count || 0} chia sẻ</div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-  }
-
-  // 1.6: Top Visitors (Ghé thăm cây nhiều nhất)
-  const visitorContainer = document.getElementById('deep-top-visitors-list');
-  if (visitorContainer) {
-    const list = contributors.topVisitors || [];
-    if (list.length === 0) {
-      visitorContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa ghi nhận độc giả ghé thăm</div>';
-    } else {
-      visitorContainer.innerHTML = list.map((v, idx) => {
-        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
-        const color = v.team_color || '#c084fc';
-        return `
-          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:border-purple-400/40 transition">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-purple-400' : 'text-slate-500'}">${medal}</span>
-              <div class="min-w-0">
-                <div class="text-xs font-bold text-white truncate">${escapeHtml(v.user_name || 'Độc Giả Thân Thiết')}</div>
-                <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-                  <span class="truncate">${escapeHtml(v.user_email || v.user_fingerprint?.slice(0, 10) || '')}</span>
-                  ${v.team_name ? `<span>•</span><span style="color: ${color};" class="font-bold">${escapeHtml(v.team_name)}</span>` : ''}
-                </div>
-              </div>
-            </div>
-            <div class="text-right shrink-0">
-              <span class="text-xs font-black text-purple-400">👀 ${v.visit_count || 0} lần</span>
-              <div class="text-[9.5px] text-slate-500">${v.last_visited_at ? new Date(v.last_visited_at).toLocaleDateString('vi-VN') : ''}</div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-  }
 }
 
 // -------------------------------------------------------------
@@ -948,52 +734,29 @@ function renderDeepContent(content) {
     if (list.length === 0) {
       booksTbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500">Chưa có dữ liệu sách</td></tr>';
     } else {
-      booksTbody.innerHTML = list.map(b => `
+      booksTbody.innerHTML = list.map(b => {
+        const teamName = b.team_display_name || b.team_name || (b.team_id ? `Đội ${b.team_id}` : 'Toàn Vườn');
+        const teamColor = b.team_color || '#38bdf8';
+        return `
         <tr>
           <td>
             <div class="font-bold text-white text-xs">${escapeHtml(b.title)}</div>
             <div class="text-[10px] text-slate-400">${escapeHtml(b.author || 'Khuyết Danh')}</div>
           </td>
           <td>
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
-              ${escapeHtml(b.category || 'Sách Tinh Hoa')}
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold border" style="color: ${teamColor}; border-color: ${teamColor}40; background-color: ${teamColor}15;">
+              ${escapeHtml(teamName)}
             </span>
           </td>
           <td class="text-center font-black text-emerald-400 text-xs">${b.quote_count || 0}</td>
           <td class="text-center font-black text-rose-400 text-xs">❤️ ${b.total_likes || 0}</td>
         </tr>
-      `).join('');
-    }
-  }
-
-  // 2.2: Chủ đề / Thể loại xuất hiện nhiều nhất
-  const catContainer = document.getElementById('deep-categories-breakdown');
-  if (catContainer) {
-    const list = content.topCategories || [];
-    if (list.length === 0) {
-      catContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có dữ liệu thể loại</div>';
-    } else {
-      catContainer.innerHTML = list.map(cat => {
-        const pct = Math.min(100, Math.max(0, cat.percentage || 0));
-        return `
-          <div class="space-y-1">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-white">${escapeHtml(cat.category)}</span>
-              <div class="flex items-center gap-2">
-                <span class="text-slate-400 font-mono text-[11px]">${cat.book_count || 0} sách</span>
-                <span class="font-black text-emerald-400 text-[11px]">${pct}%</span>
-              </div>
-            </div>
-            <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-              <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500" style="width: ${pct}%;"></div>
-            </div>
-          </div>
-        `;
+      `;
       }).join('');
     }
   }
 
-  // 2.3: Những câu cốt được tương tác / thích nhiều nhất
+  // 2.2: Những câu cốt được tương tác / thích nhiều nhất
   const quotesCards = document.getElementById('deep-top-quotes-cards');
   if (quotesCards) {
     const list = content.topQuotes || [];
@@ -1023,28 +786,6 @@ function renderDeepContent(content) {
           </div>
         `;
       }).join('');
-    }
-  }
-
-  // 2.4: Thành viên tích cực tương tác / lan tỏa tim
-  const interactorsContainer = document.getElementById('deep-top-interactors-list');
-  if (interactorsContainer) {
-    const list = content.topInteractors || [];
-    if (list.length === 0) {
-      interactorsContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Chưa có thành viên tương tác tim</div>';
-    } else {
-      interactorsContainer.innerHTML = list.map((u, idx) => `
-        <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="w-5 text-center text-xs font-bold text-rose-400">#${idx + 1}</span>
-            <div class="min-w-0">
-              <div class="text-xs font-bold text-white truncate">${escapeHtml(u.user_name || 'Độc Giả Ẩn Danh')}</div>
-              <div class="text-[10px] text-slate-400">${escapeHtml(u.team_name || 'Thành viên CLB')}</div>
-            </div>
-          </div>
-          <span class="text-xs font-black text-rose-400 shrink-0">❤️ ${u.likes_given || 0} tim</span>
-        </div>
-      `).join('');
     }
   }
 }
@@ -1536,7 +1277,7 @@ function renderBooksTable(books) {
       <tr class="hover:bg-slate-800/40 transition-colors">
         <td class="p-3.5 max-w-sm">
           <div class="font-black text-white text-sm">${escapeHtml(b.title)}</div>
-          <div class="text-[11px] text-sky-400 font-bold">${escapeHtml(b.author)} · <span class="text-slate-400">${escapeHtml(b.category || '')}</span></div>
+          <div class="text-[11px] text-sky-400 font-bold">${escapeHtml(b.author)}${b.team_display_name || b.team_name || (b.team_id ? ` · <span class="text-emerald-400 font-bold">${escapeHtml(b.team_display_name || b.team_name || `Đội ${b.team_id}`)}</span>` : '')}</div>
           <p class="text-slate-300 italic text-[11px] mt-1.5 line-clamp-2 bg-slate-950/40 p-2 rounded border border-slate-800">"${escapeHtml(b.quote)}"</p>
         </td>
         <td class="p-3.5">
@@ -1667,7 +1408,7 @@ function renderLedgerTable(ledger) {
   }
 
   const typeLabels = {
-    'BOOK_CONTRIBUTION': '📚 Gieo Sách (+15 EXP)',
+    'BOOK_CONTRIBUTION': '📚 Gieo Sách (+5 EXP)',
     'DAILY_DEW': '💧 Tưới Sương (+2 EXP)',
     'QUOTE_LIKE': '❤️ Thích Trích Dẫn (+2 EXP)',
     'FRUIT_HARVEST': '🍎 Hái Quả (+5 EXP)',

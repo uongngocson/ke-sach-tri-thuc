@@ -64,6 +64,17 @@ class ApiDataStoreManager {
     return fp;
   }
 
+  getUserFingerprint() {
+    let session = null;
+    try {
+      session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+    } catch {}
+    if (session && session.id && session.id !== 'guest') {
+      return `user_${session.id}`;
+    }
+    return this.fingerprint || this.getOrCreateFingerprint();
+  }
+
   generateIdempotencyKey() {
     return 'idemp_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now();
   }
@@ -258,7 +269,7 @@ class ApiDataStoreManager {
           title: seedData.book,
           author: seedData.author,
           quote: seedData.quote,
-          category: seedData.category || 'Sách Tinh Hoa',
+          category: seedData.category || null,
           reader: seedData.reader || (session?.full_name) || 'Độc giả yêu sách',
           email: email,
           userId: userId,
@@ -337,9 +348,24 @@ class ApiDataStoreManager {
 
   async getMasterQuotes(forceRefresh = false) {
     try {
-      const res = await fetch(`${getApiBase()}/quotes?page=1&limit=100&_t=${Date.now()}`);
+      const fp = this.getUserFingerprint();
+      const fpParam = fp ? `&userFingerprint=${encodeURIComponent(fp)}` : '';
+      const res = await fetch(`${getApiBase()}/quotes?page=1&limit=100${fpParam}&_t=${Date.now()}`);
       const data = await res.json();
       if (data.success && data.data && Array.isArray(data.data.quotes)) {
+        if (typeof localStorage !== 'undefined') {
+          const liked = JSON.parse(localStorage.getItem('caosach_liked_quotes') || '{}');
+          let changed = false;
+          for (const q of data.data.quotes) {
+            if (q.is_liked && !liked[q.id]) {
+              liked[q.id] = true;
+              changed = true;
+            }
+          }
+          if (changed) {
+            localStorage.setItem('caosach_liked_quotes', JSON.stringify(liked));
+          }
+        }
         const formatted = data.data.quotes.map(q => ({
           id: q.id,
           book: q.title,
@@ -383,11 +409,26 @@ class ApiDataStoreManager {
       if (options.teamId) params.set('teamId', options.teamId);
       if (options.search) params.set('search', options.search);
       if (options.sortBy) params.set('sortBy', options.sortBy);
+      const fp = options.userFingerprint || this.getUserFingerprint();
+      if (fp) params.set('userFingerprint', fp);
       params.set('_t', Date.now());
 
       const res = await fetch(`${getApiBase()}/quotes?${params.toString()}`);
       const data = await res.json();
       if (data.success && data.data) {
+        if (typeof localStorage !== 'undefined' && Array.isArray(data.data.quotes)) {
+          const liked = JSON.parse(localStorage.getItem('caosach_liked_quotes') || '{}');
+          let changed = false;
+          for (const q of data.data.quotes) {
+            if (q.is_liked && !liked[q.id]) {
+              liked[q.id] = true;
+              changed = true;
+            }
+          }
+          if (changed) {
+            localStorage.setItem('caosach_liked_quotes', JSON.stringify(liked));
+          }
+        }
         return data.data;
       }
     } catch (err) {
@@ -462,7 +503,7 @@ class ApiDataStoreManager {
     if (isLiked) {
       // User is unliking
       const res = await this.unlikeQuote(id);
-      if (res.success) {
+      if (res && res.success) {
         if (typeof localStorage !== 'undefined') {
           const liked = JSON.parse(localStorage.getItem('caosach_liked_quotes') || '{}');
           delete liked[id];
@@ -470,20 +511,12 @@ class ApiDataStoreManager {
         }
         return { success: true, isLiked: false, likes: res.likes };
       }
-      // Fallback
-      const currentQ = this.cachedQuotes.find(q => q.id === id);
-      const prevLikes = Math.max(0, (currentQ?.likes || 1) - 1);
-      if (typeof localStorage !== 'undefined') {
-        const liked = JSON.parse(localStorage.getItem('caosach_liked_quotes') || '{}');
-        delete liked[id];
-        localStorage.setItem('caosach_liked_quotes', JSON.stringify(liked));
-      }
-      return { success: true, isLiked: false, likes: prevLikes };
+      return { success: false, isLiked: true, message: res?.message || 'Không thể bỏ thích lúc này' };
     }
 
     // User is liking
     const res = await this.likeQuote(id);
-    if (res.success) {
+    if (res && res.success) {
       if (typeof localStorage !== 'undefined') {
         const liked = JSON.parse(localStorage.getItem('caosach_liked_quotes') || '{}');
         liked[id] = true;
@@ -491,48 +524,85 @@ class ApiDataStoreManager {
       }
       return { success: true, isLiked: true, likes: res.likes };
     }
+
+    // If duplicate error from backend, mark locally as already liked
+    if (res && res.error === 'DUPLICATE_QUOTE_LIKE') {
+      if (typeof localStorage !== 'undefined') {
+        const liked = JSON.parse(localStorage.getItem('caosach_liked_quotes') || '{}');
+        liked[id] = true;
+        localStorage.setItem('caosach_liked_quotes', JSON.stringify(liked));
+      }
+      return {
+        success: false,
+        isLiked: true,
+        error: 'DUPLICATE_QUOTE_LIKE',
+        message: res.message || 'Bạn đã thả tim trích dẫn này rồi!'
+      };
+    }
+
     return res;
   }
 
   async unlikeQuote(quoteId) {
     try {
       const idempotencyKey = this.generateIdempotencyKey();
+      const fp = this.getUserFingerprint();
       const res = await fetch(`${getApiBase()}/quotes/${quoteId}/unlike`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Idempotency-Key': idempotencyKey
         },
-        body: JSON.stringify({ userFingerprint: this.fingerprint })
+        body: JSON.stringify({ userFingerprint: fp })
       });
 
       const data = await res.json();
-      if (data.success) {
+      if (data && data.success && data.data) {
+        if (typeof localStorage !== 'undefined') {
+          const liked = JSON.parse(localStorage.getItem('caosach_liked_quotes') || '{}');
+          delete liked[quoteId];
+          localStorage.setItem('caosach_liked_quotes', JSON.stringify(liked));
+        }
         return { success: true, likes: data.data.newLikesCount };
+      } else {
+        return { success: false, message: data?.message || 'Không thể bỏ thích trích dẫn' };
       }
     } catch (err) {
       console.error('Error unliking quote:', err);
+      return { success: false, message: 'Lỗi kết nối máy chủ' };
     }
-    return { success: false };
   }
 
   async likeQuote(quoteId) {
     try {
       const idempotencyKey = this.generateIdempotencyKey();
+      const fp = this.getUserFingerprint();
       const res = await fetch(`${getApiBase()}/quotes/${quoteId}/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Idempotency-Key': idempotencyKey
         },
-        body: JSON.stringify({ userFingerprint: this.fingerprint })
+        body: JSON.stringify({ userFingerprint: fp })
       });
 
       const data = await res.json();
-      if (data.success) {
+      if (data && data.success && data.data) {
+        if (typeof localStorage !== 'undefined') {
+          const liked = JSON.parse(localStorage.getItem('caosach_liked_quotes') || '{}');
+          liked[quoteId] = true;
+          localStorage.setItem('caosach_liked_quotes', JSON.stringify(liked));
+        }
         return { success: true, likes: data.data.newLikesCount };
       } else {
-        return { success: false, message: data.message };
+        if (data && data.error === 'DUPLICATE_QUOTE_LIKE') {
+          if (typeof localStorage !== 'undefined') {
+            const liked = JSON.parse(localStorage.getItem('caosach_liked_quotes') || '{}');
+            liked[quoteId] = true;
+            localStorage.setItem('caosach_liked_quotes', JSON.stringify(liked));
+          }
+        }
+        return { success: false, error: data?.error, message: data?.message };
       }
     } catch (err) {
       console.error('Error liking quote:', err);

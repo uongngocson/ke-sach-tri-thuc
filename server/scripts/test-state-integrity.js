@@ -311,11 +311,11 @@ async function runStateIntegrityTests() {
 
       await client.query(`
         INSERT INTO exp_ledger (user_id, team_id, user_fingerprint, amount, type, reference_type, reference_id)
-        VALUES ($1, 3, $2, 15, 'BOOK_CONTRIBUTION', 'books', $3)
+        VALUES ($1, 3, $2, 5, 'BOOK_CONTRIBUTION', 'books', $3)
       `, [team3User.id, newBookPayload.userFingerprint, insertedBookId]);
 
-      await client.query(`UPDATE teams SET total_exp = total_exp + 15, total_books = total_books + 1 WHERE id = 3`);
-      await client.query(`UPDATE users SET total_exp_earned = total_exp_earned + 15 WHERE id = $1`, [team3User.id]);
+      await client.query(`UPDATE teams SET total_exp = total_exp + 5, total_books = total_books + 1 WHERE id = 3`);
+      await client.query(`UPDATE users SET total_exp_earned = total_exp_earned + 5 WHERE id = $1`, [team3User.id]);
     });
 
     const teamsAfterRes = await db.query('SELECT id, total_exp, tree_exp FROM teams ORDER BY id ASC');
@@ -323,7 +323,7 @@ async function runStateIntegrityTests() {
 
     const team3Before = teamsBefore.find(t => t.id === 3);
     const team3After = teamsAfter.find(t => t.id === 3);
-    assert(parseInt(team3After.total_exp, 10) === parseInt(team3Before.total_exp, 10) + 15, 'Đội 3 tăng chính xác +15 EXP');
+    assert(parseInt(team3After.total_exp, 10) === parseInt(team3Before.total_exp, 10) + 5, 'Đội 3 tăng chính xác +5 EXP');
 
     let otherTeamsUntouched = true;
     for (const tBefore of teamsBefore) {

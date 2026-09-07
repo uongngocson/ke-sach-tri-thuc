@@ -31,7 +31,7 @@ describe('Integration Tests: Cáo Sách API & Database Transactions', () => {
     expect(res.body.data.level).toBeGreaterThanOrEqual(0);
   });
 
-  test('POST /api/v1/books/contribute - Auto-Approve 100% (+15 EXP, visible, pending_review)', async () => {
+  test('POST /api/v1/books/contribute - Auto-Approve 100% (+5 EXP, visible, pending_review)', async () => {
     const idempotencyKey = uuidv4();
     const bookPayload = {
       title: 'Nhập Môn Lập Trình TypeScript',
@@ -52,7 +52,7 @@ describe('Integration Tests: Cáo Sách API & Database Transactions', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.book.visibility_status).toBe('visible');
     expect(res.body.data.book.moderation_status).toBe('pending_review');
-    expect(res.body.data.growth.expEarned).toBe(15);
+    expect(res.body.data.growth.expEarned).toBe(5);
 
     // Test Idempotency: Send the exact same request with same Idempotency-Key -> cached response
     const duplicateRes = await request(app)

@@ -78,45 +78,57 @@ export class QuoteService {
   static async unlikeQuote(bookId, userFingerprint) {
     const result = await db.transaction(async (client) => {
       // 1. Delete Quote Like
-      await client.query(`
+      const delRes = await client.query(`
         DELETE FROM quote_likes 
         WHERE book_id = $1 AND user_fingerprint = $2
+        RETURNING id
       `, [bookId, userFingerprint]);
 
-      // 2. Decrement book likes count (never below 0)
-      const bookUpdate = await client.query(`
-        UPDATE books
-        SET likes_count = GREATEST(0, likes_count - 1)
-        WHERE id = $1
-        RETURNING id, title, likes_count, team_id
+      const bookRes = await client.query(`
+        SELECT id, title, likes_count, team_id FROM books WHERE id = $1
       `, [bookId]);
 
-      if (bookUpdate.rows.length === 0) {
+      if (bookRes.rows.length === 0) {
         throw new Error('BOOK_NOT_FOUND');
       }
 
-      const unlikedTeamId = bookUpdate.rows[0].team_id;
-      if (unlikedTeamId) {
-        await client.query(`
-          UPDATE teams
-          SET total_likes = GREATEST(0, total_likes - 1),
-              total_exp = GREATEST(0, total_exp - $1),
-              updated_at = NOW()
-          WHERE id = $2
-        `, [EXP_CONFIG.QUOTE_LIKE, unlikedTeamId]);
-      }
+      // 2. Only decrement if the like actually existed for this user
+      if (delRes.rowCount > 0) {
+        const bookUpdate = await client.query(`
+          UPDATE books
+          SET likes_count = GREATEST(0, likes_count - 1)
+          WHERE id = $1
+          RETURNING id, title, likes_count, team_id
+        `, [bookId]);
 
-      // 3. Decrement total_likes in community_growth
-      await client.query(`
-        UPDATE community_growth
-        SET total_likes = GREATEST(0, total_likes - 1),
-            updated_at = NOW()
-        WHERE id = 1
-      `);
+        const unlikedTeamId = bookUpdate.rows[0].team_id;
+        if (unlikedTeamId) {
+          await client.query(`
+            UPDATE teams
+            SET total_likes = GREATEST(0, total_likes - 1),
+                total_exp = GREATEST(0, total_exp - $1),
+                updated_at = NOW()
+            WHERE id = $2
+          `, [EXP_CONFIG.QUOTE_LIKE, unlikedTeamId]);
+        }
+
+        // 3. Decrement total_likes in community_growth
+        await client.query(`
+          UPDATE community_growth
+          SET total_likes = GREATEST(0, total_likes - 1),
+              updated_at = NOW()
+          WHERE id = 1
+        `);
+
+        return {
+          bookId,
+          newLikesCount: bookUpdate.rows[0].likes_count
+        };
+      }
 
       return {
         bookId,
-        newLikesCount: bookUpdate.rows[0].likes_count
+        newLikesCount: bookRes.rows[0].likes_count
       };
     });
 
