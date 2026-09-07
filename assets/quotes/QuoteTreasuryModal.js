@@ -511,134 +511,163 @@ export class QuoteTreasuryModal {
         }
       }
 
-      /* Clean Unified Quote Card */
+      /* =========================================================================
+         CLEAN MODERN EDITORIAL QUOTE CARD (High-End, Legible, Minimalist)
+         ========================================================================= */
       .qtm-quote-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 16px;
-        padding: 14px 16px;
-        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
+        padding: 16px 18px 14px 18px;
+        box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
+        overflow: hidden;
         min-width: 0;
         width: 100%;
-        min-height: 0;
         box-sizing: border-box;
       }
       .qtm-quote-card:hover {
         border-color: #cbd5e1;
-        box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.1), 0 2px 4px rgba(0, 0, 0, 0.02);
-        transform: translateY(-2px);
+        box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.09), 0 4px 8px -2px rgba(15, 23, 42, 0.04);
+        transform: translateY(-2.5px);
       }
 
+      /* Top Subtle Accent Stripe */
+      .qtm-card-accent-stripe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        opacity: 0.9;
+        transition: height 0.2s ease;
+      }
+      .qtm-quote-card:hover .qtm-card-accent-stripe {
+        height: 4px;
+      }
+
+      /* Card Header */
       .qtm-card-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 10px;
-        gap: 6px;
+        margin-bottom: 12px;
+        gap: 8px;
+        position: relative;
+        z-index: 2;
       }
       .qtm-team-tag {
         display: inline-flex;
         align-items: center;
-        gap: 5px;
-        padding: 3px 8px;
-        border-radius: 7px;
-        font-size: 11px;
-        font-weight: 800;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 11.5px;
+        font-weight: 700;
         cursor: pointer;
-        transition: all 0.14s ease;
+        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
         border: 1px solid transparent;
         text-decoration: none;
       }
       .qtm-team-tag:hover {
-        transform: scale(1.02);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
       }
-      .qtm-seed-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        font-size: 10.5px;
-        font-weight: 700;
-        color: #166534;
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        padding: 2px 6px;
-        border-radius: 6px;
+      .qtm-pill-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .qtm-team-name {
+        letter-spacing: -0.01em;
       }
 
-      /* Quote Content Block */
+      /* Clean Editorial Quote Body */
       .qtm-quote-body {
         position: relative;
-        margin-bottom: 10px;
+        margin: 2px 0 14px 0;
+        z-index: 2;
       }
       .qtm-quote-mark {
-        position: absolute;
-        top: -8px;
-        left: -2px;
+        display: block;
         font-family: Georgia, 'Times New Roman', serif;
-        font-size: 26px;
-        color: #cbd5e1;
+        font-size: 32px;
         line-height: 1;
+        color: var(--card-accent, #0054A6);
+        opacity: 0.35;
         user-select: none;
         pointer-events: none;
-        opacity: 0.85;
+        margin-bottom: 2px;
       }
       .qtm-quote-text {
-        font-size: 13px;
-        line-height: 1.55;
+        font-size: 14.5px;
+        line-height: 1.65;
         color: #1e293b;
         margin: 0;
-        padding-left: 14px;
-        font-style: italic;
+        padding: 0;
+        font-style: normal; /* IMPORTANT: normal style prevents browser faux-italic diacritic splitting */
+        font-weight: 600;
+        font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         display: -webkit-box;
-        -webkit-line-clamp: 3;
+        -webkit-line-clamp: 4;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Georgia, serif;
+        letter-spacing: normal;
+        text-wrap: pretty;
       }
 
-      /* Book Spine Strip */
+      /* Refined Literary Citation Strip */
       .qtm-book-meta {
-        padding: 7px 10px;
+        padding: 8px 12px;
         background: #f8fafc;
         border: 1px solid #f1f5f9;
         border-radius: 10px;
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 10px;
+        gap: 10px;
+        margin-bottom: 12px;
+        transition: all 0.18s ease;
+        position: relative;
+        z-index: 2;
       }
-      .qtm-book-icon {
-        width: 26px;
+      .qtm-quote-card:hover .qtm-book-meta {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+      }
+      .qtm-book-icon-wrapper {
+        width: 28px;
         height: 28px;
-        background: linear-gradient(135deg, #0054A6 0%, #0284c7 100%);
-        border-radius: 5px;
-        color: #ffffff;
+        border-radius: 7px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-size: 13px;
         flex-shrink: 0;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
       }
       .qtm-book-info {
         min-width: 0;
         flex: 1;
       }
       .qtm-book-title {
-        font-size: 12px;
-        font-weight: 800;
+        font-size: 12.5px;
+        font-weight: 700;
         color: #0f172a;
         margin: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        line-height: 1.35;
       }
       .qtm-book-author {
-        font-size: 11px;
+        font-size: 11.5px;
         color: #64748b;
         margin: 1px 0 0 0;
         overflow: hidden;
@@ -647,64 +676,105 @@ export class QuoteTreasuryModal {
         font-weight: 500;
       }
 
-      /* Card Footer & Action Toolbar - NO TRUNCATION */
+      /* Card Footer & Action Toolbar */
       .qtm-card-footer {
-        padding-top: 9px;
+        padding-top: 10px;
         border-top: 1px solid #f1f5f9;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
+        gap: 10px;
         min-width: 0;
+        position: relative;
+        z-index: 2;
       }
       .qtm-contributor {
         font-size: 11.5px;
         color: #64748b;
         flex: 1;
         min-width: 0;
-        white-space: nowrap;
-        overflow: visible;
-        text-overflow: clip;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        overflow: hidden;
       }
-      .qtm-contributor strong {
-        color: #0f172a;
+      .qtm-contributor-avatar {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        flex-shrink: 0;
+      }
+      .qtm-contributor-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .qtm-contributor-text strong {
+        color: #334155;
         font-weight: 700;
       }
+
       .qtm-actions {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
         flex-shrink: 0;
       }
+
+      /* Like Button - Clean Minimalist Pill */
       .qtm-btn-like {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        padding: 4px 7px;
-        border-radius: 8px;
-        font-size: 11.5px;
-        font-weight: 800;
-        background: #f8fafc;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        background: #ffffff;
         border: 1px solid #e2e8f0;
         color: #64748b;
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
       }
       .qtm-btn-like:hover {
         background: #fff1f2;
         border-color: #fecdd3;
         color: #e11d48;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(225, 29, 72, 0.12);
       }
       .qtm-btn-like.liked {
         background: #fff1f2;
         border-color: #fecdd3;
         color: #e11d48;
+        box-shadow: 0 2px 6px rgba(225, 29, 72, 0.15);
       }
+      .qtm-btn-like.liked .qtm-heart-icon {
+        animation: qtmHeartPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .qtm-heart-icon {
+        display: inline-block;
+        font-size: 12px;
+        line-height: 1;
+        transition: transform 0.15s ease;
+      }
+      .qtm-btn-like:hover .qtm-heart-icon {
+        transform: scale(1.15);
+      }
+
+      /* Icon Action Buttons (Copy, Story) - Clean Round Ghost Buttons */
       .qtm-btn-icon {
         width: 28px;
         height: 28px;
-        border-radius: 8px;
-        background: #f8fafc;
+        border-radius: 50%;
+        background: #ffffff;
         border: 1px solid #e2e8f0;
         color: #64748b;
         display: flex;
@@ -712,21 +782,89 @@ export class QuoteTreasuryModal {
         justify-content: center;
         font-size: 12px;
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
       }
       .qtm-btn-icon:hover {
         background: #f1f5f9;
+        border-color: #cbd5e1;
         color: #0f172a;
         transform: translateY(-1px);
       }
-      .qtm-btn-icon.story {
-        background: #f8fafc;
-        border-color: #e2e8f0;
-        color: #64748b;
-      }
       .qtm-btn-icon.story:hover {
-        background: #f1f5f9;
-        color: #0f172a;
+        background: #fdf2f8;
+        border-color: #fbcfe8;
+        color: #db2777;
+        transform: translateY(-1px);
+      }
+
+      @keyframes qtmHeartPop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.35); }
+        100% { transform: scale(1); }
+      }
+
+      /* Dark Mode Overrides for Quote Cards */
+      html.dark .qtm-quote-card {
+        background: #1e293b;
+        border-color: #334155;
+        box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+      }
+      html.dark .qtm-quote-card:hover {
+        border-color: #475569;
+        box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.5);
+      }
+      html.dark .qtm-quote-text {
+        color: #f1f5f9;
+      }
+      html.dark .qtm-quote-mark {
+        opacity: 0.45;
+      }
+      html.dark .qtm-book-meta {
+        background: #0f172a;
+        border-color: #334155;
+      }
+      html.dark .qtm-quote-card:hover .qtm-book-meta {
+        background: #1e293b;
+        border-color: #475569;
+      }
+      html.dark .qtm-book-icon-wrapper {
+        background: #1e293b;
+        border-color: #334155;
+      }
+      html.dark .qtm-book-title {
+        color: #f8fafc;
+      }
+      html.dark .qtm-book-author {
+        color: #94a3b8;
+      }
+      html.dark .qtm-card-footer {
+        border-top-color: #334155;
+      }
+      html.dark .qtm-contributor {
+        color: #94a3b8;
+      }
+      html.dark .qtm-contributor-text strong {
+        color: #f8fafc;
+      }
+      html.dark .qtm-contributor-avatar {
+        background: #78350f;
+        border-color: #b45309;
+      }
+      html.dark .qtm-btn-like,
+      html.dark .qtm-btn-icon {
+        background: #0f172a;
+        border-color: #334155;
+        color: #94a3b8;
+      }
+      html.dark .qtm-btn-like:hover {
+        background: rgba(225, 29, 72, 0.15);
+        border-color: #f43f5e;
+        color: #fb7185;
+      }
+      html.dark .qtm-btn-like.liked {
+        background: rgba(225, 29, 72, 0.2);
+        border-color: #f43f5e;
+        color: #fb7185;
       }
 
       /* Loading & Empty States */
@@ -1248,31 +1386,29 @@ export class QuoteTreasuryModal {
       `;
 
     return `
-      <div class="qtm-quote-card" data-quote-id="${quote.id}">
+      <div class="qtm-quote-card" data-quote-id="${quote.id}" style="--card-accent: ${teamInfo.color};">
+        <div class="qtm-card-accent-stripe" style="background: linear-gradient(90deg, ${teamInfo.color} 0%, ${teamInfo.color}cc 60%, transparent 100%);"></div>
+
         <div>
           <div class="qtm-card-header">
             ${teamButtonHtml}
-            <span class="qtm-seed-badge">
-              <span>🌱</span>
-              <span>Đã Gieo</span>
-            </span>
           </div>
 
           <div class="qtm-quote-body">
-            <span class="qtm-quote-mark">“</span>
+            <span class="qtm-quote-mark" aria-hidden="true">“</span>
             <p class="qtm-quote-text">${this.escapeHtml(quoteContent)}</p>
           </div>
 
           <div class="qtm-book-meta">
-            <div class="qtm-book-icon" style="background: linear-gradient(135deg, ${teamInfo.color} 0%, #0284c7 100%);">
-              📖
+            <div class="qtm-book-icon-wrapper">
+              <span>📖</span>
             </div>
             <div class="qtm-book-info">
               <h4 class="qtm-book-title" title="${this.escapeHtml(bookTitle)}">
                 ${this.escapeHtml(bookTitle)}
               </h4>
               <p class="qtm-book-author" title="${this.escapeHtml(authorName)}">
-                ✍️ ${this.escapeHtml(authorName)}
+                ${this.escapeHtml(authorName)}
               </p>
             </div>
           </div>
@@ -1280,18 +1416,19 @@ export class QuoteTreasuryModal {
 
         <div class="qtm-card-footer">
           <div class="qtm-contributor" title="Gieo bởi: ${this.escapeHtml(readerName)}">
-            Gieo bởi <strong>${this.escapeHtml(readerName)}</strong>
+            <span class="qtm-contributor-avatar">🦊</span>
+            <span class="qtm-contributor-text">Gieo bởi <strong>${this.escapeHtml(readerName)}</strong></span>
           </div>
 
           <div class="qtm-actions">
-            <!-- Thả Tim (+2 EXP) -->
+            <!-- Thả Tim -->
             <button 
               class="qtm-btn-like ${isLiked ? 'liked' : ''}" 
               data-action="like" 
               data-quote-id="${quote.id}" 
-              title="Thả tim (+2 EXP cho Cây Tri Thức)"
+              title="Yêu thích trích dẫn"
             >
-              <span>${isLiked ? '❤️' : '🤍'}</span>
+              <span class="qtm-heart-icon">${isLiked ? '❤️' : '🤍'}</span>
               <span class="like-num">${likesCount}</span>
             </button>
 

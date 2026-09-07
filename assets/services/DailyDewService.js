@@ -27,12 +27,45 @@ export class DailyDewService {
     return `fpt_dew_streak_${userId || 'guest'}`;
   }
 
+  static _serverStatusCache = {};
+
+  static invalidateCache(userId) {
+    if (userId) {
+      delete this._serverStatusCache[userId];
+    } else {
+      this._serverStatusCache = {};
+    }
+  }
+
   /**
-   * Check if user has already checked in today
+   * Check if user has already checked in today from server DB
    * @param {string} userId 
+   * @param {boolean} forceRefresh
    */
-  static async hasCheckedInToday(userId) {
+  static async hasCheckedInToday(userId, forceRefresh = false) {
     if (!userId || userId === 'guest') return false;
+
+    if (!forceRefresh && this._serverStatusCache[userId] !== undefined) {
+      return this._serverStatusCache[userId].hasClaimedToday;
+    }
+
+    try {
+      if (MockDataStore && MockDataStore.getDewStatus) {
+        const status = await MockDataStore.getDewStatus(userId);
+        if (status) {
+          this._serverStatusCache[userId] = status;
+          const key = this.getStorageKey(userId);
+          localStorage.setItem(key, status.hasClaimedToday ? 'true' : 'false');
+          if (status.streak !== undefined) {
+            localStorage.setItem(this.getStreakKey(userId), String(status.streak));
+          }
+          return !!status.hasClaimedToday;
+        }
+      }
+    } catch (e) {
+      console.warn('Error checking dew status from server, falling back to local cache:', e);
+    }
+
     try {
       const key = this.getStorageKey(userId);
       return localStorage.getItem(key) === 'true';
@@ -42,10 +75,24 @@ export class DailyDewService {
   }
 
   /**
-   * Get current streak for user
+   * Get current streak for user from server DB (with cache fallback)
    * @param {string} userId 
    */
   static async getStreak(userId) {
+    if (!userId || userId === 'guest') return 0;
+    if (this._serverStatusCache[userId]?.streak !== undefined) {
+      return this._serverStatusCache[userId].streak;
+    }
+    try {
+      if (MockDataStore && MockDataStore.getDewStatus) {
+        const status = await MockDataStore.getDewStatus(userId);
+        if (status) {
+          this._serverStatusCache[userId] = status;
+          return status.streak || 0;
+        }
+      }
+    } catch (e) {}
+
     try {
       const s = localStorage.getItem(this.getStreakKey(userId));
       return s ? parseInt(s, 10) : 0;
@@ -108,6 +155,10 @@ export class DailyDewService {
 
     if (!apiRes.success) {
       if (apiRes.code === 'DUPLICATE_DEW_CLAIM') {
+        this._serverStatusCache[currentUser.id] = {
+          hasClaimedToday: true,
+          streak: apiRes.streak || (await this.getStreak(currentUser.id))
+        };
         localStorage.setItem(this.getStorageKey(currentUser.id), 'true');
       }
       return {
@@ -117,8 +168,13 @@ export class DailyDewService {
       };
     }
 
-    // 6. Save checkin state locally on success
+    // 6. Save checkin state locally and in server cache on success
     const currentStreak = apiRes.streak || (await this.getStreak(currentUser.id)) + 1;
+    this._serverStatusCache[currentUser.id] = {
+      hasClaimedToday: true,
+      streak: currentStreak,
+      lastClaimDate: today
+    };
     localStorage.setItem(this.getStorageKey(currentUser.id), 'true');
     localStorage.setItem(this.getStreakKey(currentUser.id), String(currentStreak));
 
