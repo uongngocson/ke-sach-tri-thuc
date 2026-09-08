@@ -7527,18 +7527,19 @@
             plaque.addEventListener('click', handlePlaqueTrigger);
           }
 
-          // Zone Click Listener: Switch inspection or open treasury / plant
+          // Zone Click Listener: Switch inspection or trigger planting (Gieo Mầm modal)
           zoneEl.addEventListener('click', (e) => {
             if (e.target.closest && e.target.closest('.ground-seed-item, .root-garden-plaque')) return;
+            e.preventDefault();
+            e.stopPropagation();
             if (!activeTeam || activeTeam.id !== teamId) {
               const targetTeam = allTeams.find(t => t.id === teamId) || team;
               inspectTeam(targetTeam);
-            } else {
-              if (!isSprouted && window.quoteTreasuryModal && typeof window.quoteTreasuryModal.open === 'function') {
-                window.quoteTreasuryModal.open(teamId);
-              } else {
-                handleGroundAction(e);
+              if (currentUser && currentUser.team_id === teamId) {
+                openContributeModal();
               }
+            } else {
+              handleGroundAction(e);
             }
           });
 

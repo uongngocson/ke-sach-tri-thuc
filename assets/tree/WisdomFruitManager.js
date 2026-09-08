@@ -361,6 +361,30 @@ export class WisdomFruitManager {
       }
     }
 
+    // Check if clicked on 3D Tree Mesh or 3D Botanical Root Rings
+    if (this.treeManager) {
+      const treeTargets = [];
+      if (this.treeManager.teamTrees) {
+        this.treeManager.teamTrees.forEach(t => {
+          if (t && t.group && t.group.visible) treeTargets.push(t.group);
+        });
+      }
+      if (this.treeManager.teamRings) {
+        this.treeManager.teamRings.forEach(r => {
+          if (r && r.visible) treeTargets.push(r);
+        });
+      }
+      if (treeTargets.length > 0) {
+        const treeIntersects = this.raycaster.intersectObjects(treeTargets, true);
+        if (treeIntersects.length > 0) {
+          if (typeof window.handleGroundAction === 'function') {
+            window.handleGroundAction(e);
+            return;
+          }
+        }
+      }
+    }
+
     // Check if clicked on 3D Ground Terrain Mesh
     if (window.skyCanvasInstance && window.skyCanvasInstance.ground && window.skyCanvasInstance.ground.mesh) {
       const groundIntersects = this.raycaster.intersectObject(window.skyCanvasInstance.ground.mesh, false);
