@@ -7151,8 +7151,7 @@
             const hintTextEl = document.getElementById('ground-action-hint-text');
             if (hintTextEl) {
               const teamName = team.display_name || team.name || `Đội ${team.id}`;
-              const expFormatted = (team.total_exp || 0).toLocaleString();
-              hintTextEl.textContent = `Chạm vào cây ${teamName} để gieo hạt (${expFormatted} EXP)`;
+              hintTextEl.textContent = `Chạm vào cây ${teamName} để gieo hạt`;
             }
           } else {
             // Khi xem cây đội khác HOẶC chưa đăng nhập / là khách -> ẩn 100%
