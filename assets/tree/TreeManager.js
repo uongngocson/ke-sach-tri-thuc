@@ -1,6 +1,6 @@
 /**
  * assets/tree/TreeManager.js
- * Master 3D Procedural Tree Coordinator for Cáo Sách
+ * Master 3D Procedural Tree Coordinator for FOXREAD
  * Features 100% "Cây Cổ Thụ Lâu Năm" (Ancient Thousand-Year Tree)
  * Dynamically Locks Tree Root directly to the DOM Ground Horizon Border
  */

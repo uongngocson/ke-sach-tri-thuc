@@ -1,6 +1,6 @@
 /**
  * assets/ground/Ground.js
- * 3D Procedural Terrain Coordinator for Cáo Sách
+ * 3D Procedural Terrain Coordinator for FOXREAD
  * Seamlessly integrates the High-End Procedural Soil Shader into Three.js
  */
 import { groundVertexShader, groundFragmentShader } from './groundShaders.js';

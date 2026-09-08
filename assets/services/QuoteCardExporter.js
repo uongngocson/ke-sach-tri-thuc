@@ -5,10 +5,10 @@
  */
 export class QuoteCardExporter {
   static async exportQuoteImage({
-    book = 'Cáo Sách',
+    book = 'FOXREAD',
     author = 'Tác Giả Tri Thức',
     quote = 'Mỗi cuốn sách bạn đọc là một hạt mầm tiếp thêm dinh dưỡng cho Cây Tri Thức vươn cao.',
-    reader = 'Độc giả yêu sách',
+    reader = 'Bút danh',
     likes = 120,
     format = 'story'
   }) {
@@ -150,7 +150,7 @@ export class QuoteCardExporter {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#38bdf8';
     ctx.font = '900 24px "Quicksand", sans-serif';
-    ctx.fillText('✨ CÁO SÁCH ✨', width / 2, cursorY + 35);
+    ctx.fillText('✨ FOXREAD ✨', width / 2, cursorY + 35);
     ctx.restore();
 
     cursorY += 80;
@@ -260,7 +260,7 @@ export class QuoteCardExporter {
     ctx.save();
     ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
     ctx.font = '600 22px "Quicksand", sans-serif';
-    ctx.fillText(`👤 Người chia sẻ: ${reader}`, cardMarginX + innerPadX, footerY);
+    ctx.fillText(`👤 Bút danh: ${reader}`, cardMarginX + innerPadX, footerY);
 
     ctx.textAlign = 'right';
     ctx.fillStyle = '#fb7185';

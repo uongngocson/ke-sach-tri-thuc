@@ -259,7 +259,7 @@ export class UserService {
    * Thêm nhân sự mới vào danh bạ (Admin only)
    */
   static async createPersonnel(data, actorAdmin = null, ipAddress = null) {
-    const nickname = data.nickname ? data.nickname.trim() : (data.full_name ? data.full_name.trim() : 'Độc giả Bút danh');
+    const nickname = data.nickname ? data.nickname.trim() : (data.full_name ? data.full_name.trim() : 'Bút danh');
     const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
     const employeeCode = data.employee_code ? data.employee_code.trim() : `BD_${Date.now().toString().slice(-4)}${randomSuffix}`;
     const email = data.email ? data.email.trim().toLowerCase() : `butdanh_${Date.now().toString().slice(-4)}_${randomSuffix.toLowerCase()}@fpt.com`;

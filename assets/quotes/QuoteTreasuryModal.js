@@ -1,6 +1,6 @@
 /**
  * QuoteTreasuryModal.js
- * 🌟 KHO TÀNG TRI THỨC - THƯ VIỆN TRÍCH DẪN SỐ CÁO SÁCH 2026
+ * 🌟 KHO TÀNG TRI THỨC - THƯ VIỆN TRÍCH DẪN SỐ FOXREAD 2026
  * Giao diện Clean Compact White Editorial - Tối ưu 100% Responsive & Zero Overflow
  * Màu sắc đồng nhất, typography sắc nét, tên người gieo hiển thị đầy đủ 100%
  * Đồng bộ dữ liệu thật từ PostgreSQL (books, users, teams)
@@ -915,7 +915,7 @@ export class QuoteTreasuryModal {
                   <span>✨</span> +2 EXP / yêu thích
                 </span>
               </div>
-              <p class="qtm-subtitle">Tuyển tập trích dẫn sâu sắc & bài học giá trị từ 8 đội và cộng đồng Cáo Sách</p>
+              <p class="qtm-subtitle">Tuyển tập trích dẫn sâu sắc & bài học giá trị từ 8 đội và cộng đồng FOXREAD</p>
             </div>
           </div>
           <button id="close-treasury-btn" class="qtm-close-btn" title="Đóng (Esc)">✕</button>
@@ -931,7 +931,7 @@ export class QuoteTreasuryModal {
                 type="text" 
                 id="treasury-search-input" 
                 class="qtm-search-input" 
-                placeholder="Tìm kiếm trích dẫn, tên sách, tác giả, người chia sẻ..." 
+                placeholder="Tìm kiếm trích dẫn, tên sách, tác giả, bút danh..." 
                 autocomplete="off"
               />
               <button id="treasury-search-clear" class="qtm-search-clear" style="display:none;">✕</button>
@@ -984,7 +984,7 @@ export class QuoteTreasuryModal {
           <div id="treasury-loading" class="qtm-loading">
             <div class="qtm-spinner"></div>
             <p style="font-weight:700; font-size:14px; color:#1e293b; margin:0 0 3px 0;">Đang mở Kho Tàng Tri Thức...</p>
-            <p style="font-size:12px; color:#64748b; margin:0;">Đang kết xuất dữ liệu trích dẫn từ Cơ sở dữ liệu Cáo Sách</p>
+            <p style="font-size:12px; color:#64748b; margin:0;">Đang kết xuất dữ liệu trích dẫn từ Cơ sở dữ liệu FOXREAD</p>
           </div>
 
           <!-- Quotes Grid -->
@@ -1362,7 +1362,7 @@ export class QuoteTreasuryModal {
 
     const bookTitle = quote.title || 'Sách Tri Thức';
     const authorName = quote.author || 'Khuyết danh';
-    const readerName = quote.reader_name || 'Độc giả Cáo Sách';
+    const readerName = quote.reader_name || 'Bút danh';
     const quoteContent = quote.quote || '';
 
     const teamButtonHtml = teamId 
@@ -1459,6 +1459,20 @@ export class QuoteTreasuryModal {
 
   async handleLikeQuote(btn, quote) {
     if (!quote || btn.dataset.loading === 'true') return;
+
+    let session = null;
+    try {
+      session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+    } catch {}
+    const isGuest = !session || !session.id || session.id === 'guest' || !session.team_id;
+    if (isGuest) {
+      this.showToast('🔒 Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!');
+      if (window.userIdentityModal && typeof window.userIdentityModal.open === 'function') {
+        window.userIdentityModal.open();
+      }
+      return;
+    }
+
     btn.dataset.loading = 'true';
     btn.style.pointerEvents = 'none';
 
@@ -1467,6 +1481,14 @@ export class QuoteTreasuryModal {
       if (!store || !store.toggleLike) return;
 
       const res = await store.toggleLike(quote.id);
+      if (res && res.error === 'LOGIN_REQUIRED') {
+        this.showToast('🔒 ' + (res.message || 'Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!'));
+        if (window.userIdentityModal && typeof window.userIdentityModal.open === 'function') {
+          window.userIdentityModal.open();
+        }
+        return;
+      }
+
       const numSpan = btn.querySelector('.like-num');
       const heartSpan = btn.querySelector('span:first-child');
 
@@ -1506,10 +1528,10 @@ export class QuoteTreasuryModal {
     if (!quote) return;
     const bookTitle = quote.title || 'Sách Tri Thức';
     const authorName = quote.author || 'Khuyết danh';
-    const readerName = quote.reader_name || 'Độc giả Cáo Sách';
+    const readerName = quote.reader_name || 'Bút danh';
     const quoteContent = quote.quote || '';
 
-    const text = `“${quoteContent}”\n— Trích từ sách "${bookTitle}" (Tác giả: ${authorName}) • Gieo bởi ${readerName} ✨ Cáo Sách 2026`;
+    const text = `“${quoteContent}”\n— Trích từ sách "${bookTitle}" (Tác giả: ${authorName}) • Gieo bởi ${readerName} ✨ FOXREAD 2026`;
     
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(() => {
@@ -1542,7 +1564,7 @@ export class QuoteTreasuryModal {
     if (!quote) return;
     const bookTitle = quote.title || 'Sách Tri Thức';
     const authorName = quote.author || 'Khuyết danh';
-    const readerName = quote.reader_name || 'Độc giả Cáo Sách';
+    const readerName = quote.reader_name || 'Bút danh';
     const quoteContent = quote.quote || '';
     const likesCount = parseInt(quote.likes_count, 10) || 0;
 

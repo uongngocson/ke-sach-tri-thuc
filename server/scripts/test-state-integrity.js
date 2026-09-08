@@ -230,12 +230,14 @@ async function runStateIntegrityTests() {
       testBook = fallbackBookRes.rows[0];
     }
     const initialLikes = testBook.likes_count;
+    const likerUserRes = await db.query('SELECT id FROM users LIMIT 1');
+    const testLikerId = likerUserRes.rows[0]?.id;
     const testLikerFp = `fp_liker_stampede_${Date.now()}`;
 
     const likePromises = [];
     for (let i = 0; i < 10; i++) {
       likePromises.push(
-        QuoteService.likeQuote(testBook.id, testLikerFp)
+        QuoteService.likeQuote(testBook.id, testLikerFp, { userId: testLikerId })
           .then(r => ({ success: true, data: r }))
           .catch(err => ({ success: false, error: err.code || err.message }))
       );

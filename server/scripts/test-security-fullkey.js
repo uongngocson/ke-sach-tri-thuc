@@ -183,6 +183,17 @@ async function runSecurityFullKeyTests() {
     }
     assert(guestWateringBlocked, 'Chặn 100% khách vãng lai gọi API tưới nước (HTTP 401 LOGIN_REQUIRED)');
 
+    // 4.1b: Khách vãng lai / Người chưa đăng nhập cố tình thả tim trích dẫn (QuoteService.likeQuote)
+    let guestLikeBlocked = false;
+    const testBookAny = (await db.query('SELECT id FROM books LIMIT 1')).rows[0];
+    const testBookTargetId = testBookAny ? testBookAny.id : '000000aa-0000-4000-a000-000000000009';
+    try {
+      await QuoteService.likeQuote(testBookTargetId, 'fp_guest_liker_sec', { userId: 'guest' });
+    } catch (err) {
+      guestLikeBlocked = (err.statusCode === 401 && err.code === 'LOGIN_REQUIRED');
+    }
+    assert(guestLikeBlocked, 'Chặn 100% khách vãng lai gọi API thả tim trích dẫn (HTTP 401 LOGIN_REQUIRED)');
+
     // 4.2: Thành viên Đội 1 cố tình tưới nước cho Đội 2 (Cross-team IDOR)
     const testUserTeam1 = '000000aa-0000-4000-a000-000000000001';
     await db.query(`

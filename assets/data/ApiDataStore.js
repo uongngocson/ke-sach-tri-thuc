@@ -1,6 +1,6 @@
 /**
  * ApiDataStore.js
- * Production Realtime Client Data Adapter for Cáo Sách
+ * Production Realtime Client Data Adapter for FOXREAD
  * Connects directly to Node.js Express REST API & Socket.io Realtime Engine
  * with Offline-First Local Cache Fallback & Idempotency Protection.
  */
@@ -89,7 +89,7 @@ class ApiDataStoreManager {
         });
 
         this.socket.on('connect', () => {
-          console.log(`⚡ Connected to Cáo Sách Realtime Engine at ${socketUrl}!`);
+          console.log(`⚡ Connected to FOXREAD Realtime Engine at ${socketUrl}!`);
         });
 
         this.socket.on('growth:updated', (growthData) => {
@@ -270,7 +270,7 @@ class ApiDataStoreManager {
           author: seedData.author,
           quote: seedData.quote,
           category: seedData.category || null,
-          reader: seedData.reader || (session?.nickname || session?.full_name) || 'Độc giả yêu sách',
+          reader: seedData.reader || (session?.nickname || session?.full_name) || 'Bút danh',
           email: email,
           userId: userId,
           teamId: teamId,
@@ -501,6 +501,19 @@ class ApiDataStoreManager {
   }
 
   async toggleLike(id) {
+    let session = null;
+    try {
+      session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+    } catch {}
+    const isGuest = !session || !session.id || session.id === 'guest' || !session.team_id;
+    if (isGuest) {
+      return {
+        success: false,
+        error: 'LOGIN_REQUIRED',
+        message: 'Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!'
+      };
+    }
+
     const isLiked = this.isLikedByUser(id);
     if (isLiked) {
       // User is unliking
@@ -547,14 +560,23 @@ class ApiDataStoreManager {
 
   async unlikeQuote(quoteId) {
     try {
-      const idempotencyKey = this.generateIdempotencyKey();
-      const fp = this.getUserFingerprint();
       let session = null;
       try {
         session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
       } catch {}
-      const userId = (session && session.id && session.id !== 'guest') ? session.id : null;
-      const teamId = (session && session.team_id) ? session.team_id : null;
+      const isGuest = !session || !session.id || session.id === 'guest' || !session.team_id;
+      if (isGuest) {
+        return {
+          success: false,
+          error: 'LOGIN_REQUIRED',
+          message: 'Vui lòng đăng nhập tài khoản FPT để thực hiện!'
+        };
+      }
+
+      const idempotencyKey = this.generateIdempotencyKey();
+      const fp = this.getUserFingerprint();
+      const userId = session.id;
+      const teamId = session.team_id;
 
       const res = await fetch(`${getApiBase()}/quotes/${quoteId}/unlike`, {
         method: 'POST',
@@ -578,7 +600,7 @@ class ApiDataStoreManager {
         }
         return { success: true, likes: data.data.newLikesCount };
       } else {
-        return { success: false, message: data?.message || 'Không thể bỏ thích trích dẫn' };
+        return { success: false, error: data?.error, message: data?.message || 'Không thể bỏ thích trích dẫn' };
       }
     } catch (err) {
       console.error('Error unliking quote:', err);
@@ -588,14 +610,23 @@ class ApiDataStoreManager {
 
   async likeQuote(quoteId) {
     try {
-      const idempotencyKey = this.generateIdempotencyKey();
-      const fp = this.getUserFingerprint();
       let session = null;
       try {
         session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
       } catch {}
-      const userId = (session && session.id && session.id !== 'guest') ? session.id : null;
-      const teamId = (session && session.team_id) ? session.team_id : null;
+      const isGuest = !session || !session.id || session.id === 'guest' || !session.team_id;
+      if (isGuest) {
+        return {
+          success: false,
+          error: 'LOGIN_REQUIRED',
+          message: 'Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!'
+        };
+      }
+
+      const idempotencyKey = this.generateIdempotencyKey();
+      const fp = this.getUserFingerprint();
+      const userId = session.id;
+      const teamId = session.team_id;
 
       const res = await fetch(`${getApiBase()}/quotes/${quoteId}/like`, {
         method: 'POST',

@@ -5,6 +5,40 @@ import socketService from './socket.service.js';
 
 export class QuoteService {
   static async likeQuote(bookId, userFingerprint, meta = {}) {
+    // 0. Enforce user login (Strictly reject guests / unauthenticated users)
+    let resolvedUserId = meta.userId || null;
+    if (!resolvedUserId && userFingerprint) {
+      if (userFingerprint.startsWith('user_')) {
+        const potentialId = userFingerprint.replace('user_', '');
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidRegex.test(potentialId)) {
+          resolvedUserId = potentialId;
+        }
+      } else {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidRegex.test(userFingerprint)) {
+          resolvedUserId = userFingerprint;
+        }
+      }
+    }
+
+    if (!resolvedUserId || resolvedUserId === 'guest') {
+      const err = new Error('Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!');
+      err.statusCode = 401;
+      err.code = 'LOGIN_REQUIRED';
+      throw err;
+    }
+
+    const uCheck = await db.query('SELECT id, team_id FROM users WHERE id = $1', [resolvedUserId]);
+    if (uCheck.rows.length === 0) {
+      const err = new Error('Không tìm thấy thông tin thành viên FPT. Vui lòng đăng nhập lại để thả tim!');
+      err.statusCode = 401;
+      err.code = 'LOGIN_REQUIRED';
+      throw err;
+    }
+    const loggedInUser = uCheck.rows[0];
+    resolvedUserId = loggedInUser.id;
+
     const result = await db.transaction(async (client) => {
       // 1. Insert Quote Like with UNIQUE constraint on (user_fingerprint, book_id)
       const likeInsert = await client.query(`
@@ -34,32 +68,6 @@ export class QuoteService {
               updated_at = NOW()
           WHERE id = $2
         `, [EXP_CONFIG.QUOTE_LIKE, likedTeamId]);
-      }
-
-      // Resolve user_id if authenticated
-      let resolvedUserId = meta.userId || null;
-      if (!resolvedUserId && userFingerprint) {
-        if (userFingerprint.startsWith('user_')) {
-          const potentialId = userFingerprint.replace('user_', '');
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-          if (uuidRegex.test(potentialId)) {
-            resolvedUserId = potentialId;
-          }
-        } else {
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-          if (uuidRegex.test(userFingerprint)) {
-            resolvedUserId = userFingerprint;
-          }
-        }
-      }
-
-      if (resolvedUserId) {
-        const uCheck = await client.query('SELECT id, team_id FROM users WHERE id = $1', [resolvedUserId]);
-        if (uCheck.rows.length > 0) {
-          resolvedUserId = uCheck.rows[0].id;
-        } else {
-          resolvedUserId = null;
-        }
       }
 
       // 3. Insert into EXP Ledger (+2 EXP)

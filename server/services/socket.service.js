@@ -52,6 +52,13 @@ class SocketService {
     }
   }
 
+  broadcastBookCredibilityScored(bookData) {
+    if (this.io) {
+      this.io.emit('book:credibility_scored', bookData);
+      this.io.emit('admin:book:credibility_scored', bookData);
+    }
+  }
+
   broadcastSeedsUpdated() {
     if (this.io) {
       this.io.emit('seeds:updated');

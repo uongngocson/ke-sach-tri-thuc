@@ -9,6 +9,7 @@
  * 5. Live Groq API Structured JSON Test (requireJson=true with .parsed verification)
  */
 
+import 'dotenv/config';
 import { 
   GroqPoolService, 
   safeParseLlmJson, 

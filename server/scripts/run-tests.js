@@ -152,14 +152,13 @@ async function runAllTests() {
     assert(statusCheck.hasClaimedToday === true, 'Daily Dew: getDewStatus correctly reports hasClaimedToday = true');
 
     // Quote Like 1st time
-    const likeFp = `like_test_${Date.now()}`;
-    const like1 = await QuoteService.likeQuote(contribution.book.id, likeFp);
+    const like1 = await QuoteService.likeQuote(contribution.book.id, validUser.id, validUser);
     assert(like1.expEarned === 2, 'Quote Like: First like succeeds (+2 EXP)');
 
     // Quote Like 2nd time on same book -> Must throw 23505 Unique Constraint
     let likeSpamBlocked = false;
     try {
-      await QuoteService.likeQuote(contribution.book.id, likeFp);
+      await QuoteService.likeQuote(contribution.book.id, validUser.id, validUser);
     } catch (err) {
       if (err.code === '23505') likeSpamBlocked = true;
     }

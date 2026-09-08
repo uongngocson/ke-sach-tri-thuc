@@ -335,7 +335,15 @@ async function runFullKeyTeamsAndUsersTest() {
     
     await db.query('DELETE FROM quote_likes WHERE book_id = $1 AND user_fingerprint = $2', [bookContrib.book.id, likeFp]);
 
-    const likeRes = await QuoteService.likeQuote(bookContrib.book.id, likeFp);
+    let guestLikeBlocked = false;
+    try {
+      await QuoteService.likeQuote(bookContrib.book.id, 'fp_guest_liker', { userId: 'guest' });
+    } catch (err) {
+      guestLikeBlocked = (err.statusCode === 401 && err.code === 'LOGIN_REQUIRED');
+    }
+    assert(guestLikeBlocked, 'Bảo vệ thành công: Khách vãng lai (Guest) chưa đăng nhập bị chặn thả tim (HTTP 401)');
+
+    const likeRes = await QuoteService.likeQuote(bookContrib.book.id, likeFp, { userId: userTeam4.id, teamId: userTeam4.team_id });
     assert(likeRes && likeRes.newLikesCount >= 1, 
       'Độc giả Đội 4 thả tim (Like) trích dẫn thành công',
       `Likes count tăng lên: ${likeRes.newLikesCount}`);

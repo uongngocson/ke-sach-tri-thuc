@@ -509,7 +509,7 @@ export class AnalyticsService {
       // 1.6: Ai là người truy cập cây nhiều nhất
       db.query(`
         SELECT sv.id, sv.user_fingerprint, sv.visit_count, sv.first_visited_at, sv.last_visited_at,
-               COALESCE(u.full_name, 'Độc Giả Thân Thiết') as user_name,
+               COALESCE(u.nickname, u.full_name, 'Bút Danh Thân Thiết') as user_name,
                u.email as user_email,
                t.name as team_name, t.color_code as team_color
         FROM site_visitors sv
@@ -696,6 +696,283 @@ export class AnalyticsService {
       }
     };
   }
+
+  /**
+   * Xuất toàn bộ dữ liệu lịch sử thi đấu của 8 Đội cho tất cả các ngày
+   */
+  static async getTeamsAllDaysExport() {
+    // 1. Get all distinct dates from daily_quotes, daily_dews, books
+    const datesRes = await db.query(`
+      SELECT DISTINCT d::text as date_str
+      FROM (
+        SELECT quote_date as d FROM daily_quotes
+        UNION
+        SELECT claim_date as d FROM daily_dews
+        UNION
+        SELECT DATE(created_at) as d FROM books WHERE created_at IS NOT NULL
+      ) all_dates
+      ORDER BY date_str ASC
+    `);
+
+    let dates = datesRes.rows.map(r => {
+      if (r.date_str instanceof Date) {
+        return r.date_str.toISOString().slice(0, 10);
+      }
+      return String(r.date_str).slice(0, 10);
+    });
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (!dates.includes(todayStr)) {
+      dates.push(todayStr);
+      dates.sort();
+    }
+
+    // 2. Query 8 Teams overall summary
+    const teamsRes = await db.query(`
+      SELECT 
+        t.id, t.code, t.name, t.display_name, t.color_code,
+        t.target_members, t.actual_members,
+        t.tree_exp, t.tree_level, t.tree_seeds,
+        t.avg_participation_rate,
+        (SELECT COUNT(*) FROM books b WHERE b.team_id = t.id) as books_count,
+        (SELECT COUNT(*) FROM daily_dews d WHERE d.team_id = t.id) as dews_count
+      FROM teams t
+      ORDER BY t.tree_exp DESC, t.id ASC
+    `);
+
+    const levelNames = ['Ủ Mầm (Hạt)', 'Cây Nảy Mầm', 'Cây Con', 'Cây Phát Triển', 'Cây Cổ Thụ', 'Đại Cổ Thụ'];
+
+    const teamsSummary = teamsRes.rows.map((t, idx) => ({
+      ...t,
+      rank: idx + 1,
+      levelName: levelNames[t.tree_level] || 'Ủ Mầm',
+      books_count: parseInt(t.books_count || 0, 10),
+      dews_count: parseInt(t.dews_count || 0, 10),
+      tree_exp: parseInt(t.tree_exp || 0, 10),
+      tree_seeds: parseInt(t.tree_seeds || 0, 10),
+      actual_members: parseInt(t.actual_members || 0, 10),
+      target_members: parseInt(t.target_members || 40, 10),
+      avg_participation_rate: parseFloat(t.avg_participation_rate || 0).toFixed(1)
+    }));
+
+    // 3. For each date, query stats for each team
+    const dailyQuotesRes = await db.query(`
+      SELECT 
+        quote_date::text as date_str,
+        team_id,
+        COUNT(DISTINCT user_id) as participants_count
+      FROM daily_quotes
+      GROUP BY quote_date, team_id
+    `);
+
+    const dailyBooksRes = await db.query(`
+      SELECT 
+        DATE(created_at)::text as date_str,
+        team_id,
+        COUNT(*) as books_count
+      FROM books
+      WHERE team_id IS NOT NULL
+      GROUP BY DATE(created_at), team_id
+    `);
+
+    const dailyDewsRes = await db.query(`
+      SELECT 
+        claim_date::text as date_str,
+        team_id,
+        COUNT(*) as dews_count
+      FROM daily_dews
+      WHERE team_id IS NOT NULL
+      GROUP BY claim_date, team_id
+    `);
+
+    const parseKey = (dateVal, teamId) => {
+      const d = (dateVal instanceof Date) ? dateVal.toISOString().slice(0, 10) : String(dateVal).slice(0, 10);
+      return `${d}_${teamId}`;
+    };
+
+    const quotesMap = new Map();
+    dailyQuotesRes.rows.forEach(r => quotesMap.set(parseKey(r.date_str, r.team_id), parseInt(r.participants_count || 0, 10)));
+
+    const booksMap = new Map();
+    dailyBooksRes.rows.forEach(r => booksMap.set(parseKey(r.date_str, r.team_id), parseInt(r.books_count || 0, 10)));
+
+    const dewsMap = new Map();
+    dailyDewsRes.rows.forEach(r => dewsMap.set(parseKey(r.date_str, r.team_id), parseInt(r.dews_count || 0, 10)));
+
+    const dailyHistory = [];
+    const reversedDates = [...dates].reverse(); // newest date first
+
+    for (const d of reversedDates) {
+      for (const team of teamsSummary) {
+        const key = `${d}_${team.id}`;
+        const participants = quotesMap.get(key) || 0;
+        const target = team.target_members || 40;
+        const rate = target > 0 ? parseFloat(((participants / target) * 100).toFixed(1)) : 0;
+        const books = booksMap.get(key) || 0;
+        const dews = dewsMap.get(key) || 0;
+
+        dailyHistory.push({
+          date: d,
+          team_id: team.id,
+          team_code: team.code,
+          team_name: team.display_name || team.name,
+          level_name: team.levelName,
+          rank: team.rank,
+          tree_exp: team.tree_exp,
+          tree_seeds: team.tree_seeds,
+          actual_members: team.actual_members,
+          target_members: target,
+          participants_count: participants,
+          participation_rate: rate,
+          books_count: books,
+          dews_count: dews
+        });
+      }
+    }
+
+    return {
+      dates,
+      teams_summary: teamsSummary,
+      daily_history: dailyHistory
+    };
+  }
+
+  /**
+   * Xuất toàn bộ danh sách 288 nhân sự kèm lịch sử chuyên cần tất cả các ngày
+   */
+  static async getUsersAllDaysExport() {
+    // 1. Get all distinct active dates
+    const datesRes = await db.query(`
+      SELECT DISTINCT quote_date::text as date_str
+      FROM daily_quotes
+      ORDER BY date_str ASC
+    `);
+
+    let dates = datesRes.rows.map(r => {
+      if (r.date_str instanceof Date) {
+        return r.date_str.toISOString().slice(0, 10);
+      }
+      return String(r.date_str).slice(0, 10);
+    });
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (!dates.includes(todayStr)) {
+      dates.push(todayStr);
+      dates.sort();
+    }
+
+    // 2. Query all users
+    const usersRes = await db.query(`
+      SELECT 
+        u.id, u.employee_code, u.nickname, u.full_name, u.gender,
+        u.branch, u.parent_department, u.child_department_1, u.job_title,
+        u.team_id, u.role, u.contributed_books_count, u.total_exp_earned,
+        t.display_name as team_display_name, t.code as team_code
+      FROM users u
+      LEFT JOIN teams t ON u.team_id = t.id
+      ORDER BY u.team_id ASC, COALESCE(u.nickname, u.full_name) ASC
+    `);
+
+    // 3. Query all quotes per user with book title
+    const quotesRes = await db.query(`
+      SELECT 
+        dq.user_id,
+        dq.quote_date::text as date_str,
+        dq.book_id,
+        b.title as book_title,
+        b.author as book_author,
+        dq.created_at
+      FROM daily_quotes dq
+      LEFT JOIN books b ON dq.book_id = b.id
+      ORDER BY dq.quote_date ASC
+    `);
+
+    // 4. Query watering count per user
+    const dewsRes = await db.query(`
+      SELECT user_id, COUNT(*)::int as total_dews
+      FROM daily_dews
+      WHERE user_id IS NOT NULL
+      GROUP BY user_id
+    `);
+    const userDewsMap = new Map();
+    dewsRes.rows.forEach(r => userDewsMap.set(r.user_id, r.total_dews));
+
+    // Build user quotes mapping
+    const userQuotesMap = new Map();
+    quotesRes.rows.forEach(r => {
+      const d = (r.date_str instanceof Date) ? r.date_str.toISOString().slice(0, 10) : String(r.date_str).slice(0, 10);
+      if (!userQuotesMap.has(r.user_id)) {
+        userQuotesMap.set(r.user_id, new Map());
+      }
+      userQuotesMap.get(r.user_id).set(d, {
+        book_title: r.book_title || '',
+        book_author: r.book_author || '',
+        created_at: r.created_at
+      });
+    });
+
+    const totalCampaignDays = dates.length || 1;
+
+    const users = usersRes.rows.map(u => {
+      const qMap = userQuotesMap.get(u.id) || new Map();
+      const participatedDaysCount = qMap.size;
+      const attendanceRate = parseFloat(((participatedDaysCount / totalCampaignDays) * 100).toFixed(1));
+
+      // Calculate latest date
+      let latestQuoteDate = null;
+      for (let i = dates.length - 1; i >= 0; i--) {
+        if (qMap.has(dates[i])) {
+          latestQuoteDate = dates[i];
+          break;
+        }
+      }
+
+      // Build day-by-day status
+      const dailyStatus = {};
+      dates.forEach(d => {
+        const quote = qMap.get(d);
+        if (quote) {
+          dailyStatus[d] = {
+            participated: true,
+            book_title: quote.book_title,
+            book_author: quote.book_author
+          };
+        } else {
+          dailyStatus[d] = {
+            participated: false
+          };
+        }
+      });
+
+      return {
+        id: u.id,
+        employee_code: u.employee_code || '',
+        nickname: u.nickname || '',
+        full_name: u.full_name || '',
+        branch: u.branch || '',
+        parent_department: u.parent_department || '',
+        job_title: u.job_title || '',
+        team_id: u.team_id,
+        team_code: u.team_code || `TEAM_${u.team_id}`,
+        team_name: u.team_display_name || `Đội ${u.team_id}`,
+        contributed_books_count: parseInt(u.contributed_books_count || 0, 10),
+        total_exp_earned: parseInt(u.total_exp_earned || 0, 10),
+        total_dews_count: userDewsMap.get(u.id) || 0,
+        total_days_participated: participatedDaysCount,
+        attendance_rate: attendanceRate,
+        latest_quote_date: latestQuoteDate,
+        daily_status: dailyStatus
+      };
+    });
+
+    return {
+      dates,
+      total_days: totalCampaignDays,
+      total_users: users.length,
+      users
+    };
+  }
 }
 
 export default AnalyticsService;
+

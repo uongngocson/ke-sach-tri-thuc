@@ -8,14 +8,14 @@ export const MOCK_LIBRARY = [
     author: 'Antoine de Saint-Exupéry',
     quote: 'Người ta chỉ thấy rõ bằng trái tim. Điều cốt lõi thì vô hình trong mắt trần.',
     category: 'Văn Học Kinh Điển',
-    reader: 'Bạn đọc Sao Hỏa'
+    reader: 'Bút danh Sao Hỏa'
   },
   {
     title: 'Nhà Giả Kim (The Alchemist)',
     author: 'Paulo Coelho',
     quote: 'Khi bạn thực sự khao khát điều gì, toàn bộ vũ trụ sẽ hợp lực giúp bạn đạt được nó.',
     category: 'Triết Lý Sống',
-    reader: 'Độc giả Sa Mạc'
+    reader: 'Bút danh Sa Mạc'
   },
   {
     title: 'Đắc Nhân Tâm (How to Win Friends)',
@@ -85,7 +85,7 @@ export const MOCK_LIBRARY = [
     author: 'Hector Malot',
     quote: 'Hãy luôn nhìn thẳng về phía trước, bước đi dũng cảm và không bao giờ đánh mất lòng nhân hậu.',
     category: 'Văn Học Kinh Điển',
-    reader: 'Độc giả Rémi'
+    reader: 'Bút danh Rémi'
   },
   {
     title: 'Trăm Năm Cô Đơn',
@@ -127,14 +127,14 @@ export const MOCK_LIBRARY = [
     author: 'Jack Canfield & Mark Victor Hansen',
     quote: 'Cuộc sống như một trang sách, mỗi ngày trôi qua là một trang mới được lật mở.',
     category: 'Cảm Hứng Sống',
-    reader: 'Độc giả Tích Cực'
+    reader: 'Bút danh Tích Cực'
   },
   {
     title: 'Búp Sen Xanh',
     author: 'Sơn Tùng',
     quote: 'Nước mắt chỉ chảy ngược vào tim khi ta khóc vì tình yêu quê hương đất nước.',
     category: 'Văn Học Lịch Sử',
-    reader: 'Độc giả Đất Việt'
+    reader: 'Bút danh Đất Việt'
   },
   {
     title: 'Kẻ Trộm Sách (The Book Thief)',

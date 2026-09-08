@@ -21,6 +21,8 @@
  *   a brief 3s cooldown is applied, and the next model is immediately tried.
  */
 
+import 'dotenv/config';
+
 const GROQ_API_BASE = 'https://api.groq.com/openai/v1';
 
 // ---------------------------------------------------------------------------
@@ -65,8 +67,19 @@ export const MODEL_POOL = [
     is_reasoning_model: true
   }),
   new ModelSpec({
-    name: 'qwen/qwen3.6-27b',
+    name: 'openai/gpt-oss-20b',
     priority: 2,
+    rpm_limit: 30,
+    tpm_limit: 8_000,
+    rpd_limit: 1_000,
+    tpd_limit: 200_000,
+    max_output_tokens: 4_096,
+    reasoning_effort: 'low',
+    is_reasoning_model: true
+  }),
+  new ModelSpec({
+    name: 'qwen/qwen3.6-27b',
+    priority: 3,
     rpm_limit: 30,
     tpm_limit: 8_000,
     rpd_limit: 1_000,
@@ -76,22 +89,15 @@ export const MODEL_POOL = [
     is_reasoning_model: true
   }),
   new ModelSpec({
-    name: 'llama-3.3-70b-versatile',
-    priority: 3,
-    rpm_limit: 30,
-    tpm_limit: 12_000,
-    rpd_limit: 1_000,
-    tpd_limit: 100_000,
-    max_output_tokens: 4_096
-  }),
-  new ModelSpec({
-    name: 'groq/compound',
+    name: 'qwen/qwen3.8-27b',
     priority: 4,
     rpm_limit: 30,
-    tpm_limit: 70_000,
-    rpd_limit: 250,
-    tpd_limit: 10 ** 12, // Effectively unlimited
-    max_output_tokens: 8_192
+    tpm_limit: 8_000,
+    rpd_limit: 1_000,
+    tpd_limit: 200_000,
+    max_output_tokens: 4_096,
+    reasoning_effort: 'none',
+    is_reasoning_model: true
   }),
   new ModelSpec({
     name: 'groq/compound-mini',
@@ -103,23 +109,21 @@ export const MODEL_POOL = [
     max_output_tokens: 8_192
   }),
   new ModelSpec({
-    name: 'openai/gpt-oss-20b',
+    name: 'openai/gpt-oss-safeguard-20b',
     priority: 6,
     rpm_limit: 30,
     tpm_limit: 8_000,
     rpd_limit: 1_000,
     tpd_limit: 200_000,
-    max_output_tokens: 4_096,
-    reasoning_effort: 'low',
-    is_reasoning_model: true
+    max_output_tokens: 4_096
   }),
   new ModelSpec({
-    name: 'llama-3.1-8b-instant',
+    name: 'allam-2-7b',
     priority: 7,
     rpm_limit: 30,
     tpm_limit: 6_000,
-    rpd_limit: 14_400,
-    tpd_limit: 500_000,
+    rpd_limit: 1_000,
+    tpd_limit: 100_000,
     max_output_tokens: 4_096
   })
 ];

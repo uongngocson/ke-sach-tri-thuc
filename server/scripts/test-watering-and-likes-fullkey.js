@@ -282,7 +282,7 @@ async function runFullTestKey() {
     assert(team1ExpAfterUnlike === team1ExpBefore, 'EXP của Đội 1 hoàn lại chuẩn xác (trừ 2 EXP)');
 
     // 2.4 Luồng Toggle Like hoàn chỉnh (Like -> Unlike -> Like lại)
-    const relikeRes = await QuoteService.likeQuote(testBookId, likeFp);
+    const relikeRes = await QuoteService.likeQuote(testBookId, likeFp, { userId: testUserId2, teamId: 2 });
     assert(relikeRes.newLikesCount === bookLikesBefore + 1, 'Thả tim lại lần 2 sau khi unlike thành công mượt mà');
 
     // 2.5 Kiểm tra cờ is_liked khi truy vấn sách
@@ -423,7 +423,7 @@ async function runFullTestKey() {
 
     // 4.5 Kiểm thử Flow Thả Tim Qua Ngày Mới (Quote Likes Persistence Across Days)
     // Ngày 1: Thả tim Sách 1
-    await QuoteService.likeQuote(bookDay1Id, multiDayFp);
+    await QuoteService.likeQuote(bookDay1Id, multiDayFp, { userId: multiDayUserId, teamId: 1 });
     const book1Likes = (await db.query('SELECT likes_count FROM books WHERE id = $1', [bookDay1Id])).rows[0].likes_count;
     assert(parseInt(book1Likes, 10) === 1, 'Ngày 1: Thả tim Sách 1 thành công (likes_count = 1)');
 
@@ -435,14 +435,14 @@ async function runFullTestKey() {
     // Ngày 2: Không được thả tim lại Sách 1 để gian lận EXP
     let b1RelikeBlocked = false;
     try {
-      await QuoteService.likeQuote(bookDay1Id, multiDayFp);
+      await QuoteService.likeQuote(bookDay1Id, multiDayFp, { userId: multiDayUserId, teamId: 1 });
     } catch (e) {
       b1RelikeBlocked = true;
     }
     assert(b1RelikeBlocked, 'Ngày 2: Chặn thả tim trùng lặp trên Sách 1 (Chống lạm phát EXP xuyên ngày)');
 
     // Ngày 2: Thả tim tiếp Sách 2 mới thành công
-    const likeB2Res = await QuoteService.likeQuote(bookDay2Id, multiDayFp);
+    const likeB2Res = await QuoteService.likeQuote(bookDay2Id, multiDayFp, { userId: multiDayUserId, teamId: 1 });
     assert(likeB2Res && likeB2Res.newLikesCount === 1, 'Ngày 2: Thả tim Sách 2 mới thành công mượt mà (+2 EXP)');
 
     const quotesDay2After = await BookService.getPublicQuotes({ userFingerprint: multiDayFp, search: 'Sách Ngày' });

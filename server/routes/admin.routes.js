@@ -1,10 +1,13 @@
 import express from 'express';
 import { 
   adminLogin, getAdminStats, getAdminBooks, updateAdminBookStatus, 
+  scoreAdminBookCredibility, batchScoreAdminBooks,
+  getAdminCredibilityQueueStatus, triggerAdminCredibilityScan,
   adminBonusExp, getAuditLogs, getAdminAnalytics, getAdminLedger, 
   getAdminUsersDirectory, advanceAdminRound,
   getAdminContentSettings, updateAdminContentSetting, resetAdminContentSetting,
   adminWipeData, getAdminDeepDiveAnalytics,
+  getAdminTeamsAllDaysExport, getAdminUsersAllDaysExport,
   getAdminAccounts, getAdminAccountStats, getAdminAccountById,
   createAdminAccount, updateAdminAccount, deleteAdminAccount,
   createAdminPersonnel, getAdminPersonnelDetail, updateAdminPersonnel, deleteAdminPersonnel
@@ -33,6 +36,7 @@ router.put('/accounts/:id', authorizeRoles('admin'), validateBody(updateAdminAcc
 router.delete('/accounts/:id', authorizeRoles('admin'), deleteAdminAccount);
 
 // Personnel Directory & CRUD Management (288 Nhân Sự)
+router.get('/users/all-days', authorizeRoles('moderator', 'admin'), getAdminUsersAllDaysExport);
 router.get('/users', authorizeRoles('moderator', 'admin'), getAdminUsersDirectory);
 router.get('/users/:id', authorizeRoles('moderator', 'admin'), getAdminPersonnelDetail);
 router.post('/users', authorizeRoles('admin'), validateBody(createPersonnelSchema), createAdminPersonnel);
@@ -40,6 +44,7 @@ router.put('/users/:id', authorizeRoles('admin'), validateBody(updatePersonnelSc
 router.delete('/users/:id', authorizeRoles('admin'), deleteAdminPersonnel);
 
 // Realtime Analytics & KPIs
+router.get('/analytics/teams/all-days', authorizeRoles('moderator', 'admin'), getAdminTeamsAllDaysExport);
 router.get('/analytics/overview', authorizeRoles('moderator', 'admin'), getAdminAnalytics);
 router.get('/analytics/deep-dive', authorizeRoles('moderator', 'admin'), getAdminDeepDiveAnalytics);
 router.get('/ledger', authorizeRoles('moderator', 'admin'), getAdminLedger);
@@ -55,6 +60,10 @@ router.post('/content-settings/reset', authorizeRoles('admin'), resetAdminConten
 router.get('/stats', authorizeRoles('moderator', 'admin'), getAdminStats);
 router.get('/books', authorizeRoles('moderator', 'admin'), getAdminBooks);
 router.patch('/books/:id/status', authorizeRoles('moderator', 'admin'), validateBody(updateBookStatusSchema), updateAdminBookStatus);
+router.post('/books/:id/score-credibility', authorizeRoles('moderator', 'admin'), scoreAdminBookCredibility);
+router.post('/books/score-batch', authorizeRoles('admin'), batchScoreAdminBooks);
+router.get('/credibility/queue-status', authorizeRoles('moderator', 'admin'), getAdminCredibilityQueueStatus);
+router.post('/credibility/trigger-scan', authorizeRoles('admin'), triggerAdminCredibilityScan);
 router.post('/growth/bonus', authorizeRoles('admin'), validateBody(adminBonusExpSchema), adminBonusExp);
 router.get('/audit-logs', authorizeRoles('admin'), getAuditLogs);
 

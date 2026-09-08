@@ -102,8 +102,25 @@ function initSocket() {
 
   socket.on('book:created', () => {
     loadAnalytics();
-    if (isTabActive('moderation')) loadBooks();
+    if (isTabActive('moderation')) {
+      loadBooks();
+      fetchQueueStatus();
+    }
     if (isTabActive('ledger')) loadLedger();
+  });
+
+  socket.on('admin:book:credibility_scored', (scoredBook) => {
+    if (scoredBook && scoredBook.id) {
+      updateBookCredibilityInDom(scoredBook);
+    }
+    fetchQueueStatus();
+  });
+
+  socket.on('book:credibility_scored', (scoredBook) => {
+    if (scoredBook && scoredBook.id) {
+      updateBookCredibilityInDom(scoredBook);
+    }
+    fetchQueueStatus();
   });
 
   socket.on('content:updated', () => {
@@ -272,17 +289,30 @@ function bindActionEvents() {
     }
   });
 
-  // Export Users CSV
+  // Export CSV (Single Date & All Days)
   document.getElementById('btn-export-users-csv')?.addEventListener('click', exportUsersCSV);
+  document.getElementById('btn-export-users-all-csv')?.addEventListener('click', exportUsersAllDaysCSV);
   document.getElementById('btn-export-teams')?.addEventListener('click', exportTeamsCSV);
+  document.getElementById('btn-export-teams-all')?.addEventListener('click', exportTeamsAllDaysCSV);
+
+  // Books Subtabs (Active vs Deleted)
+  document.getElementById('subtab-books-active')?.addEventListener('click', () => switchBookViewMode('active'));
+  document.getElementById('subtab-books-deleted')?.addEventListener('click', () => switchBookViewMode('deleted'));
 
   // Books Refresh & Filters
   document.getElementById('btn-refresh-books')?.addEventListener('click', loadBooks);
+  document.getElementById('btn-ai-scan-queue')?.addEventListener('click', triggerAiScanQueue);
+  document.getElementById('btn-ai-batch-score')?.addEventListener('click', triggerAiBatchScore);
   document.getElementById('filter-search')?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') loadBooks();
   });
   document.getElementById('filter-moderation')?.addEventListener('change', loadBooks);
-  document.getElementById('filter-visibility')?.addEventListener('change', loadBooks);
+  document.getElementById('filter-visibility')?.addEventListener('change', (e) => {
+    // Tự động đồng bộ giao diện Subtab khi chọn dropdown visibility
+    syncSubtabWithVisibility(e.target.value);
+    loadBooks();
+  });
+  document.getElementById('filter-credibility')?.addEventListener('change', loadBooks);
 
   // Ledger Filter & Pagination
   document.getElementById('btn-filter-ledger')?.addEventListener('click', () => {
@@ -916,7 +946,7 @@ function renderDeepContent(content) {
             </p>
             <div class="flex items-center justify-between text-[10.5px] pt-1 border-t border-slate-800/60">
               <div class="flex items-center gap-1.5 min-w-0">
-                <span class="font-bold text-white truncate">${escapeHtml(q.reader_name || 'Độc giả')}</span>
+                <span class="font-bold text-white truncate">${escapeHtml(q.reader_name || 'Bút danh')}</span>
                 <span class="text-slate-500">•</span>
                 <span style="color: ${teamColor};" class="font-bold truncate">${escapeHtml(q.team_display_name || q.team_name || 'Đội ' + q.team_id)}</span>
               </div>
@@ -1348,6 +1378,12 @@ function renderUsersTable(users) {
     }
   }
 
+  // Update export single date button text
+  const exportUsersBtnText = document.getElementById('btn-export-users-text');
+  if (exportUsersBtnText) {
+    exportUsersBtnText.textContent = isToday ? 'Xuất Danh Sách Hôm Nay (CSV)' : `Xuất Danh Sách Ngày ${formattedDate} (CSV)`;
+  }
+
   if (!users || users.length === 0) {
     tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">Không tìm thấy bút danh nào phù hợp.</td></tr>';
     return;
@@ -1405,7 +1441,13 @@ function renderUsersTable(users) {
 }
 
 async function exportUsersCSV() {
+  const btn = document.getElementById('btn-export-users-csv');
+  const originalHtml = btn ? btn.innerHTML : '';
   try {
+    if (btn) {
+      btn.innerHTML = '<span>⏳</span><span>Đang xuất...</span>';
+      btn.disabled = true;
+    }
     const dateStr = usersFilterDate || getTodayISODate();
     const formattedDate = formatDateVN(dateStr);
     const dateLabel = (dateStr === getTodayISODate()) ? 'Gieo Hôm Nay' : `Gieo Ngày ${formattedDate}`;
@@ -1414,17 +1456,23 @@ async function exportUsersCSV() {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     const data = await res.json();
-    if (!data.success || !data.data.users) return;
+    if (!data.success || !data.data.users) {
+      alert('Không thể tải danh sách nhân sự');
+      return;
+    }
 
     const rows = [
-      ['STT', 'Bút Danh Độc Giả', 'Đội Thi Đua', dateLabel, 'Sách Đã Gieo', 'EXP Kiếm Được']
+      ['STT', 'Mã Nhân Viên', 'Bút Danh', 'Đội Thi Đua', 'Khối / Ban', 'Chức Danh', dateLabel, 'Sách Đã Gieo', 'EXP Kiếm Được']
     ];
 
     data.data.users.forEach((u, idx) => {
       rows.push([
         idx + 1,
+        `"${u.employee_code || ''}"`,
         `"${u.nickname || 'Bút danh'}"`,
         `"${u.team_display_name || ('Đội ' + u.team_id)}"`,
+        `"${(u.branch || '').replace(/"/g, '""')}"`,
+        `"${(u.job_title || '').replace(/"/g, '""')}"`,
         `"${(u.participated_today || u.participated_current_round) ? `Đã gieo (${formattedDate})` : `Chưa gieo (${formattedDate})`}"`,
         u.contributed_books_count || 0,
         u.total_exp_earned || 0
@@ -1435,10 +1483,104 @@ async function exportUsersCSV() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Danh_Ba_But_Danh_FoxREAD_${dateStr}.csv`;
+    link.download = `Danh_Ba_288_Nhan_Su_FOXREAD_${dateStr}.csv`;
     link.click();
   } catch (err) {
-    alert('Lỗi xuất file CSV');
+    console.error('Lỗi xuất file CSV:', err);
+    alert('Lỗi xuất file CSV nhân sự');
+  } finally {
+    if (btn) {
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }
+  }
+}
+
+async function exportUsersAllDaysCSV() {
+  const btn = document.getElementById('btn-export-users-all-csv');
+  const originalHtml = btn ? btn.innerHTML : '';
+  try {
+    if (btn) {
+      btn.innerHTML = '<span>⏳</span><span>Đang xuất...</span>';
+      btn.disabled = true;
+    }
+
+    const res = await fetch(`${API_BASE}/admin/users/all-days`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const result = await res.json();
+    if (!result.success || !result.data || !result.data.users) {
+      alert(result.message || 'Không tải được dữ liệu nhân sự tất cả các ngày');
+      return;
+    }
+
+    const { dates, users, total_days } = result.data;
+    const todayStr = getTodayISODate();
+
+    // Headers with individual date columns
+    const dateHeaders = dates.map(d => `"Ngày ${formatDateVN(d)}"`);
+
+    const rows = [
+      ['=== BÁO CÁO CHUYÊN CẦN & THAM GIA 288 NHÂN SỰ - FOXREAD (TẤT CẢ CÁC NGÀY) ==='],
+      [`Ngày xuất báo cáo: ${formatDateVN(todayStr)} | Tổng số cán bộ: ${users.length} | Ghi nhận: ${dates.length} ngày`],
+      [],
+      [
+        'STT',
+        'Mã Nhân Viên',
+        'Bút Danh',
+        'Đội Thi Đua',
+        'Khối / Ban',
+        'Chức Danh',
+        `Tổng Ngày Tham Gia (${dates.length} Ngày)`,
+        'Tỷ Lệ Chuyên Cần (%)',
+        'Tổng Sách Đã Gieo',
+        'Tổng Lượt Tưới',
+        'Tổng EXP Kiếm Được',
+        'Ngày Gieo Gần Nhất',
+        ...dateHeaders
+      ]
+    ];
+
+    users.forEach((u, idx) => {
+      const dateValues = dates.map(d => {
+        const st = u.daily_status && u.daily_status[d];
+        if (st && st.participated) {
+          return st.book_title ? `"Đã gieo (${st.book_title.replace(/"/g, '""')})"` : '"Đã gieo"';
+        }
+        return '"Chưa gieo"';
+      });
+
+      rows.push([
+        idx + 1,
+        `"${u.employee_code || ''}"`,
+        `"${u.nickname || 'Bút danh'}"`,
+        `"${u.team_name || ('Đội ' + u.team_id)}"`,
+        `"${(u.branch || '').replace(/"/g, '""')}"`,
+        `"${(u.job_title || '').replace(/"/g, '""')}"`,
+        `"${u.total_days_participated}/${dates.length}"`,
+        `"${u.attendance_rate}%"`,
+        u.contributed_books_count || 0,
+        u.total_dews_count || 0,
+        u.total_exp_earned || 0,
+        `"${u.latest_quote_date ? formatDateVN(u.latest_quote_date) : 'Chưa gieo'}"`,
+        ...dateValues
+      ]);
+    });
+
+    const csvContent = '\uFEFF' + rows.map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Bao_Cao_288_Nhan_Su_Tat_Ca_Cac_Ngay_FOXREAD_${todayStr}.csv`;
+    link.click();
+  } catch (err) {
+    console.error('Lỗi xuất báo cáo nhân sự tất cả các ngày:', err);
+    alert('Lỗi xuất file CSV nhân sự tất cả các ngày');
+  } finally {
+    if (btn) {
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }
   }
 }
 
@@ -1496,8 +1638,114 @@ function exportTeamsCSV() {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `Bao_Cao_Xep_Hang_8_Doi_Ngay_${dateStr}.csv`;
+  link.download = `Bao_Cao_Xep_Hang_8_Doi_Ngay_${dateStr}_FOXREAD.csv`;
   link.click();
+}
+
+async function exportTeamsAllDaysCSV() {
+  const btn = document.getElementById('btn-export-teams-all');
+  const originalHtml = btn ? btn.innerHTML : '';
+  try {
+    if (btn) {
+      btn.innerHTML = '<span>⏳</span><span>Đang xuất...</span>';
+      btn.disabled = true;
+    }
+
+    const res = await fetch(`${API_BASE}/admin/analytics/teams/all-days`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const result = await res.json();
+    if (!result.success || !result.data) {
+      alert(result.message || 'Không tải được dữ liệu 8 đội thi đua tất cả các ngày');
+      return;
+    }
+
+    const { dates, teams_summary, daily_history } = result.data;
+    const todayStr = getTodayISODate();
+
+    const rows = [
+      ['=== BÁO CÁO TOÀN GIẢI 8 ĐỘI THI ĐUA - FOXREAD (TẤT CẢ CÁC NGÀY) ==='],
+      [`Ngày xuất báo cáo: ${formatDateVN(todayStr)} | Tổng số ngày ghi nhận: ${dates.length} ngày`],
+      [],
+      ['--- PHẦN 1: BẢNG TỔNG HỢP TOÀN GIẢI 8 ĐỘI THI ĐUA ---'],
+      [
+        'Hạng',
+        'Mã Đội',
+        'Tên Đội',
+        'Cấp Độ Cây',
+        'Tổng EXP Toàn Giải',
+        'Hạt Giống (Mầm)',
+        'Cán Bộ Thực Tế',
+        'Chỉ Tiêu',
+        'Tỷ Lệ TB Toàn Giải (%)',
+        'Tổng Sách Đã Gieo',
+        'Tổng Lượt Tưới'
+      ]
+    ];
+
+    teams_summary.forEach(t => {
+      rows.push([
+        t.rank,
+        `"${t.code}"`,
+        `"${t.display_name || t.name}"`,
+        `"${t.levelName}"`,
+        t.tree_exp,
+        `"${t.tree_seeds}/50"`,
+        t.actual_members,
+        t.target_members,
+        `"${t.avg_participation_rate}%"`,
+        t.books_count,
+        t.dews_count
+      ]);
+    });
+
+    rows.push([]);
+    rows.push(['--- PHẦN 2: CHI TIẾT THEO TỪNG NGÀY CỦA 8 ĐỘI THI ĐUA ---']);
+    rows.push([
+      'Ngày',
+      'Hạng Toàn Giải',
+      'Mã Đội',
+      'Tên Đội',
+      'Cấp Độ Cây',
+      'Cán Bộ Thực Tế',
+      'Chỉ Tiêu',
+      'Số Cán Bộ Tham Gia Ngày Này',
+      'Tỷ Lệ Tham Gia Ngày Này (%)',
+      'Sách Gieo Ngày Này',
+      'Lượt Tưới Ngày Này'
+    ]);
+
+    daily_history.forEach(h => {
+      rows.push([
+        `"${formatDateVN(h.date)}"`,
+        h.rank,
+        `"${h.team_code}"`,
+        `"${h.team_name}"`,
+        `"${h.level_name}"`,
+        h.actual_members,
+        h.target_members,
+        h.participants_count,
+        `"${h.participation_rate}%"`,
+        h.books_count,
+        h.dews_count
+      ]);
+    });
+
+    const csvContent = '\uFEFF' + rows.map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Bao_Cao_8_Doi_Tat_Ca_Cac_Ngay_FOXREAD_${todayStr}.csv`;
+    link.click();
+  } catch (err) {
+    console.error('Lỗi xuất báo cáo 8 đội tất cả các ngày:', err);
+    alert('Lỗi xuất file CSV 8 đội tất cả các ngày');
+  } finally {
+    if (btn) {
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }
+  }
 }
 
 // =========================================================================
@@ -1561,6 +1809,64 @@ function renderRoundsTimeline() {
 // =========================================================================
 // 5. BOOKS MODERATION HUB
 // =========================================================================
+let currentBookViewMode = 'active'; // 'active' | 'deleted'
+
+function switchBookViewMode(mode) {
+  currentBookViewMode = mode;
+  const btnActive = document.getElementById('subtab-books-active');
+  const btnDeleted = document.getElementById('subtab-books-deleted');
+  const banner = document.getElementById('deleted-view-banner');
+  const visFilter = document.getElementById('filter-visibility');
+
+  if (mode === 'deleted') {
+    btnDeleted?.classList.remove('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+    btnDeleted?.classList.add('bg-rose-500/25', 'text-rose-300', 'border-rose-400/50', 'shadow-sm');
+
+    btnActive?.classList.remove('bg-sky-500/20', 'text-sky-300', 'border-sky-400/40', 'shadow-sm');
+    btnActive?.classList.add('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+
+    banner?.classList.remove('hidden');
+    if (visFilter) visFilter.value = 'deleted';
+  } else {
+    btnActive?.classList.remove('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+    btnActive?.classList.add('bg-sky-500/20', 'text-sky-300', 'border-sky-400/40', 'shadow-sm');
+
+    btnDeleted?.classList.remove('bg-rose-500/25', 'text-rose-300', 'border-rose-400/50', 'shadow-sm');
+    btnDeleted?.classList.add('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+
+    banner?.classList.add('hidden');
+    if (visFilter && visFilter.value === 'deleted') visFilter.value = '';
+  }
+
+  loadBooks();
+}
+
+function syncSubtabWithVisibility(val) {
+  const btnActive = document.getElementById('subtab-books-active');
+  const btnDeleted = document.getElementById('subtab-books-deleted');
+  const banner = document.getElementById('deleted-view-banner');
+
+  if (val === 'deleted') {
+    currentBookViewMode = 'deleted';
+    btnDeleted?.classList.remove('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+    btnDeleted?.classList.add('bg-rose-500/25', 'text-rose-300', 'border-rose-400/50', 'shadow-sm');
+
+    btnActive?.classList.remove('bg-sky-500/20', 'text-sky-300', 'border-sky-400/40', 'shadow-sm');
+    btnActive?.classList.add('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+
+    banner?.classList.remove('hidden');
+  } else {
+    currentBookViewMode = 'active';
+    btnActive?.classList.remove('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+    btnActive?.classList.add('bg-sky-500/20', 'text-sky-300', 'border-sky-400/40', 'shadow-sm');
+
+    btnDeleted?.classList.remove('bg-rose-500/25', 'text-rose-300', 'border-rose-400/50', 'shadow-sm');
+    btnDeleted?.classList.add('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+
+    banner?.classList.add('hidden');
+  }
+}
+
 async function loadBooks() {
   const tbody = document.getElementById('books-table-body');
   if (!tbody) return;
@@ -1568,21 +1874,113 @@ async function loadBooks() {
   const search = document.getElementById('filter-search')?.value.trim() || '';
   const modStatus = document.getElementById('filter-moderation')?.value || '';
   const visStatus = document.getElementById('filter-visibility')?.value || '';
+  const credFilter = document.getElementById('filter-credibility')?.value || '';
 
   let url = `${API_BASE}/admin/books?page=1&limit=50`;
   if (search) url += `&search=${encodeURIComponent(search)}`;
   if (modStatus) url += `&moderation_status=${modStatus}`;
   if (visStatus) url += `&visibility_status=${visStatus}`;
+  if (credFilter) url += `&credibility=${encodeURIComponent(credFilter)}`;
 
   try {
     const res = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
     const data = await res.json();
     if (data.success) {
       renderBooksTable(data.data.books);
+      fetchQueueStatus();
+
+      // Cập nhật số lượng huy hiệu cho subtabs
+      if (data.data.counts) {
+        const activeCountEl = document.getElementById('badge-active-count');
+        const deletedCountEl = document.getElementById('badge-deleted-count');
+        if (activeCountEl) activeCountEl.innerText = data.data.counts.active ?? 0;
+        if (deletedCountEl) deletedCountEl.innerText = data.data.counts.deleted ?? 0;
+      }
     }
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-rose-400">Lỗi tải danh sách sách</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-rose-400">Lỗi tải danh sách sách</td></tr>';
   }
+}
+
+function renderCredibilityCell(b) {
+  const status = b.credibility_status || 'unscored';
+  const score = b.credibility_score;
+  const rationale = b.credibility_rationale || '';
+
+  if (status === 'scoring') {
+    return `
+      <div class="space-y-1">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-950/60 text-sky-300 border border-sky-700/60">
+          <span class="inline-block animate-spin">⏳</span> Đang chấm AI...
+        </span>
+        <div class="text-[10px] text-slate-400">Pacing tuần tự chống quá tải</div>
+      </div>
+    `;
+  }
+
+  if (status === 'scored' && score !== null && score !== undefined) {
+    let badgeClass = 'bg-emerald-950/70 text-emerald-300 border-emerald-600/60';
+    let icon = '🛡️';
+    let label = 'Chuẩn Mực';
+
+    if (score >= 80) {
+      badgeClass = 'bg-emerald-950/70 text-emerald-300 border-emerald-600/60';
+      icon = '🛡️';
+      label = 'Chuẩn Mực';
+    } else if (score >= 60) {
+      badgeClass = 'bg-amber-950/70 text-amber-300 border-amber-600/60';
+      icon = '⚖️';
+      label = 'Cần Xem Xét';
+    } else {
+      badgeClass = 'bg-rose-950/90 text-rose-300 border-rose-600/80 animate-pulse';
+      icon = '🔴';
+      label = 'Vi Phạm (<60đ) • AI Tự Xóa';
+    }
+
+    return `
+      <div class="space-y-1 max-w-xs">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border ${badgeClass}">
+            <span>${icon}</span>
+            <span>${score}/100</span>
+            <span class="text-[9.5px] opacity-80 font-normal">(${label})</span>
+          </span>
+          <button onclick="scoreQuoteCredibilityRow('${b.id}', this)" class="text-[10px] text-slate-400 hover:text-sky-300 hover:underline transition-colors flex items-center gap-0.5" title="Kích hoạt AI Groq chấm lại trích dẫn này">
+            <span>🔄</span> Chấm lại
+          </button>
+        </div>
+        ${rationale ? `<div class="text-[10px] text-slate-400 font-medium">${escapeHtml(rationale)}</div>` : ''}
+      </div>
+    `;
+  }
+
+  if (status === 'failed') {
+    return `
+      <div class="space-y-1 max-w-xs">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-950/60 text-rose-300 border border-rose-800">
+            <span>⚠️</span><span>Lỗi chấm AI</span>
+          </span>
+          <button onclick="scoreQuoteCredibilityRow('${b.id}', this)" class="btn btn-ghost text-[10.5px] py-0.5 px-2 bg-rose-900/40 hover:bg-rose-800/60 text-rose-200 border border-rose-700/50 flex items-center gap-1">
+            <span>🔄</span> Chấm lại
+          </button>
+        </div>
+        ${rationale ? `<div class="text-[10px] text-rose-400 line-clamp-1" title="${escapeHtml(rationale)}">${escapeHtml(rationale)}</div>` : ''}
+      </div>
+    `;
+  }
+
+  // unscored / null
+  return `
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-slate-800 text-slate-400 border border-slate-700">
+        <span>⚪</span> Chưa chấm
+      </span>
+      <button onclick="scoreQuoteCredibilityRow('${b.id}', this)" class="btn btn-ghost text-[10.5px] py-0.5 px-2 bg-sky-950/50 hover:bg-sky-800/50 text-sky-300 border border-sky-700/50 font-bold flex items-center gap-1" title="Chấm điểm câu trích dẫn bằng AI Groq">
+        <span>✨</span> Chấm AI
+      </button>
+    </div>
+  `;
 }
 
 function renderBooksTable(books) {
@@ -1590,7 +1988,7 @@ function renderBooksTable(books) {
   if (!tbody) return;
 
   if (!books || books.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500">Không tìm thấy sách nào phù hợp.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-500">Không tìm thấy sách nào phù hợp.</td></tr>';
     return;
   }
 
@@ -1600,14 +1998,32 @@ function renderBooksTable(books) {
     if (b.moderation_status === 'rejected') modBadge = `<span class="badge badge-rejected">Bị Loại Bỏ</span>`;
 
     let visBadge = `<span class="text-[10px] text-emerald-400 font-bold">🟢 Đang Hiện Trên Cây</span>`;
-    if (b.visibility_status !== 'visible') visBadge = `<span class="text-[10px] text-rose-400 font-bold">🔴 Ẩn</span>`;
+    if (b.visibility_status === 'hidden') {
+      visBadge = `<span class="text-[10px] text-amber-400 font-bold">🟡 Đang Ẩn</span>`;
+    } else if (b.visibility_status === 'deleted') {
+      visBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-950 text-rose-300 border border-rose-700/60"><span>🗑️</span><span>Đã Xóa</span></span>`;
+    }
+
+    const deletionInfo = (b.visibility_status === 'deleted' && b.deletion_reason)
+      ? `<div class="text-[9.5px] text-rose-400 font-semibold mt-1 bg-rose-950/40 p-1.5 rounded border border-rose-900/60 max-w-xs" title="${escapeHtml(b.deletion_reason)}">
+          <span class="font-bold">Lý do:</span> ${escapeHtml(b.deletion_reason)}
+          ${b.deleted_at ? `<br><span class="text-[9px] text-slate-400 font-normal">Thời gian: ${new Date(b.deleted_at).toLocaleString('vi-VN')}</span>` : ''}
+        </div>`
+      : '';
+
+    const isDeleted = b.visibility_status === 'deleted';
+    const escapedTitle = escapeHtml(b.title).replace(/'/g, "\\'");
 
     return `
-      <tr class="hover:bg-slate-800/40 transition-colors">
+      <tr id="book-row-${b.id}" class="hover:bg-slate-800/40 transition-colors ${isDeleted ? 'bg-rose-950/10' : ''}">
         <td class="p-3.5 max-w-sm">
-          <div class="font-black text-white text-sm">${escapeHtml(b.title)}</div>
+          <div class="font-black text-white text-sm flex items-center gap-1.5">
+            ${isDeleted ? '<span class="text-rose-400 text-xs">🗑️</span>' : ''}
+            <span>${escapeHtml(b.title)}</span>
+          </div>
           <div class="text-[11px] text-sky-400 font-bold">${escapeHtml(b.author)}${b.team_display_name || b.team_name || (b.team_id ? ` · <span class="text-emerald-400 font-bold">${escapeHtml(b.team_display_name || b.team_name || `Đội ${b.team_id}`)}</span>` : '')}</div>
           <p class="text-slate-300 italic text-[11px] mt-1.5 line-clamp-2 bg-slate-950/40 p-2 rounded border border-slate-800">"${escapeHtml(b.quote)}"</p>
+          ${deletionInfo}
         </td>
         <td class="p-3.5">
           <div class="font-bold text-white">${escapeHtml(b.reader_name)}</div>
@@ -1618,17 +2034,222 @@ function renderBooksTable(books) {
           <div>${modBadge}</div>
           <div>${visBadge}</div>
         </td>
+        <td id="book-credibility-cell-${b.id}" class="p-3.5 min-w-[200px] transition-colors duration-500">
+          ${renderCredibilityCell(b)}
+        </td>
         <td class="p-3.5 font-black text-amber-400">
           ❤️ ${b.likes_count || 0}
         </td>
         <td class="p-3.5 text-right space-x-1 whitespace-nowrap">
-          <button onclick="openModModal('${b.id}')" class="btn btn-ghost text-[11px] py-1 px-3">
-            <span>⚙️</span><span>Hậu Kiểm</span>
-          </button>
+          ${isDeleted ? `
+            <button onclick="restoreDeletedBook('${b.id}', '${escapedTitle}')" class="btn btn-ghost text-[11px] py-1 px-2.5 bg-emerald-950/70 hover:bg-emerald-800/70 text-emerald-300 border border-emerald-600/60 font-black inline-flex items-center gap-1 shadow-sm" title="Khôi phục câu trích dẫn này lên cây">
+              <span>♻️</span><span>Khôi Phục</span>
+            </button>
+            <button onclick="openModModal('${b.id}')" class="btn btn-ghost text-[11px] py-1 px-2 text-slate-400 hover:text-white" title="Chi tiết hậu kiểm">
+              <span>⚙️</span>
+            </button>
+          ` : `
+            <button onclick="openModModal('${b.id}')" class="btn btn-ghost text-[11px] py-1 px-3">
+              <span>⚙️</span><span>Hậu Kiểm</span>
+            </button>
+          `}
         </td>
       </tr>
     `;
   }).join('');
+}
+
+window.restoreDeletedBook = async function(bookId, bookTitle) {
+  if (!confirm(`Bạn có chắc chắn muốn khôi phục trích dẫn "${bookTitle}" lên Cây Tri Thức không?`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/books/${bookId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        visibility_status: 'visible',
+        moderation_status: 'reviewed',
+        moderation_notes: 'Khôi phục bởi Quản trị viên từ Danh Sách Đã Xóa'
+      })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showToast('Khôi phục trích dẫn thành công!', 'success');
+      loadBooks();
+      loadAnalytics();
+    } else {
+      alert(data.message || 'Lỗi khôi phục');
+    }
+  } catch (err) {
+    alert('Lỗi kết nối máy chủ');
+  }
+};
+
+function updateBookCredibilityInDom(book) {
+  if (!book || !book.id) return;
+  const cell = document.getElementById(`book-credibility-cell-${book.id}`);
+  if (cell) {
+    cell.innerHTML = renderCredibilityCell(book);
+    cell.classList.add('bg-emerald-500/20');
+    setTimeout(() => {
+      cell.classList.remove('bg-emerald-500/20');
+    }, 2500);
+  }
+}
+
+async function fetchQueueStatus() {
+  if (!authToken) return;
+  try {
+    const res = await fetch(`${API_BASE}/admin/credibility/queue-status`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+    if (data.success) {
+      updateQueueBadge(data.data);
+    }
+  } catch (err) {
+    // Silent
+  }
+}
+
+function updateQueueBadge(status) {
+  const badgeText = document.getElementById('queue-status-text');
+  const dot = document.getElementById('queue-status-dot');
+  if (!badgeText || !dot) return;
+
+  if (status.isProcessing || status.pendingCount > 0) {
+    dot.className = 'inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping';
+    badgeText.textContent = `Hàng đợi AI: ${status.pendingCount} đang chấm`;
+  } else {
+    dot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-400';
+    badgeText.textContent = `Hàng đợi AI: 0 chờ (${status.stats?.totalSucceeded || 0} đã chấm)`;
+  }
+}
+
+async function triggerAiScanQueue() {
+  if (!authToken) {
+    alert('Vui lòng đăng nhập quản trị viên.');
+    return;
+  }
+  const btn = document.getElementById('btn-ai-scan-queue');
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-block animate-spin">⏳</span><span>Đang nạp...</span>';
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/credibility/trigger-scan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ limit: 50 })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(`⚡ ${data.message}`);
+      fetchQueueStatus();
+      await loadBooks();
+    } else {
+      alert(`❌ Lỗi quét nạp: ${data.message || 'Không thành công'}`);
+    }
+  } catch (err) {
+    alert(`❌ Lỗi kết nối: ${err.message}`);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
+  }
+}
+
+window.scoreQuoteCredibilityRow = async function(bookId, btnEl) {
+  if (!authToken) {
+    alert('Vui lòng đăng nhập quản trị viên để chấm điểm.');
+    return;
+  }
+  const originalHtml = btnEl ? btnEl.innerHTML : '';
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.innerHTML = '<span class="inline-block animate-spin">⏳</span> Đang chấm...';
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/books/${bookId}/score-credibility`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+    const data = await res.json();
+    if (data.success) {
+      updateBookCredibilityInDom(data.data);
+      fetchQueueStatus();
+    } else {
+      alert(`❌ Lỗi chấm điểm AI: ${data.message || 'Không thành công'}`);
+      if (btnEl) {
+        btnEl.disabled = false;
+        btnEl.innerHTML = originalHtml;
+      }
+    }
+  } catch (err) {
+    alert(`❌ Lỗi kết nối chấm AI: ${err.message}`);
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = originalHtml;
+    }
+  }
+};
+
+async function triggerAiBatchScore() {
+  if (!authToken) {
+    alert('Vui lòng đăng nhập quản trị viên.');
+    return;
+  }
+  const btn = document.getElementById('btn-ai-batch-score');
+  if (!confirm('Bạn có muốn kích hoạt AI Groq thẩm định tuần tự các câu trích dẫn chưa có điểm không?\\n(Hệ thống tự động điều tiết nhịp độ an toàn 800ms để không bao giờ vượt ngưỡng token/phút)')) {
+    return;
+  }
+
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-block animate-spin">⏳</span><span>Đang chấm tuần tự...</span>';
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/books/score-batch`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ limit: 15, delayMs: 800, forceRescore: false })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(`🎉 ${data.message}`);
+      await loadBooks();
+    } else {
+      alert(`❌ Lỗi chấm hàng loạt: ${data.message || 'Không thể thực hiện'}`);
+    }
+  } catch (err) {
+    alert(`❌ Lỗi kết nối: ${err.message}`);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
+  }
 }
 
 window.openModModal = async function(bookId) {
@@ -1762,7 +2383,7 @@ function renderLedgerTable(ledger) {
           ${isPositive ? '+' : ''}${item.amount} EXP
         </td>
         <td class="p-3 font-bold text-slate-200">
-          ${escapeHtml(item.nickname || 'Độc giả')}
+          ${escapeHtml(item.nickname || 'Bút danh')}
         </td>
         <td class="p-3">
           <span class="px-2 py-0.5 rounded text-[10.5px] font-bold" style="background: ${(item.team_color || '#0284c7')}22; color: ${item.team_color || '#38bdf8'};">
@@ -1867,7 +2488,7 @@ function bindContentRulesEvents() {
 function syncWelcomePreview() {
   const badge = document.getElementById('cfg-welcome-badge')?.value || '🌱 VƯỜN TRI THỨC';
   const title = document.getElementById('cfg-welcome-title')?.value || 'Mỗi Cuốn Sách Là Một Hạt Mầm';
-  const subtitle = document.getElementById('cfg-welcome-subtitle')?.value || 'Mỗi Độc Giả Là Một Người Gieo Tri Thức';
+  const subtitle = document.getElementById('cfg-welcome-subtitle')?.value || 'Mỗi Bút Danh Là Một Người Gieo Tri Thức';
   const metaphor = document.getElementById('cfg-welcome-metaphor')?.value || '';
   const p1 = document.getElementById('cfg-welcome-pillar1')?.value || 'Gieo Hạt Tri Thức';
   const p2 = document.getElementById('cfg-welcome-pillar2')?.value || 'Lan Tỏa Tri Thức';
@@ -1984,7 +2605,7 @@ async function saveWelcomeSettings() {
   const payload = {
     badge: getVal('cfg-welcome-badge') || '🌱 VƯỜN TRI THỨC',
     title: getVal('cfg-welcome-title') || 'Mỗi Cuốn Sách Là Một Hạt Mầm',
-    subtitle: getVal('cfg-welcome-subtitle') || 'Mỗi Độc Giả Là Một Người Gieo Tri Thức',
+    subtitle: getVal('cfg-welcome-subtitle') || 'Mỗi Bút Danh Là Một Người Gieo Tri Thức',
     metaphor: getVal('cfg-welcome-metaphor'),
     pillar1: getVal('cfg-welcome-pillar1') || 'Gieo Hạt Tri Thức',
     pillar2: getVal('cfg-welcome-pillar2') || 'Lan Tỏa Tri Thức',
@@ -2007,7 +2628,7 @@ async function saveWelcomeSettings() {
     });
     const data = await res.json();
     if (data.success) {
-      alert('✅ Lưu cấu hình Popup Chào Mừng thành công! Mọi độc giả đang mở trang sẽ thấy nội dung mới ngay lập tức.');
+      alert('✅ Lưu cấu hình Popup Chào Mừng thành công! Mọi Bút danh đang mở trang sẽ thấy nội dung mới ngay lập tức.');
     } else {
       alert('❌ Lỗi: ' + (data.message || 'Không thể lưu'));
     }
@@ -2942,7 +3563,7 @@ async function handlePersonnelFormSubmit(e) {
 
   if (!nickname) {
     if (errBox && errMsg) {
-      errMsg.textContent = 'Vui lòng nhập bút danh độc giả.';
+      errMsg.textContent = 'Vui lòng nhập bút danh.';
       errBox.classList.remove('hidden');
     }
     return;

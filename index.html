@@ -10,7 +10,7 @@
   <meta http-equiv="Expires" content="0" />
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     name="viewport" />
-  <title>Cáo Sách</title>
+  <title>FOXREAD</title>
   <!--<base href="/">-->
   <base href="." />
   <link href="./assets/logo.svg" rel="icon" type="image/svg+xml" />
@@ -375,7 +375,55 @@
     }
 
     .team-rail-exp {
-      display: none !important;
+      display: inline-flex !important;
+      align-items: center;
+      gap: 2.5px;
+      padding: 1.5px 6px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(234, 179, 8, 0.08));
+      color: #b45309;
+      border: 1px solid rgba(245, 158, 11, 0.28);
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1.1;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      flex-shrink: 0;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    html.dark .team-rail-exp {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(234, 179, 8, 0.1));
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.38);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    }
+
+    .team-rail-card:hover .team-rail-exp {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(234, 179, 8, 0.16));
+      border-color: rgba(245, 158, 11, 0.5);
+      transform: scale(1.03);
+    }
+
+    .team-rail-exp-icon {
+      font-size: 9.5px;
+      line-height: 1;
+      color: #f59e0b;
+      filter: drop-shadow(0 1px 1px rgba(245, 158, 11, 0.3));
+    }
+
+    .team-rail-exp-val {
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .team-rail-exp-unit {
+      font-size: 8px;
+      font-weight: 800;
+      opacity: 0.85;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
     }
 
     #timeline-teams-rail {
@@ -3312,7 +3360,7 @@
 
   </style>
 
-    <!-- CÁO SÁCH MASTER PRODUCTION STYLES (CONSOLIDATED & ZERO DUPLICATION) -->
+    <!-- FOXREAD MASTER PRODUCTION STYLES (CONSOLIDATED & ZERO DUPLICATION) -->
   <style id="cao-sach-production-master-styles">
     /* 1. ZERO-SCROLL SINGLE SCREEN MASTER LOCK */
     html, body {
@@ -3958,20 +4006,20 @@
               <div _ngcontent-ng-c4179040905=""
                 class="flex items-center justify-between w-full lg:w-auto gap-2 shrink-0"><a
                   _ngcontent-ng-c4179040905="" class="flex items-center gap-2 group shrink-0"
-                  href="javascript:void(0);"><img _ngcontent-ng-c4179040905="" alt="Cáo Sách"
+                  href="javascript:void(0);"><img _ngcontent-ng-c4179040905="" alt="FOXREAD"
                     class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl shadow-md group-hover:scale-105 transition-transform duration-300 shrink-0"
                     src="./assets/logo.svg" />
                   <div _ngcontent-ng-c4179040905="">
                     <h1 _ngcontent-ng-c4179040905=""
                       class="header-brand-title text-sm sm:text-base font-black tracking-tight flex items-center gap-1.5">
-                      <span _ngcontent-ng-c4179040905="">CÁO SÁCH</span><span _ngcontent-ng-c4179040905=""
+                      <span _ngcontent-ng-c4179040905="">FOXREAD</span><span _ngcontent-ng-c4179040905=""
                         class="px-1.5 py-0.5 rounded-md bg-[#0054A6] text-white dark:bg-[#f5ce42] dark:text-[#121620] font-black text-[10px] sm:text-xs shadow-xs">
                         📖 </span>
                     </h1>
                     <p _ngcontent-ng-c4179040905=""
                       class="header-brand-sub text-[10px] sm:text-[11px] font-bold flex items-center gap-1 leading-tight">
                       <span _ngcontent-ng-c4179040905="">📚</span><span
-                        _ngcontent-ng-c4179040905=""><strong id="header-active-readers">1</strong> độc giả ghé thăm</span>
+                        _ngcontent-ng-c4179040905=""><strong id="header-active-readers">1</strong> Bút danh ghé thăm</span>
                     </p>
                   </div>
                 </a>
@@ -4053,7 +4101,7 @@
                 <button
                   id="fpt-main-rules-btn"
                   class="h-9 flex items-center justify-center gap-1.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
-                  title="Xem thể lệ chương trình Cáo Sách" type="button">
+                  title="Xem thể lệ chương trình FOXREAD" type="button">
                   <span class="text-sm leading-none">📜</span>
                   <span>Thể Lệ</span>
                 </button>
@@ -4182,8 +4230,8 @@
                       <div class="aside-quote-bottom-meta flex items-center justify-between gap-2 pt-1.5 mt-1.5 border-t border-slate-200/50 dark:border-slate-700/50">
                         <div class="aside-quote-footer flex items-center gap-1 min-w-0 truncate text-[10.5px] sm:text-[11px]">
                           <span class="text-xs shrink-0">👤</span>
-                          <span class="aside-quote-sharer-label opacity-70 text-[10px] sm:text-[10.5px] shrink-0">Chia sẻ:</span>
-                          <strong class="aside-quote-sharer font-bold truncate" id="aside-quote-reader">Độc giả Tri Thức</strong>
+                          <span class="aside-quote-sharer-label opacity-70 text-[10px] sm:text-[10.5px] shrink-0">Bút danh:</span>
+                          <strong class="aside-quote-sharer font-bold truncate" id="aside-quote-reader">Bút danh Tri Thức</strong>
                         </div>
                         <button class="aside-quote-like-btn shrink-0" id="aside-like-btn" title="Thả tim trích dẫn này">
                           <span class="aside-like-icon" id="aside-like-icon">❤️</span>
@@ -4206,7 +4254,7 @@
               <div _ngcontent-ng-c4179040905="" class="w-full relative z-15 pointer-events-auto">
                 <div _ngcontent-ng-c4179040905="" class="w-full relative">
                   <!-- Ground Top Horizon Interactive Extension Hit Zone (100% Mobile & Touch Friendly) -->
-                  <div id="fpt-ground-top-hit-zone" class="fpt-ground-top-hit-zone" title="Chạm vào đất để gieo hạt"></div>
+                  <div id="fpt-ground-top-hit-zone" class="fpt-ground-top-hit-zone" title="Chạm vào cây để gieo hạt"></div>
                   <div _ngcontent-ng-c4179040905=""
                     class="w-full min-h-[170px] md:min-h-[180px] fpt-ground-container cursor-pointer relative transition-all duration-300 group pb-10 overflow-visible">
                     <div _ngcontent-ng-c4179040905=""
@@ -6221,7 +6269,7 @@
   <div id="ground-action-hint" title="Bấm vào để gieo mầm tri thức ngay" style="display: none;">
     <div class="ground-hint-pill">
       <span class="text-base sm:text-lg leading-none">🌰</span>
-      <span id="ground-action-hint-text">Chạm vào mặt đất để gieo hạt tri thức</span>
+      <span id="ground-action-hint-text">Chạm vào cây để gieo hạt</span>
       <span class="text-xs text-amber-300 font-black">✨</span>
     </div>
   </div>
@@ -6358,11 +6406,6 @@
             placeholder="Nhập câu trích dẫn hay hoặc cảm nghĩ sâu sắc mà bạn muốn chia sẻ với cộng đồng..." required=""
             rows="3"></textarea>
         </div>
-        <div>
-          <label class="cb-label">🎭 Bút Danh Ẩn Danh (Tùy chọn)</label>
-          <input autocomplete="off" class="cb-input" id="cb-reader-name"
-            placeholder="Ví dụ: Người gieo mầm, Độc giả yêu sách, Kẻ mộng mơ..." type="text" />
-        </div>
         <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:8px;">
           <button class="cb-submit-btn" id="cb-submit-btn" type="submit">
             <span>✨</span>
@@ -6415,8 +6458,8 @@
           <span
             style="width:24px; height:24px; border-radius:50%; background:#F36F21; color:#ffffff; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; flex-shrink:0;">👤</span>
           <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-            <span style="opacity:0.75; font-size:11px;">Người chia sẻ: </span>
-            <strong id="bq-reader" style="font-weight:800; color:#0054A6;">Độc giả yêu sách</strong>
+            <span style="opacity:0.75; font-size:11px;">Bút danh: </span>
+            <strong id="bq-reader" style="font-weight:800; color:#0054A6;">Bút danh</strong>
           </div>
         </div>
       </div>
@@ -6449,7 +6492,7 @@
           Lưu Trữ Tri Thức Bất Biến Trên Blockchain
         </h3>
         <p style="font-size:13px; line-height:1.6; opacity:0.85; margin:0 0 12px 0;">
-          Toàn bộ <strong id="onchain-active-readers">1</strong> lượt độc giả và <strong>1,100 trích dẫn sách</strong> được ghi nhận vĩnh viễn
+          Toàn bộ <strong id="onchain-active-readers">1</strong> lượt Bút danh và <strong>1,100 trích dẫn sách</strong> được ghi nhận vĩnh viễn
           trên Hợp đồng Thông minh (Smart Contract) mạng lưới Arbitrum.
         </p>
         <div
@@ -6495,7 +6538,7 @@
           Mỗi Cuốn Sách Là Một Hạt Mầm
         </h2>
         <h3 class="welcome-subtitle">
-          Mỗi Độc Giả Là Một Người Gieo Tri Thức
+          Mỗi Bút Danh Là Một Người Gieo Tri Thức
         </h3>
       </div>
 
@@ -6716,10 +6759,10 @@
           const elLikes = document.getElementById('aside-quote-like-count');
 
           quoteData = {
-            book: elTitle ? elTitle.textContent.trim() : 'Cáo Sách',
+            book: elTitle ? elTitle.textContent.trim() : 'FOXREAD',
             author: elAuthor ? elAuthor.textContent.replace('✍️', '').trim() : 'Tác Giả Tri Thức',
             quote: elQuote ? elQuote.textContent.trim() : 'Mỗi cuốn sách bạn đọc là một hạt mầm nuôi dưỡng Cây Tri Thức.',
-            reader: elReader ? elReader.textContent.trim() : 'Độc giả yêu sách',
+            reader: elReader ? elReader.textContent.trim() : 'Bút danh',
             likes: elLikes ? parseInt(elLikes.textContent.replace(/,/g, ''), 10) || 120 : 120
           };
         }
@@ -6966,9 +7009,7 @@
             : '🌰';
           
           const shortName = TEAM_SHORT_NAMES[team.id] || `Đội ${team.id}`;
-          const progressVal = isSprouted
-            ? `${(team.total_exp || 0).toLocaleString()} EXP`
-            : `${team.tree_seeds || 0}/50 Hạt`;
+          const totalExpFormatted = (team.total_exp || 0).toLocaleString();
 
           return `
             <div class="team-rail-card ${isMyTeam ? 'is-my-team' : ''} ${isSelected ? 'is-selected' : ''}"
@@ -6988,13 +7029,15 @@
                 ${isSelected && !isMyTeam ? '<span class="text-[8.5px] font-black px-1.5 py-0.2 rounded-full bg-sky-500 text-white shadow-2xs shrink-0">Xem</span>' : ''}
               </div>
 
-              <div class="flex items-center justify-between text-[10px] font-bold my-0.5">
-                <span class="flex items-center gap-1 text-slate-600 dark:text-slate-300 truncate">
+              <div class="flex items-center justify-between text-[10px] font-bold my-1 gap-1">
+                <span class="flex items-center gap-1 text-slate-600 dark:text-slate-300 truncate min-w-0" title="${escapeHtml(team.level_name || 'Ủ Mầm')}">
                   <span class="text-xs leading-none shrink-0">${levelIcon}</span>
-                  <span class="truncate text-[9.5px]">${team.level_name || 'Ủ Mầm'}</span>
+                  <span class="truncate text-[9.5px] font-semibold">${escapeHtml(team.level_name || 'Ủ Mầm')}</span>
                 </span>
-                <span class="team-rail-exp font-extrabold text-[10px] shrink-0" style="color: ${team.color_code || '#0054A6'}; display: none !important;">
-                  ${progressVal}
+                <span class="team-rail-exp shrink-0" title="Tổng điểm thi đua Đội ${team.id}: ${totalExpFormatted} EXP">
+                  <span class="team-rail-exp-icon">⚡</span>
+                  <span class="team-rail-exp-val">${totalExpFormatted}</span>
+                  <span class="team-rail-exp-unit">EXP</span>
                 </span>
               </div>
 
@@ -7084,7 +7127,7 @@
         }
 
         if (userAccountName) {
-          userAccountName.textContent = (currentUser && !currentUser.isGuest) ? currentUser.full_name : 'Đăng Nhập / Đội Tôi';
+          userAccountName.textContent = (currentUser && !currentUser.isGuest) ? (currentUser.nickname || currentUser.full_name) : 'Đăng Nhập / Đội Tôi';
         }
 
         const groundActionHint = document.getElementById('ground-action-hint');
@@ -7101,11 +7144,9 @@
             }
             const hintTextEl = document.getElementById('ground-action-hint-text');
             if (hintTextEl) {
-              if (!isSprouted) {
-                hintTextEl.textContent = `Chạm vào đất để gieo hạt cho Đội ${team.id} (${team.tree_seeds || 0}/50)`;
-              } else {
-                hintTextEl.textContent = `Chạm vào đất để gieo thêm sách cho Đội ${team.id}`;
-              }
+              const seedCount = (team.tree_seeds !== undefined && team.tree_seeds !== null) ? team.tree_seeds : (team.total_books || 0);
+              const teamName = team.display_name || team.name || `Đội ${team.id}`;
+              hintTextEl.textContent = `Chạm vào cây ${teamName} để gieo hạt (${seedCount}/50)`;
             }
           } else {
             // Khi xem cây đội khác HOẶC chưa đăng nhập / là khách -> ẩn 100%
@@ -7152,6 +7193,7 @@
         sync3DTreeWithTeam(team);
         renderGroundSeeds();
         updateDewButtonState();
+        render8TeamTimeline();
         if (notify) {
           showToast(`🌳 Đang ghé thăm Cây Tri Thức: Đội ${team.id}`);
         }
@@ -7180,6 +7222,7 @@
           sync3DTreeWithTeam(activeTeam);
           renderGroundSeeds();
           updateDewButtonState();
+          render8TeamTimeline();
         } catch (err) {
           console.warn('Error loading user team and sync:', err);
         }
@@ -7585,7 +7628,7 @@
                 <div class="px-2.5 py-1 rounded-xl bg-[#0054A6]/95 dark:bg-slate-900/95 backdrop-blur-md text-white dark:text-slate-100 text-xs font-bold shadow-xl border border-sky-300/40 dark:border-slate-700 flex items-center gap-1.5">
                   <span>🌰</span>
                   ${teamTagHtml}
-                  <span>${escapeHtml(seed.reader || 'Độc giả')}</span>
+                  <span>${escapeHtml(seed.reader || 'Bút danh')}</span>
                   <span class="text-[10px] text-amber-300/80 dark:text-amber-400 font-normal">(${escapeHtml(seed.book)})</span>
                 </div>
                 <div class="w-2 h-2 bg-[#0054A6]/95 dark:bg-slate-900/95 rotate-45 mx-auto -mt-1 border-r border-b border-sky-300/40 dark:border-slate-700"></div>
@@ -7751,8 +7794,8 @@
           stopAutoRotate();
           if (elTitle) elTitle.textContent = 'Vườn Tri Thức Đang Chờ Hạt Mầm';
           if (elAuthor) elAuthor.innerHTML = '<span>🌱</span> <span>Chưa có trích dẫn nào</span>';
-          if (elQuote) elQuote.textContent = 'Cơ sở dữ liệu đang trống. Hãy nhấn nút "Gieo Mầm" để gieo cuốn sách đầu tiên vào Cây nhé!';
-          if (elReader) elReader.textContent = 'Cộng đồng Cáo Sách';
+          if (elQuote) elQuote.textContent = 'Cơ sở dữ liệu đang trống. Hãy gieo mầm ngay';
+          if (elReader) elReader.textContent = 'Cộng đồng FOXREAD';
           if (elTag) elTag.textContent = 'Vườn Trống';
           if (asideLikeCount) asideLikeCount.textContent = '0';
           if (timerBar) {
@@ -7795,7 +7838,7 @@
           if (elAuthor) elAuthor.innerHTML = '<span>✍️</span> <span>' + escapeHtml(q.author) + '</span>';
           if (elQuote) elQuote.textContent = q.quote;
           if (elReader) {
-            let rHtml = escapeHtml(q.reader || 'Độc giả yêu sách');
+            let rHtml = escapeHtml(q.reader || 'Bút danh');
             if (q.team_short_name || q.team_name) {
               const badge = q.team_short_name || q.team_name;
               rHtml = `<span style="background:${q.team_color || '#F36F21'}; color:#fff; font-size:9.5px; padding:1px 5px; border-radius:4px; font-weight:800; margin-right:4px;">${escapeHtml(badge)}</span> ${rHtml}`;
@@ -7818,9 +7861,23 @@
         if (asideLikeBtn) {
           asideLikeBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
+            if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
+              showToast('🔒 Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!');
+              if (window.userIdentityModal && typeof window.userIdentityModal.open === 'function') {
+                window.userIdentityModal.open();
+              }
+              return;
+            }
             const q = quotes[currentIdx];
             if (!q) return;
             const res = await MockDataStore.toggleLike(q.id);
+            if (res && res.error === 'LOGIN_REQUIRED') {
+              showToast('🔒 ' + (res.message || 'Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!'));
+              if (window.userIdentityModal && typeof window.userIdentityModal.open === 'function') {
+                window.userIdentityModal.open();
+              }
+              return;
+            }
             if (res.success) {
               if (asideLikeCount) asideLikeCount.textContent = res.likes.toLocaleString();
               if (res.isLiked) {
@@ -7993,7 +8050,7 @@
         if (author) author.textContent = q.author;
         if (quote) quote.textContent = q.quote;
         if (reader) {
-          let rHtml = escapeHtml(q.reader || 'Độc giả yêu sách');
+          let rHtml = escapeHtml(q.reader || 'Bút danh');
           if (q.team_short_name || q.team_name) {
             const badge = q.team_short_name || q.team_name;
             rHtml = `<span style="background:${q.team_color || '#F36F21'}; color:#fff; font-size:11px; padding:2px 7px; border-radius:6px; font-weight:800; margin-right:6px;">${escapeHtml(badge)}</span> ${rHtml}`;
@@ -8328,8 +8385,22 @@
 
       if (quoteLikeBtn) {
         quoteLikeBtn.addEventListener('click', async (e) => {
+          if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
+            showToast('🔒 Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!');
+            if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
+              userIdentityModal.open();
+            }
+            return;
+          }
           if (!currentActiveQuoteData) return;
           const res = await MockDataStore.toggleLike(currentActiveQuoteData.id);
+          if (res && res.error === 'LOGIN_REQUIRED') {
+            showToast('🔒 ' + (res.message || 'Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!'));
+            if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
+              userIdentityModal.open();
+            }
+            return;
+          }
           if (res.success) {
             if (quoteLikeCount) quoteLikeCount.textContent = res.likes.toLocaleString();
             if (res.isLiked) {
@@ -8354,7 +8425,7 @@
           const bookTitleVal = cbBookTitle.value.trim();
           const bookAuthorVal = cbBookAuthor.value.trim();
           const bookQuoteVal = cbBookQuote.value.trim();
-          const readerVal = (cbReaderName && cbReaderName.value.trim()) || 'Độc giả gieo mầm';
+          const readerVal = (currentUser && (currentUser.nickname || currentUser.full_name)) || 'Bút danh';
 
           if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
             showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');

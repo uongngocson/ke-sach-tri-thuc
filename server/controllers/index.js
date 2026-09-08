@@ -4,6 +4,8 @@ import DewService from '../services/dew.service.js';
 import QuoteService from '../services/quote.service.js';
 import ModerationService from '../services/moderation.service.js';
 import TesterService from '../services/tester.service.js';
+import { CredibilityService } from '../services/credibility.service.js';
+import { CredibilityQueue } from '../services/credibilityQueue.service.js';
 import db from '../config/database.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -58,7 +60,7 @@ export async function recordVisit(req, res, next) {
     const result = await GrowthService.recordVisitor(userFingerprint, ip, userAgent);
     res.json({
       success: true,
-      message: 'Đã ghi nhận lượt ghé thăm của độc giả',
+      message: 'Đã ghi nhận lượt ghé thăm của Bút danh',
       data: result
     });
   } catch (err) {
@@ -109,7 +111,8 @@ export async function getDewStatus(req, res, next) {
 // --- QUOTES & FRUIT CONTROLLER ---
 export async function unlikeQuote(req, res, next) {
   try {
-    const result = await QuoteService.unlikeQuote(req.params.id, req.body.userFingerprint);
+    const { userFingerprint, userId, teamId } = req.body;
+    const result = await QuoteService.unlikeQuote(req.params.id, userFingerprint, { userId, teamId });
     res.json({
       success: true,
       message: 'Đã bỏ thích trích dẫn',
@@ -229,33 +232,59 @@ export async function getAdminBooks(req, res, next) {
     const moderationStatus = req.query.moderation_status;
     const visibilityStatus = req.query.visibility_status;
     const search = req.query.search;
+    const credibility = req.query.credibility;
 
-    let query = `
-      SELECT b.*, t.name as team_name, t.display_name as team_display_name, t.color_code as team_color 
-      FROM books b 
-      LEFT JOIN teams t ON b.team_id = t.id 
-      WHERE 1=1
-    `;
+    let whereClause = 'WHERE 1=1';
     const params = [];
 
     if (moderationStatus) {
       params.push(moderationStatus);
-      query += ` AND b.moderation_status = $${params.length}`;
+      whereClause += ` AND b.moderation_status = $${params.length}`;
     }
     if (visibilityStatus) {
       params.push(visibilityStatus);
-      query += ` AND b.visibility_status = $${params.length}`;
+      whereClause += ` AND b.visibility_status = $${params.length}`;
     }
     if (search) {
       params.push(`%${search}%`);
-      query += ` AND (b.title ILIKE $${params.length} OR b.author ILIKE $${params.length} OR b.reader_name ILIKE $${params.length})`;
+      whereClause += ` AND (b.title ILIKE $${params.length} OR b.author ILIKE $${params.length} OR b.reader_name ILIKE $${params.length})`;
     }
 
-    query += ` ORDER BY b.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-    params.push(limit, offset);
+    if (credibility === 'under_70') {
+      whereClause += ` AND (b.credibility_score IS NOT NULL AND b.credibility_score < 70)`;
+    } else if (credibility === 'under_60') {
+      whereClause += ` AND (b.credibility_score IS NOT NULL AND b.credibility_score < 60)`;
+    } else if (credibility === 'under_50') {
+      whereClause += ` AND (b.credibility_score IS NOT NULL AND b.credibility_score < 50)`;
+    } else if (credibility === 'gte_70') {
+      whereClause += ` AND (b.credibility_score IS NOT NULL AND b.credibility_score >= 70)`;
+    } else if (credibility === 'unscored') {
+      whereClause += ` AND (b.credibility_status IS NULL OR b.credibility_status = 'unscored')`;
+    }
 
-    const booksRes = await db.query(query, params);
-    const countRes = await db.query('SELECT COUNT(*) FROM books');
+    const query = `
+      SELECT b.*, t.name as team_name, t.display_name as team_display_name, t.color_code as team_color 
+      FROM books b 
+      LEFT JOIN teams t ON b.team_id = t.id 
+      ${whereClause}
+      ORDER BY b.created_at DESC 
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `;
+
+    const countQuery = `
+      SELECT COUNT(*) 
+      FROM books b 
+      ${whereClause}
+    `;
+
+    const booksRes = await db.query(query, [...params, limit, offset]);
+    const countRes = await db.query(countQuery, params);
+
+    // Lấy tổng số lượng theo trạng thái hiển thị cho thanh điều hướng Tab
+    const [activeCountRes, deletedCountRes] = await Promise.all([
+      db.query("SELECT COUNT(*) FROM books WHERE visibility_status = 'visible'"),
+      db.query("SELECT COUNT(*) FROM books WHERE visibility_status = 'deleted'")
+    ]);
 
     res.json({
       success: true,
@@ -265,6 +294,10 @@ export async function getAdminBooks(req, res, next) {
           page,
           limit,
           total: parseInt(countRes.rows[0].count, 10)
+        },
+        counts: {
+          active: parseInt(activeCountRes.rows[0].count, 10),
+          deleted: parseInt(deletedCountRes.rows[0].count, 10)
         }
       }
     });
@@ -281,6 +314,66 @@ export async function updateAdminBookStatus(req, res, next) {
       success: true,
       message: 'Cập nhật trạng thái sách thành công!',
       data: result
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function scoreAdminBookCredibility(req, res, next) {
+  try {
+    const bookId = req.params.id;
+    const scoredBook = await CredibilityService.scoreQuoteCredibility(bookId);
+    res.json({
+      success: true,
+      message: 'Thẩm định điểm độ uy tín thành công!',
+      data: scoredBook
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function batchScoreAdminBooks(req, res, next) {
+  try {
+    const limit = parseInt(req.body.limit, 10) || 15;
+    const delayMs = parseInt(req.body.delayMs, 10) || 800;
+    const forceRescore = Boolean(req.body.forceRescore);
+
+    const report = await CredibilityService.batchScoreQuotes({ limit, delayMs, forceRescore });
+    res.json({
+      success: true,
+      message: `Đã hoàn tất thẩm định ${report.successCount}/${report.totalRequested} trích dẫn!`,
+      data: report
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getAdminCredibilityQueueStatus(req, res, next) {
+  try {
+    const status = CredibilityQueue.getStatus();
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function triggerAdminCredibilityScan(req, res, next) {
+  try {
+    const limit = parseInt(req.body.limit, 10) || 50;
+    const addedCount = await CredibilityQueue.scanAndEnqueueUnscored({ limit });
+    res.json({
+      success: true,
+      message: `Đã quét và nạp ${addedCount} trích dẫn chưa chấm vào Hàng đợi tự động!`,
+      data: {
+        addedCount,
+        queueStatus: CredibilityQueue.getStatus()
+      }
     });
   } catch (err) {
     next(err);

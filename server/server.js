@@ -12,9 +12,17 @@ import apiRoutes from './routes/api.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import testerRoutes from './routes/tester.routes.js';
 import socketService from './services/socket.service.js';
+import { CredibilityQueue } from './services/credibilityQueue.service.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
 dotenv.config();
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('⚠️ [Server] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+process.on('uncaughtException', (error) => {
+  console.error('💥 [Server] Uncaught Exception:', error);
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,7 +76,7 @@ app.use('/api/v1/tester', testerRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'Cáo Sách Backend API', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', service: 'FOXREAD Backend API', timestamp: new Date().toISOString() });
 });
 
 // 5. Centralized Error Handler
@@ -86,9 +94,10 @@ socketService.init(io);
 if (process.env.NODE_ENV !== 'test') {
   const PORT = process.env.PORT || 5000;
   server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Cáo Sách Backend Server running on http://0.0.0.0:${PORT}`);
+    console.log(`🚀 FOXREAD Backend Server running on http://0.0.0.0:${PORT}`);
     console.log(`👑 Admin Portal: http://localhost:${PORT}/admin`);
     console.log(`🔌 Socket.io Realtime Engine Ready`);
+    CredibilityQueue.start();
   });
 }
 

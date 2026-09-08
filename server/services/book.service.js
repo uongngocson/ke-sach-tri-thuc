@@ -2,6 +2,7 @@ import db from '../config/database.js';
 import { EXP_CONFIG } from '../config/constants.js';
 import GrowthService from './growth.service.js';
 import socketService from './socket.service.js';
+import { CredibilityQueue } from './credibilityQueue.service.js';
 
 export class BookService {
   /**
@@ -97,24 +98,29 @@ export class BookService {
         `, [userFingerprint]);
 
         if (fpCheck.rows.length > 0) {
-          const err = new Error('Mỗi ngày mỗi độc giả chỉ được gieo 1 câu trích dẫn sách. Bạn đã gieo trích dẫn cho ngày hôm nay rồi, vui lòng quay lại vào ngày mai!');
+          const err = new Error('Mỗi ngày mỗi Bút danh chỉ được gieo 1 câu trích dẫn sách. Bạn đã gieo trích dẫn cho ngày hôm nay rồi, vui lòng quay lại vào ngày mai!');
           err.statusCode = 409;
           err.code = 'DAILY_QUOTE_LIMIT_EXCEEDED';
           throw err;
         }
       }
 
-      // 1. Assign anonymous pen name (Bút danh / Nick danh)
-      let penName = (reader || '').trim();
-      if (!penName && userId) {
-        const userRes = await client.query('SELECT nickname FROM users WHERE id = $1', [userId]);
+      // 1. Assign pen name (Bút danh)
+      let penName = '';
+      if (userId) {
+        const userRes = await client.query('SELECT nickname, full_name FROM users WHERE id = $1', [userId]);
         if (userRes.rows[0]?.nickname) {
           penName = userRes.rows[0].nickname;
+        } else if (userRes.rows[0]?.full_name) {
+          penName = userRes.rows[0].full_name;
         }
       }
       if (!penName) {
+        penName = (reader || '').trim();
+      }
+      if (!penName) {
         const fallbackPenNames = [
-          'Người Gieo Mầm Tri Thức', 'Bạn Đọc Cáo Sách', 'Độc Giả Tinh Hoa',
+          'Người Gieo Mầm Tri Thức', 'Bút Danh FOXREAD', 'Bút Danh Tinh Hoa',
           'Kẻ Mộng Mơ Đọc Sách', 'Người Vun Đắp Phù Sa', 'Tâm Hồn Tri Thức',
           'Người Lữ Hành Thời Gian', 'Cánh Chim Tự Do', 'Hạt Mầm Tự Chủ'
         ];
@@ -203,6 +209,9 @@ export class BookService {
     const fullGrowth = await GrowthService.getCommunityGrowth();
     socketService.broadcastGrowthUpdated(fullGrowth);
     socketService.broadcastAdminBookEvent('new_book_submitted', result.book);
+
+    // Tự động nạp vào Hàng đợi Thẩm định AI ngầm (Non-blocking background job)
+    CredibilityQueue.enqueue(result.book.id);
 
     return result;
   }
