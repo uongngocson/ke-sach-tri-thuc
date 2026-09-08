@@ -7004,7 +7004,10 @@
           8: 'IMU_PSU'
         };
 
-        const cardsHtml = allTeams.map(team => {
+        // Sắp xếp cố định theo thứ tự Đội 1 -> 8 (không sắp xếp theo EXP)
+        const timelineTeams = [...allTeams].sort((a, b) => (a.id || 0) - (b.id || 0));
+
+        const cardsHtml = timelineTeams.map(team => {
           const isMyTeam = (team.id === myTeamId);
           const isSelected = (team.id === activeId);
           const isSprouted = team.is_sprouted || team.level >= 1;
@@ -7094,11 +7097,11 @@
         const userAccountName = document.getElementById('fpt-user-account-name');
 
         if (hudTeamBadge) {
-          hudTeamBadge.textContent = `Đội ${team.id}`;
+          hudTeamBadge.textContent = team.display_name || team.name || `Đội ${team.id}`;
           if (team.color_code) hudTeamBadge.style.background = team.color_code;
         }
         if (hudTeamName) {
-          hudTeamName.textContent = `Đội ${team.id}`;
+          hudTeamName.textContent = team.display_name || team.name || `Đội ${team.id}`;
           hudTeamName.style.display = 'none';
         }
         if (hudInspectingTag) hudInspectingTag.style.display = isInspecting ? 'inline-block' : 'none';
