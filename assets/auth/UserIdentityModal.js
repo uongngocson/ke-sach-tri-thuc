@@ -93,7 +93,7 @@ export class UserIdentityModal {
         <div class="ui-identity-title-block">
           <h2 class="ui-identity-title">Chào Mừng Đến Vườn Cây Tri Thức</h2>
           <p class="ui-identity-subtitle">
-            Nhập <strong>Nick Danh</strong> để nhận diện Đội và cùng đồng đội chăm sóc Cây Tri Thức của bạn.
+            Nhập <strong>Bút Danh</strong> để nhận diện Đội và cùng đồng đội chăm sóc Cây Tri Thức của bạn.
           </p>
         </div>
 
@@ -101,7 +101,7 @@ export class UserIdentityModal {
         <div class="ui-identity-form-group">
           <label class="ui-identity-label">
             <span>👤</span>
-            <span>Nick Danh:</span>
+            <span>Bút Danh:</span>
           </label>
           <div class="ui-identity-input-wrapper">
             <input 
@@ -680,7 +680,7 @@ export class UserIdentityModal {
     if (!users || users.length === 0) {
       container.innerHTML = `
         <div class="ui-suggestion-empty">
-          🔍 Không tìm thấy Nick Danh phù hợp ${searchKeyword ? `cho "<strong>${escapeHtml(searchKeyword)}</strong>"` : ''}
+          🔍 Không tìm thấy Bút Danh phù hợp ${searchKeyword ? `cho "<strong>${escapeHtml(searchKeyword)}</strong>"` : ''}
         </div>
       `;
       return;
@@ -756,7 +756,7 @@ export class UserIdentityModal {
         onSuccess(matchedUser);
       } else {
         feedback.className = 'ui-identity-feedback error';
-        feedback.textContent = '❌ Không tìm thấy nhân sự trong danh sách. Vui lòng kiểm tra lại nick danh.';
+        feedback.textContent = '❌ Không tìm thấy nhân sự trong danh sách. Vui lòng kiểm tra lại bút danh.';
         feedback.style.display = 'block';
         previewBox.style.display = 'none';
         submitBtn.disabled = true;

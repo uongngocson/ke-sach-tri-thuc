@@ -1399,7 +1399,7 @@ async function exportUsersCSV() {
     if (!data.success || !data.data.users) return;
 
     const rows = [
-      ['STT', 'Nick Danh Độc Giả', 'Giới Tính', 'Chi Nhánh / Khối', 'Phòng Ban', 'Chức Danh', 'Đội Thi Đua', dateLabel, 'Sách Đã Gieo', 'EXP Kiếm Được']
+      ['STT', 'Bút Danh Độc Giả', 'Giới Tính', 'Chi Nhánh / Khối', 'Phòng Ban', 'Chức Danh', 'Đội Thi Đua', dateLabel, 'Sách Đã Gieo', 'EXP Kiếm Được']
     ];
 
     data.data.users.forEach((u, idx) => {
