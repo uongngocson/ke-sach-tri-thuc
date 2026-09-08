@@ -951,10 +951,24 @@
   </style>
   <script>
     (function () {
-      const savedTheme = localStorage.getItem('theme_mode');
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
+      try {
+        const savedTheme = localStorage.getItem('theme_mode');
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else if (savedTheme === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          // Automatic based on Vietnam time (UTC+7, Asia/Ho_Chi_Minh)
+          const now = new Date();
+          const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60;
+          const vnH = (utcHours + 7) % 24;
+          if (vnH < 6.0 || vnH >= 18.0) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        }
+      } catch (e) {
         document.documentElement.classList.remove('dark');
       }
     })();
@@ -6709,18 +6723,29 @@
       const bqExportBtn = document.getElementById('bq-export-img-btn');
       if (bqExportBtn) bqExportBtn.addEventListener('click', handleExportQuoteImage);
 
-      /* 1. THEME SWITCHER - DEFAULTS TO DAY (BAN NGÀY) */
+      /* 1. THEME SWITCHER - REAL-TIME VIETNAM DAY/NIGHT OR MANUAL OVERRIDE */
       function initTheme() {
         const savedTheme = localStorage.getItem('theme_mode');
-        let isDark = (savedTheme === 'dark');
+        let isDark;
+        if (savedTheme === 'dark') {
+          isDark = true;
+        } else if (savedTheme === 'light') {
+          isDark = false;
+        } else {
+          // Automatic based on real Vietnam Time (Asia/Ho_Chi_Minh, UTC+7)
+          const now = new Date();
+          const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60;
+          const vnH = (utcHours + 7) % 24;
+          isDark = (vnH < 6.0 || vnH >= 18.0);
+        }
 
-        function updateThemeUI(dark) {
+        function updateThemeUI(dark, persist = false) {
           if (dark) {
             document.documentElement.classList.add('dark');
-            localStorage.setItem('theme_mode', 'dark');
+            if (persist) localStorage.setItem('theme_mode', 'dark');
           } else {
             document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme_mode', 'light');
+            if (persist) localStorage.setItem('theme_mode', 'light');
           }
 
           const allThemeBtns = document.querySelectorAll('button[title*="Ban Đêm"], button[title*="Ban Ngày"], button[title*="chế độ Đọc"]');
@@ -6736,11 +6761,11 @@
           });
         }
 
-        updateThemeUI(isDark);
+        updateThemeUI(isDark, false);
 
         window.toggleTheme = function () {
           isDark = !document.documentElement.classList.contains('dark');
-          updateThemeUI(isDark);
+          updateThemeUI(isDark, true);
           showToast(isDark ? '🌙 Chế độ Ban Đêm' : '☀️ Chế độ Ban Ngày');
         };
       }
@@ -8500,7 +8525,7 @@
   </script>
   <!-- REALISTIC DAY/NIGHT SKY SYSTEM (THREE.JS + PROCEDURAL GLSL SHADERS) -->
   <script src="./assets/sky/three.min.js"></script>
-  <script type="module" src="./assets/sky/RealisticSky.js?v=20260907_v3"></script>
+  <script type="module" src="./assets/sky/RealisticSky.js?v=20260908_v1"></script>
 </body>
 
 </html>

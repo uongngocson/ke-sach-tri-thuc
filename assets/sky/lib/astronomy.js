@@ -52,6 +52,35 @@ export function getMoonPhase(date = new Date()) {
   };
 }
 
+/**
+ * Returns accurate decimal hour in Vietnam Time (Asia/Ho_Chi_Minh, UTC+7)
+ * Ensures 100% correct day/night calculation regardless of client/server local timezone.
+ */
+export function getVietnamDecimalHour(date = new Date()) {
+  try {
+    const vnFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      hour12: false
+    });
+    const parts = vnFormatter.formatToParts(date);
+    let hour = 12, minute = 0, second = 0;
+    for (const p of parts) {
+      if (p.type === 'hour') hour = parseInt(p.value, 10);
+      if (p.type === 'minute') minute = parseInt(p.value, 10);
+      if (p.type === 'second') second = parseInt(p.value, 10);
+    }
+    if (hour === 24) hour = 0;
+    return hour + minute / 60 + second / 3600;
+  } catch (e) {
+    // Fallback: UTC + 7
+    const utcHours = date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600;
+    return (utcHours + 7) % 24;
+  }
+}
+
 export function calculateCelestialState(decimalHour) {
   const hour = ((decimalHour % 24) + 24) % 24;
   
