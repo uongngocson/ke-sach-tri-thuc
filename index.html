@@ -3770,6 +3770,11 @@
       flex-shrink: 0 !important;
       box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 20px rgba(245, 206, 66, 0.25) !important;
       animation: hintPillPulse 2.5s ease-in-out infinite !important;
+      cursor: pointer !important;
+      pointer-events: auto !important;
+    }
+    .ground-hint-pill * {
+      pointer-events: none !important;
     }
 
     html.dark .ground-hint-pill {
@@ -7369,20 +7374,24 @@
       function handleGroundAction(e) {
         if (e && e.target && e.target.closest && e.target.closest('.ground-seed-item, .root-garden-plaque')) return;
 
+        const isHintAction = !!(e && e.target && e.target.closest && e.target.closest('#ground-action-hint'));
+
         // If tap happened on top hit zone or ground, check if user tapped another team's horizontal column
-        const clientX = e ? (e.clientX || (e.changedTouches && e.changedTouches[0] && e.changedTouches[0].clientX)) : null;
-        if (clientX !== null && clientX !== undefined) {
-          const plotEls = document.querySelectorAll('.team-root-plot');
-          for (const plot of plotEls) {
-            const rect = plot.getBoundingClientRect();
-            if (clientX >= rect.left && clientX <= rect.right) {
-              const teamId = parseInt(plot.getAttribute('data-team-id'), 10);
-              if (teamId && activeTeam && activeTeam.id !== teamId) {
-                const targetTeam = (allTeams && allTeams.find(t => t.id === teamId)) || { id: teamId, display_name: `Đội ${teamId}` };
-                inspectTeam(targetTeam);
-                return;
+        if (!isHintAction) {
+          const clientX = e ? (e.clientX || (e.changedTouches && e.changedTouches[0] && e.changedTouches[0].clientX)) : null;
+          if (clientX !== null && clientX !== undefined) {
+            const plotEls = document.querySelectorAll('.team-root-plot');
+            for (const plot of plotEls) {
+              const rect = plot.getBoundingClientRect();
+              if (clientX >= rect.left && clientX <= rect.right) {
+                const teamId = parseInt(plot.getAttribute('data-team-id'), 10);
+                if (teamId && activeTeam && activeTeam.id !== teamId) {
+                  const targetTeam = (allTeams && allTeams.find(t => t.id === teamId)) || { id: teamId, display_name: `Đội ${teamId}` };
+                  inspectTeam(targetTeam);
+                  return;
+                }
+                break;
               }
-              break;
             }
           }
         }
@@ -7396,8 +7405,13 @@
           return;
         }
 
-        // 2. Kiểm tra chế độ xem: Nếu đang xem cây đội khác -> Không cho gieo hạt vào đất
-        if (activeTeam && activeTeam.id !== currentUser.team_id) {
+        // 2. Kiểm tra chế độ xem
+        if (isHintAction) {
+          const userTeam = (myTeam) || (allTeams && allTeams.find(t => t.id === currentUser.team_id)) || { id: currentUser.team_id, display_name: `Đội ${currentUser.team_id}` };
+          if (userTeam && activeTeam && activeTeam.id !== userTeam.id) {
+            inspectTeam(userTeam, false);
+          }
+        } else if (activeTeam && activeTeam.id !== currentUser.team_id) {
           showToast(`👀 Bạn đang ở chế độ xem Cây Tri Thức của ${activeTeam.display_name}. Hãy quay về Đội của bạn để gieo hạt nhé!`);
           return;
         }
@@ -8104,8 +8118,13 @@
           return;
         }
         if (activeTeam && activeTeam.id !== currentUser.team_id) {
-          showToast(`👀 Bạn đang ở chế độ xem Cây Tri Thức của ${activeTeam.display_name}. Hãy quay về Đội của bạn để gieo hạt nhé!`);
-          return;
+          const userTeam = (myTeam) || (allTeams && allTeams.find(t => t.id === currentUser.team_id));
+          if (userTeam) {
+            inspectTeam(userTeam, false);
+          } else {
+            showToast(`👀 Bạn đang ở chế độ xem Cây Tri Thức của ${activeTeam.display_name}. Hãy quay về Đội của bạn để gieo hạt nhé!`);
+            return;
+          }
         }
         if (contributeOverlay) contributeOverlay.classList.add('active');
         updateBodyModalState();
@@ -8237,7 +8256,34 @@
         }, { passive: true });
       }
       bindGroundModalTrigger(document.querySelector('.fpt-ground-inner'));
-      bindGroundModalTrigger(document.getElementById('ground-action-hint'));
+
+      // Explicit Dedicated Click & Touch Handler for the Bottom Hint Button
+      const groundActionHintEl = document.getElementById('ground-action-hint');
+      if (groundActionHintEl) {
+        const triggerHintGieoHat = (e) => {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
+            if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
+              userIdentityModal.open();
+              showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+            }
+            return;
+          }
+          const userTeam = (myTeam) || (allTeams && allTeams.find(t => t.id === currentUser.team_id)) || { id: currentUser.team_id, display_name: `Đội ${currentUser.team_id}` };
+          if (userTeam && activeTeam && activeTeam.id !== userTeam.id) {
+            inspectTeam(userTeam, false);
+          }
+          openContributeModal();
+        };
+
+        groundActionHintEl.addEventListener('click', triggerHintGieoHat);
+        groundActionHintEl.addEventListener('touchend', (e) => {
+          triggerHintGieoHat(e);
+        }, { passive: false });
+      }
 
       // Top Ground Horizon Hit Zone (100% Touch & Click Capture for upper 1-56px of soil)
       const topHitZone = document.getElementById('fpt-ground-top-hit-zone');
