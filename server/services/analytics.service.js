@@ -111,8 +111,8 @@ export class AnalyticsService {
     `, [currentRound.round_number, filterDate]);
 
     const TEAM_SHORT_NAMES = {
-      1: 'Đội 1', 2: 'Đội 2', 3: 'Đội 3', 4: 'Đội 4',
-      5: 'Đội 5', 6: 'Đội 6', 7: 'Đội 7', 8: 'Đội 8'
+      1: 'SCU_BO', 2: 'Hà Đông Tây Bắc', 3: 'Trung Đông Tây Nam', 4: 'Thập đại Miền Nam',
+      5: 'FPL_AU_FU', 6: 'FTIBU_BOM', 7: 'FTI BA_TU_BOP', 8: 'IMU_PSU'
     };
 
     const teams = teamsRes.rows.map((team, index) => {

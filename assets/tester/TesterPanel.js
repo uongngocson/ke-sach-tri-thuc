@@ -53,14 +53,14 @@ export class TesterPanel {
           <select id="tester-team-select" style="width:100%; padding:7px 10px; border-radius:8px; background:#0f172a; color:#f8fafc; border:1px solid #334155; font-size:12px; font-weight:700; cursor:pointer; outline:none;">
             <option value="active">🌳 Đội Đang Xem (Tự động theo màn hình)</option>
             <option value="all">🌐 Toàn Bộ 8 Đội (Đồng bộ tất cả cây)</option>
-            <option value="1">Đội 1</option>
-            <option value="2">Đội 2</option>
-            <option value="3">Đội 3</option>
-            <option value="4">Đội 4</option>
-            <option value="5">Đội 5</option>
-            <option value="6">Đội 6</option>
-            <option value="7">Đội 7</option>
-            <option value="8">Đội 8</option>
+            <option value="1">Đội 1: SCU_BO</option>
+            <option value="2">Đội 2: Hà Đông Tây Bắc</option>
+            <option value="3">Đội 3: Trung Đông Tây Nam</option>
+            <option value="4">Đội 4: Thập đại Miền Nam</option>
+            <option value="5">Đội 5: FPL_AU_FU</option>
+            <option value="6">Đội 6: FTIBU_BOM</option>
+            <option value="7">Đội 7: FTI BA_TU_BOP</option>
+            <option value="8">Đội 8: IMU_PSU</option>
           </select>
         </div>
 

@@ -18,14 +18,14 @@ function getApiBase() {
 }
 
 const TEAMS_INFO = {
-  1: { id: 1, name: 'Đội 1', color: '#0054A6', lightBg: '#eff6ff', border: '#bfdbfe' },
-  2: { id: 2, name: 'Đội 2', color: '#0284c7', lightBg: '#f0f9ff', border: '#bae6fd' },
-  3: { id: 3, name: 'Đội 3', color: '#059669', lightBg: '#ecfdf5', border: '#a7f3d0' },
-  4: { id: 4, name: 'Đội 4', color: '#16a34a', lightBg: '#f0fdf4', border: '#bbf7d0' },
-  5: { id: 5, name: 'Đội 5', color: '#ea580c', lightBg: '#fff7ed', border: '#fed7aa' },
-  6: { id: 6, name: 'Đội 6', color: '#d97706', lightBg: '#fffbeb', border: '#fde68a' },
-  7: { id: 7, name: 'Đội 7', color: '#9333ea', lightBg: '#faf5ff', border: '#e9d5ff' },
-  8: { id: 8, name: 'Đội 8', color: '#e11d48', lightBg: '#fff1f2', border: '#fecdd3' }
+  1: { id: 1, name: 'SCU_BO', color: '#0054A6', lightBg: '#eff6ff', border: '#bfdbfe' },
+  2: { id: 2, name: 'Hà Đông Tây Bắc', color: '#0284c7', lightBg: '#f0f9ff', border: '#bae6fd' },
+  3: { id: 3, name: 'Trung Đông Tây Nam', color: '#059669', lightBg: '#ecfdf5', border: '#a7f3d0' },
+  4: { id: 4, name: 'Thập đại Miền Nam', color: '#16a34a', lightBg: '#f0fdf4', border: '#bbf7d0' },
+  5: { id: 5, name: 'FPL_AU_FU', color: '#ea580c', lightBg: '#fff7ed', border: '#fed7aa' },
+  6: { id: 6, name: 'FTIBU_BOM', color: '#d97706', lightBg: '#fffbeb', border: '#fde68a' },
+  7: { id: 7, name: 'FTI BA_TU_BOP', color: '#9333ea', lightBg: '#faf5ff', border: '#e9d5ff' },
+  8: { id: 8, name: 'IMU_PSU', color: '#e11d48', lightBg: '#fff1f2', border: '#fecdd3' }
 };
 
 export class QuoteTreasuryModal {

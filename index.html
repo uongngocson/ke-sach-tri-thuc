@@ -4142,7 +4142,7 @@
                     </span>
                     <div class="timeline-subbar-detail hidden sm:flex items-center gap-1.5 shrink-0 ml-1">
                       <span class="text-slate-400 dark:text-slate-500 hidden sm:inline">•</span>
-                      <span class="hud-badge shrink-0 text-[10.5px] py-0.5 px-2 rounded-md font-black text-white shadow-2xs" id="hud-team-badge">Đội 1</span>
+                      <span class="hud-badge shrink-0 text-[10.5px] py-0.5 px-2 rounded-md font-black text-white shadow-2xs" id="hud-team-badge">SCU_BO</span>
                       <span class="hud-name" id="hud-team-name" style="display:none;"></span>
                       <span id="hud-inspecting-tag" style="display:none; font-size:9.5px; font-weight:800; background:#f59e0b; color:#fff; padding:1px 6px; border-radius:5px;" class="shrink-0">Đang Thăm Cây</span>
                       <span class="text-slate-500 dark:text-slate-400 text-[10px] hidden lg:inline" id="hud-participation-stat">Tham gia: 0%</span>
@@ -6994,14 +6994,14 @@
         const myTeamId = (currentUser && !currentUser.isGuest && currentUser.team_id) ? currentUser.team_id : null;
 
         const TEAM_SHORT_NAMES = {
-          1: 'Đội 1',
-          2: 'Đội 2',
-          3: 'Đội 3',
-          4: 'Đội 4',
-          5: 'Đội 5',
-          6: 'Đội 6',
-          7: 'Đội 7',
-          8: 'Đội 8'
+          1: 'SCU_BO',
+          2: 'Hà Đông Tây Bắc',
+          3: 'Trung Đông Tây Nam',
+          4: 'Thập đại Miền Nam',
+          5: 'FPL_AU_FU',
+          6: 'FTIBU_BOM',
+          7: 'FTI BA_TU_BOP',
+          8: 'IMU_PSU'
         };
 
         const cardsHtml = allTeams.map(team => {
@@ -7012,14 +7012,14 @@
             ? (team.level >= 5 ? '✨' : (team.level >= 4 ? '🌲' : (team.level >= 3 ? '🌳' : (team.level >= 2 ? '🌿' : '🌱'))))
             : '🌰';
           
-          const shortName = TEAM_SHORT_NAMES[team.id] || `Đội ${team.id}`;
+          const shortName = team.display_name || team.name || TEAM_SHORT_NAMES[team.id] || `Đội ${team.id}`;
           const totalExpFormatted = (team.total_exp || 0).toLocaleString();
 
           return `
             <div class="team-rail-card ${isMyTeam ? 'is-my-team' : ''} ${isSelected ? 'is-selected' : ''}"
                  data-team-id="${team.id}"
                  style="--team-color: ${team.color_code || '#0054A6'};"
-                 title="Đội ${team.id} - Click để xem Cây Tri Thức">
+                 title="${escapeHtml(shortName)} - Click để xem Cây Tri Thức">
               <div class="flex items-center justify-between gap-1 mb-1">
                 <div class="flex items-center gap-1.5 min-w-0">
                   <span class="team-rail-badge text-[9.5px] font-black px-1.5 py-0.2 rounded text-white shrink-0 shadow-2xs" style="background: ${team.color_code || '#0054A6'};">
@@ -7278,14 +7278,14 @@
       }
 
       const DEFAULT_TEAM_COLORS = [
-        '#F36F21', // Đội 1: Cam FPT
-        '#0054A6', // Đội 2: Xanh FPT
-        '#70B928', // Đội 3: Xanh Lá FPT
-        '#9333ea', // Đội 4: Tím Thủy Chung
-        '#06b6d4', // Đội 5: Xanh Cyan
-        '#ec4899', // Đội 6: Hồng Năng Động
-        '#f59e0b', // Đội 7: Vàng Hổ Phách
-        '#10b981'  // Đội 8: Ngọc Bích
+        '#F36F21', // Đội 1: SCU_BO (Cam FPT)
+        '#0054A6', // Đội 2: Hà Đông Tây Bắc (Xanh FPT)
+        '#70B928', // Đội 3: Trung Đông Tây Nam (Xanh Lá FPT)
+        '#9333ea', // Đội 4: Thập đại Miền Nam (Tím Thủy Chung)
+        '#06b6d4', // Đội 5: FPL_AU_FU (Xanh Cyan)
+        '#ec4899', // Đội 6: FTIBU_BOM (Hồng Năng Động)
+        '#f59e0b', // Đội 7: FTI BA_TU_BOP (Vàng Hổ Phách)
+        '#10b981'  // Đội 8: IMU_PSU (Ngọc Bích)
       ];
 
       /**

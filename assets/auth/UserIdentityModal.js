@@ -126,10 +126,10 @@ export class UserIdentityModal {
             <div class="ui-identity-preview-avatar" id="ui-preview-avatar">🦊</div>
             <div class="ui-identity-preview-info">
               <h4 class="ui-preview-name" id="ui-preview-name">Cáo Tri Thức</h4>
-              <p class="ui-preview-meta" id="ui-preview-meta">Thành viên Đội 1</p>
+              <p class="ui-preview-meta" id="ui-preview-meta">Thành viên SCU_BO</p>
               <div class="ui-preview-team-tag" id="ui-preview-team">
                 <span id="ui-preview-team-icon">⚡</span>
-                <span id="ui-preview-team-name">Đội 1</span>
+                <span id="ui-preview-team-name">SCU_BO</span>
               </div>
             </div>
           </div>
