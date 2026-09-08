@@ -73,7 +73,7 @@ export class TeamService {
       const exp = parseFloat(team.total_exp) || 0;
       const seeds = parseInt(team.tree_seeds, 10) || 0;
       const lvlInfo = calculateLevelFromExp(exp);
-      const isSprouted = exp >= 50 || parseInt(team.level, 10) >= 1 || seeds >= 50;
+      const isSprouted = exp >= 50 || parseInt(team.level, 10) >= 1 || seeds >= 10;
 
       return {
         ...team,
@@ -111,7 +111,8 @@ export class TeamService {
     const team = teamRes.rows[0];
     const exp = parseFloat(team.total_exp) || 0;
     const seeds = parseInt(team.tree_seeds, 10) || 0;
-    const isSprouted = seeds >= 50 || exp >= 50 || parseInt(team.level, 10) >= 1;
+    const lvlInfo = calculateLevelFromExp(exp);
+    const isSprouted = seeds >= 10 || exp >= 50 || parseInt(team.level, 10) >= 1;
 
     // Get 15 rounds history for this team
     const roundsHistoryRes = await db.query(`
@@ -146,7 +147,11 @@ export class TeamService {
       ...team,
       total_exp: exp,
       tree_seeds: seeds,
-      level: isSprouted ? Math.max(1, parseInt(team.level, 10)) : 0,
+      level: isSprouted ? Math.max(1, lvlInfo.level) : 0,
+      level_name: isSprouted ? (lvlInfo.levelName || 'Mầm Non') : 'Ủ Mầm',
+      level_description: lvlInfo.levelDescription,
+      progress_percent: lvlInfo.progressPercent,
+      next_threshold: lvlInfo.nextThreshold,
       is_sprouted: isSprouted,
       rounds_history: roundsHistoryRes.rows,
       rounds: roundsHistoryRes.rows,

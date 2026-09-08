@@ -74,16 +74,21 @@ async function runStateIntegrityTests() {
   try {
     // 0. Ensure server is active
     try {
-      const check = await fetch(`http://127.0.0.1:${API_PORT}/health`, { signal: AbortSignal.timeout(1000) });
+      const check = await fetch(`http://127.0.0.1:${API_PORT}/health`, { signal: AbortSignal.timeout(3000) });
       if (!check.ok) throw new Error('Health check non-200');
     } catch {
-      const { server } = await import('../server.js');
-      if (!server.listening) {
-        await new Promise((resolve) => {
-          serverInstance = server.listen(API_PORT, '0.0.0.0', resolve);
-        });
+      try {
+        process.env.NODE_ENV = 'test';
+        const { server } = await import('../server.js');
+        if (!server.listening) {
+          await new Promise((resolve) => {
+            serverInstance = server.listen(API_PORT, '0.0.0.0', resolve);
+          });
+        }
+        console.log(`🔌 Headless API test server auto-started on port ${API_PORT}`);
+      } catch (err) {
+        // Server already listening
       }
-      console.log(`🔌 Headless API test server auto-started on port ${API_PORT}`);
     }
 
     // Get admin user & JWT for admin read endpoints

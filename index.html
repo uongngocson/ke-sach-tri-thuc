@@ -7009,7 +7009,7 @@
         const cardsHtml = timelineTeams.map(team => {
           const isMyTeam = (team.id === myTeamId);
           const isSelected = (team.id === activeId);
-          const isSprouted = team.is_sprouted || team.level >= 1;
+          const isSprouted = team.is_sprouted || team.level >= 1 || (team.total_exp || 0) >= 50 || (team.tree_seeds || 0) >= 10;
           const levelIcon = isSprouted
             ? (team.level >= 5 ? '✨' : (team.level >= 4 ? '🌲' : (team.level >= 3 ? '🌳' : (team.level >= 2 ? '🌿' : '🌱'))))
             : '🌰';
@@ -7113,7 +7113,7 @@
           hudParticipation.textContent = `Hôm nay: ${team.today_participation_rate || team.participation_rate || 0}%`;
         }
 
-        const isSprouted = team.is_sprouted || team.level >= 1;
+        const isSprouted = team.is_sprouted || team.level >= 1 || (team.total_exp || 0) >= 50 || (team.tree_seeds || 0) >= 10;
         const levelIcon = isSprouted
           ? (team.level >= 5 ? '✨' : (team.level >= 4 ? '🌲' : (team.level >= 3 ? '🌳' : (team.level >= 2 ? '🌿' : '🌱'))))
           : '🌰';
@@ -7173,7 +7173,7 @@
 
       function sync3DTreeWithTeam(team) {
         if (!team) return;
-        const isSprouted = team.is_sprouted || team.level >= 1;
+        const isSprouted = team.is_sprouted || team.level >= 1 || (team.total_exp || 0) >= 50 || (team.tree_seeds || 0) >= 10;
         const teamGrowth = {
           _isTeamSync: true,
           teamId: team.id,
@@ -7465,7 +7465,7 @@
             is_sprouted: false
           };
 
-          const isSprouted = team.is_sprouted || team.level >= 1 || ((team.tree_seeds || 0) >= 50);
+          const isSprouted = team.is_sprouted || team.level >= 1 || ((team.total_exp || 0) >= 50) || ((team.tree_seeds || 0) >= 10);
           const level = isSprouted ? Math.max(1, Math.min(5, team.level || 1)) : 0;
           const isActive = activeTeam ? (activeTeam.id === teamId) : (teamId === 1);
           const teamColor = team.color_code || team.color_primary || DEFAULT_TEAM_COLORS[i];

@@ -153,14 +153,22 @@ export class BookService {
         await client.query(`
           UPDATE teams
           SET total_books = total_books + 1,
-              tree_seeds = CASE WHEN tree_seeds < 50 THEN tree_seeds + 1 ELSE tree_seeds END,
+              tree_seeds = CASE WHEN tree_seeds < 10 THEN tree_seeds + 1 ELSE tree_seeds END,
               total_exp = total_exp + $1,
               tree_level = CASE 
-                WHEN total_exp + $1 >= 2500 THEN 5
-                WHEN total_exp + $1 >= 1000 THEN 4
-                WHEN total_exp + $1 >= 400 THEN 3
+                WHEN total_exp + $1 >= 1200 THEN 5
+                WHEN total_exp + $1 >= 600 THEN 4
+                WHEN total_exp + $1 >= 300 THEN 3
                 WHEN total_exp + $1 >= 150 THEN 2
-                WHEN tree_seeds + 1 >= 50 OR total_exp + $1 >= 50 THEN 1
+                WHEN tree_seeds + 1 >= 10 OR total_exp + $1 >= 50 THEN 1
+                ELSE 0
+              END,
+              level = CASE 
+                WHEN total_exp + $1 >= 1200 THEN 5
+                WHEN total_exp + $1 >= 600 THEN 4
+                WHEN total_exp + $1 >= 300 THEN 3
+                WHEN total_exp + $1 >= 150 THEN 2
+                WHEN tree_seeds + 1 >= 10 OR total_exp + $1 >= 50 THEN 1
                 ELSE 0
               END,
               updated_at = NOW()

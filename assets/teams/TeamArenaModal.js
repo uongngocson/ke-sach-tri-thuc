@@ -458,7 +458,7 @@ export class TeamArenaModal {
         const color = t.color_code || t.color_primary || '#3b82f6';
 
         // Stage & progress logic
-        const isSprouted = t.is_sprouted || t.level >= 1 || (t.total_exp || 0) >= 50;
+        const isSprouted = t.is_sprouted || t.level >= 1 || (t.total_exp || 0) >= 50 || (t.tree_seeds || 0) >= 10;
         const progressLabel = !isSprouted 
           ? `${t.total_exp || 0}/50 EXP (Ủ Mầm)` 
           : `${(t.total_exp || 0).toLocaleString()} EXP (${t.level_name || 'Đang phát triển'})`;

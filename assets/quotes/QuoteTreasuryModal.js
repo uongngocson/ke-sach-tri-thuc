@@ -1306,7 +1306,7 @@ export class QuoteTreasuryModal {
         const tId = parseInt(this.selectedTeam, 10);
         const allTeams = (typeof window !== 'undefined' && window.getAllTeams) ? window.getAllTeams() : [];
         const teamObj = allTeams.find(t => t.id === tId);
-        const isSprouted = teamObj ? (teamObj.is_sprouted || teamObj.level >= 1 || (teamObj.total_exp || 0) >= 50) : false;
+        const isSprouted = teamObj ? (teamObj.is_sprouted || teamObj.level >= 1 || (teamObj.total_exp || 0) >= 50 || (teamObj.tree_seeds || 0) >= 10) : false;
         const currentExp = teamObj ? (teamObj.total_exp || 0) : 0;
         const targetExp = 50;
 

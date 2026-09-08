@@ -355,7 +355,7 @@ export class TesterPanel {
     }
 
     if (targetTeam) {
-      const isSprouted = targetTeam.is_sprouted || targetTeam.level >= 1 || (targetTeam.total_exp || 0) >= 50;
+      const isSprouted = targetTeam.is_sprouted || targetTeam.level >= 1 || (targetTeam.total_exp || 0) >= 50 || (targetTeam.tree_seeds || 0) >= 10;
       const exp = targetTeam.total_exp || 0;
       if (slider) slider.value = exp;
       this.updateExpLabel(exp, expVal);

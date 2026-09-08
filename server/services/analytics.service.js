@@ -122,7 +122,7 @@ export class AnalyticsService {
       const currentRate = target > 0 ? parseFloat(((todayParticipants / target) * 100).toFixed(1)) : 0;
       const dateRate = target > 0 ? parseFloat(((dateParticipants / target) * 100).toFixed(1)) : 0;
       const totalExp = parseFloat(team.tree_exp || team.total_exp || 0);
-      const isSprouted = (team.tree_level >= 1) || (totalExp >= 50) || (team.tree_seeds >= 50);
+      const isSprouted = (team.tree_level >= 1) || (totalExp >= 50) || (team.tree_seeds >= 10);
       const levelNames = ['Ủ Mầm', 'Mầm Non', 'Cây Con', 'Trưởng Thành', 'Cổ Thụ', 'Đại Cổ Thụ'];
 
       return {

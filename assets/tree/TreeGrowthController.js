@@ -112,7 +112,7 @@ export class TreeGrowthController {
     teams.forEach(team => {
       const teamId = team.id;
       const prev = this.teamStates.get(teamId);
-      const isSprouted = team.is_sprouted || team.level >= 1 || (team.tree_seeds >= 50) || ((team.total_exp || 0) >= 50);
+      const isSprouted = team.is_sprouted || team.level >= 1 || (team.tree_seeds >= 10) || ((team.total_exp || 0) >= 50);
       const newLevel = isSprouted ? Math.max(1, Math.min(5, team.level || 1)) : 0;
 
       this.syncSingleTeam(team);
@@ -138,7 +138,7 @@ export class TreeGrowthController {
 
   syncSingleTeam(team) {
     if (!this.treeManager || !team || !team.id) return;
-    const isSprouted = team.is_sprouted || team.level >= 1 || (team.tree_seeds >= 50) || ((team.total_exp || 0) >= 50);
+    const isSprouted = team.is_sprouted || team.level >= 1 || (team.tree_seeds >= 10) || ((team.total_exp || 0) >= 50);
     const teamId = team.id;
     const level = isSprouted ? Math.max(1, Math.min(5, team.level || 1)) : 0;
     const stagePreset = isSprouted ? this.getStagePreset(level) : null;
@@ -170,7 +170,7 @@ export class TreeGrowthController {
     if (growth.teamId) {
       const teamId = growth.teamId;
       const prev = this.teamStates.get(teamId);
-      const isSprouted = growth.isSprouted || growth.level >= 1 || (growth.totalSeeds >= 50) || ((growth.totalEXP || 0) >= 50);
+      const isSprouted = growth.isSprouted || growth.level >= 1 || (growth.totalSeeds >= 10) || ((growth.totalEXP || 0) >= 50);
       const newLevel = isSprouted ? Math.max(1, Math.min(5, growth.level || 1)) : 0;
       const stagePreset = isSprouted ? this.getStagePreset(newLevel) : null;
 

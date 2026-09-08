@@ -167,7 +167,7 @@ class ApiDataStoreManager {
   formatGrowthResponse(raw) {
     const totalExp = raw.totalEXP || raw.total_exp || 0;
     const level = raw.level || 0;
-    const isSprouted = level > 0;
+    const isSprouted = level > 0 || totalExp >= 50 || (raw.tree_seeds >= 10) || (raw.totalSeeds >= 10) || (raw.seedsCount >= 10);
     const readers = raw.activeReaders || raw.active_readers || 1;
     this.updateActiveReadersUI(readers);
     return {

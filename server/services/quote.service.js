@@ -146,13 +146,18 @@ export class QuoteService {
           `, [EXP_CONFIG.QUOTE_LIKE, unlikedTeamId]);
         }
 
-        // 3. Decrement total_likes in community_growth
-        await client.query(`
+        // 3. Decrement total_likes and total_exp in community_growth
+        const growthRes = await client.query(`
           UPDATE community_growth
           SET total_likes = GREATEST(0, total_likes - 1),
+              total_exp = GREATEST(0, total_exp - $1),
               updated_at = NOW()
           WHERE id = 1
-        `);
+          RETURNING total_exp
+        `, [EXP_CONFIG.QUOTE_LIKE]);
+
+        const newTotalExp = parseInt(growthRes.rows[0]?.total_exp || 0, 10);
+        await GrowthService.recalculateAndSyncLevel(client, newTotalExp);
 
         return {
           bookId,

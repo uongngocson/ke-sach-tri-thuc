@@ -1,5 +1,6 @@
 import db from '../config/database.js';
 import socketService from './socket.service.js';
+import GrowthService from './growth.service.js';
 import { calculateLevelFromExp } from '../config/constants.js';
 
 export const MOCK_LIBRARY = [
@@ -235,7 +236,8 @@ export class TesterService {
   static async setExp(exp, customSeedsCount = null, teamId = null) {
     const levelInfo = calculateLevelFromExp(exp);
     const targetSeeds = customSeedsCount !== null ? customSeedsCount : (exp < 50 ? Math.floor(exp / 5) : 0);
-    const isSprouted = (levelInfo.level >= 1 || exp >= 50);
+    const isSprouted = (levelInfo.level >= 1 || exp >= 50 || targetSeeds >= 10);
+    const finalLevel = isSprouted ? Math.max(1, levelInfo.level) : 0;
 
     const result = await db.transaction(async (client) => {
       // 1. Determine target teams
@@ -279,7 +281,7 @@ export class TesterService {
               tree_level = $3,
               updated_at = NOW()
           WHERE id = $4
-        `, [exp, targetSeeds, levelInfo.level, tId]);
+        `, [exp, targetSeeds, finalLevel, tId]);
       }
 
       // 3. Count final books
@@ -295,7 +297,7 @@ export class TesterService {
             updated_at = NOW()
         WHERE id = 1
         RETURNING *
-      `, [exp, levelInfo.level, totalBooks]);
+      `, [exp, finalLevel, totalBooks]);
 
       const updated = growthRes.rows[0];
 
@@ -344,7 +346,8 @@ export class TesterService {
 
         const newExp = totalSeeds * 5;
         const levelInfo = calculateLevelFromExp(newExp);
-        const isSprouted = (levelInfo.level >= 1 || newExp >= 50);
+        const isSprouted = (levelInfo.level >= 1 || newExp >= 50 || totalSeeds >= 10);
+        const finalLevel = isSprouted ? Math.max(1, levelInfo.level) : 0;
 
         await client.query(`
           UPDATE teams
@@ -355,22 +358,25 @@ export class TesterService {
               tree_level = $3,
               updated_at = NOW()
           WHERE id = $4
-        `, [totalSeeds, newExp, levelInfo.level, tId]);
+        `, [totalSeeds, newExp, finalLevel, tId]);
       }
 
       const finalCountRes = await client.query('SELECT COUNT(*) FROM books');
       const totalBooks = parseInt(finalCountRes.rows[0].count, 10);
 
+      const addedExp = count * 5 * targetTeamIds.length;
       const growthRes = await client.query(`
         UPDATE community_growth
         SET total_books = $1,
+            total_exp = total_exp + $2,
             updated_at = NOW()
         WHERE id = 1
         RETURNING *
-      `, [totalBooks]);
+      `, [totalBooks, addedExp]);
 
       const updated = growthRes.rows[0];
-      const levelInfo = calculateLevelFromExp(parseInt(updated.total_exp, 10));
+      const newTotalExp = parseInt(updated.total_exp, 10);
+      const levelInfo = await GrowthService.recalculateAndSyncLevel(client, newTotalExp);
 
       const fullGrowth = {
         totalEXP: parseInt(updated.total_exp, 10),
@@ -427,13 +433,17 @@ export class TesterService {
         }
       }
 
-      await client.query(`
+      const gRes = await client.query(`
         UPDATE community_growth
         SET total_exp = total_exp + $1,
             total_likes = total_likes + $2,
             updated_at = NOW()
         WHERE id = 1
+        RETURNING total_exp
       `, [expBonus, count]);
+
+      const newTotalExp = parseInt(gRes.rows[0].total_exp, 10);
+      await GrowthService.recalculateAndSyncLevel(client, newTotalExp);
 
       socketService.broadcastGrowthUpdated({ totalEXP: expBonus });
       socketService.broadcastSeedsUpdated();
