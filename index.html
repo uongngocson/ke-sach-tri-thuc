@@ -4205,6 +4205,8 @@
               class="relative w-full flex-1 flex flex-col items-center justify-end overflow-visible pointer-events-none">
               <div _ngcontent-ng-c4179040905="" class="w-full relative z-15 pointer-events-auto">
                 <div _ngcontent-ng-c4179040905="" class="w-full relative">
+                  <!-- Ground Top Horizon Interactive Extension Hit Zone (100% Mobile & Touch Friendly) -->
+                  <div id="fpt-ground-top-hit-zone" class="fpt-ground-top-hit-zone" title="Chạm vào đất để gieo hạt"></div>
                   <div _ngcontent-ng-c4179040905=""
                     class="w-full min-h-[170px] md:min-h-[180px] fpt-ground-container cursor-pointer relative transition-all duration-300 group pb-10 overflow-visible">
                     <div _ngcontent-ng-c4179040905=""
@@ -5522,6 +5524,22 @@
         min-width: 0 !important;
         margin: 0 !important;
       }
+    }
+
+    /* Top Ground Horizon Interactive Hit Zone (100% Mobile & Touch Friendly covering 1-56px upper soil) */
+    .fpt-ground-top-hit-zone {
+      position: absolute;
+      top: -56px;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 58px;
+      z-index: 30;
+      cursor: pointer;
+      pointer-events: auto !important;
+      touch-action: pan-x;
+      -webkit-tap-highlight-color: transparent;
+      background: transparent;
     }
 
     /* Mobile Ground Scroll Hint Indicator */
@@ -7305,6 +7323,47 @@
         return offsets;
       }
 
+      // Global Unified Ground Action Handler (100% Reliable across Desktop, Mobile, and Top Horizon Hit Zone)
+      function handleGroundAction(e) {
+        if (e && e.target && e.target.closest && e.target.closest('.ground-seed-item, .root-garden-plaque')) return;
+
+        // If tap happened on top hit zone or ground, check if user tapped another team's horizontal column
+        const clientX = e ? (e.clientX || (e.changedTouches && e.changedTouches[0] && e.changedTouches[0].clientX)) : null;
+        if (clientX !== null && clientX !== undefined) {
+          const plotEls = document.querySelectorAll('.team-root-plot');
+          for (const plot of plotEls) {
+            const rect = plot.getBoundingClientRect();
+            if (clientX >= rect.left && clientX <= rect.right) {
+              const teamId = parseInt(plot.getAttribute('data-team-id'), 10);
+              if (teamId && activeTeam && activeTeam.id !== teamId) {
+                const targetTeam = (allTeams && allTeams.find(t => t.id === teamId)) || { id: teamId, display_name: `Đội ${teamId}` };
+                inspectTeam(targetTeam);
+                return;
+              }
+              break;
+            }
+          }
+        }
+
+        // 1. Kiểm tra đăng nhập
+        if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
+          if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
+            userIdentityModal.open();
+            showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+          }
+          return;
+        }
+
+        // 2. Kiểm tra chế độ xem: Nếu đang xem cây đội khác -> Không cho gieo hạt vào đất
+        if (activeTeam && activeTeam.id !== currentUser.team_id) {
+          showToast(`👀 Bạn đang ở chế độ xem Cây Tri Thức của ${activeTeam.display_name}. Hãy quay về Đội của bạn để gieo hạt nhé!`);
+          return;
+        }
+
+        openContributeModal();
+      }
+      window.handleGroundAction = handleGroundAction;
+
       let isRenderingGroundSeeds = false;
       let pendingGroundSeedsRender = false;
       async function renderGroundSeeds() {
@@ -8071,33 +8130,12 @@
         openContributeModal();
       });
 
-      // Robust Touch & Click Handlers for Ground Container and Bottom Hint
+      // Robust Touch & Click Handlers for Ground Container, Top Horizon Zone, and Bottom Hint
       function bindGroundModalTrigger(el) {
         if (!el) return;
         let touchStartX = 0;
         let touchStartY = 0;
         let isTouchMoved = false;
-
-        const handleGroundAction = (e) => {
-          if (e.target && e.target.closest && e.target.closest('.ground-seed-item, .root-garden-plaque')) return;
-
-          // 1. Kiểm tra đăng nhập
-          if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
-            if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
-              userIdentityModal.open();
-              showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
-            }
-            return;
-          }
-
-          // 2. Kiểm tra chế độ xem: Nếu đang xem cây đội khác -> Không cho gieo hạt vào đất
-          if (activeTeam && activeTeam.id !== currentUser.team_id) {
-            showToast(`👀 Bạn đang ở chế độ xem Cây Tri Thức của ${activeTeam.display_name}. Hãy quay về Đội của bạn để gieo hạt nhé!`);
-            return;
-          }
-
-          openContributeModal();
-        };
 
         el.addEventListener('touchstart', (e) => {
           if (e.target && e.target.closest && e.target.closest('.ground-seed-item, .root-garden-plaque')) return;
@@ -8143,6 +8181,33 @@
       }
       bindGroundModalTrigger(document.querySelector('.fpt-ground-inner'));
       bindGroundModalTrigger(document.getElementById('ground-action-hint'));
+
+      // Top Ground Horizon Hit Zone (100% Touch & Click Capture for upper 1-56px of soil)
+      const topHitZone = document.getElementById('fpt-ground-top-hit-zone');
+      if (topHitZone) {
+        bindGroundModalTrigger(topHitZone);
+
+        // Forward horizontal touch dragging from top horizon hit zone to ground container scroll
+        let topTouchStartX = 0;
+        let topLastScrollLeft = 0;
+        topHitZone.addEventListener('touchstart', (e) => {
+          if (e.touches && e.touches[0]) {
+            topTouchStartX = e.touches[0].clientX;
+            const gc = document.querySelector('.fpt-ground-container');
+            topLastScrollLeft = gc ? gc.scrollLeft : 0;
+          }
+        }, { passive: true });
+
+        topHitZone.addEventListener('touchmove', (e) => {
+          if (e.touches && e.touches[0]) {
+            const deltaX = topTouchStartX - e.touches[0].clientX;
+            const gc = document.querySelector('.fpt-ground-container');
+            if (gc) {
+              gc.scrollLeft = topLastScrollLeft + deltaX;
+            }
+          }
+        }, { passive: true });
+      }
 
       
       // WELCOME SLOGAN MODAL LOGIC
@@ -8362,11 +8427,11 @@
         }
 
         // Check for Plant / Contribute Book Triggers
-        const plantBtn = target.closest && target.closest('#fpt-main-gieo-mam-btn, button[title*="Gieo Mầm"], button[title*="Góp Sách"], .fpt-btn-cta, [data-action="plant"], .fpt-ground-container');
+        const plantBtn = target.closest && target.closest('#fpt-main-gieo-mam-btn, button[title*="Gieo Mầm"], button[title*="Góp Sách"], .fpt-btn-cta, [data-action="plant"], .fpt-ground-container, #fpt-ground-top-hit-zone, .fpt-ground-top-hit-zone');
         if (plantBtn) {
           e.preventDefault();
           e.stopPropagation();
-          openContributeModal();
+          handleGroundAction(e);
           return;
         }
       });

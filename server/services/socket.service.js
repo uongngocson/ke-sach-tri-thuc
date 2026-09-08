@@ -14,6 +14,10 @@ class SocketService {
     });
   }
 
+  getIO() {
+    return this.io;
+  }
+
   broadcastGrowthUpdated(growthData) {
     if (this.io) {
       this.io.emit('growth:updated', growthData);

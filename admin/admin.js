@@ -172,6 +172,7 @@ function bindSidebarEvents() {
 function bindActionEvents() {
   bindContentRulesEvents();
   bindAdminAccountEvents();
+  bindPersonnelEvents();
   // Login Form
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
@@ -785,10 +786,9 @@ function renderDeepContributors(contributors) {
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-amber-400' : 'text-slate-500'}">${medal}</span>
               <div class="min-w-0">
-                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || u.full_name)}</div>
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || 'Bút danh')}</div>
                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
                   <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
-                  ${u.branch ? `<span class="text-slate-500">• ${escapeHtml(u.branch)}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -817,10 +817,9 @@ function renderDeepContributors(contributors) {
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-sky-400' : 'text-slate-500'}">${medal}</span>
               <div class="min-w-0">
-                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || u.full_name)}</div>
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || 'Bút danh')}</div>
                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
                   <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
-                  ${u.branch ? `<span class="text-slate-500">• ${escapeHtml(u.branch)}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -849,10 +848,9 @@ function renderDeepContributors(contributors) {
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-emerald-400' : 'text-slate-500'}">${medal}</span>
               <div class="min-w-0">
-                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || u.full_name)}</div>
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || 'Bút danh')}</div>
                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
                   <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
-                  ${u.branch ? `<span class="text-slate-500">• ${escapeHtml(u.branch)}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -1052,8 +1050,8 @@ function renderDeepGrowth(growth) {
                 <span class="text-lg">${m.team_icon || '🌱'}</span>
                 <span class="text-[11px] font-black truncate" style="color: ${color};">${escapeHtml(m.team_display_name || m.team_name)}</span>
               </div>
-              <div class="font-black text-white text-xs truncate">${escapeHtml(m.nickname || m.full_name)}</div>
-              <div class="text-[10px] text-slate-400 truncate mb-2.5">${escapeHtml(m.job_title || m.branch || 'Thành viên')}</div>
+              <div class="font-black text-white text-xs truncate">${escapeHtml(m.nickname || 'Bút danh')}</div>
+              <div class="text-[10px] text-slate-400 truncate mb-2.5">Thành viên đội</div>
             </div>
             <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10.5px]">
               <span class="text-slate-400 font-medium">✨ ${m.contributed_books_count || 0} sách</span>
@@ -1247,7 +1245,7 @@ window.openTeamModal = async function(teamId) {
   }
 
   modal.classList.add('show');
-  tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500 font-bold"><span class="inline-block animate-spin mr-2">⏳</span> Đang tải danh sách thành viên...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500 font-bold"><span class="inline-block animate-spin mr-2">⏳</span> Đang tải danh sách thành viên...</td></tr>';
 
   try {
     const res = await fetch(`${API_BASE}/teams/${teamId}/members?date=${encodeURIComponent(dateStr)}`);
@@ -1256,9 +1254,7 @@ window.openTeamModal = async function(teamId) {
       tbody.innerHTML = data.data.map((m, idx) => `
         <tr class="hover:bg-slate-800/40">
           <td class="p-3 text-center text-slate-500 font-bold text-xs">${idx + 1}</td>
-          <td class="p-3 font-bold text-white">${escapeHtml(m.nickname || m.full_name || '')}</td>
-          <td class="p-3 text-slate-300 text-xs">${escapeHtml(m.branch || m.parent_department || 'FPT')}</td>
-          <td class="p-3 text-slate-400 text-xs">${escapeHtml(m.job_title || '-')}</td>
+          <td class="p-3 font-bold text-white">${escapeHtml(m.nickname || 'Bút danh')}</td>
           <td class="p-3">
             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${m.participated_on_date ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-500'}">
               ${m.participated_on_date ? `✅ Đã tham gia (${dateLabel})` : '⏳ Chưa tham gia'}
@@ -1273,7 +1269,7 @@ window.openTeamModal = async function(teamId) {
       `).join('');
     }
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-rose-400">Lỗi tải danh sách thành viên</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-rose-400">Lỗi tải danh sách thành viên</td></tr>';
   }
 };
 
@@ -1353,7 +1349,7 @@ function renderUsersTable(users) {
   }
 
   if (!users || users.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-500">Không tìm thấy nhân sự nào phù hợp.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">Không tìm thấy bút danh nào phù hợp.</td></tr>';
     return;
   }
 
@@ -1361,15 +1357,8 @@ function renderUsersTable(users) {
     <tr class="hover:bg-slate-800/40 transition-colors">
       <td class="p-3 text-center text-slate-500 font-bold text-xs">${(usersPageState.page - 1) * usersPageState.limit + idx + 1}</td>
       <td class="p-3 font-bold text-white">
-        ${escapeHtml(u.nickname || u.full_name)}
-        <div class="text-[10px] text-slate-500">${escapeHtml(u.job_title || '')}</div>
+        ${escapeHtml(u.nickname || 'Bút danh')}
       </td>
-      <td class="p-3 text-slate-300">
-        <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-bold">
-          ${escapeHtml(u.branch || 'BGD/TDV/CLB')}
-        </span>
-      </td>
-      <td class="p-3 text-slate-400 text-xs">${escapeHtml(u.parent_department || u.child_department_1 || '-')}</td>
       <td class="p-3">
         <span class="px-2 py-0.5 rounded text-[10.5px] font-bold" style="background: ${(u.team_color || '#0284c7')}22; color: ${u.team_color || '#38bdf8'}; border: 1px solid ${(u.team_color || '#0284c7')}44;">
           ${escapeHtml(u.team_display_name || ('Đội ' + u.team_id))}
@@ -1382,8 +1371,37 @@ function renderUsersTable(users) {
       </td>
       <td class="p-3 font-bold text-emerald-400">${u.contributed_books_count || 0}</td>
       <td class="p-3 font-extrabold text-sky-400">${(u.total_exp_earned || 0).toLocaleString()}</td>
+      <td class="p-3 text-center">
+        <div class="flex items-center justify-center gap-1.5">
+          <button type="button" class="btn-personnel-detail p-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 hover:text-sky-300 transition-colors" data-id="${u.id}" title="Xem chi tiết bút danh">
+            👁️
+          </button>
+          <button type="button" class="btn-personnel-edit p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 hover:text-amber-300 transition-colors" data-id="${u.id}" title="Chỉnh sửa bút danh">
+            ✏️
+          </button>
+          <button type="button" class="btn-personnel-delete p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 transition-colors" data-id="${u.id}" data-name="${escapeHtml(u.nickname || 'Bút danh')}" data-team="${escapeHtml(u.team_display_name || ('Đội ' + u.team_id))}" title="Xóa bút danh">
+            🗑️
+          </button>
+        </div>
+      </td>
     </tr>
   `).join('');
+
+  // Attach click listeners to row action buttons
+  tbody.querySelectorAll('.btn-personnel-detail').forEach(btn => {
+    btn.addEventListener('click', () => viewPersonnelDetail(btn.getAttribute('data-id')));
+  });
+  tbody.querySelectorAll('.btn-personnel-edit').forEach(btn => {
+    btn.addEventListener('click', () => openEditPersonnelModal(btn.getAttribute('data-id')));
+  });
+  tbody.querySelectorAll('.btn-personnel-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      const name = btn.getAttribute('data-name');
+      const team = btn.getAttribute('data-team');
+      openDeletePersonnelModal(id, '', name, team);
+    });
+  });
 }
 
 async function exportUsersCSV() {
@@ -1399,17 +1417,13 @@ async function exportUsersCSV() {
     if (!data.success || !data.data.users) return;
 
     const rows = [
-      ['STT', 'Bút Danh Độc Giả', 'Giới Tính', 'Chi Nhánh / Khối', 'Phòng Ban', 'Chức Danh', 'Đội Thi Đua', dateLabel, 'Sách Đã Gieo', 'EXP Kiếm Được']
+      ['STT', 'Bút Danh Độc Giả', 'Đội Thi Đua', dateLabel, 'Sách Đã Gieo', 'EXP Kiếm Được']
     ];
 
     data.data.users.forEach((u, idx) => {
       rows.push([
         idx + 1,
-        `"${u.nickname || u.full_name || ''}"`,
-        `"${u.gender || ''}"`,
-        `"${u.branch || ''}"`,
-        `"${u.parent_department || ''}"`,
-        `"${u.job_title || ''}"`,
+        `"${u.nickname || 'Bút danh'}"`,
         `"${u.team_display_name || ('Đội ' + u.team_id)}"`,
         `"${(u.participated_today || u.participated_current_round) ? `Đã gieo (${formattedDate})` : `Chưa gieo (${formattedDate})`}"`,
         u.contributed_books_count || 0,
@@ -1421,7 +1435,7 @@ async function exportUsersCSV() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Danh_Ba_288_Nhan_Su_FoxREAD_${dateStr}.csv`;
+    link.download = `Danh_Ba_But_Danh_FoxREAD_${dateStr}.csv`;
     link.click();
   } catch (err) {
     alert('Lỗi xuất file CSV');
@@ -1748,8 +1762,7 @@ function renderLedgerTable(ledger) {
           ${isPositive ? '+' : ''}${item.amount} EXP
         </td>
         <td class="p-3 font-bold text-slate-200">
-          ${escapeHtml(item.user_name || 'Khách vãng lai')}
-          <div class="text-[10px] text-slate-500">${escapeHtml(item.user_email || item.user_fingerprint?.slice(0, 12) || '')}</div>
+          ${escapeHtml(item.nickname || 'Độc giả')}
         </td>
         <td class="p-3">
           <span class="px-2 py-0.5 rounded text-[10.5px] font-bold" style="background: ${(item.team_color || '#0284c7')}22; color: ${item.team_color || '#38bdf8'};">
@@ -2786,3 +2799,373 @@ window.editAdminAccount = function(id) {
 };
 window.toggleAdminStatus = toggleAdminStatus;
 window.openDeleteAdminModal = openDeleteAdminModal;
+
+// =========================================================================
+// 288 PERSONNEL MANAGEMENT MODULE (FULL CRUD)
+// =========================================================================
+
+let pendingDeletePersonnel = null;
+
+function bindPersonnelEvents() {
+  // Create Modal Open
+  const btnOpenCreate = document.getElementById('btn-open-create-personnel');
+  if (btnOpenCreate) {
+    btnOpenCreate.addEventListener('click', openCreatePersonnelModal);
+  }
+
+  // Form Submit
+  const formEl = document.getElementById('form-personnel');
+  if (formEl) {
+    formEl.addEventListener('submit', handlePersonnelFormSubmit);
+  }
+
+  // Form Modal Close
+  const closeBtn = document.getElementById('personnel-modal-close');
+  const cancelBtn = document.getElementById('personnel-modal-cancel');
+  const modalForm = document.getElementById('modal-personnel-form');
+  if (closeBtn) closeBtn.addEventListener('click', closePersonnelModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closePersonnelModal);
+  if (modalForm) {
+    modalForm.addEventListener('click', (e) => {
+      if (e.target === modalForm) closePersonnelModal();
+    });
+  }
+
+  // Detail Modal Close
+  const detailCloseBtn = document.getElementById('personnel-detail-close');
+  const detailOkBtn = document.getElementById('personnel-detail-ok');
+  const modalDetail = document.getElementById('modal-personnel-detail');
+  if (detailCloseBtn) detailCloseBtn.addEventListener('click', closePersonnelDetailModal);
+  if (detailOkBtn) detailOkBtn.addEventListener('click', closePersonnelDetailModal);
+  if (modalDetail) {
+    modalDetail.addEventListener('click', (e) => {
+      if (e.target === modalDetail) closePersonnelDetailModal();
+    });
+  }
+
+  // Delete Modal Close & Confirm
+  const delCloseBtn = document.getElementById('personnel-delete-modal-close');
+  const delCancelBtn = document.getElementById('personnel-delete-cancel');
+  const modalDelete = document.getElementById('modal-personnel-delete');
+  const btnConfirmDelete = document.getElementById('btn-confirm-delete-personnel');
+
+  if (delCloseBtn) delCloseBtn.addEventListener('click', closeDeletePersonnelModal);
+  if (delCancelBtn) delCancelBtn.addEventListener('click', closeDeletePersonnelModal);
+  if (modalDelete) {
+    modalDelete.addEventListener('click', (e) => {
+      if (e.target === modalDelete) closeDeletePersonnelModal();
+    });
+  }
+  if (btnConfirmDelete) {
+    btnConfirmDelete.addEventListener('click', handleConfirmDeletePersonnel);
+  }
+
+  // ESC Key listener
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (modalForm?.classList.contains('show')) closePersonnelModal();
+      if (modalDetail?.classList.contains('show')) closePersonnelDetailModal();
+      if (modalDelete?.classList.contains('show')) closeDeletePersonnelModal();
+    }
+  });
+}
+
+function openCreatePersonnelModal() {
+  const modal = document.getElementById('modal-personnel-form');
+  const form = document.getElementById('form-personnel');
+  const errBox = document.getElementById('personnel-form-error');
+
+  if (form) form.reset();
+  document.getElementById('personnel-form-id').value = '';
+  document.getElementById('personnel-form-nickname').value = '';
+  document.getElementById('personnel-form-team').value = '1';
+  document.getElementById('personnel-modal-title').textContent = 'Thêm Bút Danh Mới';
+  document.getElementById('personnel-form-btn-text').textContent = 'Lưu Bút Danh';
+  if (errBox) errBox.classList.add('hidden');
+
+  if (modal) {
+    modal.classList.add('show');
+    setTimeout(() => document.getElementById('personnel-form-nickname')?.focus(), 150);
+  }
+}
+
+function closePersonnelModal() {
+  const modal = document.getElementById('modal-personnel-form');
+  const errBox = document.getElementById('personnel-form-error');
+  if (modal) modal.classList.remove('show');
+  if (errBox) errBox.classList.add('hidden');
+}
+
+async function openEditPersonnelModal(id) {
+  const modal = document.getElementById('modal-personnel-form');
+  const errBox = document.getElementById('personnel-form-error');
+  if (errBox) errBox.classList.add('hidden');
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/users/${id}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+    if (!data.success || !data.data) {
+      alert(data.message || 'Không thể lấy thông tin bút danh.');
+      return;
+    }
+
+    const u = data.data;
+    document.getElementById('personnel-form-id').value = u.id || '';
+    document.getElementById('personnel-form-nickname').value = u.nickname || '';
+    document.getElementById('personnel-form-team').value = u.team_id || '1';
+
+    document.getElementById('personnel-modal-title').textContent = `Chỉnh Sửa Bút Danh: ${u.nickname || 'Bút danh'}`;
+    document.getElementById('personnel-form-btn-text').textContent = 'Cập Nhật Bút Danh';
+
+    if (modal) {
+      modal.classList.add('show');
+      setTimeout(() => document.getElementById('personnel-form-nickname')?.focus(), 150);
+    }
+  } catch (err) {
+    alert('Lỗi kết nối máy chủ: ' + err.message);
+  }
+}
+
+async function handlePersonnelFormSubmit(e) {
+  e.preventDefault();
+
+  const id = document.getElementById('personnel-form-id').value;
+  const nickname = document.getElementById('personnel-form-nickname').value.trim();
+  const teamId = parseInt(document.getElementById('personnel-form-team').value, 10);
+
+  const errBox = document.getElementById('personnel-form-error');
+  const errMsg = document.getElementById('personnel-form-error-msg');
+  const btnSubmit = document.getElementById('btn-submit-personnel-form');
+  const spinner = document.getElementById('personnel-form-spinner');
+
+  if (!nickname) {
+    if (errBox && errMsg) {
+      errMsg.textContent = 'Vui lòng nhập bút danh độc giả.';
+      errBox.classList.remove('hidden');
+    }
+    return;
+  }
+
+  if (errBox) errBox.classList.add('hidden');
+
+  const payload = {
+    nickname: nickname,
+    team_id: teamId
+  };
+
+  // UI loading
+  if (btnSubmit) btnSubmit.disabled = true;
+  if (spinner) spinner.classList.remove('hidden');
+
+  try {
+    const isEdit = !!id;
+    const url = isEdit ? `${API_BASE}/admin/users/${id}` : `${API_BASE}/admin/users`;
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      if (errBox && errMsg) {
+        errMsg.textContent = data.message || (data.errors ? data.errors[0]?.message : 'Lỗi xử lý');
+        errBox.classList.remove('hidden');
+      }
+      return;
+    }
+
+    closePersonnelModal();
+    alert(data.message || (isEdit ? 'Cập nhật thành công!' : 'Thêm bút danh thành công!'));
+    loadUsers();
+    loadAnalytics();
+  } catch (err) {
+    if (errBox && errMsg) {
+      errMsg.textContent = 'Lỗi kết nối máy chủ: ' + err.message;
+      errBox.classList.remove('hidden');
+    }
+  } finally {
+    if (btnSubmit) btnSubmit.disabled = false;
+    if (spinner) spinner.classList.add('hidden');
+  }
+}
+
+async function viewPersonnelDetail(id) {
+  const modal = document.getElementById('modal-personnel-detail');
+  const contentEl = document.getElementById('personnel-detail-content');
+  if (!modal || !contentEl) return;
+
+  contentEl.innerHTML = `
+    <div class="p-8 text-center text-slate-500 font-bold">
+      <span class="inline-block animate-spin mr-2">⏳</span> Đang tải thông tin chi tiết bút danh...
+    </div>
+  `;
+  modal.classList.add('show');
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/users/${id}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+
+    if (!data.success || !data.data) {
+      contentEl.innerHTML = `
+        <div class="p-6 text-center text-rose-400 font-bold">
+          ❌ Không tìm thấy thông tin bút danh.
+        </div>
+      `;
+      return;
+    }
+
+    const u = data.data;
+    const teamColor = u.team_color || '#0284c7';
+    const recentQuotes = Array.isArray(u.recent_quotes) ? u.recent_quotes : [];
+
+    contentEl.innerHTML = `
+      <!-- Header Profile Card -->
+      <div class="flex items-center gap-4 p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl text-white shadow-lg flex-shrink-0"
+             style="background: linear-gradient(135deg, ${teamColor}, ${teamColor}99);">
+          ${escapeHtml((u.nickname || 'BD').slice(0, 2).toUpperCase())}
+        </div>
+        <div class="space-y-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <h4 class="text-sm font-black text-white truncate">${escapeHtml(u.nickname || 'Bút danh')}</h4>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black" style="background: ${teamColor}22; color: ${teamColor}; border: 1px solid ${teamColor}44;">
+              ${escapeHtml(u.team_display_name || ('Đội ' + u.team_id))}
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">Thành viên đội thi đua</p>
+        </div>
+      </div>
+
+      <!-- Stats Counters -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
+          <div class="text-lg font-black text-sky-400">${(u.total_exp_earned || 0).toLocaleString()}</div>
+          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">EXP Cá Nhân</div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
+          <div class="text-lg font-black text-emerald-400">${u.contributed_books_count || 0}</div>
+          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Sách Đã Gieo</div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
+          <div class="text-lg font-black text-amber-400">${u.total_quotes_count || 0}</div>
+          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tổng Quote</div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
+          <div class="text-lg font-black text-purple-400">${u.total_dews_count || 0}</div>
+          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Lượt Tưới</div>
+        </div>
+      </div>
+
+      <!-- Recent Quotes Activity -->
+      <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+        <div class="text-[11px] font-black text-slate-300 uppercase tracking-wider border-b border-slate-800 pb-1.5 flex items-center justify-between">
+          <span class="flex items-center gap-1.5"><span>📖</span><span>Trích Dẫn Gần Nhất (${recentQuotes.length})</span></span>
+        </div>
+        ${recentQuotes.length === 0 ? `
+          <p class="text-xs text-slate-500 italic py-2 text-center">Chưa có trích dẫn sách nào được ghi nhận.</p>
+        ` : `
+          <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+            ${recentQuotes.map(q => `
+              <div class="p-2.5 rounded-lg bg-slate-800/40 border border-slate-700/60 space-y-1">
+                <div class="flex items-center justify-between text-[11px]">
+                  <span class="font-bold text-sky-300 truncate max-w-[280px]">📚 ${escapeHtml(q.book_title || 'Không rõ sách')}</span>
+                  <span class="text-[10px] font-mono text-slate-400">${q.quote_date ? formatDateVN(q.quote_date) : ''}</span>
+                </div>
+                ${q.book_quote ? `<p class="text-[11px] text-slate-300 italic line-clamp-2">“${escapeHtml(q.book_quote)}”</p>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `}
+      </div>
+    `;
+  } catch (err) {
+    contentEl.innerHTML = `
+      <div class="p-6 text-center text-rose-400 font-bold">
+        ❌ Không thể tải thông tin: ${err.message}
+      </div>
+    `;
+  }
+}
+
+function closePersonnelDetailModal() {
+  const modal = document.getElementById('modal-personnel-detail');
+  if (modal) modal.classList.remove('show');
+}
+
+function openDeletePersonnelModal(id, code, name, team) {
+  pendingDeletePersonnel = { id, code, name, team };
+  const modal = document.getElementById('modal-personnel-delete');
+  const errBox = document.getElementById('delete-personnel-error');
+
+  const nameEl = document.getElementById('delete-personnel-name');
+  if (nameEl) nameEl.textContent = name || '...';
+  const teamEl = document.getElementById('delete-personnel-team');
+  if (teamEl) teamEl.textContent = team || '...';
+  if (errBox) errBox.classList.add('hidden');
+
+  if (modal) modal.classList.add('show');
+}
+
+function closeDeletePersonnelModal() {
+  const modal = document.getElementById('modal-personnel-delete');
+  const errBox = document.getElementById('delete-personnel-error');
+  if (modal) modal.classList.remove('show');
+  if (errBox) errBox.classList.add('hidden');
+  pendingDeletePersonnel = null;
+}
+
+async function handleConfirmDeletePersonnel() {
+  if (!pendingDeletePersonnel) return;
+
+  const btnConfirm = document.getElementById('btn-confirm-delete-personnel');
+  const spinner = document.getElementById('personnel-delete-spinner');
+  const errBox = document.getElementById('delete-personnel-error');
+  const errMsg = document.getElementById('delete-personnel-error-msg');
+
+  if (btnConfirm) btnConfirm.disabled = true;
+  if (spinner) spinner.classList.remove('hidden');
+  if (errBox) errBox.classList.add('hidden');
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/users/${pendingDeletePersonnel.id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Không thể xóa bút danh này.');
+    }
+
+    closeDeletePersonnelModal();
+    alert(data.message || 'Đã xóa bút danh thành công!');
+    loadUsers();
+    loadAnalytics();
+  } catch (err) {
+    if (errBox && errMsg) {
+      errMsg.textContent = err.message || 'Có lỗi xảy ra khi xóa.';
+      errBox.classList.remove('hidden');
+    }
+  } finally {
+    if (btnConfirm) btnConfirm.disabled = false;
+    if (spinner) spinner.classList.add('hidden');
+  }
+}
+
+// Window global bindings
+window.openCreatePersonnelModal = openCreatePersonnelModal;
+window.openEditPersonnelModal = openEditPersonnelModal;
+window.viewPersonnelDetail = viewPersonnelDetail;
+window.openDeletePersonnelModal = openDeletePersonnelModal;
+

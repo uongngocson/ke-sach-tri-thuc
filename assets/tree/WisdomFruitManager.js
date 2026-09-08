@@ -338,23 +338,36 @@ export class WisdomFruitManager {
   }
 
   async checkClick(e) {
-    if (!this.camera || this.fruits.length === 0) return;
+    if (!this.camera) return;
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
-    const hitTargets = [];
-    this.fruits.forEach(f => {
-      if (!f.userData.isHarvested) {
-        hitTargets.push(f.userData.mesh);
+    if (this.fruits.length > 0) {
+      const hitTargets = [];
+      this.fruits.forEach(f => {
+        if (!f.userData.isHarvested) {
+          hitTargets.push(f.userData.mesh);
+        }
+      });
+
+      const intersects = this.raycaster.intersectObjects(hitTargets, false);
+      if (intersects.length > 0) {
+        const hitMesh = intersects[0].object;
+        const hitFruit = this.fruits.find(f => f.userData.mesh === hitMesh);
+
+        if (hitFruit && !hitFruit.userData.isHarvested) {
+          this.harvestFruit(hitFruit, e);
+          return;
+        }
       }
-    });
+    }
 
-    const intersects = this.raycaster.intersectObjects(hitTargets, false);
-    if (intersects.length > 0) {
-      const hitMesh = intersects[0].object;
-      const hitFruit = this.fruits.find(f => f.userData.mesh === hitMesh);
-
-      if (hitFruit && !hitFruit.userData.isHarvested) {
-        this.harvestFruit(hitFruit, e);
+    // Check if clicked on 3D Ground Terrain Mesh
+    if (window.skyCanvasInstance && window.skyCanvasInstance.ground && window.skyCanvasInstance.ground.mesh) {
+      const groundIntersects = this.raycaster.intersectObject(window.skyCanvasInstance.ground.mesh, false);
+      if (groundIntersects.length > 0) {
+        if (typeof window.handleGroundAction === 'function') {
+          window.handleGroundAction(e);
+        }
       }
     }
   }

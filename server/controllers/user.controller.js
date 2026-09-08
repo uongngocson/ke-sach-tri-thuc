@@ -1,4 +1,4 @@
-﻿import { UserService } from '../services/user.service.js';
+import { UserService } from '../services/user.service.js';
 
 export async function getUsers(req, res, next) {
   try {
@@ -80,3 +80,61 @@ export async function getUserById(req, res, next) {
     next(err);
   }
 }
+
+export async function createAdminPersonnel(req, res, next) {
+  try {
+    const ipAddress = req.ip || req.connection?.remoteAddress || null;
+    const newPersonnel = await UserService.createPersonnel(req.body, req.user, ipAddress);
+    res.status(201).json({
+      success: true,
+      message: `Đã thêm thành công nhân sự "${newPersonnel.nickname || newPersonnel.full_name}" (${newPersonnel.employee_code})!`,
+      data: newPersonnel
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getAdminPersonnelDetail(req, res, next) {
+  try {
+    const { id } = req.params;
+    const detail = await UserService.getPersonnelDetail(id);
+    res.json({
+      success: true,
+      data: detail
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateAdminPersonnel(req, res, next) {
+  try {
+    const { id } = req.params;
+    const ipAddress = req.ip || req.connection?.remoteAddress || null;
+    const updated = await UserService.updatePersonnel(id, req.body, req.user, ipAddress);
+    res.json({
+      success: true,
+      message: `Cập nhật thông tin nhân sự "${updated.nickname || updated.full_name}" thành công!`,
+      data: updated
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteAdminPersonnel(req, res, next) {
+  try {
+    const { id } = req.params;
+    const ipAddress = req.ip || req.connection?.remoteAddress || null;
+    const deleted = await UserService.deletePersonnel(id, req.user, ipAddress);
+    res.json({
+      success: true,
+      message: `Đã xóa vĩnh viễn nhân sự "${deleted.nickname || deleted.full_name}" (${deleted.employee_code}) khỏi hệ thống!`,
+      data: deleted
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+

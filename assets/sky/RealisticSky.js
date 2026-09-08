@@ -36,6 +36,7 @@ class RealisticSkySystem {
 
     // 2. Initialize Sky Canvas
     this.skyCanvas = new SkyCanvas(this.canvasContainer);
+    window.skyCanvasInstance = this.skyCanvas;
 
     // 3. Resolve Initial Hour synced with Theme & Vietnam Local Time
     const isDarkInitial = document.documentElement.classList.contains('dark');

@@ -6,12 +6,14 @@ import {
   getAdminContentSettings, updateAdminContentSetting, resetAdminContentSetting,
   adminWipeData, getAdminDeepDiveAnalytics,
   getAdminAccounts, getAdminAccountStats, getAdminAccountById,
-  createAdminAccount, updateAdminAccount, deleteAdminAccount
+  createAdminAccount, updateAdminAccount, deleteAdminAccount,
+  createAdminPersonnel, getAdminPersonnelDetail, updateAdminPersonnel, deleteAdminPersonnel
 } from '../controllers/index.js';
 import { authenticate, authorizeRoles } from '../middlewares/auth.js';
 import { 
   validateBody, adminLoginSchema, updateBookStatusSchema, adminBonusExpSchema,
-  createAdminAccountSchema, updateAdminAccountSchema
+  createAdminAccountSchema, updateAdminAccountSchema,
+  createPersonnelSchema, updatePersonnelSchema
 } from '../middlewares/validator.js';
 
 const router = express.Router();
@@ -30,12 +32,19 @@ router.post('/accounts', authorizeRoles('admin'), validateBody(createAdminAccoun
 router.put('/accounts/:id', authorizeRoles('admin'), validateBody(updateAdminAccountSchema), updateAdminAccount);
 router.delete('/accounts/:id', authorizeRoles('admin'), deleteAdminAccount);
 
+// Personnel Directory & CRUD Management (288 Nhân Sự)
+router.get('/users', authorizeRoles('moderator', 'admin'), getAdminUsersDirectory);
+router.get('/users/:id', authorizeRoles('moderator', 'admin'), getAdminPersonnelDetail);
+router.post('/users', authorizeRoles('admin'), validateBody(createPersonnelSchema), createAdminPersonnel);
+router.put('/users/:id', authorizeRoles('admin'), validateBody(updatePersonnelSchema), updateAdminPersonnel);
+router.delete('/users/:id', authorizeRoles('admin'), deleteAdminPersonnel);
+
 // Realtime Analytics & KPIs
 router.get('/analytics/overview', authorizeRoles('moderator', 'admin'), getAdminAnalytics);
 router.get('/analytics/deep-dive', authorizeRoles('moderator', 'admin'), getAdminDeepDiveAnalytics);
 router.get('/ledger', authorizeRoles('moderator', 'admin'), getAdminLedger);
-router.get('/users', authorizeRoles('moderator', 'admin'), getAdminUsersDirectory);
 router.post('/rounds/advance', authorizeRoles('admin'), advanceAdminRound);
+
 
 // Custom UI Content & Rules Settings
 router.get('/content-settings', authorizeRoles('moderator', 'admin'), getAdminContentSettings);
