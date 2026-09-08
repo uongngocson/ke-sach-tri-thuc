@@ -1306,13 +1306,13 @@ export class QuoteTreasuryModal {
         const tId = parseInt(this.selectedTeam, 10);
         const allTeams = (typeof window !== 'undefined' && window.getAllTeams) ? window.getAllTeams() : [];
         const teamObj = allTeams.find(t => t.id === tId);
-        const isSprouted = teamObj ? (teamObj.is_sprouted || teamObj.level >= 1 || (teamObj.tree_seeds || 0) >= 50) : false;
-        const seedCount = this.teamCounts[tId] || (teamObj ? teamObj.tree_seeds : 0) || 0;
-        const targetSeeds = 50;
+        const isSprouted = teamObj ? (teamObj.is_sprouted || teamObj.level >= 1 || (teamObj.total_exp || 0) >= 50) : false;
+        const currentExp = teamObj ? (teamObj.total_exp || 0) : 0;
+        const targetExp = 50;
 
         if (!isSprouted) {
-          const progressPct = Math.min(100, Math.round((seedCount / targetSeeds) * 100));
-          const remaining = Math.max(0, targetSeeds - seedCount);
+          const progressPct = Math.min(100, Math.round((currentExp / targetExp) * 100));
+          const remaining = Math.max(0, targetExp - currentExp);
           const teamColor = TEAMS_INFO[tId]?.color || '#F36F21';
           sproutingBanner.style.display = 'block';
           sproutingBanner.innerHTML = `
@@ -1320,9 +1320,9 @@ export class QuoteTreasuryModal {
               <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 800; color: #0f172a;">
                 <span style="display: flex; align-items: center; gap: 6px;">
                   <span>🌰</span>
-                  <span>Vườn Ươm Tri Thức Đội ${tId}: <strong>${seedCount} / ${targetSeeds} Hạt</strong></span>
+                  <span>Vườn Ươm Tri Thức Đội ${tId}: <strong>${currentExp} / 50 EXP</strong></span>
                 </span>
-                <span style="color: ${teamColor}; font-size: 11.5px;">${remaining > 0 ? `Còn ${remaining} hạt để Cây nảy mầm đâm chồi 🌱` : '🌱 Sẵn sàng nảy mầm!'}</span>
+                <span style="color: ${teamColor}; font-size: 11.5px;">${remaining > 0 ? `Còn ${remaining} EXP để Cây nảy mầm đâm chồi 🌱` : '🌱 Sẵn sàng nảy mầm!'}</span>
               </div>
               <div style="width: 100%; height: 7px; background: #e2e8f0; border-radius: 999px; overflow: hidden; position: relative;">
                 <div style="width: ${progressPct}%; height: 100%; background: linear-gradient(90deg, ${teamColor}, #10b981); border-radius: 999px; transition: width 0.4s ease;"></div>

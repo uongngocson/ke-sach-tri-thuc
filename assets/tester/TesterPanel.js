@@ -68,10 +68,10 @@ export class TesterPanel {
         <div class="tester-section">
           <label class="tester-section-label">⚡ Chuyển Giai Đoạn Nhanh</label>
           <div class="tester-grid-2">
-            <button class="tester-btn stage-btn" id="stage-btn-0-seeds">🌰 0 EXP (Ủ Mầm - Trống)</button>
-            <button class="tester-btn stage-btn" id="stage-btn-15-seeds">🌰 15 EXP (Ủ Mầm)</button>
-            <button class="tester-btn stage-btn" id="stage-btn-30-seeds">🌰 30 EXP (Ủ Mầm)</button>
-            <button class="tester-btn stage-btn" id="stage-btn-45-seeds">🌰 45 EXP (Ủ Mầm)</button>
+            <button class="tester-btn stage-btn" id="stage-btn-0-seeds">🌰 0 EXP (0 hạt mầm)</button>
+            <button class="tester-btn stage-btn" id="stage-btn-15-seeds">🌰 15 EXP (3 hạt mầm)</button>
+            <button class="tester-btn stage-btn" id="stage-btn-30-seeds">🌰 30 EXP (6 hạt mầm)</button>
+            <button class="tester-btn stage-btn" id="stage-btn-45-seeds">🌰 45 EXP (9 hạt mầm)</button>
             <button class="tester-btn stage-btn" id="stage-btn-50-sprout" style="color:#70B928; font-weight:bold;">🌱 Lvl 1: Mầm Non (50 EXP)</button>
             <button class="tester-btn stage-btn" data-level="2">🌿 Lvl 2: Cây Con (150 EXP)</button>
             <button class="tester-btn stage-btn" data-level="3">🌳 Lvl 3: Trưởng Thành (300 EXP)</button>
@@ -201,7 +201,7 @@ export class TesterPanel {
       slider.addEventListener('input', async (e) => {
         const val = parseInt(e.target.value, 10);
         this.updateExpLabel(val, expVal);
-        const seeds = val < 50 ? val : 0;
+        const seeds = val < 50 ? Math.floor(val / 5) : 0;
         const teamId = getTargetTeamId();
         if (typeof MockDataStore.setTesterEXP === 'function') {
           await MockDataStore.setTesterEXP(val, seeds, teamId);
@@ -218,9 +218,9 @@ export class TesterPanel {
         let targetExp = 0;
         let seedsCount = 0;
         if (btn.id === 'stage-btn-0-seeds') { targetExp = 0; seedsCount = 0; }
-        else if (btn.id === 'stage-btn-15-seeds') { targetExp = 15; seedsCount = 15; }
-        else if (btn.id === 'stage-btn-30-seeds') { targetExp = 30; seedsCount = 30; }
-        else if (btn.id === 'stage-btn-45-seeds') { targetExp = 45; seedsCount = 45; }
+        else if (btn.id === 'stage-btn-15-seeds') { targetExp = 15; seedsCount = 3; }
+        else if (btn.id === 'stage-btn-30-seeds') { targetExp = 30; seedsCount = 6; }
+        else if (btn.id === 'stage-btn-45-seeds') { targetExp = 45; seedsCount = 9; }
         else if (btn.id === 'stage-btn-50-sprout') { targetExp = 50; seedsCount = 0; }
         else if (btn.dataset.level) {
           const lvl = parseInt(btn.dataset.level, 10);
@@ -257,9 +257,9 @@ export class TesterPanel {
     if (btnSim10) btnSim10.addEventListener('click', async () => {
       const teamId = getTargetTeamId();
       if (typeof MockDataStore.simulateSeedContribution === 'function') {
-        await MockDataStore.simulateSeedContribution(10, teamId);
+        await MockDataStore.simulateSeedContribution(5, teamId);
       } else if (typeof MockDataStore.addSeeds === 'function') {
-        await MockDataStore.addSeeds(10, teamId);
+        await MockDataStore.addSeeds(5, teamId);
       }
       await refreshUI();
     });
@@ -268,9 +268,9 @@ export class TesterPanel {
     if (btnSim50) btnSim50.addEventListener('click', async () => {
       const teamId = getTargetTeamId();
       if (typeof MockDataStore.simulateSeedContribution === 'function') {
-        await MockDataStore.simulateSeedContribution(50, teamId);
+        await MockDataStore.simulateSeedContribution(10, teamId);
       } else if (typeof MockDataStore.addSeeds === 'function') {
-        await MockDataStore.addSeeds(50, teamId);
+        await MockDataStore.addSeeds(10, teamId);
       }
       await refreshUI();
     });
@@ -355,8 +355,8 @@ export class TesterPanel {
     }
 
     if (targetTeam) {
-      const isSprouted = targetTeam.is_sprouted || targetTeam.level >= 1;
-      const exp = isSprouted ? (targetTeam.total_exp || 0) : (targetTeam.tree_seeds || 0);
+      const isSprouted = targetTeam.is_sprouted || targetTeam.level >= 1 || (targetTeam.total_exp || 0) >= 50;
+      const exp = targetTeam.total_exp || 0;
       if (slider) slider.value = exp;
       this.updateExpLabel(exp, expVal);
       if (currentBadge && (!teamSelect || teamSelect.value === 'active')) {
@@ -368,7 +368,7 @@ export class TesterPanel {
         current = MockDataStore.getState();
       }
       if (slider && current) {
-        const exp = typeof current.totalEXP === 'number' ? current.totalEXP : (current.totalSeeds || 0);
+        const exp = typeof current.totalEXP === 'number' ? current.totalEXP : 0;
         slider.value = exp;
         this.updateExpLabel(exp, expVal);
       }
@@ -378,7 +378,8 @@ export class TesterPanel {
   updateExpLabel(val, expValEl) {
     if (!expValEl) return;
     if (val < 50) {
-      expValEl.textContent = `${val}/50 EXP (Ủ Mầm)`;
+      const seeds = Math.floor(val / 5);
+      expValEl.textContent = `${val}/50 EXP (${seeds} hạt mầm)`;
     } else {
       expValEl.textContent = `${val} EXP`;
     }

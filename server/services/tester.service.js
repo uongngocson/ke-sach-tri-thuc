@@ -234,8 +234,8 @@ export class TesterService {
 
   static async setExp(exp, customSeedsCount = null, teamId = null) {
     const levelInfo = calculateLevelFromExp(exp);
-    const targetSeeds = customSeedsCount !== null ? customSeedsCount : (exp < 50 ? exp : 0);
-    const isSprouted = (levelInfo.level >= 1 || targetSeeds >= 50 || exp >= 50);
+    const targetSeeds = customSeedsCount !== null ? customSeedsCount : (exp < 50 ? Math.floor(exp / 5) : 0);
+    const isSprouted = (levelInfo.level >= 1 || exp >= 50);
 
     const result = await db.transaction(async (client) => {
       // 1. Determine target teams
@@ -342,9 +342,9 @@ export class TesterService {
         const countRes = await client.query("SELECT COUNT(*) FROM books WHERE team_id = $1 AND visibility_status = 'visible'", [tId]);
         const totalSeeds = parseInt(countRes.rows[0].count, 10);
 
-        const isSprouted = totalSeeds >= 50;
-        const newExp = totalSeeds < 50 ? totalSeeds : (totalSeeds * 10);
+        const newExp = totalSeeds * 5;
         const levelInfo = calculateLevelFromExp(newExp);
+        const isSprouted = (levelInfo.level >= 1 || newExp >= 50);
 
         await client.query(`
           UPDATE teams
