@@ -8,12 +8,12 @@ export const EXP_CONFIG = {
 };
 
 export const LEVEL_THRESHOLDS = [
-  { level: 0, name: 'Hạt Mầm Tri Thức', minExp: 0, maxExp: 49, desc: 'Hạt mầm tri thức đang ủ trong đất' },
-  { level: 1, name: 'Mầm Xanh Hé Nụ', minExp: 50, maxExp: 149, desc: 'Mầm non nhú lên đón sương sớm' },
-  { level: 2, name: 'Cây Non Vươn Cành', minExp: 150, maxExp: 349, desc: 'Thân non bắt đầu vươn tán' },
-  { level: 3, name: 'Cây Tri Thức Sum Sê', minExp: 350, maxExp: 699, desc: 'Tán lá rộng phủ bóng tri thức' },
-  { level: 4, name: 'Đại Thụ Đơm Hoa Kết Trái', minExp: 700, maxExp: 1199, desc: '36 quả ngọt tri thức trĩu cành' },
-  { level: 5, name: 'Cây Cổ Thụ Ngàn Năm', minExp: 1200, maxExp: 999999999, desc: '52 quả tinh hoa rực sáng di sản' }
+  { level: 0, name: 'Ủ Mầm', minExp: 0, maxExp: 49, desc: 'Hạt mầm tri thức đang ủ trong đất' },
+  { level: 1, name: 'Mầm Non', minExp: 50, maxExp: 149, desc: 'Mầm non nhú lên đón sương sớm' },
+  { level: 2, name: 'Cây Con', minExp: 150, maxExp: 299, desc: 'Thân non bắt đầu vươn cành' },
+  { level: 3, name: 'Trưởng Thành', minExp: 300, maxExp: 599, desc: 'Tán lá rộng phủ bóng tri thức' },
+  { level: 4, name: 'Cổ Thụ', minExp: 600, maxExp: 1199, desc: '36 quả ngọt tri thức trĩu cành' },
+  { level: 5, name: 'Đại Cổ Thụ', minExp: 1200, maxExp: 999999999, desc: '52 quả tinh hoa rực sáng di sản' }
 ];
 
 export function calculateLevelFromExp(totalExp) {

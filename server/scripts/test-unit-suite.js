@@ -93,13 +93,13 @@ async function runUnitSuite() {
     const l2_start = calculateLevelFromExp(150);
     assert(l2_start.level === 2 && l2_start.progressPercent === 0, 'Level 2 với 150 EXP bắt đầu giai đoạn Cây Con');
 
-    // 2.6: Level 3: 350 EXP -> Cây Tri Thức Sum Sê
-    const l3_start = calculateLevelFromExp(350);
-    assert(l3_start.level === 3 && l3_start.progressPercent === 0, 'Level 3 với 350 EXP bắt đầu giai đoạn Cây Tri Thức Sum Sê');
+    // 2.6: Level 3: 300 EXP -> Trưởng Thành
+    const l3_start = calculateLevelFromExp(300);
+    assert(l3_start.level === 3 && l3_start.progressPercent === 0, 'Level 3 với 300 EXP bắt đầu giai đoạn Trưởng Thành');
 
-    // 2.7: Level 4: 700 EXP -> Đại Thụ Đơm Hoa Kết Trái
-    const l4_start = calculateLevelFromExp(700);
-    assert(l4_start.level === 4 && l4_start.progressPercent === 0, 'Level 4 với 700 EXP bắt đầu giai đoạn Đại Thụ');
+    // 2.7: Level 4: 600 EXP -> Cổ Thụ
+    const l4_start = calculateLevelFromExp(600);
+    assert(l4_start.level === 4 && l4_start.progressPercent === 0, 'Level 4 với 600 EXP bắt đầu giai đoạn Cổ Thụ');
 
     // 2.8: Level 5: 1200 EXP -> Cực đại Max Level 100%
     const l5_max = calculateLevelFromExp(1200);

@@ -286,11 +286,11 @@ async function runFullTestKey() {
     assert(relikeRes.newLikesCount === bookLikesBefore + 1, 'Thả tim lại lần 2 sau khi unlike thành công mượt mà');
 
     // 2.5 Kiểm tra cờ is_liked khi truy vấn sách
-    const quotesForLiker = await BookService.getPublicQuotes({ userFingerprint: likeFp });
+    const quotesForLiker = await BookService.getPublicQuotes({ userFingerprint: likeFp, search: 'Đắc Nhân Tâm Tri Thức' });
     const targetBookForLiker = quotesForLiker.quotes.find(b => b.id === testBookId);
     assert(targetBookForLiker && targetBookForLiker.is_liked === true, 'Truy vấn cho người đã thả tim: is_liked = true');
 
-    const quotesForOther = await BookService.getPublicQuotes({ userFingerprint: 'fp_other_stranger' });
+    const quotesForOther = await BookService.getPublicQuotes({ userFingerprint: 'fp_other_stranger', search: 'Đắc Nhân Tâm Tri Thức' });
     const targetBookForOther = quotesForOther.quotes.find(b => b.id === testBookId);
     assert(targetBookForOther && targetBookForOther.is_liked === false, 'Truy vấn cho người chưa thả tim: is_liked = false');
 

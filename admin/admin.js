@@ -1221,7 +1221,15 @@ function renderTeamsTable() {
           ${(t.tree_exp || 0).toLocaleString()}
         </td>
         <td class="p-3.5 font-extrabold text-amber-400">
-          ${t.tree_seeds || 0}/50
+          ${(() => {
+            const exp = t.tree_exp || 0;
+            if (exp < 50) return `${exp}/50 EXP`;
+            if (exp < 150) return `${exp}/150 EXP`;
+            if (exp < 300) return `${exp}/300 EXP`;
+            if (exp < 600) return `${exp}/600 EXP`;
+            if (exp < 1200) return `${exp}/1.200 EXP`;
+            return 'Max (1.200+)';
+          })()}
         </td>
         <td class="p-3.5 font-bold text-slate-300">
           ${t.actual_members || 0} / ${t.target_members || 40}
@@ -1596,7 +1604,7 @@ function exportTeamsCSV() {
       'Tên Đội',
       'Cấp Độ Cây',
       'Tổng EXP Toàn Giải',
-      'Hạt Giống (Mầm)',
+      'EXP Vươn Cấp',
       'Cán Bộ Thực Tế',
       'Chỉ Tiêu',
       `Số Cán Bộ Tham Gia (${dateLabel})`,
@@ -1614,6 +1622,8 @@ function exportTeamsCSV() {
     const partRate = t.date_participation_rate !== undefined ? t.date_participation_rate : (t.today_participation_rate || 0);
     const dateBooks = t.date_books_count !== undefined ? t.date_books_count : 0;
     const dateDews = t.date_dews_count !== undefined ? t.date_dews_count : 0;
+    const exp = t.tree_exp || 0;
+    const nextTarget = exp < 50 ? '50 EXP' : exp < 150 ? '150 EXP' : exp < 300 ? '300 EXP' : exp < 600 ? '600 EXP' : exp < 1200 ? '1.200 EXP' : 'Max Level';
 
     rows.push([
       t.rank,
@@ -1621,7 +1631,7 @@ function exportTeamsCSV() {
       `"${t.display_name || t.name}"`,
       `"${t.levelName}"`,
       t.tree_exp,
-      t.tree_seeds,
+      `"${nextTarget}"`,
       t.actual_members,
       t.target_members,
       partCount,
@@ -1674,7 +1684,7 @@ async function exportTeamsAllDaysCSV() {
         'Tên Đội',
         'Cấp Độ Cây',
         'Tổng EXP Toàn Giải',
-        'Hạt Giống (Mầm)',
+        'EXP Vươn Cấp',
         'Cán Bộ Thực Tế',
         'Chỉ Tiêu',
         'Tỷ Lệ TB Toàn Giải (%)',
@@ -1684,13 +1694,15 @@ async function exportTeamsAllDaysCSV() {
     ];
 
     teams_summary.forEach(t => {
+      const exp = t.tree_exp || 0;
+      const nextTarget = exp < 50 ? '50 EXP' : exp < 150 ? '150 EXP' : exp < 300 ? '300 EXP' : exp < 600 ? '600 EXP' : exp < 1200 ? '1.200 EXP' : 'Max Level';
       rows.push([
         t.rank,
         `"${t.code}"`,
         `"${t.display_name || t.name}"`,
         `"${t.levelName}"`,
         t.tree_exp,
-        `"${t.tree_seeds}/50"`,
+        `"${nextTarget}"`,
         t.actual_members,
         t.target_members,
         `"${t.avg_participation_rate}%"`,
@@ -1760,7 +1772,7 @@ function renderRoundsTimeline() {
 
   // Stages Cards
   const stages = [
-    { title: '🌱 GIAI ĐOẠN 1: Ủ MẦM (Chặng 1 - 3)', desc: 'Tích lũy 50 hạt giống nảy mầm cây tri thức', rounds: rounds.slice(0, 3), color: 'emerald' },
+    { title: '🌱 GIAI ĐOẠN 1: Ủ MẦM (Chặng 1 - 3)', desc: 'Tích lũy 50 EXP nảy mầm cây tri thức', rounds: rounds.slice(0, 3), color: 'emerald' },
     { title: '🌲 GIAI ĐOẠN 2: VƯƠN MÌNH (Chặng 4 - 12)', desc: 'Gieo sách hàng ngày, mở rộng cành lá và đơm hoa', rounds: rounds.slice(3, 12), color: 'sky' },
     { title: '🌟 GIAI ĐOẠN 3: VỀ ĐÍCH (Chặng 13 - 15)', desc: 'Bứt phá điểm số, kết trái vàng và xác lập Đại Cổ Thụ', rounds: rounds.slice(12, 15), color: 'amber' }
   ];

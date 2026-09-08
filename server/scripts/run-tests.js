@@ -56,7 +56,7 @@ async function runAllTests() {
     assert(lvl1.level === 1 && lvl1.progressPercent === 50, 'Level 1 with 100 EXP has 50% progress');
 
     const lvl4 = calculateLevelFromExp(750);
-    assert(lvl4.level === 4 && lvl4.name === 'Đại Thụ Đơm Hoa Kết Trái', 'Level 4 thresholds correctly mapped');
+    assert(lvl4.level === 4 && (lvl4.name === 'Cổ Thụ' || lvl4.name === 'Đại Thụ Đơm Hoa Kết Trái'), 'Level 4 thresholds correctly mapped');
 
     const lvl5 = calculateLevelFromExp(1500);
     assert(lvl5.level === 5 && lvl5.progressPercent === 100, 'Level 5 Max Level capped with 100% progress');

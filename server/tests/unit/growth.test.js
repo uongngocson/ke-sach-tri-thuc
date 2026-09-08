@@ -21,16 +21,16 @@ describe('Unit Test: Level & EXP Calculation Math', () => {
     expect(res100.progressPercent).toBe(50); // (100 - 50) / 100 = 50%
   });
 
-  test('Level 4: Mature Oak with 36 fruits (700 to 1199 EXP)', () => {
-    const res700 = calculateLevelFromExp(700);
-    expect(res700.level).toBe(4);
-    expect(res700.name).toBe('Đại Thụ Đơm Hoa Kết Trái');
+  test('Level 4: Mature Tree (600 to 1199 EXP)', () => {
+    const res600 = calculateLevelFromExp(600);
+    expect(res600.level).toBe(4);
+    expect(res600.name).toBe('Cổ Thụ');
   });
 
   test('Level 5: Ancient Sacred Tree (>= 1200 EXP)', () => {
     const res1500 = calculateLevelFromExp(1500);
     expect(res1500.level).toBe(5);
-    expect(res1500.name).toBe('Cây Cổ Thụ Ngàn Năm');
+    expect(res1500.name).toBe('Đại Cổ Thụ');
     expect(res1500.progressPercent).toBe(100);
   });
 });

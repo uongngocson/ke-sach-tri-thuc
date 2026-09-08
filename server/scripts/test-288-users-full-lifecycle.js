@@ -299,21 +299,21 @@ async function run288UsersFullLifecycleTest() {
     const g1_mid = calculateLevelFromExp(100);
     assert(g1_mid.level === 1 && g1_mid.progressPercent === 50, 'Giai đoạn 1 (100 EXP): Đúng 50% tiến độ vươn cành (50/100)');
 
-    // Giai đoạn 2: Cây con vươn cành (150 - 349 EXP)
+    // Giai đoạn 2: Cây con (150 - 299 EXP)
     const g2_start = calculateLevelFromExp(150);
     assert(g2_start.level === 2 && g2_start.progressPercent === 0, 'Giai đoạn 2 (150 EXP): Bắt đầu giai đoạn Cây Con (0%)');
-    const g2_mid = calculateLevelFromExp(250);
-    assert(g2_mid.level === 2 && g2_mid.progressPercent === 50, 'Giai đoạn 2 (250 EXP): Đạt đúng 50% tiến độ cây con ((250-150)/200)');
+    const g2_mid = calculateLevelFromExp(225);
+    assert(g2_mid.level === 2 && g2_mid.progressPercent === 50, 'Giai đoạn 2 (225 EXP): Đạt đúng 50% tiến độ cây con ((225-150)/150)');
 
-    // Giai đoạn 3: Cây trưởng thành sum sê (350 - 699 EXP)
-    const g3_start = calculateLevelFromExp(350);
-    assert(g3_start.level === 3 && g3_start.progressPercent === 0, 'Giai đoạn 3 (350 EXP): Bắt đầu giai đoạn Cây Sum Sê (0%)');
+    // Giai đoạn 3: Trưởng thành (300 - 599 EXP)
+    const g3_start = calculateLevelFromExp(300);
+    assert(g3_start.level === 3 && g3_start.progressPercent === 0, 'Giai đoạn 3 (300 EXP): Bắt đầu giai đoạn Trưởng Thành (0%)');
 
-    // Giai đoạn 4: Đại thụ đơm hoa kết trái (700 - 1199 EXP)
-    const g4_start = calculateLevelFromExp(700);
-    assert(g4_start.level === 4 && g4_start.progressPercent === 0, 'Giai đoạn 4 (700 EXP): Bắt đầu giai đoạn Đại Thụ (0%)');
+    // Giai đoạn 4: Cổ thụ (600 - 1199 EXP)
+    const g4_start = calculateLevelFromExp(600);
+    assert(g4_start.level === 4 && g4_start.progressPercent === 0, 'Giai đoạn 4 (600 EXP): Bắt đầu giai đoạn Cổ Thụ (0%)');
 
-    // Giai đoạn 5: Cây Cổ Thụ Ngàn Năm (>= 1200 EXP)
+    // Giai đoạn 5: Đại Cổ Thụ (>= 1200 EXP)
     const g5_start = calculateLevelFromExp(1200);
     assert(g5_start.level === 5 && g5_start.progressPercent === 100, 'Giai đoạn 5 (1200 EXP): Cực đại Đại Cổ Thụ đạt 100% tiến độ cap');
 

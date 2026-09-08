@@ -121,14 +121,15 @@ export class AnalyticsService {
       const dateParticipants = parseInt(team.date_participants || 0, 10);
       const currentRate = target > 0 ? parseFloat(((todayParticipants / target) * 100).toFixed(1)) : 0;
       const dateRate = target > 0 ? parseFloat(((dateParticipants / target) * 100).toFixed(1)) : 0;
-      const isSprouted = (team.tree_seeds >= 50) || (team.tree_level >= 1);
-      const levelNames = ['Ủ Mầm (Hạt)', 'Cây Nảy Mầm', 'Cây Con', 'Cây Phát Triển', 'Cây Cổ Thụ', 'Đại Cổ Thụ'];
+      const totalExp = parseFloat(team.tree_exp || team.total_exp || 0);
+      const isSprouted = (team.tree_level >= 1) || (totalExp >= 50) || (team.tree_seeds >= 50);
+      const levelNames = ['Ủ Mầm', 'Mầm Non', 'Cây Con', 'Trưởng Thành', 'Cổ Thụ', 'Đại Cổ Thụ'];
 
       return {
         ...team,
         rank: index + 1,
         shortName: TEAM_SHORT_NAMES[team.id] || `Đội ${team.id}`,
-        levelName: levelNames[team.tree_level] || 'Ủ Mầm',
+        levelName: isSprouted ? (levelNames[team.tree_level] || 'Mầm Non') : 'Ủ Mầm',
         isSprouted,
         books_count: parseInt(team.books_count || 0, 10),
         date_books_count: parseInt(team.date_books_count || 0, 10),
