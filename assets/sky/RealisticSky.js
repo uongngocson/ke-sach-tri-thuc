@@ -4,22 +4,23 @@
  * Runs 100% automatically in background with ZERO UI buttons/overlays.
  */
 import { SkyCanvas } from './components/SkyCanvas.js?v=20260907_v3';
+import { getVietnamDecimalHour } from './lib/astronomy.js';
 
 class RealisticSkySystem {
   constructor() {
     this.canvasContainer = null;
     this.skyCanvas = null;
-    this.currentHour = this.getLocalDecimalHour();
-    this.targetHour = this.currentHour;
+    this.lastThemeDark = false;
+    this.currentHour = 12.0;
+    this.targetHour = 12.0;
     this.isTransitioning = false;
     this.lastTime = performance.now();
 
     this.init();
   }
 
-  getLocalDecimalHour() {
-    const now = new Date();
-    return now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+  getVietnamHour() {
+    return getVietnamDecimalHour(new Date());
   }
 
   init() {
@@ -36,44 +37,51 @@ class RealisticSkySystem {
     // 2. Initialize Sky Canvas
     this.skyCanvas = new SkyCanvas(this.canvasContainer);
 
-    // Check if initial theme is dark
+    // 3. Resolve Initial Hour synced with Theme & Vietnam Local Time
     const isDarkInitial = document.documentElement.classList.contains('dark');
+    this.lastThemeDark = isDarkInitial;
+    const vnH = this.getVietnamHour();
+
     if (isDarkInitial) {
-      const realH = this.getLocalDecimalHour();
-      if (realH >= 6 && realH < 18) {
-        this.currentHour = 22.0;
-        this.targetHour = 22.0;
-      } else {
-        this.currentHour = realH;
-        this.targetHour = realH;
-      }
+      // Dark mode active: target night sky (22:00)
+      this.currentHour = (vnH < 6.0 || vnH >= 18.0) ? vnH : 22.0;
+      this.targetHour = this.currentHour;
     } else {
-      this.currentHour = this.getLocalDecimalHour();
+      // Day mode active: target real daytime hour if between 6-18h, else crisp noon 12:00
+      this.currentHour = (vnH >= 6.0 && vnH < 18.0) ? vnH : 12.0;
       this.targetHour = this.currentHour;
     }
 
-    // 3. Listen to Theme Changes (Ban Đêm / Ban Ngày)
+    // 4. Listen to Theme Changes (Ban Đêm / Ban Ngày) strictly when .dark toggles
     const observer = new MutationObserver((mutations) => {
       for (const m of mutations) {
         if (m.attributeName === 'class') {
           const isDark = document.documentElement.classList.contains('dark');
-          if (isDark && (this.currentHour >= 6.0 && this.currentHour <= 18.0)) {
-            this.targetHour = 22.0;
-            this.isTransitioning = true;
-          } else if (!isDark && (this.currentHour < 6.0 || this.currentHour > 18.0)) {
-            this.targetHour = 12.0;
-            this.isTransitioning = true;
+          // Only trigger transition if the 'dark' state actually changed (prevents loops with sky-night-active)
+          if (isDark !== this.lastThemeDark) {
+            this.lastThemeDark = isDark;
+            if (isDark) {
+              this.targetHour = 22.0;
+              this.isTransitioning = true;
+            } else {
+              const currentVn = this.getVietnamHour();
+              this.targetHour = (currentVn >= 6.0 && currentVn < 18.0) ? currentVn : 12.0;
+              this.isTransitioning = true;
+            }
           }
         }
       }
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-    // 4. Start Animation Loop
+    // 5. Expose instance for testing & telemetry
+    window.realisticSkySystem = this;
+
+    // 6. Start Animation Loop
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
 
-    console.log('🌌 Realistic Sky System Initialized (Zero UI, 100% Background Execution)');
+    console.log(`🌌 Realistic Sky System Initialized (Hour: ${this.currentHour.toFixed(2)}, Dark: ${isDarkInitial})`);
   }
 
   loop(currentTime) {
@@ -97,7 +105,7 @@ class RealisticSkySystem {
     }
 
     // Broadcast night state to documentElement for crystal-clear UI contrast
-    const isNightNow = (this.currentHour < 6.0 || this.currentHour > 18.0);
+    const isNightNow = (this.currentHour < 6.0 || this.currentHour >= 18.0);
     if (document.documentElement) {
       if (isNightNow && !document.documentElement.classList.contains('sky-night-active')) {
         document.documentElement.classList.add('sky-night-active');
@@ -123,3 +131,5 @@ if (typeof document !== 'undefined') {
     new RealisticSkySystem();
   }
 }
+
+export { RealisticSkySystem };
