@@ -694,14 +694,12 @@ export class UserIdentityModal {
     container.innerHTML = users.map(u => {
       const displayName = u.nickname || u.full_name;
       const teamLabel = u.team_display_name || TEAM_FALLBACK_NAMES[u.team_id] || (u.team_id ? 'Đội ' + u.team_id : 'Thành viên');
-      const branchMeta = u.job_title || u.branch || teamLabel;
       return `
       <div class="ui-suggestion-item" data-id="${escapeHtml(u.id)}">
         <div class="ui-suggestion-left">
           <div class="ui-suggestion-avatar">${escapeHtml(displayName.slice(0, 1))}</div>
           <div class="ui-suggestion-details">
             <div class="ui-suggestion-name">${escapeHtml(displayName)}</div>
-            <div class="ui-suggestion-meta">${escapeHtml(branchMeta)}</div>
           </div>
         </div>
         <div class="ui-suggestion-team-tag" style="border-left: 2px solid ${escapeHtml(u.team_color || '#3b82f6')};">
@@ -733,7 +731,7 @@ export class UserIdentityModal {
     const teamLabel = user.team_display_name || TEAM_FALLBACK_NAMES[user.team_id] || (user.team_id ? `Đội ${user.team_id}` : 'Thành viên');
     avatar.textContent = user.gender === 'Nữ' ? '🌸' : '⚡';
     name.textContent = displayName;
-    meta.textContent = user.branch || user.job_title || teamLabel;
+    meta.textContent = `Thành viên ${teamLabel}`;
     team.textContent = teamLabel;
 
     previewBox.style.display = 'block';
