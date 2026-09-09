@@ -18,7 +18,8 @@ const suites = [
   'test-fruit-harvest-fullkey.js',
   'test-day-night-fullkey.js',
   'test-realtime-concurrency-fullkey.js',
-  'test-security-fullkey.js'
+  'test-security-fullkey.js',
+  'test-288-users-seeding-and-ui-fullkey.js'
 ];
 
 console.log(`\n🚀 Starting execution of all ${suites.length} test suites...\n`);
@@ -28,7 +29,7 @@ let passedCount = 0;
 for (const suite of suites) {
   const scriptPath = path.join(__dirname, suite);
   console.log(`\n▶️ [RUNNING] ${suite}...`);
-  const res = spawnSync(process.execPath, [scriptPath], {
+  const res = spawnSync(process.execPath, ['--max-old-space-size=4096', scriptPath], {
     stdio: 'inherit',
     cwd: path.join(__dirname, '..')
   });
