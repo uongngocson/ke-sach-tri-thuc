@@ -104,9 +104,6 @@ async function runTests() {
       title: 'Mỗi Cuốn Sách Là Một Hạt Mầm (Đã Tùy Biến)',
       subtitle: 'Mỗi Độc Giả Là Một Người Gieo Tri Thức',
       metaphor: 'Trích dẫn thử nghiệm tùy biến...',
-      pillar1: 'Gieo Hạt Tri Thức',
-      pillar2: 'Lan Tỏa Tri Thức',
-      pillar3: 'Nhật Ký Tri Thức',
       buttonText: 'Khám Phá Ngay'
     };
 

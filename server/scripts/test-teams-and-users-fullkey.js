@@ -249,10 +249,15 @@ async function runFullKeyTeamsAndUsersTest() {
 
     const dewResult = await DewService.claimDew({ userId: userTeam1.id, teamId: 1 });
     assert(dewResult && dewResult.dew && dewResult.expEarned === 2, 
-      'Tưới cây hợp lệ thành công: Độc giả Đội 1 tưới cây Đội 1 nhận thành công +2 EXP',
+      'Tưới cây hợp lệ thành công: Độc giả Đội 1 tưới cây Đội 1 nhận thành công +2 EXP (Lượt 1/3)',
       `Dew ID: ${dewResult.dew.id}, Streak: ${dewResult.streak}`);
 
-    // Thử tưới lần 2 trong cùng ngày -> Bị chặn 409 DUPLICATE_DEW_CLAIM
+    // Lượt 2: Thành công
+    await DewService.claimDew({ userId: userTeam1.id, teamId: 1 });
+    // Lượt 3: Thành công (đạt mốc 3/3)
+    await DewService.claimDew({ userId: userTeam1.id, teamId: 1 });
+
+    // Thử tưới lần 4 trong cùng ngày -> Bị chặn 409 DUPLICATE_DEW_CLAIM
     let duplicateDewBlocked = false;
     try {
       await DewService.claimDew({ userId: userTeam1.id, teamId: 1 });
@@ -261,10 +266,10 @@ async function runFullKeyTeamsAndUsersTest() {
         duplicateDewBlocked = true;
       }
     }
-    assert(duplicateDewBlocked, 'Bảo vệ thành công: Chặn độc giả tưới cây lần 2 trong ngày (HTTP 409 DUPLICATE_DEW_CLAIM)');
+    assert(duplicateDewBlocked, 'Bảo vệ thành công: Chặn độc giả tưới cây lần thứ 4 trong ngày (HTTP 409 DUPLICATE_DEW_CLAIM)');
 
-    // 3.4: Thực hành Gieo Sách / Trích Dẫn Tri Thức (+5 EXP) & Giới hạn 1 Quote/Ngày
-    console.log('\n📌 [Thực hành 3] Thực hành Gieo Mầm Tri Thức (1 Quote / Ngày / User):');
+    // 3.4: Thực hành Gieo Sách / Trích Dẫn Tri Thức (+5 EXP) & Giới hạn Tối đa 3 Quotes/Ngày
+    console.log('\n📌 [Thực hành 3] Thực hành Gieo Mầm Tri Thức (Tối đa 3 Quotes / Ngày / User):');
     const userTeam3 = (await db.query('SELECT id, full_name, team_id FROM users WHERE team_id = 3 LIMIT 1')).rows[0];
 
     // Xóa trích dẫn hôm nay của userTeam3 nếu có để test sạch
@@ -287,16 +292,40 @@ async function runFullKeyTeamsAndUsersTest() {
     });
 
     assert(bookContrib && bookContrib.book && bookContrib.growth.expEarned === 5, 
-      'Độc giả Đội 3 gieo mầm trích dẫn sách thành công (+5 EXP ghi nhận vào sổ cái)',
+      'Độc giả Đội 3 gieo mầm trích dẫn 1 thành công (+5 EXP ghi nhận vào sổ cái)',
       `Book ID: ${bookContrib.book.id}, Level: ${bookContrib.growth.level}`);
 
-    // Gieo lần 2 trong cùng ngày -> Phải bị chặn 409
+    // Gieo trích dẫn 2: Thành công
+    await BookService.contributeBook({
+      title: 'Quẳng Gánh Lo Đi',
+      author: 'Dale Carnegie',
+      quote: 'Hãy sống trong những ngăn kín của từng ngày.',
+      category: 'Kỹ Năng Sống',
+      reader: userTeam3.full_name,
+      userId: userTeam3.id,
+      teamId: 3,
+      userFingerprint: `fp_test_u3_q2_${Date.now()}`
+    });
+
+    // Gieo trích dẫn 3: Thành công (đạt mốc 3/3)
+    await BookService.contributeBook({
+      title: 'Nhà Giả Kim',
+      author: 'Paulo Coelho',
+      quote: 'Khi bạn khao khát một điều gì đó, cả vũ trụ sẽ hợp lực giúp bạn đạt được.',
+      category: 'Văn Học',
+      reader: userTeam3.full_name,
+      userId: userTeam3.id,
+      teamId: 3,
+      userFingerprint: `fp_test_u3_q3_${Date.now()}`
+    });
+
+    // Gieo lần 4 trong cùng ngày -> Phải bị chặn 409
     let duplicateQuoteBlocked = false;
     try {
       await BookService.contributeBook({
-        title: 'Nhà Giả Kim',
-        author: 'Paulo Coelho',
-        quote: 'Khi bạn khao khát một điều gì đó, cả vũ trụ sẽ hợp lực giúp bạn đạt được.',
+        title: 'Sách Thứ 4',
+        author: 'Tác giả',
+        quote: 'Vượt hạn mức 3 câu trong ngày.',
         category: 'Văn Học',
         reader: userTeam3.full_name,
         userId: userTeam3.id,
@@ -308,7 +337,7 @@ async function runFullKeyTeamsAndUsersTest() {
         duplicateQuoteBlocked = true;
       }
     }
-    assert(duplicateQuoteBlocked, 'Bảo vệ thành công: Chặn độc giả gieo câu trích dẫn thứ 2 trong cùng ngày (HTTP 409 DAILY_QUOTE_LIMIT_EXCEEDED)');
+    assert(duplicateQuoteBlocked, 'Bảo vệ thành công: Chặn độc giả gieo câu trích dẫn thứ 4 trong cùng ngày (HTTP 409 DAILY_QUOTE_LIMIT_EXCEEDED)');
 
     // 3.5: Thực hành Like Trích Dẫn Tri Thức
     console.log('\n📌 [Thực hành 4] Thực hành Like Trích Dẫn & Tương Tác Sách:');

@@ -66,7 +66,10 @@ export class DewService {
     const effectiveFingerprint = userFingerprint || `fp_user_${user.id.substring(0, 8)}`;
 
     const result = await db.transaction(async (client) => {
-      // 4. Check if user already claimed max 3 times today
+      // 4. Row-level lock on user to prevent race condition over-claiming
+      await client.query('SELECT id FROM users WHERE id = $1 FOR UPDATE', [user.id]);
+
+      // Check if user already claimed max 3 times today
       const existingClaims = await client.query(
         'SELECT id, claim_date, streak FROM daily_dews WHERE user_id = $1 AND claim_date = $2',
         [user.id, todayVN]

@@ -401,6 +401,17 @@ export class WisdomFruitManager {
       fruitAssembly.add(stemMesh);
       fruitAssembly.add(leafMesh);
 
+      // Generous invisible hit collider for ultra-smooth clicking and tapping (especially on mobile)
+      const hitColliderGeo = new THREE.SphereGeometry(1.8, 10, 10);
+      const hitColliderMat = new THREE.MeshBasicMaterial({
+        transparent: true,
+        opacity: 0,
+        depthWrite: false
+      });
+      const hitColliderMesh = new THREE.Mesh(hitColliderGeo, hitColliderMat);
+      hitColliderMesh.name = `FruitHitCollider_${teamId}_${i}`;
+      fruitAssembly.add(hitColliderMesh);
+
       // Natural organic size variations - prominent scale (1.95) so clearly visible from panorama
       const naturalVariance = 0.96 + (i % 3) * 0.06;
       const fruitScale = 1.95 * naturalVariance;
@@ -417,6 +428,7 @@ export class WisdomFruitManager {
         swaySpeed: 0.9 + (i % 3) * 0.2,
         swayPhase: (i * 1.7) + teamId * 0.5,
         mesh: fruitMesh,
+        collider: hitColliderMesh,
         mat: mat,
         isHarvested: isHarvested,
         respawnTimer: 0
@@ -442,21 +454,92 @@ export class WisdomFruitManager {
   }
 
   initInteraction() {
+    this.touchStartX = 0;
+    this.touchStartY = 0;
+    this.touchStartTime = 0;
+    this.touchMoved = false;
+    this.lastTouchActionTime = 0;
+
     const onPointerMove = (e) => {
       this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
       this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
       this.checkHover();
     };
 
+    const isInsideAnyOverlay = (target) => {
+      return !!(target && target.closest && (
+        target.closest('#book-quote-card') || 
+        target.closest('#contribute-book-card') || 
+        target.closest('#rules-card') || 
+        target.closest('#welcome-slogan-card') || 
+        target.closest('#user-identity-card') ||
+        target.closest('#team-arena-card') ||
+        target.closest('header') || 
+        target.closest('aside') ||
+        target.closest('button') ||
+        target.closest('.modal-overlay') ||
+        target.closest('.ground-seed-item') ||
+        target.closest('.root-garden-plaque')
+      ));
+    };
+
     const onClick = (e) => {
-      if (e.target.closest && (e.target.closest('#book-quote-card') || e.target.closest('#contribute-book-card') || e.target.closest('#rules-card') || e.target.closest('#welcome-slogan-card') || e.target.closest('header') || e.target.closest('aside'))) {
+      // Ignore click if it was already handled by touch within 600ms (prevent double trigger on touch devices)
+      if (Date.now() - this.lastTouchActionTime < 600) {
         return;
       }
-      this.checkClick(e);
+      if (isInsideAnyOverlay(e.target)) {
+        return;
+      }
+      this.checkClick(e, e.clientX, e.clientY);
+    };
+
+    const onTouchStart = (e) => {
+      if (e.touches && e.touches.length > 0) {
+        this.touchStartX = e.touches[0].clientX;
+        this.touchStartY = e.touches[0].clientY;
+        this.touchStartTime = Date.now();
+        this.touchMoved = false;
+      }
+    };
+
+    const onTouchMove = (e) => {
+      if (e.touches && e.touches.length > 0) {
+        const dx = Math.abs(e.touches[0].clientX - this.touchStartX);
+        const dy = Math.abs(e.touches[0].clientY - this.touchStartY);
+        if (dx > 12 || dy > 12) {
+          this.touchMoved = true;
+        }
+      }
+    };
+
+    const onTouchEnd = async (e) => {
+      if (this.touchMoved || (Date.now() - this.touchStartTime > 500)) {
+        return; // User was panning/scrolling, not a clean tap
+      }
+      const touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
+      if (!touch) return;
+
+      if (isInsideAnyOverlay(e.target)) {
+        return;
+      }
+
+      this.lastTouchActionTime = Date.now();
+      const clientX = touch.clientX;
+      const clientY = touch.clientY;
+
+      const handled = await this.checkClick(e, clientX, clientY);
+      if (handled) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     };
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
     window.addEventListener('click', onClick);
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd, { passive: false });
   }
 
   checkHover() {
@@ -465,15 +548,20 @@ export class WisdomFruitManager {
 
     const hitTargets = [];
     this.fruits.forEach(f => {
-      if (!f.userData.isHarvested) {
-        hitTargets.push(f.userData.mesh);
+      if (!f.userData.isHarvested && f.visible) {
+        if (f.userData.collider) hitTargets.push(f.userData.collider);
+        if (f.userData.mesh) hitTargets.push(f.userData.mesh);
       }
     });
 
     const intersects = this.raycaster.intersectObjects(hitTargets, false);
     if (intersects.length > 0) {
       const hitMesh = intersects[0].object;
-      const hitFruit = this.fruits.find(f => f.userData.mesh === hitMesh);
+      const hitFruit = this.fruits.find(f => 
+        f.userData.collider === hitMesh || 
+        f.userData.mesh === hitMesh ||
+        f.children.includes(hitMesh)
+      );
 
       if (hitFruit && this.hoveredFruit !== hitFruit) {
         this.hoveredFruit = hitFruit;
@@ -487,27 +575,89 @@ export class WisdomFruitManager {
     }
   }
 
-  async checkClick(e) {
-    if (!this.camera) return;
+  async checkClick(e, clientX, clientY) {
+    if (!this.camera) return false;
+
+    // 1. Calculate normalized device coordinates
+    if (clientX === undefined || clientY === undefined) {
+      clientX = (this.mouse.x + 1) * 0.5 * window.innerWidth;
+      clientY = (-this.mouse.y + 1) * 0.5 * window.innerHeight;
+    } else {
+      this.mouse.x = (clientX / window.innerWidth) * 2 - 1;
+      this.mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+    }
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
-    if (this.fruits.length > 0) {
+    // Filter unharvested, visible fruits
+    const activeFruits = this.fruits.filter(f => !f.userData.isHarvested && f.visible);
+    let targetFruit = null;
+
+    if (activeFruits.length > 0) {
+      // 1. 3D Raycasting with generous collider and meshes
       const hitTargets = [];
-      this.fruits.forEach(f => {
-        if (!f.userData.isHarvested) {
-          hitTargets.push(f.userData.mesh);
-        }
+      activeFruits.forEach(f => {
+        if (f.userData.collider) hitTargets.push(f.userData.collider);
+        if (f.userData.mesh) hitTargets.push(f.userData.mesh);
+        f.children.forEach(c => {
+          if (c.isMesh && !hitTargets.includes(c)) hitTargets.push(c);
+        });
       });
 
-      const intersects = this.raycaster.intersectObjects(hitTargets, false);
-      if (intersects.length > 0) {
-        const hitMesh = intersects[0].object;
-        const hitFruit = this.fruits.find(f => f.userData.mesh === hitMesh);
-
-        if (hitFruit && !hitFruit.userData.isHarvested) {
-          this.harvestFruit(hitFruit, e);
-          return;
+      if (hitTargets.length > 0) {
+        const intersects = this.raycaster.intersectObjects(hitTargets, false);
+        if (intersects.length > 0) {
+          const hitObj = intersects[0].object;
+          targetFruit = activeFruits.find(f => 
+            f.userData.collider === hitObj || 
+            f.userData.mesh === hitObj || 
+            f.children.includes(hitObj)
+          );
         }
+      }
+
+      // 2. Screen-space proximity fallback (crucial for mobile touch & imprecision)
+      let closestScreenFruit = null;
+      let minScreenDist = Infinity;
+      const clickVec = new this.THREE.Vector2(clientX, clientY);
+
+      for (const f of activeFruits) {
+        const worldPos = new this.THREE.Vector3();
+        f.getWorldPosition(worldPos);
+
+        const screenPos = worldPos.clone().project(this.camera);
+        if (screenPos.z < 1.0) { // in front of camera
+          const sx = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+          const sy = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
+          const d = clickVec.distanceTo(new this.THREE.Vector2(sx, sy));
+          if (d < minScreenDist) {
+            minScreenDist = d;
+            closestScreenFruit = f;
+          }
+        }
+      }
+
+      // Generous hit radius: 70px on screen
+      const FRUIT_TAP_RADIUS_PX = 70;
+      if (!targetFruit && closestScreenFruit && minScreenDist <= FRUIT_TAP_RADIUS_PX) {
+        targetFruit = closestScreenFruit;
+      }
+
+      // If a fruit was clicked/tapped -> HARVEST IT!
+      if (targetFruit) {
+        if (e) {
+          if (e.stopPropagation) e.stopPropagation();
+          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        }
+        await this.harvestFruit(targetFruit, e);
+        return true;
+      }
+
+      // CRITICAL GUARD: If click was within 120px of ANY visible fruit,
+      // SUPPRESS falling back to the tree click!
+      // This completely stops the "Gieo mầm vào cây tri thức" modal from popping up
+      // when the user was interacting with or near fruits!
+      if (minScreenDist <= 120) {
+        return false;
       }
     }
 
@@ -529,7 +679,7 @@ export class WisdomFruitManager {
         if (treeIntersects.length > 0) {
           if (typeof window.handleGroundAction === 'function') {
             window.handleGroundAction(e);
-            return;
+            return true;
           }
         }
       }
@@ -541,9 +691,12 @@ export class WisdomFruitManager {
       if (groundIntersects.length > 0) {
         if (typeof window.handleGroundAction === 'function') {
           window.handleGroundAction(e);
+          return true;
         }
       }
     }
+
+    return false;
   }
 
   async harvestFruit(fruit, e) {

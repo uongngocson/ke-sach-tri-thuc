@@ -33,7 +33,8 @@ async function runFruitTestKey() {
   console.log('🍇 =================================================================\n');
 
   const today = new Date().toISOString().split('T')[0];
-  const API_BASE = 'http://127.0.0.1:5000/api/v1';
+  const API_PORT = process.env.PORT || 5000;
+  const API_BASE = `http://127.0.0.1:${API_PORT}/api/v1`;
 
   // 1. Chuẩn bị tài khoản test (Lấy 1 User từ Đội 1)
   const userRes = await db.query('SELECT * FROM users WHERE team_id = 1 ORDER BY id LIMIT 1');

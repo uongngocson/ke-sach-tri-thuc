@@ -9,8 +9,11 @@ export class BookService {
   /**
    * Check if a user/device has already contributed a quote today
    */
-  static async getDailyQuoteStatus({ userId, userFingerprint }) {
-    const todayVN = getVietnamDateString();
+  static async getDailyQuoteStatus({ userId, userFingerprint, customDate, date }) {
+    const effDate = customDate || date;
+    const todayVN = (effDate && /^\d{4}-\d{2}-\d{2}$/.test(String(effDate).trim()))
+      ? String(effDate).trim()
+      : getVietnamDateString();
     let resolvedUserId = userId || null;
     if (resolvedUserId) {
       const res = await db.query(`
@@ -56,8 +59,10 @@ export class BookService {
   }
 
   static async contributeBook(payload) {
-    const { title, author, quote, category, reader, userFingerprint } = payload;
-    const todayVN = getVietnamDateString();
+    const { title, author, quote, category, reader, userFingerprint, customDate } = payload;
+    const todayVN = (customDate && /^\d{4}-\d{2}-\d{2}$/.test(String(customDate).trim()))
+      ? String(customDate).trim()
+      : getVietnamDateString();
 
     // ACID Database Transaction: Insert Book + Insert Ledger + Update Community Growth
     const result = await db.transaction(async (client) => {
@@ -67,7 +72,7 @@ export class BookService {
 
       // 0. Resolve user & strictly enforce user's actual team_id
       if (userId) {
-        const userRes = await client.query('SELECT id, team_id, nickname, full_name FROM users WHERE id = $1', [userId]);
+        const userRes = await client.query('SELECT id, team_id, nickname, full_name FROM users WHERE id = $1 FOR UPDATE', [userId]);
         if (userRes.rows.length > 0) {
           if (userRes.rows[0].team_id) {
             teamId = userRes.rows[0].team_id; // STRICTLY enforce actual team of the member
@@ -76,6 +81,10 @@ export class BookService {
           // If userId does not match any user in DB, nullify
           userId = null;
         }
+      }
+
+      if (userFingerprint || userId) {
+        await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [String(userId || userFingerprint)]);
       }
 
       // 0.0 Fallback lookup by reader nickname or full name if userId is missing

@@ -159,17 +159,20 @@ async function runFullTestKey() {
     assert(savedDew.rows.length === 1, 'Bảng daily_dews lưu chính xác 1 bản ghi');
     assert(getVietnamDateString(new Date(savedDew.rows[0].claim_date)) === todayVN, `Ngày tưới ghi nhận chuẩn xác theo múi giờ VN: ${todayVN}`);
 
-    // 1.6 Chặn tưới lần 2 trong cùng ngày (Duplicate Daily Dew - HTTP 409)
+    // 1.6 Kiểm tra giới hạn 3 lần/ngày: tưới lần 2 và 3 thành công, lần 4 bị chặn
+    await DewService.claimDew({ userId: testUserId1, teamId: 1, userFingerprint: testFp1 });
+    await DewService.claimDew({ userId: testUserId1, teamId: 1, userFingerprint: testFp1 });
+
     let duplicateDewBlocked = false;
     try {
       await DewService.claimDew({ userId: testUserId1, teamId: 1, userFingerprint: testFp1 });
     } catch (e) {
       duplicateDewBlocked = (e.statusCode === 409 && e.code === 'DUPLICATE_DEW_CLAIM');
     }
-    assert(duplicateDewBlocked, 'Chặn tưới lần 2 trong cùng 1 ngày (HTTP 409 DUPLICATE_DEW_CLAIM)');
+    assert(duplicateDewBlocked, 'Chặn tưới lần thứ 4 trong cùng 1 ngày (HTTP 409 DUPLICATE_DEW_CLAIM)');
 
     const user1AfterDup = (await db.query('SELECT total_exp_earned FROM users WHERE id = $1', [testUserId1])).rows[0].total_exp_earned;
-    assert(user1AfterDup === user1After, 'Điểm số người dùng KHÔNG bị tăng khống khi bị chặn tưới trùng lặp', `EXP giữ nguyên: ${user1AfterDup}`);
+    assert(user1AfterDup === user1Before + 6, 'Điểm số người dùng KHÔNG bị tăng khống khi bị chặn tưới trùng lặp', `EXP giữ nguyên: ${user1AfterDup}`);
 
     // 1.7 Kiểm thử chống Race Condition (10 requests đồng thời stampede)
     console.log('   ↳ Mô phỏng 10 request tưới cây đồng thời cho User 2...');
@@ -181,18 +184,18 @@ async function runFullTestKey() {
     const successes = raceResults.filter(r => r.status === 'fulfilled');
     const failures = raceResults.filter(r => r.status === 'rejected');
 
-    assert(successes.length === 1, 'Chính xác DUY NHẤT 1 request tưới cây thành công khi spam 10 request đồng thời', `Thành công: ${successes.length}/10`);
-    assert(failures.length === 9, '9 request còn lại bị chặn bởi Unique Constraint & ACID Lock', `Bị chặn: ${failures.length}/10`);
+    assert(successes.length === 3, 'Chính xác TỐI ĐA 3 requests tưới cây thành công khi spam 10 request đồng thời', `Thành công: ${successes.length}/10`);
+    assert(failures.length === 7, '7 request còn lại bị chặn bởi Unique Constraint & ACID Lock', `Bị chặn: ${failures.length}/10`);
 
     const user2Exp = (await db.query('SELECT total_exp_earned FROM users WHERE id = $1', [testUserId2])).rows[0].total_exp_earned;
-    assert(user2Exp === 102, 'User 2 CHỈ TĂNG ĐÚNG +2 EXP (Không bị nhân đôi/nhân 10)', `EXP hiện tại: ${user2Exp} (100 + 2)`);
+    assert(user2Exp === 106, 'User 2 CHỈ TĂNG ĐÚNG +6 EXP (Không bị nhân đôi/nhân 10)', `EXP hiện tại: ${user2Exp} (100 + 6)`);
 
     const user2DewsCount = (await db.query('SELECT COUNT(*)::INT as count FROM daily_dews WHERE user_id = $1', [testUserId2])).rows[0].count;
-    assert(user2DewsCount === 1, 'Bảng daily_dews chỉ lưu ĐÚNG 1 BẢN GHI duy nhất cho User 2', `Số dòng: ${user2DewsCount}`);
+    assert(user2DewsCount === 3, 'Bảng daily_dews chỉ lưu ĐÚNG 3 BẢN GHI chuẩn 3 lần/ngày cho User 2', `Số dòng: ${user2DewsCount}`);
 
     // 1.8 Kiểm thử API getDewStatus (Server-Authoritative State Check)
     const statusWatered = await DewService.getDewStatus({ userId: testUserId1 });
-    assert(statusWatered.hasClaimedToday === true, 'getDewStatus cho User đã tưới trả về hasClaimedToday = true chính xác');
+    assert(statusWatered.hasClaimedToday === true, 'getDewStatus cho User đã tưới đủ 3 lần trả về hasClaimedToday = true chính xác');
     assert(statusWatered.streak >= 1, `getDewStatus trả về chuỗi ngày tưới chuẩn xác: ${statusWatered.streak}`);
 
     const statusUnwatered = await DewService.getDewStatus({ userId: testNoTeamUserId });
@@ -299,7 +302,10 @@ async function runFullTestKey() {
     // =========================================================================
     console.log('\n--- [PHẦN 3] KIỂM THỬ ĐỒNG BỘ CLIENT STATE & UI LOGIC (ANTI-HARDCODE) ---');
 
-    const clientStatusSync = await DewService.getDewStatus({ userId: testUserId1 });
+    // Đảm bảo user đã tưới đủ 3 lần hôm nay để đạt trạng thái hasClaimedToday = true
+    await DewService.claimDew({ userId: testUserId2, teamId: 2, userFingerprint: testFp2 });
+    await DewService.claimDew({ userId: testUserId2, teamId: 2, userFingerprint: testFp2 });
+    const clientStatusSync = await DewService.getDewStatus({ userId: testUserId2 });
     assert(clientStatusSync.hasClaimedToday === true, 'Client nhận đúng trạng thái tưới từ DB: hasClaimedToday = true (Không hardcode local)');
 
     function simulateDewButtonUI(currentUser, activeTeam, hasClaimedToday) {
@@ -365,6 +371,10 @@ async function runFullTestKey() {
     });
     assert(day1Res && day1Res.streak === 1, 'Ngày 1 (2026-09-01): Tưới nước thành công, khởi tạo Streak = 1');
 
+    // Tưới thêm lượt 2 và 3 trong Ngày 1
+    await DewService.claimDew({ userId: multiDayUserId, teamId: 1, customDate: '2026-09-01' });
+    await DewService.claimDew({ userId: multiDayUserId, teamId: 1, customDate: '2026-09-01' });
+
     const day1Status = await DewService.getDewStatus({ userId: multiDayUserId, customDate: '2026-09-01' });
     assert(day1Status.hasClaimedToday === true && day1Status.streak === 1, 'Ngày 1: Kiểm tra getDewStatus phản hồi hasClaimedToday = true, streak = 1');
 
@@ -387,6 +397,10 @@ async function runFullTestKey() {
       customDate: '2026-09-02'
     });
     assert(day2Res && day2Res.streak === 2, 'Ngày 2: Tưới nước ngày mới thành công, chuỗi tăng chính xác: Streak = 2');
+
+    // Tưới thêm lượt 2 và 3 trong Ngày 2
+    await DewService.claimDew({ userId: multiDayUserId, teamId: 1, customDate: '2026-09-02' });
+    await DewService.claimDew({ userId: multiDayUserId, teamId: 1, customDate: '2026-09-02' });
 
     const day2Status = await DewService.getDewStatus({ userId: multiDayUserId, customDate: '2026-09-02' });
     assert(day2Status.hasClaimedToday === true && day2Status.streak === 2, 'Ngày 2: Sau khi tưới, hasClaimedToday = true, streak = 2');
