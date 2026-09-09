@@ -117,9 +117,10 @@ export class DewService {
       const teamRes = await client.query(`
         UPDATE teams
         SET tree_exp = tree_exp + $1,
+            total_exp = total_exp + $1,
             updated_at = NOW()
         WHERE id = $2
-        RETURNING id, code, display_name, tree_exp, tree_level
+        RETURNING id, code, display_name, tree_exp, total_exp, tree_level, level
       `, [EXP_CONFIG.DAILY_DEW, user.team_id]);
 
       // 10. Update Community Growth

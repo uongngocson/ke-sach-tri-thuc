@@ -1220,11 +1220,11 @@ function renderTeamsTable() {
           </span>
         </td>
         <td class="p-3.5 font-extrabold text-sky-400 text-sm">
-          ${(t.tree_exp || 0).toLocaleString()}
+          ${(parseInt(t.tree_exp || t.total_exp || 0, 10)).toLocaleString()}
         </td>
         <td class="p-3.5 font-extrabold text-amber-400">
           ${(() => {
-            const exp = t.tree_exp || 0;
+            const exp = parseInt(t.tree_exp || t.total_exp || 0, 10);
             if (exp < 50) return `${exp}/50 EXP`;
             if (exp < 150) return `${exp}/150 EXP`;
             if (exp < 300) return `${exp}/300 EXP`;
@@ -1240,8 +1240,9 @@ function renderTeamsTable() {
           <div class="font-extrabold text-white">${partRate}%</div>
           <div class="text-[10px] text-slate-400">${partCount} cán bộ ${isToday ? 'hôm nay' : 'ngày này'}</div>
         </td>
-        <td class="p-3.5 font-bold text-slate-400">
-          ${parseFloat(t.avg_participation_rate || 0).toFixed(1)}%
+        <td class="p-3.5" title="Tỷ lệ TB = ${t.all_days_participants || 0} lượt / (${t.total_campaign_days || 1} ngày × ${t.target_members || 40} chỉ tiêu)">
+          <div class="font-extrabold text-amber-300">${parseFloat(t.avg_participation_rate || 0).toFixed(1)}%</div>
+          <div class="text-[10px] text-slate-400 font-normal">${t.all_days_participants || 0} lượt / ${t.total_campaign_days || 1} ngày</div>
         </td>
         <td class="p-3.5 font-extrabold text-emerald-400">
           <div>${dateBooks}</div>
@@ -1281,7 +1282,8 @@ window.openTeamModal = async function(teamId) {
   const team = analyticsCache?.teams?.find(t => t.id === teamId);
   if (team) {
     nameEl.innerHTML = `<span>🏆</span><span>${escapeHtml(team.display_name || team.name)}</span>`;
-    subEl.textContent = `Tổng cộng ${team.actual_members || 0} cán bộ · Đạt ${team.tree_exp.toLocaleString()} EXP · Ngày xem: ${dateLabel}`;
+    const expVal = parseInt(team.tree_exp || team.total_exp || 0, 10);
+    subEl.textContent = `Tổng cộng ${team.actual_members || 0} cán bộ · Đạt ${expVal.toLocaleString()} EXP · Ngày xem: ${dateLabel}`;
   }
 
   modal.classList.add('show');
@@ -1293,18 +1295,21 @@ window.openTeamModal = async function(teamId) {
     if (data.success && data.data) {
       tbody.innerHTML = data.data.map((m, idx) => `
         <tr class="hover:bg-slate-800/40">
-          <td class="p-3 text-center text-slate-500 font-bold text-xs">${idx + 1}</td>
-          <td class="p-3 font-bold text-white">${escapeHtml(m.nickname || 'Bút danh')}</td>
+          <td class="p-3 text-center text-slate-400 font-mono font-bold text-xs">${m.tt || (idx + 1)}</td>
+          <td class="p-3">
+            <div class="font-extrabold text-sky-300 text-xs">${escapeHtml(m.nickname || m.full_name || 'Chưa đặt bút danh')}</div>
+            <div class="text-[10px] text-slate-400 font-normal">${escapeHtml(m.full_name || '')}</div>
+          </td>
           <td class="p-3">
             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${m.participated_on_date ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-500'}">
               ${m.participated_on_date ? `✅ Đã tham gia (${dateLabel})` : '⏳ Chưa tham gia'}
             </span>
           </td>
-          <td class="p-3 font-bold text-white">
+          <td class="p-3 font-bold text-white text-xs">
             <div>${m.date_books_count || 0} (${dateLabel})</div>
             <div class="text-[10px] text-slate-500">Tổng: ${m.contributed_books_count || 0}</div>
           </td>
-          <td class="p-3 font-extrabold text-sky-400">${(m.total_exp_earned || 0).toLocaleString()}</td>
+          <td class="p-3 font-extrabold text-sky-400 text-xs">${(m.total_exp_earned || 0).toLocaleString()}</td>
         </tr>
       `).join('');
     }

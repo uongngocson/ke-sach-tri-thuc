@@ -169,7 +169,7 @@ export class TeamService {
 
     const result = await db.query(`
       SELECT 
-        u.id, u.full_name, u.gender, u.branch,
+        u.id, u.tt, u.full_name, u.nickname, u.gender, u.branch,
         u.parent_department, u.child_department_1, u.child_department_2,
         u.officer_code, u.job_title, u.team_id, u.role, u.avatar_url, 
         u.contributed_books_count, u.total_exp_earned,
@@ -183,7 +183,7 @@ export class TeamService {
         ) as date_books_count
       FROM users u
       WHERE u.team_id = $1
-      ORDER BY u.full_name ASC
+      ORDER BY COALESCE(u.tt, 9999) ASC, u.full_name ASC
     `, [teamId, validDate]);
 
     return result.rows;

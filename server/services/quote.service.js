@@ -66,6 +66,7 @@ export class QuoteService {
           UPDATE teams
           SET total_likes = total_likes + 1,
               total_exp = total_exp + $1,
+              tree_exp = tree_exp + $1,
               updated_at = NOW()
           WHERE id = $2
         `, [EXP_CONFIG.QUOTE_LIKE, likedTeamId]);

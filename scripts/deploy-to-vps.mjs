@@ -50,12 +50,18 @@ async function deploy() {
 
   const filesToDeploy = [
     'index.html',
+    'admin/index.html',
     'admin/admin.js',
     'assets/data/ApiDataStore.js',
     'assets/config/appEnv.js',
     'server/data/teams-and-users.json',
     'server/services/book.service.js',
     'server/services/analytics.service.js',
+    'server/services/team.service.js',
+    'server/services/quote.service.js',
+    'server/services/dew.service.js',
+    'server/scripts/sync-team-exp.js',
+    'server/scripts/test-team-exp-and-members-modal-fullkey.js',
     'server/scripts/apply-ordered-users-to-db.js',
     'server/scripts/seed-teams-users.js',
     'server/scripts/test-288-users-seeding-and-ui-fullkey.js',
@@ -72,7 +78,7 @@ async function deploy() {
   ];
 
   for (const target of targets) {
-    console.log(`📦 [1/3] Đồng bộ files mã nguồn vào môi trường ${target.name}...`);
+    console.log(`📦 [1/4] Đồng bộ files mã nguồn vào môi trường ${target.name}...`);
     for (const relFile of filesToDeploy) {
       const remotePath = `${target.path}/${relFile}`;
       process.stdout.write(`   ↳ Pushing ${relFile} -> ${target.name}... `);
@@ -80,7 +86,7 @@ async function deploy() {
       console.log('✅ OK');
     }
 
-    console.log(`\n🔄 [2/3] Chạy cập nhật thứ tự TT 1-288 & CLUSTER database trên ${target.name}...`);
+    console.log(`\n🔄 [2/4] Chạy cập nhật thứ tự TT 1-288 & CLUSTER database trên ${target.name}...`);
     try {
       const applyOutput = await runSSH(`docker exec -i ${target.backend} node scripts/apply-ordered-users-to-db.js`);
       console.log(`   ${applyOutput.replace(/\n/g, '\n   ')}`);
@@ -88,16 +94,25 @@ async function deploy() {
       console.warn(`   ⚠️ Chú ý DB update: ${e.message}`);
     }
 
+    console.log(`\n🌳 [3/4] Đồng bộ tree_exp, total_exp & avg_participation_rate trên ${target.name}...`);
     try {
-      const syncOutput = await runSSH(`docker exec -i ${target.backend} node /app/../scripts/sync-book-users.js || docker exec -i ${target.backend} node scripts/sync-book-users.js || echo "Sync on host done"`);
-      console.log(`   ${syncOutput}`);
+      const expSyncOutput = await runSSH(`docker exec -i ${target.backend} node scripts/sync-team-exp.js`);
+      console.log(`   ${expSyncOutput.replace(/\n/g, '\n   ')}`);
     } catch (e) {
-      console.warn(`   ⚠️ Chú ý sync books: ${e.message}`);
+      console.warn(`   ⚠️ Chú ý sync team exp: ${e.message}`);
     }
 
-    console.log(`\n⚡ [3/3] Khởi động lại container ${target.name}...`);
+    console.log(`\n⚡ [4/4] Khởi động lại container ${target.name}...`);
     await runSSH(`docker restart ${target.backend} ${target.frontend}`);
     console.log(`   ✅ Đã khởi động lại ${target.backend} và ${target.frontend} thành công!\n`);
+
+    console.log(`🧪 Kiểm tra Unit Test tự động trên ${target.name}...`);
+    try {
+      const testOutput = await runSSH(`docker exec -i ${target.backend} node scripts/test-team-exp-and-members-modal-fullkey.js`);
+      console.log(`   ${testOutput.replace(/\n/g, '\n   ')}`);
+    } catch (e) {
+      console.warn(`   ⚠️ Unit test trên ${target.name}: ${e.message}`);
+    }
   }
 
   console.log('🌐 =========================================================');
