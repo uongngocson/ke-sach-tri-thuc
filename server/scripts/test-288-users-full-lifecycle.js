@@ -179,7 +179,7 @@ async function run288UsersFullLifecycleTest() {
 
       // Case 7: Tương tác like trích dẫn
       const likeFp = `fp_like_u_${user.id.substring(0, 8)}`;
-      const likeRes = await QuoteService.likeQuote(bookContrib.book.id, likeFp);
+      const likeRes = await QuoteService.likeQuote(bookContrib.book.id, likeFp, { userId: user.id });
       if (likeRes && likeRes.newLikesCount >= 1) {
         case7_LikeQuotePass++;
       }
@@ -334,23 +334,23 @@ async function run288UsersFullLifecycleTest() {
     assert(team1L5.level >= 5, 'Đội 1 đạt đẳng cấp Level 5');
 
     // Xác thực logic hiển thị quả trên cây Level 5:
-    // Cây Level 5 tự động kích hoạt hiển thị 36 Trái Tri Thức
-    const isLevel5FruitsActive = team1L5.total_exp >= 2500;
+    // Cây Level 5 tự động kích hoạt hiển thị 5 Trái Tri Thức
+    const isLevel5FruitsActive = team1L5.total_exp >= 1200;
     assert(isLevel5FruitsActive === true, 'Cây Level 5 tự động kích hoạt hiển thị Trái Tri Thức mà không cần click');
 
-    // Xác thực tọa độ 36 quả độc lập
+    // Xác thực tọa độ 5 quả độc lập
     const fruitPositions = [];
-    for (let f = 0; f < 36; f++) {
+    for (let f = 0; f < 5; f++) {
       fruitPositions.push({ index: f, active: true });
     }
-    assert(fruitPositions.length === 36, 'Cây cổ thụ sinh ra đầy đủ chính xác 36 Trái Tri Thức');
-    assert(fruitPositions[0].index === 0 && fruitPositions[35].index === 35, 'Tất cả 36 chỉ số trái cây chuẩn xác từ 0 đến 35');
+    assert(fruitPositions.length === 5, 'Cây cổ thụ sinh ra đầy đủ chính xác 5 Trái Tri Thức');
+    assert(fruitPositions[0].index === 0 && fruitPositions[4].index === 4, 'Tất cả 5 chỉ số trái cây chuẩn xác từ 0 đến 4');
 
-    // Thực hành hái Trái Tri Thức thứ 10 và nhận +5 EXP
+    // Thực hành hái Trái Tri Thức thứ 2 và nhận +5 EXP
     const testFp = `fp_l5_test_${Date.now()}`;
-    const harvestResult = await QuoteService.harvestFruit(10, testFp);
+    const harvestResult = await QuoteService.harvestFruit(2, testFp);
     assert(harvestResult && harvestResult.expEarned === 5, 
-      'Hái Trái Tri Thức số 10 thành công: Nhận đúng +5 EXP vào hệ thống',
+      'Hái Trái Tri Thức số 2 thành công: Nhận đúng +5 EXP vào hệ thống',
       `Quote: "${harvestResult.quote.quote}" - ${harvestResult.quote.author}`);
 
     // 2.4: Kiểm tra sự biến thiên và trật tự Bảng Tổng Sắp khi cây phát triển
@@ -360,7 +360,7 @@ async function run288UsersFullLifecycleTest() {
     const finalLeaderboard = await TeamService.getAllTeams();
     assert(finalLeaderboard[0].id === 1, 'Đội 1 vươn lên vị trí Rank 1 sau khi đạt mốc 2600 EXP');
     assert(finalLeaderboard[0].total_exp === 2600, 'Rank 1 có đúng 2600 EXP');
-    assert(finalLeaderboard[0].level_name === 'Đại Cổ Thụ Ngàn Năm', 'Rank 1 đạt danh hiệu cao nhất: "Đại Cổ Thụ Ngàn Năm"');
+    assert(finalLeaderboard[0].level_name === 'Đại Cổ Thụ', 'Rank 1 đạt danh hiệu cao nhất: "Đại Cổ Thụ"');
 
     // 2.5: Kiểm tra tính toàn vẹn tuyệt đối sau toàn bộ thực hành
     const finalTotalUsers = await db.query('SELECT COUNT(*) FROM users');

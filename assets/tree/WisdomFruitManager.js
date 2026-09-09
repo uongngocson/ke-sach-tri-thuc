@@ -207,7 +207,7 @@ export class WisdomFruitManager {
     const totalEXP = (teamState && typeof teamState.totalEXP === 'number') ? teamState.totalEXP : 0;
 
     // Requirement: "nếu cây nào của team nào đạt LV5 thì đều hiển thị quả như ảnh trên hiện tại"
-    const isLevel5 = (level >= 5) || (totalEXP >= 2500);
+    const isLevel5 = (level >= 5) || (totalEXP >= 1200);
     if (!isLevel5) {
       return; // Tree with Level < 5 bears 0 fruits!
     }
@@ -218,13 +218,12 @@ export class WisdomFruitManager {
     }
 
     const availableNodes = currentTree.leafClusterOrigins;
-    // 36 abundant ripe fruits lavishly bearing on Ancient Sage Tree canopy
-    const targetCount = 36;
-    const step = Math.max(1, Math.floor(availableNodes.length / targetCount));
+    // Exactly 5 prominent ripe wisdom fruits beautifully hanging on Ancient Sage Tree canopy
+    const targetCount = 5;
     const THREE = this.THREE;
 
     for (let i = 0; i < targetCount; i++) {
-      const nodeIndex = (i * step + (i % 3)) % availableNodes.length;
+      const nodeIndex = Math.floor((i + 0.5) * (availableNodes.length / targetCount)) % availableNodes.length;
       const node = availableNodes[nodeIndex];
       if (!node) continue;
 
@@ -232,9 +231,9 @@ export class WisdomFruitManager {
 
       // Position fruit stem exactly at the real branch section origin, hanging naturally below foliage
       fruitAssembly.position.copy(node.origin);
-      fruitAssembly.position.y -= (0.55 + (i % 4) * 0.08);
-      fruitAssembly.position.x += ((i % 5) - 2) * 0.12;
-      fruitAssembly.position.z += (((i * 3) % 5) - 2) * 0.12;
+      fruitAssembly.position.y -= (0.62 + (i % 2) * 0.1);
+      fruitAssembly.position.x += ((i % 3) - 1) * 0.15;
+      fruitAssembly.position.z += (((i * 2) % 3) - 1) * 0.15;
 
       // 1. Organic Fruit Mesh with rich ripe colors
       const mat = this.materials[(i + teamId) % this.materials.length];
@@ -255,11 +254,11 @@ export class WisdomFruitManager {
       fruitAssembly.add(stemMesh);
       fruitAssembly.add(leafMesh);
 
-      // Natural organic size variations
-      const naturalVariance = 0.85 + (i % 5) * 0.1;
-      const fruitScale = 1.15 * naturalVariance;
+      // Natural organic size variations - prominent scale for 5 fruits
+      const naturalVariance = 0.95 + (i % 3) * 0.1;
+      const fruitScale = 1.35 * naturalVariance;
       fruitAssembly.scale.setScalar(fruitScale);
-      fruitAssembly.rotation.y = (i * 1.15);
+      fruitAssembly.rotation.y = (i * 1.25);
 
       fruitAssembly.userData = {
         id: `fruit-team${teamId}-${i}`,
@@ -456,7 +455,7 @@ export class WisdomFruitManager {
       this._lastCheck = elapsedTime;
       for (let tId = 1; tId <= 8; tId++) {
         const tState = this.treeManager?.teamStates && this.treeManager.teamStates[tId - 1];
-        const isQualified = (tState?.level >= 5) || (tState?.totalEXP >= 2500);
+        const isQualified = (tState?.level >= 5) || (tState?.totalEXP >= 1200);
         const group = this.teamFruitGroups?.get(tId);
         if (isQualified && (!group || group.children.length === 0)) {
           this.syncTeamFruits(tId);

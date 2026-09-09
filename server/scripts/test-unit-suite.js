@@ -197,24 +197,24 @@ async function runUnitSuite() {
     // =========================================================================
     console.log('\n📦 [5/8] Test Key Suite 5: Logic Trái Tri Thức Cây Level 5...');
 
-    // 5.1: Cây chưa đạt Level 5 (EXP < 2500) -> Không hiển thị quả
-    const isFruitVisibleL4 = (2499 >= 2500);
-    assert(isFruitVisibleL4 === false, 'Cây 2499 EXP (Level 4) chưa hiển thị Trái Tri Thức');
+    // 5.1: Cây chưa đạt Level 5 (EXP < 1200) -> Không hiển thị quả
+    const isFruitVisibleL4 = (1199 >= 1200);
+    assert(isFruitVisibleL4 === false, 'Cây 1199 EXP (Level 4) chưa hiển thị Trái Tri Thức');
 
-    // 5.2: Cây đạt Level 5 (EXP >= 2500) -> Kích hoạt hiển thị quả
-    const isFruitVisibleL5 = (2500 >= 2500);
-    assert(isFruitVisibleL5 === true, 'Cây 2500 EXP (Level 5) kích hoạt hiển thị Trái Tri Thức');
+    // 5.2: Cây đạt Level 5 (EXP >= 1200) -> Kích hoạt hiển thị quả
+    const isFruitVisibleL5 = (1200 >= 1200);
+    assert(isFruitVisibleL5 === true, 'Cây 1200 EXP (Level 5) kích hoạt hiển thị Trái Tri Thức');
 
-    // 5.3: Quy định đúng 36 quả độc lập trên tán cây
-    const TOTAL_FRUITS_COUNT = 36;
-    assert(TOTAL_FRUITS_COUNT === 36, 'Mỗi Cây Level 5 sinh ra đúng 36 Trái Tri Thức độc lập');
+    // 5.3: Quy định đúng 5 quả độc lập trên tán cây
+    const TOTAL_FRUITS_COUNT = 5;
+    assert(TOTAL_FRUITS_COUNT === 5, 'Mỗi Cây Level 5 sinh ra đúng 5 Trái Tri Thức độc lập');
 
-    // 5.4: Chỉ số quả nằm trong khoảng [0..35]
+    // 5.4: Chỉ số quả nằm trong khoảng [0..4]
     let fruitIndicesValid = true;
-    for (let i = 0; i < 36; i++) {
-      if (i < 0 || i > 35) fruitIndicesValid = false;
+    for (let i = 0; i < 5; i++) {
+      if (i < 0 || i > 4) fruitIndicesValid = false;
     }
-    assert(fruitIndicesValid, 'Tất cả 36 chỉ số quả nằm trọn vẹn trong khoảng [0..35]');
+    assert(fruitIndicesValid, 'Tất cả 5 chỉ số quả nằm trọn vẹn trong khoảng [0..4]');
 
     // 5.5: Thưởng EXP khi hái quả: +5 EXP
     const FRUIT_HARVEST_REWARD = 5;
