@@ -4179,7 +4179,7 @@
                       <span class="hud-badge shrink-0 text-[10.5px] py-0.5 px-2 rounded-md font-black text-white shadow-2xs" id="hud-team-badge">SCU_BO</span>
                       <span class="hud-name" id="hud-team-name" style="display:none;"></span>
                       <span id="hud-inspecting-tag" style="display:none; font-size:9.5px; font-weight:800; background:#f59e0b; color:#fff; padding:1px 6px; border-radius:5px;" class="shrink-0">Đang Thăm Cây</span>
-                      <span class="text-slate-500 dark:text-slate-400 text-[10px] hidden lg:inline" id="hud-participation-stat">Tham gia: 0%</span>
+                      <span id="hud-participation-stat" style="display:none !important;"></span>
                     </div>
                   </div>
                   
@@ -7235,11 +7235,6 @@
               <div class="w-full bg-slate-200/80 dark:bg-slate-700/80 h-1.5 rounded-full overflow-hidden my-0.5">
                 <div class="h-full rounded-full transition-all duration-500" style="width: ${team.progress_percent || 0}%; background: linear-gradient(90deg, #70B928, ${team.color_code || '#0054A6'});"></div>
               </div>
-
-              <div class="flex items-center justify-between text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
-                <span>Tham gia</span>
-                <span class="font-bold text-slate-700 dark:text-slate-200">${team.participation_rate || 0}%</span>
-              </div>
             </div>
           `;
         }).join('');
@@ -7295,7 +7290,7 @@
           hudRoundLabel.textContent = `🌱 Mỗi Ngày 1 Câu Quote`;
         }
         if (hudParticipation) {
-          hudParticipation.textContent = `Hôm nay: ${team.today_participation_rate || team.participation_rate || 0}%`;
+          hudParticipation.style.display = 'none';
         }
 
         const isSprouted = team.is_sprouted || team.level >= 1 || (team.total_exp || 0) >= 50 || (team.tree_seeds || 0) >= 10;
