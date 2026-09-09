@@ -6720,7 +6720,7 @@
     import { NourishmentFX } from './assets/effects/NourishmentFX.js?v=20260907_v1';
     import { DailyDewService } from './assets/services/DailyDewService.js?v=20260907_v1';
     import { QuoteCardExporter } from './assets/services/QuoteCardExporter.js?v=20260907_v1';
-    import { UserIdentityModal } from './assets/auth/UserIdentityModal.js?v=20260909_v4';
+    import { UserIdentityModal } from './assets/auth/UserIdentityModal.js?v=20260909_v5';
     import { TeamArenaModal } from './assets/teams/TeamArenaModal.js?v=20260907_v1';
     import { QuoteTreasuryModal } from './assets/quotes/QuoteTreasuryModal.js?v=20260907_v3';
 
@@ -7053,11 +7053,18 @@
             localStorage.setItem('caosach_current_team_id', currentUser.team_id.toString());
           }
           DailyDewService.invalidateCache(currentUser?.id);
+          if (window.MockDataStore && typeof window.MockDataStore.clearLocalCache === 'function') {
+            window.MockDataStore.clearLocalCache();
+          }
+          if (window.treeManager?.fruitManager?.syncServerHarvestStatus) {
+            await window.treeManager.fruitManager.syncServerHarvestStatus();
+          }
           await loadUserTeamAndSync();
           await updateDewButtonState();
         }
       });
       window.userIdentityModal = userIdentityModal;
+      window.UserIdentityModal = UserIdentityModal;
 
       const teamArenaModal = new TeamArenaModal({
         onInspectTeam: async (team) => {

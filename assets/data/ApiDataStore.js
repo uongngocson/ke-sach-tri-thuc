@@ -1016,6 +1016,30 @@ class ApiDataStoreManager {
     return this.getCommunityGrowth();
   }
 
+  clearLocalCache() {
+    this.cachedQuotes = [];
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.removeItem('caosach_liked_quotes');
+        localStorage.removeItem('caosach_cached_quotes');
+        localStorage.removeItem('caosach_cached_growth');
+      } catch {}
+    }
+  }
+
+  static clearLocalCache() {
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.removeItem('caosach_liked_quotes');
+        localStorage.removeItem('caosach_cached_quotes');
+        localStorage.removeItem('caosach_cached_growth');
+      } catch {}
+    }
+    if (typeof window !== 'undefined' && window.__CAOSACH_DATASTORE__) {
+      window.__CAOSACH_DATASTORE__.cachedQuotes = [];
+    }
+  }
+
   async resetDatabase() {
     return this.wipeDatabaseExceptAccounts();
   }

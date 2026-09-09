@@ -83,6 +83,7 @@ async function deploy() {
     'server/scripts/test-fruit-harvest-fullkey.js',
     'server/scripts/run-all-test-suites.js',
     'server/scripts/test-unit-suite.js',
+    'server/scripts/test-account-switch-storage-clear-fullkey.js',
     'assets/tree/WisdomFruitManager.js',
     'assets/tree/TreeManager.js',
     'assets/sky/RealisticSky.js',
