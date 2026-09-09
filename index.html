@@ -6894,6 +6894,18 @@
       if (currentUser && (currentUser.isGuest || currentUser.id === 'guest')) {
         currentUser.team_id = null;
       }
+      const TEAM_SHORT_NAMES = {
+        1: 'SCU_BO',
+        2: 'Hà Đông Tây Bắc',
+        3: 'Trung Đông Tây Nam',
+        4: 'Thập đại Miền Nam',
+        5: 'FPL_AU_FU',
+        6: 'FTIBU_BOM',
+        7: 'FTI BA_TU_BOP',
+        8: 'IMU_PSU'
+      };
+      window.TEAM_SHORT_NAMES = TEAM_SHORT_NAMES;
+
       let activeTeam = null;
       let myTeam = null;
       let currentRound = null;
@@ -6914,6 +6926,7 @@
             currentUser.team_id = null;
           }
           if (currentUser && currentUser.team_id) {
+            sessionStorage.removeItem('caosach_inspected_team_id');
             localStorage.setItem('caosach_current_team_id', currentUser.team_id.toString());
           }
           DailyDewService.invalidateCache(currentUser?.id);
@@ -7241,6 +7254,7 @@
 
       async function inspectTeam(team, notify = true) {
         activeTeam = team;
+        sessionStorage.setItem('caosach_inspected_team_id', team.id.toString());
         localStorage.setItem('caosach_current_team_id', team.id.toString());
         const isInspecting = myTeam ? (team.id !== myTeam.id) : true;
         updateHUDWithTeam(team, isInspecting);
@@ -7249,7 +7263,7 @@
         updateDewButtonState();
         render8TeamTimeline();
         if (notify) {
-          showToast(`🌳 Đang ghé thăm Cây Tri Thức: ${team.display_name || team.name || ('Đội ' + team.id)}`);
+          showToast(`🌳 Đang ghé thăm Cây Tri Thức: ${team.display_name || team.name || TEAM_SHORT_NAMES[team.id] || ('Đội ' + team.id)}`);
         }
       }
 
@@ -7258,17 +7272,21 @@
           currentRound = await MockDataStore.getCurrentRound();
           allTeams = await MockDataStore.getTeams(true);
           
-          let targetTeamId = 1;
-          const savedTeamId = localStorage.getItem('caosach_current_team_id');
-          if (savedTeamId) {
-            targetTeamId = parseInt(savedTeamId, 10);
-          } else if (currentUser && !currentUser.isGuest && currentUser.team_id) {
-            targetTeamId = currentUser.team_id;
-          }
-
           myTeam = (currentUser && !currentUser.isGuest && currentUser.team_id) 
             ? (allTeams.find(t => t.id === currentUser.team_id) || null) 
             : null;
+
+          const inspectedTeamId = sessionStorage.getItem('caosach_inspected_team_id');
+          let targetTeamId = 1;
+          if (inspectedTeamId) {
+            targetTeamId = parseInt(inspectedTeamId, 10);
+          } else if (currentUser && !currentUser.isGuest && currentUser.team_id) {
+            targetTeamId = currentUser.team_id;
+          } else {
+            const savedTeamId = localStorage.getItem('caosach_current_team_id');
+            if (savedTeamId) targetTeamId = parseInt(savedTeamId, 10);
+          }
+
           activeTeam = allTeams.find(t => t.id === targetTeamId) || (myTeam || allTeams[0]);
           const isInspecting = myTeam ? (activeTeam.id !== myTeam.id) : true;
 
@@ -7455,15 +7473,10 @@
           return;
         }
 
-        // 2. Kiểm tra chế độ xem
-        if (isHintAction) {
-          const userTeam = (myTeam) || (allTeams && allTeams.find(t => t.id === currentUser.team_id)) || { id: currentUser.team_id, display_name: `Đội ${currentUser.team_id}` };
-          if (userTeam && activeTeam && activeTeam.id !== userTeam.id) {
-            inspectTeam(userTeam, false);
-          }
-        } else if (activeTeam && activeTeam.id !== currentUser.team_id) {
-          showToast(`👀 Bạn đang ở chế độ xem Cây Tri Thức của ${activeTeam.display_name}. Hãy quay về Đội của bạn để gieo hạt nhé!`);
-          return;
+        // 2. Chuyển về cây đội của user nếu đang xem đội khác
+        const userTeam = (myTeam) || (allTeams && allTeams.find(t => t.id === currentUser.team_id)) || { id: currentUser.team_id, display_name: TEAM_SHORT_NAMES[currentUser.team_id] || `Đội ${currentUser.team_id}` };
+        if (userTeam && activeTeam && activeTeam.id !== userTeam.id) {
+          inspectTeam(userTeam, false);
         }
 
         openContributeModal();
@@ -7502,10 +7515,11 @@
         // Render each of the 8 team zones
         for (let i = 0; i < 8; i++) {
           const teamId = i + 1;
+          const fallbackName = TEAM_SHORT_NAMES[teamId] || `Đội ${teamId}`;
           const team = (allTeams && allTeams.find(t => t.id === teamId)) || {
             id: teamId,
-            display_name: (typeof TEAM_SHORT_NAMES !== 'undefined' && TEAM_SHORT_NAMES[teamId]) ? TEAM_SHORT_NAMES[teamId] : `Đội ${teamId}`,
-            short_name: (typeof TEAM_SHORT_NAMES !== 'undefined' && TEAM_SHORT_NAMES[teamId]) ? TEAM_SHORT_NAMES[teamId] : `Đội ${teamId}`,
+            display_name: fallbackName,
+            short_name: fallbackName,
             color_code: DEFAULT_TEAM_COLORS[i],
             level: 0,
             tree_seeds: 0,
@@ -7513,7 +7527,7 @@
             is_sprouted: false
           };
 
-          const plaqueTeamName = team.display_name || team.name || ((typeof TEAM_SHORT_NAMES !== 'undefined' && TEAM_SHORT_NAMES[teamId]) ? TEAM_SHORT_NAMES[teamId] : `Đội ${teamId}`);
+          const plaqueTeamName = (team && (team.display_name || team.name)) || fallbackName;
 
           const isSprouted = team.is_sprouted || team.level >= 1 || ((team.total_exp || 0) >= 50) || ((team.tree_seeds || 0) >= 10);
           const level = isSprouted ? Math.max(1, Math.min(5, team.level || 1)) : 0;
@@ -7531,9 +7545,9 @@
           zoneEl.style.setProperty('--team-color-glow', `${teamColor}55`);
 
           const isMyTeam = (myTeam && myTeam.id === teamId);
-          const myTeamTag = isMyTeam ? `<span class="plaque-myteam">★ Tôi</span>` : '';
+          const myTeamTag = isMyTeam ? `<span class="plaque-myteam" style="background:#F36F21; color:#fff; font-size:10px; font-weight:800; padding:1.5px 6px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.35);">★ Đội Tôi</span>` : '';
 
-          const teamSeeds = isSprouted ? [] : allSeeds.filter(s => s.team_id === teamId);
+          const teamSeeds = isSprouted ? [] : allSeeds.filter(s => parseInt(s.team_id, 10) === teamId);
           const totalTeamSeeds = teamSeeds.length;
 
           // Botanical Garden Signpost Plaque planted in the soil at tree foot
@@ -7686,7 +7700,7 @@
             btn.setAttribute('data-seed-id', seed.id);
             btn.setAttribute('title', `${seed.book} (${seed.author})`);
 
-            const teamTag = seed.team_short_name || (`Đội ${teamId}`);
+            const teamTag = seed.team_short_name || seed.team_display_name || TEAM_SHORT_NAMES[teamId] || (`Đội ${teamId}`);
             const teamTagHtml = `<span style="background:${teamColor}; color:#fff; font-size:9px; padding:1px 5px; border-radius:4px; margin-right:4px;">${escapeHtml(teamTag)}</span>`;
 
             btn.innerHTML = `
@@ -8170,13 +8184,15 @@
           return;
         }
         if (activeTeam && activeTeam.id !== currentUser.team_id) {
-          const userTeam = (myTeam) || (allTeams && allTeams.find(t => t.id === currentUser.team_id));
+          const userTeam = (myTeam) || (allTeams && allTeams.find(t => t.id === currentUser.team_id)) || { id: currentUser.team_id, display_name: TEAM_SHORT_NAMES[currentUser.team_id] };
           if (userTeam) {
             inspectTeam(userTeam, false);
-          } else {
-            showToast(`👀 Bạn đang ở chế độ xem Cây Tri Thức của ${activeTeam.display_name}. Hãy quay về Đội của bạn để gieo hạt nhé!`);
-            return;
           }
+        }
+        const modalTeamBadge = document.querySelector('#contribute-book-card .bq-badge span:last-child');
+        if (modalTeamBadge) {
+          const userTeamName = (myTeam && (myTeam.display_name || myTeam.name)) || TEAM_SHORT_NAMES[currentUser.team_id] || `Đội ${currentUser.team_id}`;
+          modalTeamBadge.textContent = `GIEO MẦM VÀO CÂY ${userTeamName.toUpperCase()}`;
         }
         if (contributeOverlay) contributeOverlay.classList.add('active');
         updateBodyModalState();
@@ -8552,7 +8568,14 @@
           if (res.success) {
             contributeForm.reset();
             closeContributeModal();
-            showToast(`🎉 Gieo mầm thành công: "${bookTitleVal}" đã được gieo mầm (+5 EXP)!`);
+            if (typeof renderGroundSeeds === 'function') {
+              renderGroundSeeds();
+            }
+            if (typeof loadUserTeamAndSync === 'function') {
+              loadUserTeamAndSync();
+            }
+            const teamName = (myTeam && (myTeam.display_name || myTeam.name)) || TEAM_SHORT_NAMES[targetTeamId] || `Đội ${targetTeamId}`;
+            showToast(`🎉 Gieo mầm thành công: "${bookTitleVal}" đã được gieo vào Cây ${teamName} (+5 EXP)!`);
           } else {
             showToast(`⚠️ ${res.message || 'Mỗi ngày mỗi thành viên chỉ được gieo đúng 1 câu quote!'}`);
           }

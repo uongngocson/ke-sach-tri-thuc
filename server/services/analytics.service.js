@@ -1,14 +1,16 @@
 import db from '../config/database.js';
 import { calculateLevelFromExp } from '../config/constants.js';
+import { getVietnamDateString } from './dew.service.js';
 
 export class AnalyticsService {
   /**
    * Lấy toàn bộ dữ liệu tổng quan cho Executive Dashboard & Charts
    */
   static async getOverview(options = {}) {
+    const todayVN = getVietnamDateString();
     const filterDate = (options.date && /^\d{4}-\d{2}-\d{2}$/.test(String(options.date).trim()))
       ? String(options.date).trim()
-      : null;
+      : todayVN;
     // 1. Current Active Round
     const roundRes = await db.query(
       'SELECT * FROM rounds WHERE is_active = true LIMIT 1'
@@ -100,15 +102,15 @@ export class AnalyticsService {
         t.avg_participation_rate, t.perfect_rounds_count,
         t.milestone_150_at, t.milestone_400_at, t.milestone_1000_at, t.milestone_2500_at,
         (SELECT COUNT(*) FROM books b WHERE b.team_id = t.id) as books_count,
-        (SELECT COUNT(*) FROM books b WHERE b.team_id = t.id AND DATE(b.created_at) = COALESCE($2::date, CURRENT_DATE)) as date_books_count,
+        (SELECT COUNT(*) FROM books b WHERE b.team_id = t.id AND (b.created_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date = $2::date) as date_books_count,
         (SELECT COUNT(*) FROM daily_dews d WHERE d.team_id = t.id) as dews_count,
-        (SELECT COUNT(*) FROM daily_dews d WHERE d.team_id = t.id AND d.claim_date = COALESCE($2::date, CURRENT_DATE)) as date_dews_count,
-        (SELECT COUNT(DISTINCT dq.user_id) FROM daily_quotes dq WHERE dq.team_id = t.id AND dq.quote_date = CURRENT_DATE) as today_participants,
-        (SELECT COUNT(DISTINCT dq.user_id) FROM daily_quotes dq WHERE dq.team_id = t.id AND dq.quote_date = COALESCE($2::date, CURRENT_DATE)) as date_participants,
+        (SELECT COUNT(*) FROM daily_dews d WHERE d.team_id = t.id AND d.claim_date = $2::date) as date_dews_count,
+        (SELECT COUNT(DISTINCT COALESCE(dq.user_id::text, dq.user_fingerprint)) FROM daily_quotes dq WHERE dq.team_id = t.id AND dq.quote_date = $3::date) as today_participants,
+        (SELECT COUNT(DISTINCT COALESCE(dq.user_id::text, dq.user_fingerprint)) FROM daily_quotes dq WHERE dq.team_id = t.id AND dq.quote_date = $2::date) as date_participants,
         (SELECT COUNT(DISTINCT rc.user_id) FROM round_contributions rc WHERE rc.team_id = t.id AND rc.round_number = $1) as current_round_participants
       FROM teams t
       ORDER BY t.tree_exp DESC, t.id ASC
-    `, [currentRound.round_number, filterDate]);
+    `, [currentRound.round_number, filterDate, todayVN]);
 
     const TEAM_SHORT_NAMES = {
       1: 'SCU_BO', 2: 'Hà Đông Tây Bắc', 3: 'Trung Đông Tây Nam', 4: 'Thập đại Miền Nam',
@@ -317,7 +319,7 @@ export class AnalyticsService {
     const roundRes = await db.query('SELECT round_number FROM rounds WHERE is_active = true LIMIT 1');
     const currentRoundNum = roundRes.rows[0]?.round_number || 1;
 
-    const targetDate = (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) ? date : null;
+    const targetDate = (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) ? date : getVietnamDateString();
 
     let query = `
       SELECT 
@@ -331,7 +333,7 @@ export class AnalyticsService {
         dq.created_at as today_contribution_time
       FROM users u
       LEFT JOIN teams t ON u.team_id = t.id
-      LEFT JOIN daily_quotes dq ON u.id = dq.user_id AND dq.quote_date = COALESCE($1::date, CURRENT_DATE)
+      LEFT JOIN daily_quotes dq ON u.id = dq.user_id AND dq.quote_date = $1::date
       WHERE 1=1
     `;
     const params = [targetDate];
@@ -462,46 +464,52 @@ export class AnalyticsService {
 
       // 1.3: Ai là người gieo mầm nhiều nhất
       db.query(`
-        SELECT u.id, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.job_title, u.team_id,
+        SELECT COALESCE(u.id::text, b.user_fingerprint, b.id::text) as id,
+               COALESCE(u.nickname, u.full_name, b.reader_name, 'Bút Danh') as full_name,
+               u.nickname, u.job_title, COALESCE(b.team_id, u.team_id, 1) as team_id,
                t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
                COUNT(b.id)::INT as books_count,
                COALESCE(SUM(b.likes_count), 0)::INT as total_likes_received
         FROM books b
-        JOIN users u ON b.user_id = u.id
-        LEFT JOIN teams t ON u.team_id = t.id
+        LEFT JOIN users u ON b.user_id = u.id
+        LEFT JOIN teams t ON COALESCE(b.team_id, u.team_id) = t.id
         WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
-        GROUP BY u.id, u.full_name, u.nickname, u.job_title, u.team_id, t.name, t.display_name, t.color_code
+        GROUP BY COALESCE(u.id::text, b.user_fingerprint, b.id::text), u.nickname, u.full_name, b.reader_name, u.job_title, b.team_id, u.team_id, t.name, t.display_name, t.color_code
         ORDER BY books_count DESC, total_likes_received DESC
         LIMIT 10
       `, [filterTeamId]),
 
       // 1.4: Ai viết nhiều câu trích dẫn & có độ sâu nội dung nhất
       db.query(`
-        SELECT u.id, u.full_name, u.job_title, u.team_id,
+        SELECT COALESCE(u.id::text, b.user_fingerprint, b.id::text) as id,
+               COALESCE(u.nickname, u.full_name, b.reader_name, 'Bút Danh') as full_name,
+               u.job_title, COALESCE(b.team_id, u.team_id, 1) as team_id,
                t.name as team_name, t.color_code as team_color,
                COUNT(b.id)::INT as quotes_count,
                COALESCE(AVG(LENGTH(b.quote)), 0)::INT as avg_quote_length,
                COALESCE(SUM(b.likes_count), 0)::INT as total_likes
         FROM books b
-        JOIN users u ON b.user_id = u.id
-        LEFT JOIN teams t ON u.team_id = t.id
+        LEFT JOIN users u ON b.user_id = u.id
+        LEFT JOIN teams t ON COALESCE(b.team_id, u.team_id) = t.id
         WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
-        GROUP BY u.id, u.full_name, u.job_title, u.team_id, t.name, t.color_code
+        GROUP BY COALESCE(u.id::text, b.user_fingerprint, b.id::text), u.nickname, u.full_name, b.reader_name, u.job_title, b.team_id, u.team_id, t.name, t.color_code
         ORDER BY quotes_count DESC, total_likes DESC
         LIMIT 10
       `, [filterTeamId]),
 
       // 1.5: Ai được nhiều người cảm ơn / ghi nhận (nhiều like nhất)
       db.query(`
-        SELECT u.id, u.full_name, u.job_title, u.team_id,
+        SELECT COALESCE(u.id::text, b.user_fingerprint, b.id::text) as id,
+               COALESCE(u.nickname, u.full_name, b.reader_name, 'Bút Danh') as full_name,
+               u.job_title, COALESCE(b.team_id, u.team_id, 1) as team_id,
                t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
                COALESCE(SUM(b.likes_count), 0)::INT as total_likes_received,
                COUNT(b.id)::INT as books_count
         FROM books b
-        JOIN users u ON b.user_id = u.id
-        LEFT JOIN teams t ON u.team_id = t.id
+        LEFT JOIN users u ON b.user_id = u.id
+        LEFT JOIN teams t ON COALESCE(b.team_id, u.team_id) = t.id
         WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
-        GROUP BY u.id, u.full_name, u.job_title, u.team_id, t.name, t.display_name, t.color_code
+        GROUP BY COALESCE(u.id::text, b.user_fingerprint, b.id::text), u.nickname, u.full_name, b.reader_name, u.job_title, b.team_id, u.team_id, t.name, t.display_name, t.color_code
         HAVING COALESCE(SUM(b.likes_count), 0) > 0
         ORDER BY total_likes_received DESC, books_count DESC
         LIMIT 10
