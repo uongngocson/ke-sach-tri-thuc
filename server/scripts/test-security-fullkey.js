@@ -197,8 +197,8 @@ async function runSecurityFullKeyTests() {
     // 4.2: Thành viên Đội 1 cố tình tưới nước cho Đội 2 (Cross-team IDOR)
     const testUserTeam1 = '000000aa-0000-4000-a000-000000000001';
     await db.query(`
-      INSERT INTO users (id, employee_code, email, full_name, team_id)
-      VALUES ($1, 'SEC_U1', 'sec_u1@fpt.com', 'Sec Tester Đội 1', 1)
+      INSERT INTO users (id, full_name, team_id)
+      VALUES ($1, 'Sec Tester Đội 1', 1)
       ON CONFLICT (id) DO UPDATE SET team_id = 1
     `, [testUserTeam1]);
 
@@ -213,8 +213,8 @@ async function runSecurityFullKeyTests() {
     // 4.3: Thành viên không có đội cố tình tưới nước
     const testUserNoTeam = '000000aa-0000-4000-a000-000000000002';
     await db.query(`
-      INSERT INTO users (id, employee_code, email, full_name, team_id)
-      VALUES ($1, 'SEC_U2', 'sec_u2@fpt.com', 'Sec Tester No Team', NULL)
+      INSERT INTO users (id, full_name, team_id)
+      VALUES ($1, 'Sec Tester No Team', NULL)
       ON CONFLICT (id) DO UPDATE SET team_id = NULL
     `, [testUserNoTeam]);
 

@@ -8,13 +8,8 @@ export class BookService {
   /**
    * Check if a user/device has already contributed a quote today
    */
-  static async getDailyQuoteStatus({ userId, email, userFingerprint }) {
+  static async getDailyQuoteStatus({ userId, userFingerprint }) {
     let resolvedUserId = userId || null;
-    if (!resolvedUserId && email) {
-      const u = await db.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [email.trim()]);
-      if (u.rows.length > 0) resolvedUserId = u.rows[0].id;
-    }
-
     if (resolvedUserId) {
       const res = await db.query(`
         SELECT dq.id, dq.quote_date, b.id as book_id, b.title, b.author, b.quote, b.created_at
@@ -52,7 +47,6 @@ export class BookService {
 
   static async contributeBook(payload) {
     const { title, author, quote, category, reader, userFingerprint } = payload;
-    let email = payload.email;
 
     // ACID Database Transaction: Insert Book + Insert Ledger + Update Community Growth
     const result = await db.transaction(async (client) => {
@@ -60,17 +54,10 @@ export class BookService {
       let userId = payload.userId || null;
       let teamId = payload.teamId ? parseInt(payload.teamId, 10) : null;
 
-      if (email && email.trim()) {
-        const userRes = await client.query('SELECT id, team_id FROM users WHERE LOWER(email) = LOWER($1)', [email.trim()]);
-        if (userRes.rows.length > 0) {
-          userId = userRes.rows[0].id;
-          if (!teamId) teamId = userRes.rows[0].team_id;
-        }
-      } else if (userId) {
-        const userRes = await client.query('SELECT id, team_id, email FROM users WHERE id = $1', [userId]);
+      if (userId) {
+        const userRes = await client.query('SELECT id, team_id FROM users WHERE id = $1', [userId]);
         if (userRes.rows.length > 0) {
           if (!teamId) teamId = userRes.rows[0].team_id;
-          if (!email) email = userRes.rows[0].email;
         }
       }
 
@@ -132,7 +119,7 @@ export class BookService {
         INSERT INTO books (title, author, quote, category, reader_name, reader_email, visibility_status, moderation_status, user_id, team_id, user_fingerprint)
         VALUES ($1, $2, $3, $4, $5, $6, 'visible', 'pending_review', $7, $8, $9)
         RETURNING *
-      `, [title, author, quote, category, penName, email ? email.trim() : null, userId, teamId, userFingerprint]);
+      `, [title, author, quote, category, penName, null, userId, teamId, userFingerprint]);
 
       const newBook = bookInsert.rows[0];
 

@@ -86,17 +86,12 @@ async function run288UsersFullLifecycleTest() {
 
     const startTime = Date.now();
 
-    for (let i = 0; i < refUsers.length; i++) {
-      const refU = refUsers[i];
-      const userIdx = i + 1;
+    const dbUsersRes = await db.query('SELECT * FROM users ORDER BY team_id, id');
+    const dbUsers = dbUsersRes.rows;
 
-      // 1. Resolve user from database
-      const user = await UserService.lookupUser(refU.email);
-      if (!user) {
-        console.error(`Missing user: ${refU.email}`);
-        failed++;
-        continue;
-      }
+    for (let i = 0; i < dbUsers.length; i++) {
+      const user = dbUsers[i];
+      const userIdx = i + 1;
 
       // Case 1: Kiểm tra trạng thái hàng ngày trước khi thao tác (Chưa gieo gì)
       const initialStatus = await BookService.getDailyQuoteStatus({ userId: user.id });
@@ -144,7 +139,6 @@ async function run288UsersFullLifecycleTest() {
         quote: `Tri thức là chìa khóa mở ra cánh cửa tương lai cho Đội ${user.team_id}. (Độc giả #${userIdx})`,
         category: 'Sách Tinh Hoa',
         reader: user.full_name,
-        email: user.email,
         userId: user.id,
         teamId: user.team_id,
         userFingerprint: `fp_user_${user.id.substring(0, 8)}`
@@ -163,7 +157,6 @@ async function run288UsersFullLifecycleTest() {
           quote: `Câu trích dẫn thứ 2 không được phép trong ngày.`,
           category: 'Sách Tinh Hoa',
           reader: user.full_name,
-          email: user.email,
           userId: user.id,
           teamId: user.team_id,
           userFingerprint: `fp_user_dup_${user.id.substring(0, 8)}`

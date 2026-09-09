@@ -58,9 +58,9 @@ async function runRealtimeConcurrencyTests() {
       const uId = getTestUserId(i);
       const teamId = ((i - 1) % 8) + 1;
       await db.query(`
-        INSERT INTO users (id, employee_code, email, full_name, nickname, team_id, total_exp_earned)
-        VALUES ($1, $2, $3, $4, $5, $6, 0)
-      `, [uId, `CONCURR_EMP_${i}`, `concurr_user_${i}@fpt.com`, `Concurrent User ${i}`, `Bút Danh Concurr #${i}`, teamId]);
+        INSERT INTO users (id, full_name, nickname, team_id, total_exp_earned)
+        VALUES ($1, $2, $3, $4, 0)
+      `, [uId, `Concurrent User ${i}`, `Bút Danh Concurr #${i}`, teamId]);
     }
 
     // Tạo 2 sách mẫu để test like & concurrent read/write

@@ -184,16 +184,15 @@ async function runStateIntegrityTests() {
     console.log('\n⚡ [3/6] Kiểm tra chống Race Condition & Xung đột State khi gửi đồng thời (Concurrency Stampede)...');
 
     // 3.1: Concurrent Daily Dew Stampede (12 requests cùng 1 mili-giây cho 1 user)
-    await db.query("DELETE FROM daily_dews WHERE user_id IN (SELECT id FROM users WHERE employee_code LIKE 'TR_%' OR employee_code LIKE 'TEST_RACE_%' OR employee_code LIKE 'RACE_%')");
-    await db.query("DELETE FROM exp_ledger WHERE user_id IN (SELECT id FROM users WHERE employee_code LIKE 'TR_%' OR employee_code LIKE 'TEST_RACE_%' OR employee_code LIKE 'RACE_%')");
-    await db.query("DELETE FROM users WHERE employee_code LIKE 'TR_%' OR employee_code LIKE 'TEST_RACE_%' OR employee_code LIKE 'RACE_%'");
+    await db.query("DELETE FROM daily_dews WHERE user_id IN (SELECT id FROM users WHERE full_name LIKE 'Độc Giả Test Race Condition%')");
+    await db.query("DELETE FROM exp_ledger WHERE user_id IN (SELECT id FROM users WHERE full_name LIKE 'Độc Giả Test Race Condition%')");
+    await db.query("DELETE FROM users WHERE full_name LIKE 'Độc Giả Test Race Condition%'");
 
     const testUserId = uuidv4();
-    const testEmployeeCode = `TR_${Date.now()}`;
     await db.query(`
-      INSERT INTO users (id, employee_code, full_name, email, team_id, total_exp_earned)
-      VALUES ($1, $2, 'Độc Giả Test Race Condition', $3, 1, 0)
-    `, [testUserId, testEmployeeCode, `race_test_${Date.now()}@fpt.com`]);
+      INSERT INTO users (id, full_name, team_id, total_exp_earned)
+      VALUES ($1, 'Độc Giả Test Race Condition', 1, 0)
+    `, [testUserId]);
 
     const userExpBeforeDew = (await db.query('SELECT total_exp_earned FROM users WHERE id = $1', [testUserId])).rows[0].total_exp_earned;
     const team1ExpBeforeDew = (await db.query('SELECT tree_exp FROM teams WHERE id = 1')).rows[0].tree_exp;
@@ -300,7 +299,7 @@ async function runStateIntegrityTests() {
     const teamsBeforeRes = await db.query('SELECT id, total_exp, tree_exp FROM teams ORDER BY id ASC');
     const teamsBefore = teamsBeforeRes.rows;
 
-    const team3UserRes = await db.query('SELECT id, email, team_id, total_exp_earned FROM users WHERE team_id = 3 LIMIT 1');
+    const team3UserRes = await db.query('SELECT id, team_id, total_exp_earned FROM users WHERE team_id = 3 LIMIT 1');
     const team3User = team3UserRes.rows[0];
 
     const newBookPayload = {
@@ -308,7 +307,6 @@ async function runStateIntegrityTests() {
       author: 'Tác giả Đội 3',
       quote: 'Hành động của Đội 3 không bao giờ được phép làm nhảy điểm của các đội khác.',
       category: 'Văn Học Kinh Điển',
-      email: team3User.email,
       userId: team3User.id,
       teamId: 3,
       userFingerprint: `fp_iso_${team3User.id.substring(0, 8)}`
@@ -318,9 +316,9 @@ async function runStateIntegrityTests() {
     await db.transaction(async (client) => {
       const bRes = await client.query(`
         INSERT INTO books (title, author, quote, category, reader_name, reader_email, visibility_status, moderation_status, user_id, team_id, user_fingerprint)
-        VALUES ($1, $2, $3, $4, 'Độc giả Đội 3', $5, 'visible', 'reviewed', $6, 3, $7)
+        VALUES ($1, $2, $3, $4, 'Độc giả Đội 3', NULL, 'visible', 'reviewed', $5, 3, $6)
         RETURNING id
-      `, [newBookPayload.title, newBookPayload.author, newBookPayload.quote, newBookPayload.category, team3User.email, team3User.id, newBookPayload.userFingerprint]);
+      `, [newBookPayload.title, newBookPayload.author, newBookPayload.quote, newBookPayload.category, team3User.id, newBookPayload.userFingerprint]);
 
       insertedBookId = bRes.rows[0].id;
 
@@ -466,9 +464,9 @@ async function runStateIntegrityTests() {
     failed++;
   } finally {
     try {
-      await db.query("DELETE FROM daily_dews WHERE user_id IN (SELECT id FROM users WHERE employee_code LIKE 'TR_%' OR employee_code LIKE 'TEST_RACE_%' OR employee_code LIKE 'RACE_%')");
-      await db.query("DELETE FROM exp_ledger WHERE user_id IN (SELECT id FROM users WHERE employee_code LIKE 'TR_%' OR employee_code LIKE 'TEST_RACE_%' OR employee_code LIKE 'RACE_%')");
-      await db.query("DELETE FROM users WHERE employee_code LIKE 'TR_%' OR employee_code LIKE 'TEST_RACE_%' OR employee_code LIKE 'RACE_%'");
+      await db.query("DELETE FROM daily_dews WHERE user_id IN (SELECT id FROM users WHERE full_name LIKE 'Độc Giả Test Race Condition%')");
+      await db.query("DELETE FROM exp_ledger WHERE user_id IN (SELECT id FROM users WHERE full_name LIKE 'Độc Giả Test Race Condition%')");
+      await db.query("DELETE FROM users WHERE full_name LIKE 'Độc Giả Test Race Condition%'");
     } catch {}
     if (serverInstance) {
       serverInstance.close();

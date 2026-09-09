@@ -39,7 +39,7 @@ export async function lookupUser(req, res, next) {
       return res.status(400).json({
         success: false,
         error: 'QUERY_REQUIRED',
-        message: 'Vui lòng cung cấp email hoặc mã nhân viên để tra cứu'
+        message: 'Vui lòng cung cấp tên hoặc bút danh để tra cứu'
       });
     }
 
@@ -87,7 +87,7 @@ export async function createAdminPersonnel(req, res, next) {
     const newPersonnel = await UserService.createPersonnel(req.body, req.user, ipAddress);
     res.status(201).json({
       success: true,
-      message: `Đã thêm thành công nhân sự "${newPersonnel.nickname || newPersonnel.full_name}" (${newPersonnel.employee_code})!`,
+      message: `Đã thêm thành công nhân sự "${newPersonnel.nickname || newPersonnel.full_name}"!`,
       data: newPersonnel
     });
   } catch (err) {
@@ -130,7 +130,7 @@ export async function deleteAdminPersonnel(req, res, next) {
     const deleted = await UserService.deletePersonnel(id, req.user, ipAddress);
     res.json({
       success: true,
-      message: `Đã xóa vĩnh viễn nhân sự "${deleted.nickname || deleted.full_name}" (${deleted.employee_code}) khỏi hệ thống!`,
+      message: `Đã xóa vĩnh viễn nhân sự "${deleted.nickname || deleted.full_name}" khỏi hệ thống!`,
       data: deleted
     });
   } catch (err) {

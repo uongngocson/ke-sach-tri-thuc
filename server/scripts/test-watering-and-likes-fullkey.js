@@ -53,18 +53,18 @@ async function runFullTestKey() {
 
     // Tạo test users:
     await db.query(`
-      INSERT INTO users (id, employee_code, email, full_name, nickname, team_id, total_exp_earned)
-      VALUES ($1, 'TK_U1', 'testkey_u1@fpt.com', 'Tester Đội 1', 'Độc Giả Tri Thức #01', 1, 100)
+      INSERT INTO users (id, full_name, nickname, team_id, total_exp_earned)
+      VALUES ($1, 'Tester Đội 1', 'Độc Giả Tri Thức #01', 1, 100)
     `, [testUserId1]);
 
     await db.query(`
-      INSERT INTO users (id, employee_code, email, full_name, nickname, team_id, total_exp_earned)
-      VALUES ($1, 'TK_U2', 'testkey_u2@fpt.com', 'Tester Đội 2', 'Độc Giả Tri Thức #02', 2, 100)
+      INSERT INTO users (id, full_name, nickname, team_id, total_exp_earned)
+      VALUES ($1, 'Tester Đội 2', 'Độc Giả Tri Thức #02', 2, 100)
     `, [testUserId2]);
 
     await db.query(`
-      INSERT INTO users (id, employee_code, email, full_name, nickname, team_id, total_exp_earned)
-      VALUES ($1, 'TK_U3', 'testkey_u3@fpt.com', 'Tester No Team', 'Độc Giả Vô Đội', NULL, 0)
+      INSERT INTO users (id, full_name, nickname, team_id, total_exp_earned)
+      VALUES ($1, 'Tester No Team', 'Độc Giả Vô Đội', NULL, 0)
     `, [testNoTeamUserId]);
 
     await db.query(`
@@ -346,8 +346,8 @@ async function runFullTestKey() {
     await db.query('DELETE FROM users WHERE id = $1', [multiDayUserId]);
 
     await db.query(`
-      INSERT INTO users (id, employee_code, email, full_name, nickname, team_id, total_exp_earned)
-      VALUES ($1, 'TK_U5', 'multiday_u5@fpt.com', 'Tester MultiDay', 'Độc Giả Xuyên Ngày #05', 1, 50)
+      INSERT INTO users (id, full_name, nickname, team_id, total_exp_earned)
+      VALUES ($1, 'Tester MultiDay', 'Độc Giả Xuyên Ngày #05', 1, 50)
     `, [multiDayUserId]);
 
     await db.query(`

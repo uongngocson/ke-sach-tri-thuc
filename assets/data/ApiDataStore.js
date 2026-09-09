@@ -510,7 +510,7 @@ class ApiDataStoreManager {
       return {
         success: false,
         error: 'LOGIN_REQUIRED',
-        message: 'Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!'
+        message: 'Vui lòng đăng nhập tài khoản FOXREAD để thả tim trích dẫn!'
       };
     }
 
@@ -569,7 +569,7 @@ class ApiDataStoreManager {
         return {
           success: false,
           error: 'LOGIN_REQUIRED',
-          message: 'Vui lòng đăng nhập tài khoản FPT để thực hiện!'
+          message: 'Vui lòng đăng nhập tài khoản FOXREAD để thực hiện!'
         };
       }
 
@@ -619,7 +619,7 @@ class ApiDataStoreManager {
         return {
           success: false,
           error: 'LOGIN_REQUIRED',
-          message: 'Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!'
+          message: 'Vui lòng đăng nhập tài khoản FOXREAD để thả tim trích dẫn!'
         };
       }
 

@@ -23,8 +23,6 @@ export class UserService {
       whereClauses.push(`(
         u.nickname ILIKE $${values.length} OR
         u.full_name ILIKE $${values.length} OR 
-        u.email ILIKE $${values.length} OR 
-        u.employee_code ILIKE $${values.length} OR
         u.job_title ILIKE $${values.length} OR
         u.parent_department ILIKE $${values.length}
       )`);
@@ -45,8 +43,6 @@ export class UserService {
     const dataRes = await db.query(`
       SELECT 
         u.id,
-        u.employee_code,
-        u.email,
         u.full_name,
         u.nickname,
         u.gender,
@@ -73,6 +69,7 @@ export class UserService {
       LIMIT $${limitIdx} OFFSET $${offsetIdx}
     `, values);
 
+
     return {
       total,
       limit,
@@ -92,15 +89,13 @@ export class UserService {
     try {
       const res = await db.query(`
         SELECT 
-          u.id, u.employee_code, u.nickname, u.email, u.gender,
+          u.id, u.nickname, u.gender,
           u.branch, u.parent_department, u.officer_code, u.job_title,
           u.team_id, t.display_name as team_display_name, t.color_code as team_color
         FROM users u
         LEFT JOIN teams t ON u.team_id = t.id
         WHERE unaccent(COALESCE(u.nickname, '')) ILIKE unaccent($1)
            OR unaccent(COALESCE(u.full_name, '')) ILIKE unaccent($1)
-           OR u.employee_code ILIKE $1
-           OR u.email ILIKE $1
         ORDER BY 
           CASE 
             WHEN unaccent(COALESCE(u.nickname, '')) ILIKE unaccent($2) THEN 1
@@ -114,12 +109,12 @@ export class UserService {
     } catch {
       const res = await db.query(`
         SELECT 
-          u.id, u.employee_code, u.nickname, u.email, u.gender,
+          u.id, u.nickname, u.gender,
           u.branch, u.parent_department, u.officer_code, u.job_title,
           u.team_id, t.display_name as team_display_name, t.color_code as team_color
         FROM users u
         LEFT JOIN teams t ON u.team_id = t.id
-        WHERE u.nickname ILIKE $1 OR u.employee_code ILIKE $1 OR u.email ILIKE $1 OR u.full_name ILIKE $1
+        WHERE u.nickname ILIKE $1 OR u.full_name ILIKE $1
         ORDER BY 
           CASE 
             WHEN u.nickname ILIKE $2 THEN 1
@@ -139,7 +134,6 @@ export class UserService {
   static async lookupUser(query) {
     if (!query) return null;
     const cleanQuery = query.trim().toLowerCase();
-    const queryWithDomain = cleanQuery.includes('@') ? cleanQuery : `${cleanQuery}@fpt.com`;
     const term = `%${query.trim()}%`;
 
     try {
@@ -153,22 +147,20 @@ export class UserService {
         FROM users u
         LEFT JOIN teams t ON u.team_id = t.id
         WHERE LOWER(u.nickname) = $1 
-           OR LOWER(u.email) = $1 
-           OR LOWER(u.email) = $2 
-           OR u.employee_code = $3
            OR unaccent(LOWER(u.nickname)) = unaccent($1)
-           OR u.nickname ILIKE $4
-           OR unaccent(u.nickname) ILIKE unaccent($4)
+           OR u.nickname ILIKE $2
+           OR unaccent(u.nickname) ILIKE unaccent($2)
+           OR unaccent(LOWER(u.full_name)) = unaccent($1)
+           OR u.full_name ILIKE $2
         ORDER BY 
           CASE 
             WHEN LOWER(u.nickname) = $1 THEN 1
             WHEN unaccent(LOWER(u.nickname)) = unaccent($1) THEN 2
-            WHEN u.employee_code = $3 THEN 3
-            WHEN LOWER(u.email) = $1 OR LOWER(u.email) = $2 THEN 4
-            ELSE 5 
+            WHEN u.nickname ILIKE $2 THEN 3
+            ELSE 4 
           END ASC
         LIMIT 1
-      `, [cleanQuery, queryWithDomain, query.trim(), term]);
+      `, [cleanQuery, term]);
 
       return res.rows[0] || null;
     } catch {
@@ -181,10 +173,10 @@ export class UserService {
           t.color_code as team_color
         FROM users u
         LEFT JOIN teams t ON u.team_id = t.id
-        WHERE LOWER(u.nickname) = $1 OR LOWER(u.email) = $1 OR LOWER(u.email) = $2 OR u.employee_code = $3 OR u.nickname ILIKE $4
+        WHERE LOWER(u.nickname) = $1 OR u.nickname ILIKE $2 OR u.full_name ILIKE $2
         ORDER BY CASE WHEN LOWER(u.nickname) = $1 THEN 1 ELSE 2 END ASC
         LIMIT 1
-      `, [cleanQuery, queryWithDomain, query.trim(), term]);
+      `, [cleanQuery, term]);
 
       return res.rows[0] || null;
     }
@@ -222,7 +214,7 @@ export class UserService {
 
     const res = await db.query(`
       SELECT 
-        u.id, u.employee_code, u.email, u.full_name, u.nickname, u.gender,
+        u.id, u.full_name, u.nickname, u.gender,
         u.branch, u.parent_department, u.child_department_1, u.child_department_2,
         u.officer_code, u.job_title, u.team_id, u.role, u.avatar_url,
         u.contributed_books_count, u.total_exp_earned, u.created_at, u.updated_at,
@@ -260,9 +252,6 @@ export class UserService {
    */
   static async createPersonnel(data, actorAdmin = null, ipAddress = null) {
     const nickname = data.nickname ? data.nickname.trim() : (data.full_name ? data.full_name.trim() : 'Bút danh');
-    const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
-    const employeeCode = data.employee_code ? data.employee_code.trim() : `BD_${Date.now().toString().slice(-4)}${randomSuffix}`;
-    const email = data.email ? data.email.trim().toLowerCase() : `butdanh_${Date.now().toString().slice(-4)}_${randomSuffix.toLowerCase()}@fpt.com`;
     const fullName = data.full_name ? data.full_name.trim() : nickname;
     const gender = data.gender ? data.gender.trim() : null;
     const branch = data.branch ? data.branch.trim() : null;
@@ -274,24 +263,6 @@ export class UserService {
     const teamId = parseInt(data.team_id, 10);
     const role = data.role ? data.role.trim() : 'member';
     const avatarUrl = data.avatar_url ? data.avatar_url.trim() : null;
-
-    // Kiểm tra trùng lặp employee_code hoặc email
-    const dupCheck = await db.query(
-      'SELECT id, employee_code, email FROM users WHERE LOWER(employee_code) = LOWER($1) OR LOWER(email) = LOWER($2)',
-      [employeeCode, email]
-    );
-
-    if (dupCheck.rows.length > 0) {
-      const conflict = dupCheck.rows[0];
-      const isCodeConflict = conflict.employee_code.toLowerCase() === employeeCode.toLowerCase();
-      const message = isCodeConflict 
-        ? `Mã cán bộ "${employeeCode}" đã tồn tại trong hệ thống`
-        : `Email "${email}" đã tồn tại trong hệ thống`;
-      const err = new Error(message);
-      err.statusCode = 409;
-      err.code = 'PERSONNEL_ALREADY_EXISTS';
-      throw err;
-    }
 
     // Kiểm tra đội thi đua 1-8
     const teamRes = await db.query('SELECT id, name, display_name, color_code FROM teams WHERE id = $1', [teamId]);
@@ -305,13 +276,13 @@ export class UserService {
     // Thêm nhân sự vào database
     const insertRes = await db.query(`
       INSERT INTO users (
-        employee_code, email, full_name, nickname, gender,
+        full_name, nickname, gender,
         branch, parent_department, child_department_1, child_department_2,
         officer_code, job_title, team_id, role, avatar_url
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *
     `, [
-      employeeCode, email, fullName, nickname, gender,
+      fullName, nickname, gender,
       branch, parentDepartment, childDepartment1, childDepartment2,
       officerCode, jobTitle, teamId, role, avatarUrl
     ]);
@@ -334,9 +305,7 @@ export class UserService {
         actorAdmin?.id || null,
         newUser.id,
         JSON.stringify({
-          employee_code: newUser.employee_code,
           full_name: newUser.full_name,
-          email: newUser.email,
           team_id: newUser.team_id,
           branch: newUser.branch
         }),
@@ -374,36 +343,11 @@ export class UserService {
     }
     const existing = existingRes.rows[0];
 
-    // Kiểm tra trùng lặp nếu có thay đổi employee_code hoặc email
-    const newCode = data.employee_code ? data.employee_code.trim() : existing.employee_code;
-    const newEmail = data.email ? data.email.trim().toLowerCase() : existing.email;
-
-    if (newCode.toLowerCase() !== existing.employee_code.toLowerCase() || newEmail.toLowerCase() !== existing.email.toLowerCase()) {
-      const dupCheck = await db.query(`
-        SELECT id, employee_code, email FROM users 
-        WHERE (LOWER(employee_code) = LOWER($1) OR LOWER(email) = LOWER($2)) AND id != $3
-      `, [newCode, newEmail, id]);
-
-      if (dupCheck.rows.length > 0) {
-        const conflict = dupCheck.rows[0];
-        const isCodeConflict = conflict.employee_code.toLowerCase() === newCode.toLowerCase();
-        const message = isCodeConflict 
-          ? `Mã cán bộ "${newCode}" đã được sử dụng bởi nhân sự khác`
-          : `Email "${newEmail}" đã được sử dụng bởi nhân sự khác`;
-        const err = new Error(message);
-        err.statusCode = 409;
-        err.code = 'PERSONNEL_ALREADY_EXISTS';
-        throw err;
-      }
-    }
-
     const updates = [];
     const params = [];
     const changes = {};
 
     const fields = [
-      { key: 'employee_code', val: data.employee_code ? data.employee_code.trim() : undefined },
-      { key: 'email', val: data.email ? data.email.trim().toLowerCase() : undefined },
       { key: 'full_name', val: data.full_name ? data.full_name.trim() : (data.nickname ? data.nickname.trim() : undefined) },
       { key: 'nickname', val: data.nickname !== undefined ? (data.nickname ? data.nickname.trim() : null) : undefined },
       { key: 'gender', val: data.gender !== undefined ? (data.gender ? data.gender.trim() : null) : undefined },
@@ -468,7 +412,6 @@ export class UserService {
         actorAdmin?.id || null,
         id,
         JSON.stringify({
-          employee_code: updatedUser.employee_code,
           changes
         }),
         ipAddress
@@ -536,9 +479,7 @@ export class UserService {
         actorAdmin?.id || null,
         id,
         JSON.stringify({
-          employee_code: existing.employee_code,
           full_name: existing.full_name,
-          email: existing.email,
           team_id: existing.team_id
         }),
         ipAddress

@@ -67,12 +67,6 @@ export const updateAdminAccountSchema = z.object({
 });
 
 export const createPersonnelSchema = z.object({
-  employee_code: z.string().trim()
-    .min(2, 'Mã cán bộ phải từ 2 ký tự trở lên')
-    .max(20, 'Mã cán bộ không được quá 20 ký tự')
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Mã cán bộ chỉ chứa chữ cái, số, gạch ngang hoặc gạch dưới')
-    .optional(),
-  email: z.string().trim().email('Email không hợp lệ').optional(),
   full_name: z.string().trim()
     .min(2, 'Họ và tên phải từ 2 ký tự trở lên')
     .max(150, 'Họ và tên không quá 150 ký tự')
@@ -89,12 +83,6 @@ export const createPersonnelSchema = z.object({
 
 
 export const updatePersonnelSchema = z.object({
-  employee_code: z.string().trim()
-    .min(2, 'Mã cán bộ phải từ 2 ký tự trở lên')
-    .max(20, 'Mã cán bộ không được quá 20 ký tự')
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Mã cán bộ chỉ chứa chữ cái, số, gạch ngang hoặc gạch dưới')
-    .optional(),
-  email: z.string().trim().email('Email không hợp lệ').optional(),
   full_name: z.string().trim()
     .min(2, 'Họ và tên phải từ 2 ký tự trở lên')
     .max(150, 'Họ và tên không quá 150 ký tự')

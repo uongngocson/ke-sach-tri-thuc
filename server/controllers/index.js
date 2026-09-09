@@ -144,7 +144,7 @@ export async function harvestFruit(req, res, next) {
       return res.status(401).json({
         success: false,
         error: 'LOGIN_REQUIRED',
-        message: 'Vui lòng đăng nhập tài khoản FPT để hái Trái Tri Thức!'
+        message: 'Vui lòng đăng nhập tài khoản FOXREAD để hái Trái Tri Thức!'
       });
     }
 

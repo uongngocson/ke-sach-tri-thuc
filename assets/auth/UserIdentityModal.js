@@ -686,9 +686,14 @@ export class UserIdentityModal {
       return;
     }
 
+    const TEAM_FALLBACK_NAMES = {
+      1: 'SCU_BO', 2: 'Hà Đông Tây Bắc', 3: 'Trung Đông Tây Nam', 4: 'Thập đại Miền Nam',
+      5: 'FPL_AU_FU', 6: 'FTIBU_BOM', 7: 'FTI BA_TU_BOP', 8: 'IMU_PSU'
+    };
+
     container.innerHTML = users.map(u => {
       const displayName = u.nickname || u.full_name;
-      const teamLabel = u.team_display_name || (u.team_id ? 'Đội ' + u.team_id : 'Thành viên');
+      const teamLabel = u.team_display_name || TEAM_FALLBACK_NAMES[u.team_id] || (u.team_id ? 'Đội ' + u.team_id : 'Thành viên');
       const branchMeta = u.job_title || u.branch || teamLabel;
       return `
       <div class="ui-suggestion-item" data-id="${escapeHtml(u.id)}">
@@ -719,8 +724,13 @@ export class UserIdentityModal {
     const meta = previewBox.querySelector('#ui-preview-meta');
     const team = previewBox.querySelector('#ui-preview-team-name');
 
+    const TEAM_FALLBACK_NAMES = {
+      1: 'SCU_BO', 2: 'Hà Đông Tây Bắc', 3: 'Trung Đông Tây Nam', 4: 'Thập đại Miền Nam',
+      5: 'FPL_AU_FU', 6: 'FTIBU_BOM', 7: 'FTI BA_TU_BOP', 8: 'IMU_PSU'
+    };
+
     const displayName = user.nickname || user.full_name;
-    const teamLabel = user.team_display_name || (user.team_id ? `Đội ${user.team_id}` : 'Thành viên');
+    const teamLabel = user.team_display_name || TEAM_FALLBACK_NAMES[user.team_id] || (user.team_id ? `Đội ${user.team_id}` : 'Thành viên');
     avatar.textContent = user.gender === 'Nữ' ? '🌸' : '⚡';
     name.textContent = displayName;
     meta.textContent = user.branch || user.job_title || teamLabel;

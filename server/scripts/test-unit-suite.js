@@ -244,17 +244,17 @@ async function runUnitSuite() {
     const countUsers = await db.query('SELECT COUNT(*) FROM users');
     assert(parseInt(countUsers.rows[0].count, 10) === 288, 'Cơ sở dữ liệu lưu trữ chính xác 288 độc giả FoxREAD');
 
-    // 6.4: Lookup độc giả theo Email
-    const userByEmail = await UserService.lookupUser('thuhuong@fpt.com');
-    assert(userByEmail && userByEmail.employee_code === '00000295' && userByEmail.team_id === 5, 'Tra cứu theo email thuhuong@fpt.com trả về đúng mã 00000295 và Đội 5');
+    // 6.4: Lookup độc giả theo Nickname
+    const userByEmail = await UserService.lookupUser('Viết Kim Hoàng');
+    assert(userByEmail && userByEmail.nickname === 'Viết Kim Hoàng' && userByEmail.team_id === 5, 'Tra cứu theo bút danh Viết Kim Hoàng trả về đúng Đội 5');
 
-    // 6.5: Lookup độc giả theo Mã nhân viên
-    const userByCode = await UserService.lookupUser('00000295');
-    assert(userByCode && userByCode.email === 'thuhuong@fpt.com', 'Tra cứu theo mã nhân viên 00000295 trả về đúng độc giả Thu Hương');
+    // 6.5: Lookup độc giả theo Họ tên
+    const userByCode = await UserService.lookupUser('Đỗ Viết Kim Hoàng');
+    assert(userByCode && userByCode.full_name === 'Đỗ Viết Kim Hoàng', 'Tra cứu theo họ tên Đỗ Viết Kim Hoàng trả về đúng độc giả');
 
     // 6.6: Fast Autocomplete Suggestions
-    const suggestions = await UserService.suggestUsers('thuhuong', 5);
-    assert(suggestions.length >= 1 && suggestions[0].email.includes('thuhuong'), 'API gợi ý tìm kiếm tức thời (Autocomplete) trả về kết quả chính xác');
+    const suggestions = await UserService.suggestUsers('Kim Hoàng', 5);
+    assert(suggestions.length >= 1 && suggestions[0].nickname.includes('Kim Hoàng'), 'API gợi ý tìm kiếm tức thời (Autocomplete) trả về kết quả chính xác');
 
     // =========================================================================
     // SECTION 7: RÀNG BUỘC ĐÓNG GÓP THEO VÒNG (Round Anti-Spam Constraint)

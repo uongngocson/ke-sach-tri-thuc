@@ -135,7 +135,7 @@ export class TeamService {
     // Also get members
     const membersRes = await db.query(`
       SELECT 
-        id, employee_code, email, full_name, gender, branch,
+        id, full_name, gender, branch,
         parent_department, child_department_1, child_department_2,
         officer_code, job_title, team_id, role, avatar_url, contributed_books_count, total_exp_earned
       FROM users
@@ -169,7 +169,7 @@ export class TeamService {
 
     const result = await db.query(`
       SELECT 
-        u.id, u.employee_code, u.email, u.full_name, u.gender, u.branch,
+        u.id, u.full_name, u.gender, u.branch,
         u.parent_department, u.child_department_1, u.child_department_2,
         u.officer_code, u.job_title, u.team_id, u.role, u.avatar_url, 
         u.contributed_books_count, u.total_exp_earned,

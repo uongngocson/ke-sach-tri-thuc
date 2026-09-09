@@ -454,8 +454,10 @@ export class TeamArenaModal {
         const isMyTeam = myTeamId === t.id.toString();
         const isCurrentlyInspecting = currentTeamId === t.id.toString();
         const rankClass = t.rank === 1 ? 'rank-1' : (t.rank === 2 ? 'rank-2' : (t.rank === 3 ? 'rank-3' : ''));
-        const medal = t.rank === 1 ? '🥇' : (t.rank === 2 ? '🥈' : (t.rank === 3 ? '🥉' : `#${t.rank}`));
+        const medal = t.rank === 1 ? '🥇' : (t.rank === 2 ? '🥈' : (t.rank === 3 ? '🥉' : `Top ${t.rank}`));
         const color = t.color_code || t.color_primary || '#3b82f6';
+        const teamDisplayName = t.display_name || t.name || `Đội ${t.id}`;
+        const teamSubtitle = t.slogan || (t.code ? `Mã: ${t.code}` : '');
 
         // Stage & progress logic
         const isSprouted = t.is_sprouted || t.level >= 1 || (t.total_exp || 0) >= 50 || (t.tree_seeds || 0) >= 10;
@@ -470,10 +472,10 @@ export class TeamArenaModal {
               <div class="tam-team-info">
                 <div class="tam-team-name-row">
                   <span class="tam-team-icon">${t.icon || '🌳'}</span>
-                  <span class="tam-team-name" title="Đội ${t.id}">Đội ${t.id}</span>
+                  <span class="tam-team-name" title="${teamDisplayName}">${teamDisplayName}</span>
                   ${isMyTeam ? '<span class="tam-my-team-pill">Đội của bạn</span>' : ''}
                 </div>
-                <div class="tam-team-comp">${t.display_name || ('Đội ' + t.id)}</div>
+                <div class="tam-team-comp">${teamSubtitle}</div>
               </div>
             </div>
 

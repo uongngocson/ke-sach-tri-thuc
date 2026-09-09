@@ -7073,8 +7073,8 @@
                  title="${escapeHtml(shortName)} - Click để xem Cây Tri Thức">
               <div class="flex items-center justify-between gap-1 mb-1">
                 <div class="flex items-center gap-1.5 min-w-0">
-                  <span class="team-rail-badge text-[9.5px] font-black px-1.5 py-0.2 rounded text-white shrink-0 shadow-2xs" style="background: ${team.color_code || '#0054A6'};">
-                    #${team.id}
+                  <span class="team-rail-badge text-[10px] font-black px-1.5 py-0.2 rounded text-white shrink-0 shadow-2xs" style="background: ${team.color_code || '#0054A6'};">
+                    ${team.icon || '🌲'}
                   </span>
                   <span class="team-rail-name text-[11px] font-black text-slate-800 dark:text-slate-100 truncate">
                     ${escapeHtml(shortName)}
@@ -7089,7 +7089,7 @@
                   <span class="text-xs leading-none shrink-0">${levelIcon}</span>
                   <span class="truncate text-[9.5px] font-semibold">${escapeHtml(team.level_name || 'Ủ Mầm')}</span>
                 </span>
-                <span class="team-rail-exp shrink-0" title="Tổng điểm thi đua Đội ${team.id}: ${totalExpFormatted} EXP">
+                <span class="team-rail-exp shrink-0" title="Tổng điểm thi đua ${escapeHtml(shortName)}: ${totalExpFormatted} EXP">
                   <span class="team-rail-exp-icon">⚡</span>
                   <span class="team-rail-exp-val">${totalExpFormatted}</span>
                   <span class="team-rail-exp-unit">EXP</span>
@@ -7249,7 +7249,7 @@
         updateDewButtonState();
         render8TeamTimeline();
         if (notify) {
-          showToast(`🌳 Đang ghé thăm Cây Tri Thức: Đội ${team.id}`);
+          showToast(`🌳 Đang ghé thăm Cây Tri Thức: ${team.display_name || team.name || ('Đội ' + team.id)}`);
         }
       }
 
@@ -7328,9 +7328,9 @@
       }
 
       const DEFAULT_TEAM_COLORS = [
-        '#F36F21', // Đội 1: SCU_BO (Cam FPT)
-        '#0054A6', // Đội 2: Hà Đông Tây Bắc (Xanh FPT)
-        '#70B928', // Đội 3: Trung Đông Tây Nam (Xanh Lá FPT)
+        '#F36F21', // Đội 1: SCU_BO (Cam FOXREAD)
+        '#0054A6', // Đội 2: Hà Đông Tây Bắc (Xanh FOXREAD)
+        '#70B928', // Đội 3: Trung Đông Tây Nam (Xanh Lá FOXREAD)
         '#9333ea', // Đội 4: Thập đại Miền Nam (Tím Thủy Chung)
         '#06b6d4', // Đội 5: FPL_AU_FU (Xanh Cyan)
         '#ec4899', // Đội 6: FTIBU_BOM (Hồng Năng Động)
@@ -7450,7 +7450,7 @@
         if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
           if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
             userIdentityModal.open();
-            showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+            showToast('🔒 Vui lòng đăng nhập đúng tài khoản FOXREAD để gieo mầm!');
           }
           return;
         }
@@ -7504,14 +7504,16 @@
           const teamId = i + 1;
           const team = (allTeams && allTeams.find(t => t.id === teamId)) || {
             id: teamId,
-            display_name: `Đội ${teamId}`,
-            short_name: `Đội ${teamId}`,
+            display_name: (typeof TEAM_SHORT_NAMES !== 'undefined' && TEAM_SHORT_NAMES[teamId]) ? TEAM_SHORT_NAMES[teamId] : `Đội ${teamId}`,
+            short_name: (typeof TEAM_SHORT_NAMES !== 'undefined' && TEAM_SHORT_NAMES[teamId]) ? TEAM_SHORT_NAMES[teamId] : `Đội ${teamId}`,
             color_code: DEFAULT_TEAM_COLORS[i],
             level: 0,
             tree_seeds: 0,
             total_exp: 0,
             is_sprouted: false
           };
+
+          const plaqueTeamName = team.display_name || team.name || ((typeof TEAM_SHORT_NAMES !== 'undefined' && TEAM_SHORT_NAMES[teamId]) ? TEAM_SHORT_NAMES[teamId] : `Đội ${teamId}`);
 
           const isSprouted = team.is_sprouted || team.level >= 1 || ((team.total_exp || 0) >= 50) || ((team.tree_seeds || 0) >= 10);
           const level = isSprouted ? Math.max(1, Math.min(5, team.level || 1)) : 0;
@@ -7537,8 +7539,8 @@
           // Botanical Garden Signpost Plaque planted in the soil at tree foot
           let innerContent = `
             <!-- Garden Signpost Plaque planted in the soil at tree foot -->
-            <div class="root-garden-plaque" title="Click để xem toàn bộ trích dẫn Đội ${teamId}">
-              <span class="plaque-badge" style="background: ${teamColor};">#${teamId}</span>
+            <div class="root-garden-plaque" title="Click để xem toàn bộ trích dẫn ${escapeHtml(plaqueTeamName)}">
+              <span class="plaque-badge" style="background: ${teamColor};">${team.icon || '🌳'} ${escapeHtml(plaqueTeamName)}</span>
               ${isSprouted 
                 ? `<span class="plaque-status status-sprouted">${levelIcon} Lv.${level}</span>`
                 : `<span class="plaque-status status-seed">🌰 ${(team.total_exp || 0).toLocaleString()}/50 EXP</span>`
@@ -7926,7 +7928,7 @@
           asideLikeBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
-              showToast('🔒 Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!');
+              showToast('🔒 Vui lòng đăng nhập tài khoản FOXREAD để thả tim trích dẫn!');
               if (window.userIdentityModal && typeof window.userIdentityModal.open === 'function') {
                 window.userIdentityModal.open();
               }
@@ -7936,7 +7938,7 @@
             if (!q) return;
             const res = await MockDataStore.toggleLike(q.id);
             if (res && res.error === 'LOGIN_REQUIRED') {
-              showToast('🔒 ' + (res.message || 'Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!'));
+              showToast('🔒 ' + (res.message || 'Vui lòng đăng nhập tài khoản FOXREAD để thả tim trích dẫn!'));
               if (window.userIdentityModal && typeof window.userIdentityModal.open === 'function') {
                 window.userIdentityModal.open();
               }
@@ -8163,7 +8165,7 @@
         if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
           if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
             userIdentityModal.open();
-            showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+            showToast('🔒 Vui lòng đăng nhập đúng tài khoản FOXREAD để gieo mầm!');
           }
           return;
         }
@@ -8232,7 +8234,7 @@
         e.stopPropagation();
         if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
           if (typeof userIdentityModal !== 'undefined') userIdentityModal.open();
-          showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+          showToast('🔒 Vui lòng đăng nhập đúng tài khoản FOXREAD để gieo mầm!');
           return;
         }
         if (myTeam && activeTeam && activeTeam.id !== myTeam.id) {
@@ -8247,7 +8249,7 @@
         e.stopPropagation();
         if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
           if (typeof userIdentityModal !== 'undefined') userIdentityModal.open();
-          showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+          showToast('🔒 Vui lòng đăng nhập đúng tài khoản FOXREAD để gieo mầm!');
           return;
         }
         if (myTeam && activeTeam && activeTeam.id !== myTeam.id) {
@@ -8318,7 +8320,7 @@
           if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
             if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
               userIdentityModal.open();
-              showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+              showToast('🔒 Vui lòng đăng nhập đúng tài khoản FOXREAD để gieo mầm!');
             }
             return;
           }
@@ -8389,7 +8391,7 @@
           closeWelcomeModal();
           if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
             if (typeof userIdentityModal !== 'undefined') userIdentityModal.open();
-            showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+            showToast('🔒 Vui lòng đăng nhập đúng tài khoản FOXREAD để gieo mầm!');
             return;
           }
           if (myTeam && activeTeam && activeTeam.id !== myTeam.id) {
@@ -8482,7 +8484,7 @@
       if (quoteLikeBtn) {
         quoteLikeBtn.addEventListener('click', async (e) => {
           if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
-            showToast('🔒 Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!');
+            showToast('🔒 Vui lòng đăng nhập tài khoản FOXREAD để thả tim trích dẫn!');
             if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
               userIdentityModal.open();
             }
@@ -8491,7 +8493,7 @@
           if (!currentActiveQuoteData) return;
           const res = await MockDataStore.toggleLike(currentActiveQuoteData.id);
           if (res && res.error === 'LOGIN_REQUIRED') {
-            showToast('🔒 ' + (res.message || 'Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!'));
+            showToast('🔒 ' + (res.message || 'Vui lòng đăng nhập tài khoản FOXREAD để thả tim trích dẫn!'));
             if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
               userIdentityModal.open();
             }
@@ -8524,7 +8526,7 @@
           const readerVal = (currentUser && (currentUser.nickname || currentUser.full_name)) || 'Bút danh';
 
           if (!currentUser || currentUser.isGuest || !currentUser.team_id) {
-            showToast('🔒 Vui lòng đăng nhập đúng tài khoản FPT để gieo mầm!');
+            showToast('🔒 Vui lòng đăng nhập đúng tài khoản FOXREAD để gieo mầm!');
             if (typeof userIdentityModal !== 'undefined' && userIdentityModal.open) {
               userIdentityModal.open();
             }

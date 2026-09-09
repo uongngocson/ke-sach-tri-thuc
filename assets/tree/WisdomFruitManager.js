@@ -560,7 +560,7 @@ export class WisdomFruitManager {
     const isGuest = !userSession || !userSession.id || userSession.id === 'guest';
     if (isGuest) {
       if (window.showToast) {
-        window.showToast('🔒 Vui lòng đăng nhập tài khoản FPT để hái Trái Tri Thức!', 'warning');
+        window.showToast('🔒 Vui lòng đăng nhập tài khoản FOXREAD để hái Trái Tri Thức!', 'warning');
       }
       if (window.openUserIdentityModal) {
         window.openUserIdentityModal();
@@ -571,8 +571,9 @@ export class WisdomFruitManager {
     const teamId = fruit.userData.teamId || (this.treeManager?.activeTeamId || 1);
     const fruitIndex = typeof fruit.userData.index === 'number' ? fruit.userData.index : 0;
     const allTeams = (window.getAllTeams && window.getAllTeams()) || [];
-    const teamObj = allTeams.find(t => t.id === teamId) || { short_name: `Đội ${teamId}`, display_name: `Đội ${teamId}`, color_code: '#0054A6' };
-    const teamName = teamObj.short_name || `Đội ${teamId}`;
+    const teamObj = allTeams.find(t => t.id === teamId) || {};
+    const TEAM_NAMES = { 1: 'SCU_BO', 2: 'Hà Đông Tây Bắc', 3: 'Trung Đông Tây Nam', 4: 'Thập đại Miền Nam', 5: 'FPL_AU_FU', 6: 'FTIBU_BOM', 7: 'FTI BA_TU_BOP', 8: 'IMU_PSU' };
+    const teamName = teamObj.display_name || teamObj.name || teamObj.short_name || TEAM_NAMES[teamId] || `Đội ${teamId}`;
 
     const store = window.MockDataStore || window.ApiDataStore;
     if (!store || typeof store.harvestFruit !== 'function') {
@@ -646,7 +647,7 @@ export class WisdomFruitManager {
         }
       } else if (res && res.error === 'LOGIN_REQUIRED') {
         if (window.showToast) {
-          window.showToast('🔒 Vui lòng đăng nhập tài khoản FPT để hái Trái Tri Thức!', 'warning');
+          window.showToast('🔒 Vui lòng đăng nhập tài khoản FOXREAD để hái Trái Tri Thức!', 'warning');
         }
         if (window.openUserIdentityModal) {
           window.openUserIdentityModal();

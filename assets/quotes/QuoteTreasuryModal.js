@@ -960,7 +960,7 @@ export class QuoteTreasuryModal {
                 return `
                   <button class="qtm-team-pill" data-team="${teamId}">
                     <span class="qtm-pill-dot" style="background:${team.color}"></span>
-                    <span>Đội ${teamId}</span>
+                    <span class="qtm-pill-name">${team.name}</span>
                     <span class="qtm-pill-count" id="pill-count-${teamId}">0</span>
                   </button>
                 `;
@@ -1232,9 +1232,20 @@ export class QuoteTreasuryModal {
     const pillAll = overlay.querySelector('#pill-count-all');
     if (pillAll) pillAll.textContent = counts.all;
 
+    const allTeams = (typeof window !== 'undefined' && window.getAllTeams) ? window.getAllTeams() : [];
+
     for (let i = 1; i <= 8; i++) {
       const pill = overlay.querySelector(`#pill-count-${i}`);
       if (pill) pill.textContent = counts[i];
+      const pillBtn = overlay.querySelector(`button.qtm-team-pill[data-team="${i}"]`);
+      if (pillBtn) {
+        const nameSpan = pillBtn.querySelector('.qtm-pill-name');
+        if (nameSpan) {
+          const teamObj = allTeams.find(t => t.id === i);
+          const realName = teamObj?.display_name || teamObj?.name || TEAMS_INFO[i]?.name;
+          if (realName) nameSpan.textContent = realName;
+        }
+      }
     }
   }
 
@@ -1291,7 +1302,13 @@ export class QuoteTreasuryModal {
       if (isFiltered) {
         filterStatus.classList.add('active');
         let desc = [];
-        if (this.selectedTeam !== 'all') desc.push(`Đội ${this.selectedTeam}`);
+        if (this.selectedTeam !== 'all') {
+          const tId = parseInt(this.selectedTeam, 10);
+          const allTeams = (typeof window !== 'undefined' && window.getAllTeams) ? window.getAllTeams() : [];
+          const teamObj = allTeams.find(t => t.id === tId);
+          const tName = teamObj?.display_name || teamObj?.name || TEAMS_INFO[tId]?.name || `Đội ${tId}`;
+          desc.push(tName);
+        }
         if (this.searchQuery) desc.push(`"${this.searchQuery}"`);
         statusText.innerHTML = `✨ Đang hiển thị: <strong>${desc.join(' • ')}</strong> (${filtered.length} trích dẫn)`;
       } else {
@@ -1314,13 +1331,14 @@ export class QuoteTreasuryModal {
           const progressPct = Math.min(100, Math.round((currentExp / targetExp) * 100));
           const remaining = Math.max(0, targetExp - currentExp);
           const teamColor = TEAMS_INFO[tId]?.color || '#F36F21';
+          const tName = teamObj?.display_name || teamObj?.name || TEAMS_INFO[tId]?.name || `Đội ${tId}`;
           sproutingBanner.style.display = 'block';
           sproutingBanner.innerHTML = `
             <div style="background: linear-gradient(135deg, rgba(243,111,33,0.06), rgba(15,23,42,0.03)); border: 1px solid ${teamColor}40; border-radius: 12px; padding: 10px 14px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
               <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 800; color: #0f172a;">
                 <span style="display: flex; align-items: center; gap: 6px;">
                   <span>🌰</span>
-                  <span>Vườn Ươm Tri Thức Đội ${tId}: <strong>${currentExp} / 50 EXP</strong></span>
+                  <span>Vườn Ươm Tri Thức ${tName}: <strong>${currentExp} / 50 EXP</strong></span>
                 </span>
                 <span style="color: ${teamColor}; font-size: 11.5px;">${remaining > 0 ? `Còn ${remaining} EXP để Cây nảy mầm đâm chồi 🌱` : '🌱 Sẵn sàng nảy mầm!'}</span>
               </div>
@@ -1466,7 +1484,7 @@ export class QuoteTreasuryModal {
     } catch {}
     const isGuest = !session || !session.id || session.id === 'guest' || !session.team_id;
     if (isGuest) {
-      this.showToast('🔒 Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!');
+      this.showToast('🔒 Vui lòng đăng nhập tài khoản FOXREAD để thả tim trích dẫn!');
       if (window.userIdentityModal && typeof window.userIdentityModal.open === 'function') {
         window.userIdentityModal.open();
       }
@@ -1482,7 +1500,7 @@ export class QuoteTreasuryModal {
 
       const res = await store.toggleLike(quote.id);
       if (res && res.error === 'LOGIN_REQUIRED') {
-        this.showToast('🔒 ' + (res.message || 'Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!'));
+        this.showToast('🔒 ' + (res.message || 'Vui lòng đăng nhập tài khoản FOXREAD để thả tim trích dẫn!'));
         if (window.userIdentityModal && typeof window.userIdentityModal.open === 'function') {
           window.userIdentityModal.open();
         }
@@ -1499,8 +1517,8 @@ export class QuoteTreasuryModal {
 
         if (res.isLiked) {
           btn.classList.add('liked');
-          if (heartSpan) heartSpan.textContent = '❤️';
-          const teamName = quote.team_short_name || (quote.team_id ? `Đội ${quote.team_id}` : 'Cây Tri Thức');
+          const teamInfo = quote.team_id ? TEAMS_INFO[quote.team_id] : null;
+          const teamName = quote.team_short_name || quote.team_name || teamInfo?.name || (quote.team_id ? `Đội ${quote.team_id}` : 'Cây Tri Thức');
           this.showToast(`💖 Đã thả tim: "${quote.title || quote.book || 'Trích dẫn'}" (+2 EXP cho ${teamName})`);
         } else {
           btn.classList.remove('liked');

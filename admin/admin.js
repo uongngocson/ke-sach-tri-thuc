@@ -1070,10 +1070,12 @@ function renderDeepGrowth(growth) {
     } else {
       mvpsGrid.innerHTML = mvps.map(m => {
         const color = m.team_color || '#38bdf8';
+        const adminTeamNames = { 1: 'SCU_BO', 2: 'Hà Đông Tây Bắc', 3: 'Trung Đông Tây Nam', 4: 'Thập đại Miền Nam', 5: 'FPL_AU_FU', 6: 'FTIBU_BOM', 7: 'FTI BA_TU_BOP', 8: 'IMU_PSU' };
+        const teamNameDisplay = m.team_display_name || m.team_name || adminTeamNames[m.team_id] || ('ĐỘI ' + m.team_id);
         return `
           <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-amber-400/50 transition relative overflow-hidden flex flex-col justify-between">
             <div class="absolute top-0 right-0 px-2 py-0.5 rounded-bl-lg bg-amber-500/20 text-amber-300 text-[9px] font-black uppercase">
-              MVP ĐỘI ${m.team_id}
+              MVP ${escapeHtml(teamNameDisplay)}
             </div>
             <div>
               <div class="flex items-center gap-2 mb-2">
@@ -1470,13 +1472,12 @@ async function exportUsersCSV() {
     }
 
     const rows = [
-      ['STT', 'Mã Nhân Viên', 'Bút Danh', 'Đội Thi Đua', 'Khối / Ban', 'Chức Danh', dateLabel, 'Sách Đã Gieo', 'EXP Kiếm Được']
+      ['STT', 'Bút Danh', 'Đội Thi Đua', 'Khối / Ban', 'Chức Danh', dateLabel, 'Sách Đã Gieo', 'EXP Kiếm Được']
     ];
 
     data.data.users.forEach((u, idx) => {
       rows.push([
         idx + 1,
-        `"${u.employee_code || ''}"`,
         `"${u.nickname || 'Bút danh'}"`,
         `"${u.team_display_name || ('Đội ' + u.team_id)}"`,
         `"${(u.branch || '').replace(/"/g, '""')}"`,
@@ -1534,7 +1535,6 @@ async function exportUsersAllDaysCSV() {
       [],
       [
         'STT',
-        'Mã Nhân Viên',
         'Bút Danh',
         'Đội Thi Đua',
         'Khối / Ban',
@@ -1560,7 +1560,6 @@ async function exportUsersAllDaysCSV() {
 
       rows.push([
         idx + 1,
-        `"${u.employee_code || ''}"`,
         `"${u.nickname || 'Bút danh'}"`,
         `"${u.team_name || ('Đội ' + u.team_id)}"`,
         `"${(u.branch || '').replace(/"/g, '""')}"`,

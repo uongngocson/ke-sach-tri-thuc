@@ -239,11 +239,11 @@ async function runAllTests() {
     const totalUsersRes = await db.query('SELECT COUNT(*) FROM users');
     assert(parseInt(totalUsersRes.rows[0].count, 10) === 288, 'Users: Exactly 288 users stored in PostgreSQL database');
 
-    const userLookup = await UserService.lookupUser('thuhuong@fpt.com');
-    assert(userLookup && userLookup.employee_code === '00000295' && userLookup.team_id === 5, 'Users: Lookup by email thuhuong@fpt.com returns correct employee_code 00000295 and team 5');
+    const userLookup = await UserService.lookupUser('Viết Kim Hoàng');
+    assert(userLookup && userLookup.nickname === 'Viết Kim Hoàng' && userLookup.team_id === 5, 'Users: Lookup by nickname "Viết Kim Hoàng" returns correct user and team 5');
 
-    const codeLookup = await UserService.lookupUser('00000295');
-    assert(codeLookup && codeLookup.email === 'thuhuong@fpt.com', 'Users: Lookup by code 00000295 returns correct user profile');
+    const nameLookup = await UserService.lookupUser('Đỗ Viết Kim Hoàng');
+    assert(nameLookup && nameLookup.full_name === 'Đỗ Viết Kim Hoàng', 'Users: Lookup by full_name "Đỗ Viết Kim Hoàng" returns correct user profile');
 
     // -------------------------------------------------------------
     // INTEGRATION TESTS: DAILY QUOTE CONSTRAINT (1 QUOTE / USER / DAY)

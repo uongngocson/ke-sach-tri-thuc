@@ -24,7 +24,7 @@ export class QuoteService {
     }
 
     if (!resolvedUserId || resolvedUserId === 'guest') {
-      const err = new Error('Vui lòng đăng nhập tài khoản FPT để thả tim trích dẫn!');
+      const err = new Error('Vui lòng đăng nhập tài khoản FOXREAD để thả tim trích dẫn!');
       err.statusCode = 401;
       err.code = 'LOGIN_REQUIRED';
       throw err;
@@ -32,7 +32,7 @@ export class QuoteService {
 
     const uCheck = await db.query('SELECT id, team_id FROM users WHERE id = $1', [resolvedUserId]);
     if (uCheck.rows.length === 0) {
-      const err = new Error('Không tìm thấy thông tin thành viên FPT. Vui lòng đăng nhập lại để thả tim!');
+      const err = new Error('Không tìm thấy thông tin thành viên FOXREAD. Vui lòng đăng nhập lại để thả tim!');
       err.statusCode = 401;
       err.code = 'LOGIN_REQUIRED';
       throw err;

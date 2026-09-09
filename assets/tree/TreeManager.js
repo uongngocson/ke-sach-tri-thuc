@@ -10,9 +10,9 @@ import { TreeGrowthController } from './TreeGrowthController.js?v=20260907_v3';
 import { WisdomFruitManager } from './WisdomFruitManager.js?v=20260909_v5fruits_backend_antispam';
 
 const DEFAULT_TEAM_COLORS = [
-  '#F36F21', // Đội 1: Cam FPT
-  '#0054A6', // Đội 2: Xanh FPT
-  '#70B928', // Đội 3: Xanh Lá FPT
+  '#F36F21', // Đội 1: Cam FOXREAD
+  '#0054A6', // Đội 2: Xanh FOXREAD
+  '#70B928', // Đội 3: Xanh Lá FOXREAD
   '#9333ea', // Đội 4: Tím Thủy Chung
   '#06b6d4', // Đội 5: Xanh Cyan
   '#ec4899', // Đội 6: Hồng Năng Động

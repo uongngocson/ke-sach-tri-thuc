@@ -255,7 +255,7 @@ export class AnalyticsService {
       SELECT 
         el.id, el.amount, el.type, el.reference_type, el.reference_id, el.created_at,
         el.user_fingerprint,
-        COALESCE(u.nickname, u.full_name) as user_name, u.nickname, u.email as user_email, u.employee_code,
+        COALESCE(u.nickname, u.full_name) as user_name, u.nickname,
         COALESCE(t.id, bt.id, ut.id) as team_id,
         COALESCE(t.name, bt.name, ut.name) as team_name,
         COALESCE(t.display_name, bt.display_name, ut.display_name) as team_display_name,
@@ -282,7 +282,7 @@ export class AnalyticsService {
     }
     if (search) {
       params.push(`%${search}%`);
-      query += ` AND (u.nickname ILIKE $${params.length} OR u.full_name ILIKE $${params.length} OR u.email ILIKE $${params.length} OR u.employee_code ILIKE $${params.length})`;
+      query += ` AND (u.nickname ILIKE $${params.length} OR u.full_name ILIKE $${params.length})`;
     }
 
     const countQuery = `SELECT COUNT(*) FROM (${query}) as filtered_ledger`;
@@ -321,7 +321,7 @@ export class AnalyticsService {
 
     let query = `
       SELECT 
-        u.id, u.employee_code, u.email, u.full_name, u.nickname, u.gender,
+        u.id, u.full_name, u.nickname, u.gender,
         u.branch, u.parent_department, u.child_department_1, u.child_department_2,
         u.job_title, u.team_id, u.role, u.avatar_url,
         u.contributed_books_count, u.total_exp_earned, u.created_at,
@@ -351,7 +351,7 @@ export class AnalyticsService {
     }
     if (search) {
       params.push(`%${search}%`);
-      query += ` AND (u.nickname ILIKE $${params.length} OR u.full_name ILIKE $${params.length} OR u.email ILIKE $${params.length} OR u.employee_code ILIKE $${params.length} OR u.job_title ILIKE $${params.length})`;
+      query += ` AND (u.nickname ILIKE $${params.length} OR u.full_name ILIKE $${params.length} OR u.job_title ILIKE $${params.length})`;
     }
 
     const countQuery = `SELECT COUNT(*) FROM (${query}) as filtered_users`;
@@ -434,7 +434,7 @@ export class AnalyticsService {
     ] = await Promise.all([
       // 1.1: Ai đóng góp nhiều điểm EXP nhất
       db.query(`
-        SELECT u.id, u.employee_code, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.email, u.job_title, u.branch, u.team_id,
+        SELECT u.id, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.job_title, u.branch, u.team_id,
                t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
                u.total_exp_earned, u.contributed_books_count
         FROM users u
@@ -446,7 +446,7 @@ export class AnalyticsService {
 
       // 1.2: Ai là người tưới cây nhiều nhất (kèm chuỗi streak)
       db.query(`
-        SELECT u.id, u.employee_code, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.email, u.job_title, u.team_id,
+        SELECT u.id, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.job_title, u.team_id,
                t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
                COUNT(d.id)::INT as total_dews,
                COALESCE(MAX(d.streak), 1)::INT as max_streak,
@@ -455,14 +455,14 @@ export class AnalyticsService {
         JOIN users u ON d.user_id = u.id
         LEFT JOIN teams t ON u.team_id = t.id
         WHERE ($1::INT IS NULL OR d.team_id = $1)
-        GROUP BY u.id, u.employee_code, u.full_name, u.nickname, u.email, u.job_title, u.team_id, t.name, t.display_name, t.color_code
+        GROUP BY u.id, u.full_name, u.nickname, u.job_title, u.team_id, t.name, t.display_name, t.color_code
         ORDER BY total_dews DESC, max_streak DESC
         LIMIT 10
       `, [filterTeamId]),
 
       // 1.3: Ai là người gieo mầm nhiều nhất
       db.query(`
-        SELECT u.id, u.employee_code, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.email, u.job_title, u.team_id,
+        SELECT u.id, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.job_title, u.team_id,
                t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
                COUNT(b.id)::INT as books_count,
                COALESCE(SUM(b.likes_count), 0)::INT as total_likes_received
@@ -470,14 +470,14 @@ export class AnalyticsService {
         JOIN users u ON b.user_id = u.id
         LEFT JOIN teams t ON u.team_id = t.id
         WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
-        GROUP BY u.id, u.employee_code, u.full_name, u.nickname, u.email, u.job_title, u.team_id, t.name, t.display_name, t.color_code
+        GROUP BY u.id, u.full_name, u.nickname, u.job_title, u.team_id, t.name, t.display_name, t.color_code
         ORDER BY books_count DESC, total_likes_received DESC
         LIMIT 10
       `, [filterTeamId]),
 
       // 1.4: Ai viết nhiều câu trích dẫn & có độ sâu nội dung nhất
       db.query(`
-        SELECT u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id,
+        SELECT u.id, u.full_name, u.job_title, u.team_id,
                t.name as team_name, t.color_code as team_color,
                COUNT(b.id)::INT as quotes_count,
                COALESCE(AVG(LENGTH(b.quote)), 0)::INT as avg_quote_length,
@@ -486,14 +486,14 @@ export class AnalyticsService {
         JOIN users u ON b.user_id = u.id
         LEFT JOIN teams t ON u.team_id = t.id
         WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
-        GROUP BY u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id, t.name, t.color_code
+        GROUP BY u.id, u.full_name, u.job_title, u.team_id, t.name, t.color_code
         ORDER BY quotes_count DESC, total_likes DESC
         LIMIT 10
       `, [filterTeamId]),
 
       // 1.5: Ai được nhiều người cảm ơn / ghi nhận (nhiều like nhất)
       db.query(`
-        SELECT u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id,
+        SELECT u.id, u.full_name, u.job_title, u.team_id,
                t.name as team_name, t.display_name as team_display_name, t.color_code as team_color,
                COALESCE(SUM(b.likes_count), 0)::INT as total_likes_received,
                COUNT(b.id)::INT as books_count
@@ -501,7 +501,7 @@ export class AnalyticsService {
         JOIN users u ON b.user_id = u.id
         LEFT JOIN teams t ON u.team_id = t.id
         WHERE b.visibility_status = 'visible' AND ($1::INT IS NULL OR b.team_id = $1)
-        GROUP BY u.id, u.employee_code, u.full_name, u.email, u.job_title, u.team_id, t.name, t.display_name, t.color_code
+        GROUP BY u.id, u.full_name, u.job_title, u.team_id, t.name, t.display_name, t.color_code
         HAVING COALESCE(SUM(b.likes_count), 0) > 0
         ORDER BY total_likes_received DESC, books_count DESC
         LIMIT 10
@@ -511,7 +511,6 @@ export class AnalyticsService {
       db.query(`
         SELECT sv.id, sv.user_fingerprint, sv.visit_count, sv.first_visited_at, sv.last_visited_at,
                COALESCE(u.nickname, u.full_name, 'Bút Danh Thân Thiết') as user_name,
-               u.email as user_email,
                t.name as team_name, t.color_code as team_color
         FROM site_visitors sv
         LEFT JOIN users u ON sv.user_fingerprint LIKE '%' || SUBSTRING(u.id::text, 1, 8) || '%'
@@ -570,7 +569,7 @@ export class AnalyticsService {
       // 2.3: Những câu cốt được nhiều thành viên tương tác nhất
       db.query(`
         SELECT b.id, b.title, b.author, b.quote, b.likes_count, b.created_at,
-               u.id as user_id, COALESCE(u.nickname, u.full_name) as reader_name, u.nickname, u.employee_code,
+               u.id as user_id, COALESCE(u.nickname, u.full_name) as reader_name, u.nickname,
                t.id as team_id, t.name as team_name, t.display_name as team_display_name, t.color_code as team_color
         FROM books b
         LEFT JOIN users u ON b.user_id = u.id
@@ -585,13 +584,13 @@ export class AnalyticsService {
         SELECT ql.user_fingerprint,
                COUNT(ql.id)::INT as likes_given,
                MAX(ql.created_at) as last_liked_at,
-               u.id as user_id, u.full_name as user_name, u.email as user_email,
+               u.id as user_id, u.full_name as user_name,
                t.name as team_name, t.color_code as team_color
         FROM quote_likes ql
         LEFT JOIN users u ON ql.user_fingerprint LIKE '%' || SUBSTRING(u.id::text, 1, 8) || '%'
         LEFT JOIN teams t ON u.team_id = t.id
         WHERE ($1::INT IS NULL OR t.id = $1)
-        GROUP BY ql.user_fingerprint, u.id, u.full_name, u.email, t.name, t.color_code
+        GROUP BY ql.user_fingerprint, u.id, u.full_name, t.name, t.color_code
         ORDER BY likes_given DESC
         LIMIT 10
       `, [filterTeamId])
@@ -648,7 +647,7 @@ export class AnalyticsService {
       // 3.3: Gương mặt tiêu biểu số 1 (MVP) của từng đội trong 8 đội
       db.query(`
         SELECT DISTINCT ON (u.team_id)
-               u.id, u.employee_code, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.email, u.job_title, u.avatar_url,
+               u.id, COALESCE(u.nickname, u.full_name) as full_name, u.nickname, u.job_title, u.avatar_url,
                u.contributed_books_count, u.total_exp_earned,
                t.id as team_id, t.name as team_name, t.display_name as team_display_name, 
                t.color_code as team_color, t.icon as team_icon
@@ -865,7 +864,7 @@ export class AnalyticsService {
     // 2. Query all users
     const usersRes = await db.query(`
       SELECT 
-        u.id, u.employee_code, u.nickname, u.full_name, u.gender,
+        u.id, u.nickname, u.full_name, u.gender,
         u.branch, u.parent_department, u.child_department_1, u.job_title,
         u.team_id, u.role, u.contributed_books_count, u.total_exp_earned,
         t.display_name as team_display_name, t.code as team_code
@@ -947,7 +946,6 @@ export class AnalyticsService {
 
       return {
         id: u.id,
-        employee_code: u.employee_code || '',
         nickname: u.nickname || '',
         full_name: u.full_name || '',
         branch: u.branch || '',

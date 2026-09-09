@@ -66,47 +66,17 @@ async function runPersonnelCrudTests() {
     const moderatorActor = { id: moderator.id, username: moderator.username, role: 'moderator' };
 
     // Clean up test personnel if left over from previous runs
-    await db.query("DELETE FROM users WHERE employee_code IN ('TEST_PERS_001', 'TEST_PERS_002', 'TEST_PERS_003')");
+    await db.query("DELETE FROM users WHERE full_name IN ('Nguyễn Văn Test 1', 'Nguyễn Văn Test 2', 'Độc Giả Tri Thức #999')");
 
     // =========================================================================
     // [1/8] TEST SUITE 1: ZOD VALIDATION & BOUNDARY ENFORCEMENT
     // =========================================================================
     console.log('🔍 [1/8] Kiểm tra tính chặt chẽ của Validation (Zod Schemas)...');
 
-    // 1.1 Invalid employee_code (special characters)
-    let invalidCodeCaught = false;
-    try {
-      createPersonnelSchema.parse({
-        employee_code: 'NV#001!',
-        email: 'test@fpt.com',
-        full_name: 'Test Name',
-        team_id: 1
-      });
-    } catch (e) {
-      invalidCodeCaught = true;
-    }
-    assert(invalidCodeCaught, 'Chặn đứng mã cán bộ chứa ký tự đặc biệt không hợp lệ (NV#001!)');
-
-    // 1.2 Invalid email format
-    let invalidEmailCaught = false;
-    try {
-      createPersonnelSchema.parse({
-        employee_code: 'NV001',
-        email: 'invalid-email-format',
-        full_name: 'Test Name',
-        team_id: 1
-      });
-    } catch (e) {
-      invalidEmailCaught = true;
-    }
-    assert(invalidEmailCaught, 'Chặn đứng email không đúng định dạng RFC (invalid-email-format)');
-
-    // 1.3 Invalid team_id (< 1 or > 8)
+    // 1.1 Invalid team_id (< 1 or > 8)
     let invalidTeamCaught = false;
     try {
       createPersonnelSchema.parse({
-        employee_code: 'NV001',
-        email: 'test@fpt.com',
         full_name: 'Test Name',
         team_id: 9
       });
@@ -115,12 +85,22 @@ async function runPersonnelCrudTests() {
     }
     assert(invalidTeamCaught, 'Chặn đứng Đội thi đua nằm ngoài khoảng 1-8 (team_id: 9)');
 
-    // 1.4 Short full_name (< 2 chars)
+    // 1.2 Invalid team_id format (string instead of int)
+    let invalidTeamTypeCaught = false;
+    try {
+      createPersonnelSchema.parse({
+        full_name: 'Test Name',
+        team_id: 'invalid'
+      });
+    } catch (e) {
+      invalidTeamTypeCaught = true;
+    }
+    assert(invalidTeamTypeCaught, 'Chặn đứng team_id sai định dạng kiểu dữ liệu');
+
+    // 1.3 Short full_name (< 2 chars)
     let shortNameCaught = false;
     try {
       createPersonnelSchema.parse({
-        employee_code: 'NV001',
-        email: 'test@fpt.com',
         full_name: 'A',
         team_id: 1
       });
@@ -129,10 +109,8 @@ async function runPersonnelCrudTests() {
     }
     assert(shortNameCaught, 'Chặn đứng Họ và tên quá ngắn (< 2 ký tự)');
 
-    // 1.5 Valid data passes cleanly
+    // 1.4 Valid data passes cleanly
     const validParsed = createPersonnelSchema.parse({
-      employee_code: 'TEST_PERS_001',
-      email: 'pers001@fpt.com',
       full_name: 'Nguyễn Văn Test 1',
       nickname: 'Bình Minh #001',
       team_id: 1,
@@ -142,7 +120,7 @@ async function runPersonnelCrudTests() {
       child_department_1: 'Đối tác',
       job_title: 'Kỹ sư phần mềm'
     });
-    assert(validParsed.employee_code === 'TEST_PERS_001' && validParsed.team_id === 1,
+    assert(validParsed.full_name === 'Nguyễn Văn Test 1' && validParsed.team_id === 1,
       'Dữ liệu hợp lệ vượt qua Zod validation hoàn hảo 100%');
 
     // =========================================================================
@@ -154,8 +132,6 @@ async function runPersonnelCrudTests() {
     const team1CountBefore = parseInt(team1BeforeRes.rows[0]?.actual_members || 0, 10);
 
     const createdPersonnel1 = await UserService.createPersonnel({
-      employee_code: 'TEST_PERS_001',
-      email: 'pers001@fpt.com',
       full_name: 'Nguyễn Văn Test 1',
       nickname: 'Bình Minh #001',
       team_id: 1,
@@ -167,8 +143,8 @@ async function runPersonnelCrudTests() {
     }, superAdminActor, '127.0.0.1');
 
     assert(createdPersonnel1 && createdPersonnel1.id, 'Tạo nhân sự thành công, nhận UUID hợp lệ', `ID: ${createdPersonnel1.id}`);
-    assert(createdPersonnel1.employee_code === 'TEST_PERS_001', 'Mã cán bộ lưu trữ chính xác', createdPersonnel1.employee_code);
-    assert(createdPersonnel1.email === 'pers001@fpt.com', 'Email chuẩn hóa chữ thường thành công', createdPersonnel1.email);
+    assert(createdPersonnel1.full_name === 'Nguyễn Văn Test 1', 'Họ tên lưu trữ chính xác', createdPersonnel1.full_name);
+    assert(createdPersonnel1.nickname === 'Bình Minh #001', 'Bút danh lưu trữ chính xác', createdPersonnel1.nickname);
     assert(createdPersonnel1.team_display_name !== undefined, 'Đính kèm thông tin đội thi đua', createdPersonnel1.team_display_name);
 
     // Verify team 1 actual_members count incremented
@@ -186,8 +162,6 @@ async function runPersonnelCrudTests() {
 
     assert(anonymousPersonnel && anonymousPersonnel.id, 'Tạo độc giả chỉ với Bút danh & Đội thành công');
     assert(anonymousPersonnel.nickname === 'Độc Giả Tri Thức #999', 'Bút danh lưu trữ chính xác 100%');
-    assert(anonymousPersonnel.employee_code.startsWith('BD_'), 'Tự động cấp mã nội bộ an toàn (BD_XXXX)');
-    assert(anonymousPersonnel.email.includes('@fpt.com'), 'Tự động tạo email giả lập hợp lệ');
     assert(anonymousPersonnel.full_name === 'Độc Giả Tri Thức #999', 'Tự động đồng bộ full_name bằng Bút danh');
 
     // Dọn dẹp anonymousPersonnel
@@ -195,41 +169,22 @@ async function runPersonnelCrudTests() {
     await db.query('UPDATE teams SET actual_members = (SELECT COUNT(*) FROM users WHERE team_id = 2) WHERE id = 2');
 
     // =========================================================================
-    // [3/8] TEST SUITE 3: CHỐNG TRÙNG LẶP DỮ LIỆU (409 CONFLICT)
+    // [3/8] TEST SUITE 3: KIỂM TRA TÍNH TOÀN VẸN RÀNG BUỘC ĐỘI (INVALID TEAM ENFORCEMENT)
     // =========================================================================
-    console.log('\n🚫 [3/8] Kiểm tra chống trùng lặp mã cán bộ & email (409 Conflict)...');
+    console.log('\n🚫 [3/8] Kiểm tra chặn tạo nhân sự với Đội thi đua không tồn tại...');
 
-    // 3.1 Trùng mã cán bộ
-    let dupCodeBlocked = false;
+    let invalidTeamCreateBlocked = false;
     try {
       await UserService.createPersonnel({
-        employee_code: 'TEST_PERS_001', // Duplicate
-        email: 'other_email@fpt.com',
-        full_name: 'Trùng Mã',
-        team_id: 2
+        full_name: 'Nhân Sự Sai Đội',
+        team_id: 99
       }, superAdminActor);
     } catch (err) {
-      if (err.statusCode === 409 && err.code === 'PERSONNEL_ALREADY_EXISTS') {
-        dupCodeBlocked = true;
+      if (err.statusCode === 400 && err.code === 'INVALID_TEAM') {
+        invalidTeamCreateBlocked = true;
       }
     }
-    assert(dupCodeBlocked, 'Chặn đứng hành vi tạo nhân sự trùng Mã cán bộ (409 Conflict)');
-
-    // 3.2 Trùng email (case-insensitive)
-    let dupEmailBlocked = false;
-    try {
-      await UserService.createPersonnel({
-        employee_code: 'TEST_PERS_OTHER',
-        email: 'PERS001@FPT.COM', // Duplicate (uppercase)
-        full_name: 'Trùng Email',
-        team_id: 3
-      }, superAdminActor);
-    } catch (err) {
-      if (err.statusCode === 409 && err.code === 'PERSONNEL_ALREADY_EXISTS') {
-        dupEmailBlocked = true;
-      }
-    }
-    assert(dupEmailBlocked, 'Chặn đứng email trùng lặp không phân biệt hoa thường (409 Conflict)');
+    assert(invalidTeamCreateBlocked, 'Chặn đứng hành vi tạo nhân sự với Đội không tồn tại (400 INVALID_TEAM)');
 
     // =========================================================================
     // [4/8] TEST SUITE 4: XEM CHI TIẾT NHÂN SỰ & THỐNG KÊ (READ DETAIL)
@@ -285,26 +240,13 @@ async function runPersonnelCrudTests() {
       'Sĩ số Đội 2 tăng thêm 1 sau khi nhân sự gia nhập',
       `Team 2: ${team2CountBefore} -> ${team2AfterTransfer}`);
 
-    // Create a 2nd user to test update conflict
+    // Create a 2nd user to test update
     const user2 = await UserService.createPersonnel({
-      employee_code: 'TEST_PERS_002',
-      email: 'pers002@fpt.com',
       full_name: 'Nguyễn Văn Test 2',
       team_id: 2
     }, superAdminActor);
 
-    let updateConflictBlocked = false;
-    try {
-      // Try to change user1's email to user2's email
-      await UserService.updatePersonnel(createdPersonnel1.id, {
-        email: 'pers002@fpt.com'
-      }, superAdminActor);
-    } catch (err) {
-      if (err.statusCode === 409 && err.code === 'PERSONNEL_ALREADY_EXISTS') {
-        updateConflictBlocked = true;
-      }
-    }
-    assert(updateConflictBlocked, 'Cập nhật trùng email với nhân sự khác bị chặn đứng (409 Conflict)');
+    assert(user2 && user2.id, 'Tạo nhân sự thứ 2 thành công');
 
     // =========================================================================
     // [6/8] TEST SUITE 6: XÓA AN TOÀN VÀ DỌN DẸP LIÊN KẾT (DELETE)
@@ -314,7 +256,7 @@ async function runPersonnelCrudTests() {
     // Insert mock activity data linked to user 1
     const mockBookRes = await db.query(`
       INSERT INTO books (title, author, quote, category, reader_name, reader_email, user_id)
-      VALUES ('Sách Test Cascade', 'Tác Giả Test', 'Trích dẫn thử nghiệm', 'CN', 'Test', 'pers001@fpt.com', $1)
+      VALUES ('Sách Test Cascade', 'Tác Giả Test', 'Trích dẫn thử nghiệm', 'CN', 'Test', NULL, $1)
       RETURNING id
     `, [createdPersonnel1.id]);
     const mockBookId = mockBookRes.rows[0].id;
