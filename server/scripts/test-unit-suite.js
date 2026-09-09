@@ -93,13 +93,13 @@ async function runUnitSuite() {
     const l2_start = calculateLevelFromExp(150);
     assert(l2_start.level === 2 && l2_start.progressPercent === 0, 'Level 2 với 150 EXP bắt đầu giai đoạn Cây Con');
 
-    // 2.6: Level 3: 350 EXP -> Cây Tri Thức Sum Sê
-    const l3_start = calculateLevelFromExp(350);
-    assert(l3_start.level === 3 && l3_start.progressPercent === 0, 'Level 3 với 350 EXP bắt đầu giai đoạn Cây Tri Thức Sum Sê');
+    // 2.6: Level 3: 300 EXP -> Trưởng Thành
+    const l3_start = calculateLevelFromExp(300);
+    assert(l3_start.level === 3 && l3_start.progressPercent === 0, 'Level 3 với 300 EXP bắt đầu giai đoạn Trưởng Thành');
 
-    // 2.7: Level 4: 700 EXP -> Đại Thụ Đơm Hoa Kết Trái
-    const l4_start = calculateLevelFromExp(700);
-    assert(l4_start.level === 4 && l4_start.progressPercent === 0, 'Level 4 với 700 EXP bắt đầu giai đoạn Đại Thụ');
+    // 2.7: Level 4: 600 EXP -> Cổ Thụ
+    const l4_start = calculateLevelFromExp(600);
+    assert(l4_start.level === 4 && l4_start.progressPercent === 0, 'Level 4 với 600 EXP bắt đầu giai đoạn Cổ Thụ');
 
     // 2.8: Level 5: 1200 EXP -> Cực đại Max Level 100%
     const l5_max = calculateLevelFromExp(1200);
@@ -197,24 +197,24 @@ async function runUnitSuite() {
     // =========================================================================
     console.log('\n📦 [5/8] Test Key Suite 5: Logic Trái Tri Thức Cây Level 5...');
 
-    // 5.1: Cây chưa đạt Level 5 (EXP < 2500) -> Không hiển thị quả
-    const isFruitVisibleL4 = (2499 >= 2500);
-    assert(isFruitVisibleL4 === false, 'Cây 2499 EXP (Level 4) chưa hiển thị Trái Tri Thức');
+    // 5.1: Cây chưa đạt Level 5 (EXP < 1200) -> Không hiển thị quả
+    const isFruitVisibleL4 = (1199 >= 1200);
+    assert(isFruitVisibleL4 === false, 'Cây 1199 EXP (Level 4) chưa hiển thị Trái Tri Thức');
 
-    // 5.2: Cây đạt Level 5 (EXP >= 2500) -> Kích hoạt hiển thị quả
-    const isFruitVisibleL5 = (2500 >= 2500);
-    assert(isFruitVisibleL5 === true, 'Cây 2500 EXP (Level 5) kích hoạt hiển thị Trái Tri Thức');
+    // 5.2: Cây đạt Level 5 (EXP >= 1200) -> Kích hoạt hiển thị quả
+    const isFruitVisibleL5 = (1200 >= 1200);
+    assert(isFruitVisibleL5 === true, 'Cây 1200 EXP (Level 5) kích hoạt hiển thị Trái Tri Thức');
 
-    // 5.3: Quy định đúng 36 quả độc lập trên tán cây
-    const TOTAL_FRUITS_COUNT = 36;
-    assert(TOTAL_FRUITS_COUNT === 36, 'Mỗi Cây Level 5 sinh ra đúng 36 Trái Tri Thức độc lập');
+    // 5.3: Quy định đúng 5 quả độc lập trên tán cây
+    const TOTAL_FRUITS_COUNT = 5;
+    assert(TOTAL_FRUITS_COUNT === 5, 'Mỗi Cây Level 5 sinh ra đúng 5 Trái Tri Thức độc lập');
 
-    // 5.4: Chỉ số quả nằm trong khoảng [0..35]
+    // 5.4: Chỉ số quả nằm trong khoảng [0..4]
     let fruitIndicesValid = true;
-    for (let i = 0; i < 36; i++) {
-      if (i < 0 || i > 35) fruitIndicesValid = false;
+    for (let i = 0; i < 5; i++) {
+      if (i < 0 || i > 4) fruitIndicesValid = false;
     }
-    assert(fruitIndicesValid, 'Tất cả 36 chỉ số quả nằm trọn vẹn trong khoảng [0..35]');
+    assert(fruitIndicesValid, 'Tất cả 5 chỉ số quả nằm trọn vẹn trong khoảng [0..4]');
 
     // 5.5: Thưởng EXP khi hái quả: +5 EXP
     const FRUIT_HARVEST_REWARD = 5;
@@ -244,17 +244,17 @@ async function runUnitSuite() {
     const countUsers = await db.query('SELECT COUNT(*) FROM users');
     assert(parseInt(countUsers.rows[0].count, 10) === 288, 'Cơ sở dữ liệu lưu trữ chính xác 288 độc giả FoxREAD');
 
-    // 6.4: Lookup độc giả theo Email
-    const userByEmail = await UserService.lookupUser('thuhuong@fpt.com');
-    assert(userByEmail && userByEmail.employee_code === '00000295' && userByEmail.team_id === 5, 'Tra cứu theo email thuhuong@fpt.com trả về đúng mã 00000295 và Đội 5');
+    // 6.4: Lookup độc giả theo Nickname
+    const userByEmail = await UserService.lookupUser('Viết Kim Hoàng');
+    assert(userByEmail && userByEmail.nickname === 'Viết Kim Hoàng' && userByEmail.team_id === 5, 'Tra cứu theo bút danh Viết Kim Hoàng trả về đúng Đội 5');
 
-    // 6.5: Lookup độc giả theo Mã nhân viên
-    const userByCode = await UserService.lookupUser('00000295');
-    assert(userByCode && userByCode.email === 'thuhuong@fpt.com', 'Tra cứu theo mã nhân viên 00000295 trả về đúng độc giả Thu Hương');
+    // 6.5: Lookup độc giả theo Họ tên
+    const userByCode = await UserService.lookupUser('Đỗ Viết Kim Hoàng');
+    assert(userByCode && userByCode.full_name === 'Đỗ Viết Kim Hoàng', 'Tra cứu theo họ tên Đỗ Viết Kim Hoàng trả về đúng độc giả');
 
     // 6.6: Fast Autocomplete Suggestions
-    const suggestions = await UserService.suggestUsers('thuhuong', 5);
-    assert(suggestions.length >= 1 && suggestions[0].email.includes('thuhuong'), 'API gợi ý tìm kiếm tức thời (Autocomplete) trả về kết quả chính xác');
+    const suggestions = await UserService.suggestUsers('Kim Hoàng', 5);
+    assert(suggestions.length >= 1 && suggestions[0].nickname.includes('Kim Hoàng'), 'API gợi ý tìm kiếm tức thời (Autocomplete) trả về kết quả chính xác');
 
     // =========================================================================
     // SECTION 7: RÀNG BUỘC ĐÓNG GÓP THEO VÒNG (Round Anti-Spam Constraint)

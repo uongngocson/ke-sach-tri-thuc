@@ -1,4 +1,4 @@
-﻿export const ROUNDS_CONFIG = [
+export const ROUNDS_CONFIG = [
   { round: 1,  date: '2026-09-05', endDate: '2026-09-07', stage: 'SEEDING', label: 'Lượt 1: Gieo Mầm Khởi Động' },
   { round: 2,  date: '2026-09-08', endDate: '2026-09-10', stage: 'SEEDING', label: 'Lượt 2: Tích Lũy Nảy Mầm' },
   { round: 3,  date: '2026-09-11', endDate: '2026-09-13', stage: 'GROWTH',  label: 'Lượt 3: Khởi Động Tính EXP' },
@@ -18,7 +18,7 @@
 
 export const STANDARD_TEAM_SIZE = 40;
 export const EXP_PER_CONTRIBUTION = 5;
-export const SEEDS_FOR_SPROUT = 50;
+export const SEEDS_FOR_SPROUT = 10;
 
 /**
  * Get current round by date (default to today or simulated date)

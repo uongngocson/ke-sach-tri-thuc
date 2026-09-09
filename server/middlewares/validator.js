@@ -5,7 +5,7 @@ export const contributeBookSchema = z.object({
   author: z.string().trim().min(2, 'Tên tác giả phải từ 2 ký tự trở lên').max(150, 'Tên tác giả không vượt quá 150 ký tự'),
   quote: z.string().trim().min(10, 'Trích dẫn phải từ 10 ký tự trở lên').max(1000, 'Trích dẫn không vượt quá 1000 ký tự'),
   category: z.string().trim().optional().nullable(),
-  reader: z.string().trim().max(80, 'Tên người gieo không vượt quá 80 ký tự').optional().default('Độc giả yêu sách'),
+  reader: z.string().trim().max(80, 'Bút danh không vượt quá 80 ký tự').optional().default('Bút danh'),
   email: z.string().email('Email không hợp lệ').optional().nullable().or(z.literal('')),
   userFingerprint: z.string().trim().min(1, 'Fingerprint thiết bị là bắt buộc')
 });
@@ -24,8 +24,8 @@ export const claimDewSchema = z.object({
 });
 
 export const harvestFruitSchema = z.object({
-  fruitIndex: z.number().int().min(0).max(100),
-  userFingerprint: z.string().trim().min(1, 'Fingerprint thiết bị là bắt buộc'),
+  fruitIndex: z.number().int().min(0).max(4),
+  userFingerprint: z.string().trim().optional().default('default_fp'),
   userId: z.string().trim().optional().nullable(),
   teamId: z.number().int().min(1).max(8).optional().nullable()
 });
@@ -64,6 +64,37 @@ export const updateAdminAccountSchema = z.object({
   full_name: z.string().trim().min(2, 'Họ và tên phải từ 2 ký tự trở lên').max(100, 'Họ và tên không quá 100 ký tự').optional(),
   role: z.enum(['admin', 'moderator', 'reader']).optional(),
   is_active: z.boolean().optional()
+});
+
+export const createPersonnelSchema = z.object({
+  full_name: z.string().trim()
+    .min(2, 'Họ và tên phải từ 2 ký tự trở lên')
+    .max(150, 'Họ và tên không quá 150 ký tự')
+    .optional(),
+  nickname: z.string().trim().max(100, 'Bút danh không quá 100 ký tự').optional().nullable(),
+  gender: z.string().trim().max(10).optional().nullable(),
+  branch: z.string().trim().max(100).optional().nullable(),
+  parent_department: z.string().trim().max(100).optional().nullable(),
+  child_department_1: z.string().trim().max(100).optional().nullable(),
+  job_title: z.string().trim().max(255).optional().nullable(),
+  team_id: z.number().int().min(1, 'Đội thi đua từ 1 đến 8').max(8, 'Đội thi đua từ 1 đến 8'),
+  role: z.string().trim().max(20).optional().default('member')
+});
+
+
+export const updatePersonnelSchema = z.object({
+  full_name: z.string().trim()
+    .min(2, 'Họ và tên phải từ 2 ký tự trở lên')
+    .max(150, 'Họ và tên không quá 150 ký tự')
+    .optional(),
+  nickname: z.string().trim().max(100, 'Bút danh không quá 100 ký tự').optional().nullable(),
+  gender: z.string().trim().max(10).optional().nullable(),
+  branch: z.string().trim().max(100).optional().nullable(),
+  parent_department: z.string().trim().max(100).optional().nullable(),
+  child_department_1: z.string().trim().max(100).optional().nullable(),
+  job_title: z.string().trim().max(255).optional().nullable(),
+  team_id: z.number().int().min(1, 'Đội thi đua từ 1 đến 8').max(8, 'Đội thi đua từ 1 đến 8').optional(),
+  role: z.string().trim().max(20).optional()
 });
 
 export function validateBody(schema) {

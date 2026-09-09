@@ -19,8 +19,8 @@ export class TreeGrowthController {
     // Presets for Sprouted Stages (Levels 1 to 5) - Compact Botanical Proportions for 8-Team Panorama
     this.STAGE_PRESETS = {
       1: {
-        // Stage 1: Mầm Non Mới Nhú (50 - 150 EXP)
-        name: 'Mầm Non Mới Nhú',
+        // Stage 1: Mầm Non (50 - 150 EXP)
+        name: 'Mầm Non',
         maturity: 0.52,
         trunk: { length: 8.0, radius: 0.65, flare: 1.18 },
         branch: { levels: 1, start: 0.65, sweepAngle: 0.9, minChildren: 3, maxChildren: 4, lengthMultiplier: 0.48 },
@@ -28,8 +28,8 @@ export class TreeGrowthController {
         transform: { scale: 2.2, groundOffset: -4.0 }
       },
       2: {
-        // Stage 2: Cây Mầm Đâm Chồi (Young Sapling: 150 - 400 EXP)
-        name: 'Cây Mầm Đâm Chồi',
+        // Stage 2: Cây Con (150 - 300 EXP)
+        name: 'Cây Con',
         maturity: 0.66,
         trunk: { length: 10.5, radius: 0.85, flare: 1.25 },
         branch: { levels: 2, start: 0.55, sweepAngle: 1.15, minChildren: 3, maxChildren: 4, lengthMultiplier: 0.50 },
@@ -37,8 +37,8 @@ export class TreeGrowthController {
         transform: { scale: 2.5, groundOffset: -4.0 }
       },
       3: {
-        // Stage 3: Cây Tơ Vươn Cành (Young Growing Tree: 400 - 1000 EXP)
-        name: 'Cây Tơ Vươn Cành',
+        // Stage 3: Trưởng Thành (300 - 600 EXP)
+        name: 'Trưởng Thành',
         maturity: 0.78,
         trunk: { length: 13.0, radius: 1.05, flare: 1.35 },
         branch: { levels: 3, start: 0.48, sweepAngle: 1.38, minChildren: 3, maxChildren: 5, lengthMultiplier: 0.52 },
@@ -46,8 +46,8 @@ export class TreeGrowthController {
         transform: { scale: 2.7, groundOffset: -4.0 }
       },
       4: {
-        // Stage 4: Cây Trưởng Thành Rợp Bóng (Mature Oak Tree: 1000 - 2500 EXP)
-        name: 'Cây Trưởng Thành Rợp Bóng',
+        // Stage 4: Cổ Thụ (600 - 1200 EXP)
+        name: 'Cổ Thụ',
         maturity: 0.90,
         trunk: { length: 15.2, radius: 1.25, flare: 1.45 },
         branch: { levels: 3, start: 0.45, sweepAngle: 1.55, minChildren: 4, maxChildren: 5, lengthMultiplier: 0.54 },
@@ -55,8 +55,8 @@ export class TreeGrowthController {
         transform: { scale: 2.9, groundOffset: -4.0 }
       },
       5: {
-        // Stage 5: Đại Cổ Thụ Nghìn Năm (Ancient Sage Tree: 2500+ EXP)
-        name: 'Đại Cổ Thụ Nghìn Năm',
+        // Stage 5: Đại Cổ Thụ (1200+ EXP)
+        name: 'Đại Cổ Thụ',
         maturity: 1.0,
         trunk: { length: 17.5, radius: 1.45, flare: 1.55 },
         branch: { levels: 4, start: 0.42, sweepAngle: 1.68, minChildren: 4, maxChildren: 6, lengthMultiplier: 0.55 },
@@ -112,7 +112,7 @@ export class TreeGrowthController {
     teams.forEach(team => {
       const teamId = team.id;
       const prev = this.teamStates.get(teamId);
-      const isSprouted = team.is_sprouted || team.level >= 1 || (team.tree_seeds >= 50) || ((team.total_exp || 0) >= 50);
+      const isSprouted = team.is_sprouted || team.level >= 1 || (team.tree_seeds >= 10) || ((team.total_exp || 0) >= 50);
       const newLevel = isSprouted ? Math.max(1, Math.min(5, team.level || 1)) : 0;
 
       this.syncSingleTeam(team);
@@ -138,7 +138,7 @@ export class TreeGrowthController {
 
   syncSingleTeam(team) {
     if (!this.treeManager || !team || !team.id) return;
-    const isSprouted = team.is_sprouted || team.level >= 1 || (team.tree_seeds >= 50) || ((team.total_exp || 0) >= 50);
+    const isSprouted = team.is_sprouted || team.level >= 1 || (team.tree_seeds >= 10) || ((team.total_exp || 0) >= 50);
     const teamId = team.id;
     const level = isSprouted ? Math.max(1, Math.min(5, team.level || 1)) : 0;
     const stagePreset = isSprouted ? this.getStagePreset(level) : null;
@@ -170,7 +170,7 @@ export class TreeGrowthController {
     if (growth.teamId) {
       const teamId = growth.teamId;
       const prev = this.teamStates.get(teamId);
-      const isSprouted = growth.isSprouted || growth.level >= 1 || (growth.totalSeeds >= 50) || ((growth.totalEXP || 0) >= 50);
+      const isSprouted = growth.isSprouted || growth.level >= 1 || (growth.totalSeeds >= 10) || ((growth.totalEXP || 0) >= 50);
       const newLevel = isSprouted ? Math.max(1, Math.min(5, growth.level || 1)) : 0;
       const stagePreset = isSprouted ? this.getStagePreset(newLevel) : null;
 

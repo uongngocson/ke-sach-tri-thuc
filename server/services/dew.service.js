@@ -34,7 +34,7 @@ export class DewService {
 
     // 2. Query user from DB
     const userRes = await db.query(
-      'SELECT id, email, full_name, team_id, total_exp_earned FROM users WHERE id = $1',
+      'SELECT id, full_name, team_id, total_exp_earned FROM users WHERE id = $1',
       [userId]
     );
 

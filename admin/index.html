@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cáo Sách — Trung Tâm Quản Trị & Phân Tích Dữ Liệu</title>
+  <title>FOXREAD — Trung Tâm Quản Trị & Phân Tích Dữ Liệu</title>
   <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -19,9 +19,9 @@
       <div class="absolute -bottom-12 -left-12 w-36 h-36 bg-orange-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
       <div class="flex items-center gap-3.5 mb-7">
-        <img src="/assets/logo.svg" onerror="this.onerror=null; this.src='../assets/logo.svg';" alt="Cáo Sách" style="width: 48px; height: 48px; min-width: 48px; max-width: 48px;" class="w-12 h-12 shrink-0 rounded-2xl shadow-lg border border-sky-500/30 object-contain">
+        <img src="/assets/logo.svg" onerror="this.onerror=null; this.src='../assets/logo.svg';" alt="FOXREAD" style="width: 48px; height: 48px; min-width: 48px; max-width: 48px;" class="w-12 h-12 shrink-0 rounded-2xl shadow-lg border border-sky-500/30 object-contain">
         <div class="text-left min-w-0 flex-1">
-          <h1 class="text-xl font-black text-white tracking-tight">CÁO SÁCH</h1>
+          <h1 class="text-xl font-black text-white tracking-tight">FOXREAD</h1>
           <p class="text-[11px] text-sky-400 font-extrabold tracking-wider uppercase">Executive Analytics & Command Center</p>
         </div>
       </div>
@@ -53,9 +53,9 @@
       <div class="space-y-6">
         <!-- Logo & Branding -->
         <div class="flex items-center gap-3 px-2 py-1">
-          <img src="/assets/logo.svg" onerror="this.onerror=null; this.src='../assets/logo.svg';" alt="Cáo Sách" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;" class="w-10 h-10 shrink-0 rounded-xl shadow-md border border-sky-400/20 object-contain">
+          <img src="/assets/logo.svg" onerror="this.onerror=null; this.src='../assets/logo.svg';" alt="FOXREAD" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;" class="w-10 h-10 shrink-0 rounded-xl shadow-md border border-sky-400/20 object-contain">
           <div>
-            <h2 class="text-sm font-black text-white tracking-wide">CÁO SÁCH</h2>
+            <h2 class="text-sm font-black text-white tracking-wide">FOXREAD</h2>
             <div class="flex items-center gap-1.5 mt-0.5">
               <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               <span id="socket-status-badge" class="text-[10px] font-extrabold text-emerald-400">REALTIME ACTIVE</span>
@@ -219,7 +219,7 @@
             <!-- KPI 5: Real Visitors -->
             <div class="kpi-card" style="--card-accent: linear-gradient(90deg, #a855f7, #7c3aed);">
               <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
-                <span>Độc Giả Ghé Thăm</span>
+                <span>Bút Danh Ghé Thăm</span>
                 <span class="text-base">👥</span>
               </div>
               <div class="text-2xl font-black text-white" id="kpi-site-visitors">0</div>
@@ -303,14 +303,14 @@
                 <span class="text-xs font-bold text-slate-400">Chọn Cây Phân Tích:</span>
                 <select id="deep-analytics-team-filter" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-bold focus:outline-none focus:border-sky-400 shadow-inner">
                   <option value="">🌳 Toàn Vườn (Cả 8 Cây Tri Thức)</option>
-                  <option value="1">🌱 Cây Số 1: Đội 1 (Mầm Xanh BGD)</option>
-                  <option value="2">🌱 Cây Số 2: Đội 2 (Hạt Giống Tri Thức)</option>
-                  <option value="3">🌱 Cây Số 3: Đội 3 (Cành Vươn Trưởng Thành)</option>
-                  <option value="4">🌱 Cây Số 4: Đội 4 (Tán Lá Tri Thức)</option>
-                  <option value="5">🌱 Cây Số 5: Đội 5 (Chồi Non Vươn Cao)</option>
-                  <option value="6">🌱 Cây Số 6: Đội 6 (Thân Gỗ Vững Vàng)</option>
-                  <option value="7">🌱 Cây Số 7: Đội 7 (Hoa Nở Trí Tuệ)</option>
-                  <option value="8">🌱 Cây Số 8: Đội 8 (Quả Ngọt Đại Ngàn)</option>
+                  <option value="1">🌱 Cây Số 1: SCU_BO</option>
+                  <option value="2">🌱 Cây Số 2: Hà Đông Tây Bắc</option>
+                  <option value="3">🌱 Cây Số 3: Trung Đông Tây Nam</option>
+                  <option value="4">🌱 Cây Số 4: Thập đại Miền Nam</option>
+                  <option value="5">🌱 Cây Số 5: FPL_AU_FU</option>
+                  <option value="6">🌱 Cây Số 6: FTIBU_BOM</option>
+                  <option value="7">🌱 Cây Số 7: FTI BA_TU_BOP</option>
+                  <option value="8">🌱 Cây Số 8: IMU_PSU</option>
                 </select>
               </div>
               <button id="btn-refresh-deep-analytics" class="btn btn-primary text-xs py-2 px-3 flex items-center gap-1.5">
@@ -555,8 +555,11 @@
                     <span>↺</span>
                   </button>
                 </div>
-                <button id="btn-export-teams" class="btn btn-success text-xs py-1.5 px-3 flex items-center gap-1.5 font-bold shadow-sm">
+                <button id="btn-export-teams" class="btn btn-success text-xs py-1.5 px-3 flex items-center gap-1.5 font-bold shadow-sm" title="Xuất báo cáo 8 đội theo ngày đang chọn">
                   <span>📥</span><span id="btn-export-teams-text">Xuất Báo Cáo 8 Đội (CSV/Excel)</span>
+                </button>
+                <button id="btn-export-teams-all" class="btn btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5 font-bold shadow-sm" title="Xuất toàn bộ dữ liệu lịch sử của 8 đội cho tất cả các ngày">
+                  <span>📊</span><span id="btn-export-teams-all-text">Xuất Tất Cả Các Ngày (CSV)</span>
                 </button>
               </div>
             </div>
@@ -583,7 +586,7 @@
                     <th>Đội</th>
                     <th>Cấp Cây</th>
                     <th>Tổng EXP</th>
-                    <th>Hạt Giống</th>
+                    <th>EXP Vươn Cấp</th>
                     <th>Thành Viên (Thực Tế/Chỉ Tiêu)</th>
                     <th id="th-teams-date-col">Tham Gia Hôm Nay</th>
                     <th>Tỷ Lệ Trung Bình</th>
@@ -634,8 +637,14 @@
                     <span>↺</span>
                   </button>
                 </div>
-                <button id="btn-export-users-csv" class="btn btn-success text-xs py-1.5 px-3 flex items-center gap-1.5 font-bold shadow-sm">
+                <button type="button" id="btn-open-create-personnel" class="btn btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5 font-bold shadow-sm" title="Thêm cán bộ mới vào danh bạ">
+                  <span>➕</span><span>Thêm Nhân Sự</span>
+                </button>
+                <button id="btn-export-users-csv" class="btn btn-success text-xs py-1.5 px-3 flex items-center gap-1.5 font-bold shadow-sm" title="Xuất danh sách nhân sự theo ngày đang chọn">
                   <span>📥</span><span id="btn-export-users-text">Xuất Danh Sách Excel/CSV</span>
+                </button>
+                <button id="btn-export-users-all-csv" class="btn btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5 font-bold shadow-sm" title="Xuất toàn bộ dữ liệu chuyên cần và tham gia của 288 nhân sự cho tất cả các ngày">
+                  <span>📊</span><span id="btn-export-users-all-text">Xuất Tất Cả Các Ngày (CSV)</span>
                 </button>
               </div>
             </div>
@@ -652,19 +661,19 @@
 
             <!-- Filters Toolbar -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2">
-              <input type="text" id="users-search" placeholder="🔍 Tìm bút danh, khối, phòng ban..."
+              <input type="text" id="users-search" placeholder="🔍 Tìm kiếm theo bút danh..."
                 class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400">
               
               <select id="users-filter-team" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
                 <option value="">Tất cả các Đội (1-8)</option>
-                <option value="1">Đội 1</option>
-                <option value="2">Đội 2</option>
-                <option value="3">Đội 3</option>
-                <option value="4">Đội 4</option>
-                <option value="5">Đội 5</option>
-                <option value="6">Đội 6</option>
-                <option value="7">Đội 7</option>
-                <option value="8">Đội 8</option>
+                <option value="1">SCU_BO</option>
+                <option value="2">Hà Đông Tây Bắc</option>
+                <option value="3">Trung Đông Tây Nam</option>
+                <option value="4">Thập đại Miền Nam</option>
+                <option value="5">FPL_AU_FU</option>
+                <option value="6">FTIBU_BOM</option>
+                <option value="7">FTI BA_TU_BOP</option>
+                <option value="8">IMU_PSU</option>
               </select>
 
               <select id="users-filter-status" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
@@ -689,17 +698,16 @@
                 <thead>
                   <tr>
                     <th class="w-12 text-center">STT</th>
-                    <th>Bút Danh Độc Giả</th>
-                    <th>Khối / Chi Nhánh</th>
-                    <th>Phòng Ban</th>
+                    <th>Bút Danh</th>
                     <th>Đội Thi Đua</th>
                     <th id="th-users-date-col">Hôm Nay (1 Quote)</th>
                     <th>Sách Đã Gieo</th>
                     <th>EXP Cá Nhân</th>
+                    <th class="text-center w-28">Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody id="users-table-body">
-                  <tr><td colspan="8" class="p-6 text-center text-slate-500">Đang tải danh sách 288 nhân sự...</td></tr>
+                  <tr><td colspan="7" class="p-6 text-center text-slate-500">Đang tải danh sách 288 nhân sự...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -731,11 +739,40 @@
                 </h3>
                 <p class="text-xs text-slate-400 font-bold">Toàn bộ sách được auto-approve lên cây ngay lập tức (+5 EXP) và kiểm duyệt hậu kiểm tại đây</p>
               </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <div id="credibility-queue-badge" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900/90 border border-slate-700/80 text-slate-300">
+                  <span id="queue-status-dot" class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <span id="queue-status-text">Hàng đợi AI: 0 chờ</span>
+                </div>
+                <button id="btn-ai-scan-queue" class="btn btn-secondary text-xs px-3 py-2 border-sky-500/40 bg-sky-950/40 hover:bg-sky-900/60 text-sky-300 font-bold transition-all shadow-sm flex items-center gap-1.5" title="Tự động quét CSDL và đưa toàn bộ trích dẫn chưa chấm vào Hàng đợi">
+                  <span>⚡</span><span>Quét Nạp Tự Động</span>
+                </button>
+                <button id="btn-ai-batch-score" class="btn btn-secondary text-xs px-3 py-2 border-emerald-500/40 bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 font-bold transition-all shadow-sm flex items-center gap-1.5" title="Kích hoạt AI Groq thẩm định tuần tự các câu trích dẫn chưa có điểm">
+                  <span>✨</span><span>AI Chấm Hàng Loạt</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Sub-Navigation: Active Books vs Deleted Quotes UI -->
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div class="flex items-center gap-2">
+                <button id="subtab-books-active" class="px-3.5 py-2 rounded-xl text-xs font-black transition-all bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-sm flex items-center gap-2">
+                  <span>📚</span><span>Trích Dẫn Hoạt Động & Hậu Kiểm</span>
+                  <span id="badge-active-count" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-950 text-sky-200">0</span>
+                </button>
+                <button id="subtab-books-deleted" class="px-3.5 py-2 rounded-xl text-xs font-black transition-all bg-slate-900/90 text-slate-400 hover:text-rose-300 hover:bg-rose-950/40 border border-slate-800 flex items-center gap-2">
+                  <span>🗑️</span><span>Danh Sách Đã Xóa (AI & Admin)</span>
+                  <span id="badge-deleted-count" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-950/80 text-rose-300 border border-rose-800/60">0</span>
+                </button>
+              </div>
+              <div id="deleted-view-banner" class="hidden text-xs text-rose-300 bg-rose-950/60 border border-rose-700/60 px-3 py-1.5 rounded-xl flex items-center gap-2 font-bold animate-pulse">
+                <span>⚠️</span><span>Đang xem Danh Sách Đã Xóa (AI tự xóa do điểm &lt; 60 hoặc Admin loại bỏ). Bấm "Khôi phục" để đưa lại lên cây.</span>
+              </div>
             </div>
 
             <!-- Moderation Toolbar -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-1">
-              <input type="text" id="filter-search" placeholder="🔍 Tìm tên sách, tác giả, người gieo..."
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-1">
+              <input type="text" id="filter-search" placeholder="🔍 Tìm tên sách, tác giả, bút danh..."
                 class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400">
               
               <select id="filter-moderation" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
@@ -753,6 +790,15 @@
                 <option value="deleted">Đã Xóa (Deleted)</option>
               </select>
 
+              <select id="filter-credibility" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none border-amber-500/50">
+                <option value="">Tất cả chuẩn mực đạo đức (AI)</option>
+                <option value="under_60">⚠️ Chuẩn Mực Dưới 60 (AI Tự Xóa)</option>
+                <option value="under_70">⚠️ Chuẩn Mực Dưới 70 (Cần Soát)</option>
+                <option value="under_50">🔴 Vi Phạm / Dưới 50 Điểm</option>
+                <option value="gte_70">🛡️ Chuẩn Mực (>= 70 Điểm)</option>
+                <option value="unscored">⚪ Chưa Chấm Điểm</option>
+              </select>
+
               <button id="btn-refresh-books" class="btn btn-primary text-xs">
                 <span>🔄</span><span>Lọc Sách</span>
               </button>
@@ -764,14 +810,15 @@
                 <thead>
                   <tr>
                     <th>Sách & Trích Dẫn</th>
-                    <th>Người Gieo</th>
+                    <th>Bút Danh</th>
                     <th>Tình Trạng</th>
+                    <th>Chuẩn Mực & Đạo Đức (AI)</th>
                     <th>Tương Tác</th>
                     <th class="text-right">Thao Tác Hậu Kiểm</th>
                   </tr>
                 </thead>
                 <tbody id="books-table-body">
-                  <tr><td colspan="5" class="p-6 text-center text-slate-500">Đang tải kho sách...</td></tr>
+                  <tr><td colspan="6" class="p-6 text-center text-slate-500">Đang tải kho sách...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -807,14 +854,14 @@
 
               <select id="ledger-filter-team" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
                 <option value="">Tất cả các Đội (1-8)</option>
-                <option value="1">Đội 1</option>
-                <option value="2">Đội 2</option>
-                <option value="3">Đội 3</option>
-                <option value="4">Đội 4</option>
-                <option value="5">Đội 5</option>
-                <option value="6">Đội 6</option>
-                <option value="7">Đội 7</option>
-                <option value="8">Đội 8</option>
+                <option value="1">SCU_BO</option>
+                <option value="2">Hà Đông Tây Bắc</option>
+                <option value="3">Trung Đông Tây Nam</option>
+                <option value="4">Thập đại Miền Nam</option>
+                <option value="5">FPL_AU_FU</option>
+                <option value="6">FTIBU_BOM</option>
+                <option value="7">FTI BA_TU_BOP</option>
+                <option value="8">IMU_PSU</option>
               </select>
 
               <button id="btn-filter-ledger" class="btn btn-primary text-xs">
@@ -885,7 +932,7 @@
                 <div class="space-y-4">
                   <div class="border-b border-slate-800 pb-2">
                     <h4 class="text-xs font-black text-sky-400 uppercase tracking-wider">Cấu Hình Popup Chào Mừng</h4>
-                    <p class="text-[11px] text-slate-400">Hiển thị khi độc giả bước chân vào Vườn Tri Thức</p>
+                    <p class="text-[11px] text-slate-400">Hiển thị khi Bút danh bước chân vào Vườn Tri Thức</p>
                   </div>
 
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -944,7 +991,7 @@
                   <div class="border-b border-slate-800 pb-2 flex items-center justify-between">
                     <div>
                       <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider">Trình Xem Trước Trực Quan (Live Preview)</h4>
-                      <p class="text-[11px] text-slate-400">Mô phỏng 100% giao diện popup độc giả nhìn thấy</p>
+                      <p class="text-[11px] text-slate-400">Mô phỏng 100% giao diện popup Bút danh nhìn thấy</p>
                     </div>
                     <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black">TỰ ĐỘNG CẬP NHẬT</span>
                   </div>
@@ -956,7 +1003,7 @@
 
                     <div class="space-y-1">
                       <h3 class="text-lg font-black text-white" id="preview-welcome-title">Mỗi Cuốn Sách Là Một Hạt Mầm</h3>
-                      <h4 class="text-xs font-bold text-sky-400" id="preview-welcome-subtitle">Mỗi Độc Giả Là Một Người Gieo Tri Thức</h4>
+                      <h4 class="text-xs font-bold text-sky-400" id="preview-welcome-subtitle">Mỗi Bút Danh Là Một Người Gieo Tri Thức</h4>
                     </div>
 
                     <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs italic text-slate-300 leading-relaxed text-left" id="preview-welcome-metaphor">
@@ -1075,14 +1122,14 @@
                 <label class="block text-xs font-bold text-slate-300 mb-1">Đội Nhận Thưởng</label>
                 <select id="bonus-team-id" class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none">
                   <option value="">Toàn Bộ Cây Tri Thức (Global)</option>
-                  <option value="1">Đội 1</option>
-                  <option value="2">Đội 2</option>
-                  <option value="3">Đội 3</option>
-                  <option value="4">Đội 4</option>
-                  <option value="5">Đội 5</option>
-                  <option value="6">Đội 6</option>
-                  <option value="7">Đội 7</option>
-                  <option value="8">Đội 8</option>
+                  <option value="1">SCU_BO</option>
+                  <option value="2">Hà Đông Tây Bắc</option>
+                  <option value="3">Trung Đông Tây Nam</option>
+                  <option value="4">Thập đại Miền Nam</option>
+                  <option value="5">FPL_AU_FU</option>
+                  <option value="6">FTIBU_BOM</option>
+                  <option value="7">FTI BA_TU_BOP</option>
+                  <option value="8">IMU_PSU</option>
                 </select>
               </div>
               <div class="sm:col-span-2">
@@ -1348,16 +1395,14 @@
           <thead>
             <tr>
               <th class="w-12 text-center">STT</th>
-              <th>Bút Danh Độc Giả</th>
-              <th>Khối / Phòng Ban</th>
-              <th>Chức Danh</th>
+              <th>Bút Danh</th>
               <th id="team-modal-date-th">Trạng Thái</th>
               <th>Sách Gieo</th>
               <th>EXP Đóng Góp</th>
             </tr>
           </thead>
           <tbody id="team-modal-members-body">
-            <tr><td colspan="7" class="p-6 text-center text-slate-500">Đang tải danh sách thành viên...</td></tr>
+            <tr><td colspan="5" class="p-6 text-center text-slate-500">Đang tải danh sách thành viên...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1448,7 +1493,7 @@
           <label class="block text-xs font-bold text-slate-300 mb-1">
             Tên Đăng Nhập (Username) <span class="text-rose-400">*</span>
           </label>
-          <input type="text" id="admin-form-username" placeholder="Ví dụ: sonun, admin_fpt, mod_vanhoc..." required
+          <input type="text" id="admin-form-username" placeholder="Ví dụ: sonun, admin_foxread, mod_vanhoc..." required autocomplete="username"
             class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none placeholder-slate-500">
           <p id="admin-username-hint" class="text-[11px] text-slate-400 mt-1">Từ 3-50 ký tự, chỉ gồm chữ cái, số, gạch dưới hoặc chấm.</p>
         </div>
@@ -1458,7 +1503,7 @@
           <label class="block text-xs font-bold text-slate-300 mb-1">
             Họ và Tên Quản Trị Viên <span class="text-rose-400">*</span>
           </label>
-          <input type="text" id="admin-form-fullname" placeholder="Ví dụ: Uông Ngọc Sơn, Nguyễn Văn A..." required
+          <input type="text" id="admin-form-fullname" placeholder="Ví dụ: Uông Ngọc Sơn, Nguyễn Văn A..." required autocomplete="name"
             class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none placeholder-slate-500">
         </div>
 
@@ -1562,6 +1607,142 @@
     </div>
   </div>
 
+  <!-- ============================================================== -->
+  <!-- MODAL 6: CREATE / EDIT PERSONNEL (288 NHÂN SỰ)                 -->
+  <!-- ============================================================== -->
+  <div id="modal-personnel-form" class="modal-backdrop">
+    <div class="modal-card max-w-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">👥</span>
+          <h4 id="personnel-modal-title" class="text-sm font-black text-white">Thêm Nhân Sự Mới</h4>
+        </div>
+        <button type="button" id="personnel-modal-close" class="text-slate-400 hover:text-white text-base font-bold">✕</button>
+      </div>
+
+      <form id="form-personnel" class="space-y-4 text-xs">
+        <input type="hidden" id="personnel-form-id">
+
+        <div class="space-y-3.5">
+          <!-- Bút danh -->
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">
+              Bút Danh <span class="text-rose-400">*</span>
+            </label>
+            <input type="text" id="personnel-form-nickname" placeholder="Ví dụ: Bình Minh Đọc Sách, Tri Thức Vàng..." required
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none placeholder-slate-500">
+            <p class="text-[10.5px] text-slate-400 mt-1">Bút danh hiển thị đại diện trên Vườn Tri Thức và cây 3D.</p>
+          </div>
+
+          <!-- Đội thi đua -->
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">
+              Đội Thi Đua (1 - 8) <span class="text-rose-400">*</span>
+            </label>
+            <select id="personnel-form-team" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none">
+              <option value="1">Đội 1: SCU_BO</option>
+              <option value="2">Đội 2: Hà Đông Tây Bắc</option>
+              <option value="3">Đội 3: Trung Đông Tây Nam</option>
+              <option value="4">Đội 4: Thập đại Miền Nam</option>
+              <option value="5">Đội 5: FPL_AU_FU</option>
+              <option value="6">Đội 6: FTIBU_BOM</option>
+              <option value="7">Đội 7: FTI BA_TU_BOP</option>
+              <option value="8">Đội 8: IMU_PSU</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Error box -->
+        <div id="personnel-form-error" class="hidden text-xs text-rose-400 font-bold p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2">
+          <span>❌</span>
+          <span id="personnel-form-error-msg"></span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" id="personnel-modal-cancel" class="btn btn-ghost text-xs py-2 px-3.5">
+            Hủy Bỏ
+          </button>
+          <button type="submit" id="btn-submit-personnel-form" class="btn btn-primary text-xs py-2 px-4 font-black shadow-md flex items-center gap-1.5">
+            <span id="personnel-form-spinner" class="hidden animate-spin">⏳</span>
+            <span>💾</span>
+            <span id="personnel-form-btn-text">Lưu Nhân Sự</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 7: PERSONNEL DETAIL MODAL (CHI TIẾT NHÂN SỰ)             -->
+  <!-- ============================================================== -->
+  <div id="modal-personnel-detail" class="modal-backdrop">
+    <div class="modal-card max-w-xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">📋</span>
+          <h4 class="text-sm font-black text-white">Hồ Sơ & Thống Kê Bút Danh</h4>
+        </div>
+        <button type="button" id="personnel-detail-close" class="text-slate-400 hover:text-white text-base font-bold">✕</button>
+      </div>
+
+      <div id="personnel-detail-content" class="space-y-4 text-xs">
+        <!-- Renders dynamically -->
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+        <button type="button" id="personnel-detail-ok" class="btn btn-ghost text-xs py-2 px-4 font-bold">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 8: CONFIRM DELETE PERSONNEL                              -->
+  <!-- ============================================================== -->
+  <div id="modal-personnel-delete" class="modal-backdrop">
+    <div class="modal-card max-w-md space-y-4 border-rose-500/40 shadow-2xl shadow-rose-950/60">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2 text-rose-400 font-black text-sm">
+          <span class="text-lg">🗑️</span>
+          <span>XÁC NHẬN XÓA BÚT DANH</span>
+        </div>
+        <button type="button" id="personnel-delete-modal-close" class="text-slate-400 hover:text-white text-base font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div class="p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-200 leading-relaxed space-y-1.5">
+          <p class="font-bold text-white">Bạn có chắc chắn muốn xóa bút danh sau khỏi danh bạ?</p>
+          <div class="p-2.5 rounded-lg bg-slate-900/80 border border-rose-500/20 text-slate-300 font-semibold space-y-1">
+            <p>Bút danh: <strong id="delete-personnel-name" class="text-white">...</strong></p>
+            <p>Đội thi đua: <span id="delete-personnel-team" class="text-amber-300">...</span></p>
+          </div>
+          <p class="text-[11px] text-slate-400 pt-1">
+            * Toàn bộ câu trích dẫn, lượt tưới và điểm số liên kết sẽ được xử lý an toàn trong CSDL.
+          </p>
+        </div>
+
+        <div id="delete-personnel-error" class="hidden text-xs text-rose-400 font-bold p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2">
+          <span>❌</span>
+          <span id="delete-personnel-error-msg"></span>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <button type="button" id="personnel-delete-cancel" class="btn btn-ghost text-xs py-2 px-3.5">
+            Hủy Bỏ
+          </button>
+          <button type="button" id="btn-confirm-delete-personnel" class="btn btn-danger text-xs py-2 px-4 font-black shadow-md flex items-center gap-1.5">
+            <span id="personnel-delete-spinner" class="hidden animate-spin">⏳</span>
+            <span>🗑️</span>
+            <span>Xác Nhận Xóa</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="./admin.js"></script>
 </body>
 </html>
+

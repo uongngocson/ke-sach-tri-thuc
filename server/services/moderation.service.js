@@ -23,16 +23,58 @@ export class ModerationService {
             reviewed_by = $3,
             moderation_notes = COALESCE($4, moderation_notes),
             reviewed_at = NOW(),
-            deleted_at = CASE WHEN $1 IN ('hidden', 'deleted') THEN NOW() ELSE deleted_at END,
-            deleted_by = CASE WHEN $1 IN ('hidden', 'deleted') THEN $3 ELSE deleted_by END,
-            deletion_reason = COALESCE($5, deletion_reason)
+            deleted_at = CASE 
+              WHEN $1 IN ('hidden', 'deleted') THEN NOW() 
+              WHEN $1 = 'visible' THEN NULL 
+              ELSE deleted_at 
+            END,
+            deleted_by = CASE 
+              WHEN $1 IN ('hidden', 'deleted') THEN $3 
+              WHEN $1 = 'visible' THEN NULL 
+              ELSE deleted_by 
+            END,
+            deletion_reason = CASE 
+              WHEN $1 = 'visible' THEN NULL 
+              ELSE COALESCE($5, deletion_reason) 
+            END
         WHERE id = $6
         RETURNING *
       `, [visibility_status, moderation_status, adminUser?.id || null, moderation_notes, deletion_reason, bookId]);
 
       const updatedBook = updateRes.rows[0];
 
-      // 3. If deductExp is requested (e.g. spam penalty)
+      // 3. Quản lý tổng số sách cộng đồng & đội khi chuyển đổi trạng thái hiển thị
+      if (currentBook.visibility_status === 'visible' && visibility_status === 'deleted') {
+        await client.query(`
+          UPDATE community_growth
+          SET total_books = GREATEST(0, total_books - 1),
+              updated_at = NOW()
+          WHERE id = 1
+        `);
+        if (currentBook.team_id) {
+          await client.query(`
+            UPDATE teams
+            SET total_books = GREATEST(0, total_books - 1)
+            WHERE id = $1
+          `, [currentBook.team_id]);
+        }
+      } else if (currentBook.visibility_status === 'deleted' && visibility_status === 'visible') {
+        await client.query(`
+          UPDATE community_growth
+          SET total_books = total_books + 1,
+              updated_at = NOW()
+          WHERE id = 1
+        `);
+        if (currentBook.team_id) {
+          await client.query(`
+            UPDATE teams
+            SET total_books = total_books + 1
+            WHERE id = $1
+          `, [currentBook.team_id]);
+        }
+      }
+
+      // 4. If deductExp is requested (e.g. spam penalty)
       if (deductExp && visibility_status === 'deleted') {
         await client.query(`
           INSERT INTO exp_ledger (user_fingerprint, amount, type, reference_type, reference_id)
@@ -42,19 +84,22 @@ export class ModerationService {
         await client.query(`
           UPDATE community_growth
           SET total_exp = GREATEST(0, total_exp - $1),
-              total_books = GREATEST(0, total_books - 1),
               updated_at = NOW()
           WHERE id = 1
         `, [Math.abs(EXP_CONFIG.MODERATION_PENALTY)]);
       }
 
-      // 4. Create Audit Log
+      // 5. Create Audit Log
+      const auditAction = visibility_status === 'deleted' 
+        ? 'HIDE_BOOK' 
+        : (currentBook.visibility_status === 'deleted' && visibility_status === 'visible' ? 'RESTORE_BOOK' : 'REVIEW_BOOK');
+
       await client.query(`
         INSERT INTO audit_logs (admin_id, action, target_type, target_id, metadata, ip_address)
         VALUES ($1, $2, 'books', $3, $4, $5)
       `, [
         adminUser?.id || null,
-        visibility_status === 'deleted' ? 'HIDE_BOOK' : 'REVIEW_BOOK',
+        auditAction,
         bookId,
         JSON.stringify({ previous: currentBook, updated: updatedBook, deductExp }),
         ipAddress

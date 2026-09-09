@@ -102,8 +102,25 @@ function initSocket() {
 
   socket.on('book:created', () => {
     loadAnalytics();
-    if (isTabActive('moderation')) loadBooks();
+    if (isTabActive('moderation')) {
+      loadBooks();
+      fetchQueueStatus();
+    }
     if (isTabActive('ledger')) loadLedger();
+  });
+
+  socket.on('admin:book:credibility_scored', (scoredBook) => {
+    if (scoredBook && scoredBook.id) {
+      updateBookCredibilityInDom(scoredBook);
+    }
+    fetchQueueStatus();
+  });
+
+  socket.on('book:credibility_scored', (scoredBook) => {
+    if (scoredBook && scoredBook.id) {
+      updateBookCredibilityInDom(scoredBook);
+    }
+    fetchQueueStatus();
   });
 
   socket.on('content:updated', () => {
@@ -172,6 +189,7 @@ function bindSidebarEvents() {
 function bindActionEvents() {
   bindContentRulesEvents();
   bindAdminAccountEvents();
+  bindPersonnelEvents();
   // Login Form
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
@@ -271,17 +289,30 @@ function bindActionEvents() {
     }
   });
 
-  // Export Users CSV
+  // Export CSV (Single Date & All Days)
   document.getElementById('btn-export-users-csv')?.addEventListener('click', exportUsersCSV);
+  document.getElementById('btn-export-users-all-csv')?.addEventListener('click', exportUsersAllDaysCSV);
   document.getElementById('btn-export-teams')?.addEventListener('click', exportTeamsCSV);
+  document.getElementById('btn-export-teams-all')?.addEventListener('click', exportTeamsAllDaysCSV);
+
+  // Books Subtabs (Active vs Deleted)
+  document.getElementById('subtab-books-active')?.addEventListener('click', () => switchBookViewMode('active'));
+  document.getElementById('subtab-books-deleted')?.addEventListener('click', () => switchBookViewMode('deleted'));
 
   // Books Refresh & Filters
   document.getElementById('btn-refresh-books')?.addEventListener('click', loadBooks);
+  document.getElementById('btn-ai-scan-queue')?.addEventListener('click', triggerAiScanQueue);
+  document.getElementById('btn-ai-batch-score')?.addEventListener('click', triggerAiBatchScore);
   document.getElementById('filter-search')?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') loadBooks();
   });
   document.getElementById('filter-moderation')?.addEventListener('change', loadBooks);
-  document.getElementById('filter-visibility')?.addEventListener('change', loadBooks);
+  document.getElementById('filter-visibility')?.addEventListener('change', (e) => {
+    // Tự động đồng bộ giao diện Subtab khi chọn dropdown visibility
+    syncSubtabWithVisibility(e.target.value);
+    loadBooks();
+  });
+  document.getElementById('filter-credibility')?.addEventListener('change', loadBooks);
 
   // Ledger Filter & Pagination
   document.getElementById('btn-filter-ledger')?.addEventListener('click', () => {
@@ -785,10 +816,9 @@ function renderDeepContributors(contributors) {
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-amber-400' : 'text-slate-500'}">${medal}</span>
               <div class="min-w-0">
-                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || u.full_name)}</div>
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || 'Bút danh')}</div>
                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
                   <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
-                  ${u.branch ? `<span class="text-slate-500">• ${escapeHtml(u.branch)}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -817,10 +847,9 @@ function renderDeepContributors(contributors) {
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-sky-400' : 'text-slate-500'}">${medal}</span>
               <div class="min-w-0">
-                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || u.full_name)}</div>
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || 'Bút danh')}</div>
                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
                   <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
-                  ${u.branch ? `<span class="text-slate-500">• ${escapeHtml(u.branch)}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -849,10 +878,9 @@ function renderDeepContributors(contributors) {
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="w-6 text-center text-xs font-black ${idx < 3 ? 'text-emerald-400' : 'text-slate-500'}">${medal}</span>
               <div class="min-w-0">
-                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || u.full_name)}</div>
+                <div class="text-xs font-bold text-white truncate">${escapeHtml(u.nickname || 'Bút danh')}</div>
                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
                   <span style="color: ${color};" class="font-bold">${escapeHtml(u.team_display_name || u.team_name || 'Đội ' + u.team_id)}</span>
-                  ${u.branch ? `<span class="text-slate-500">• ${escapeHtml(u.branch)}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -918,7 +946,7 @@ function renderDeepContent(content) {
             </p>
             <div class="flex items-center justify-between text-[10.5px] pt-1 border-t border-slate-800/60">
               <div class="flex items-center gap-1.5 min-w-0">
-                <span class="font-bold text-white truncate">${escapeHtml(q.reader_name || 'Độc giả')}</span>
+                <span class="font-bold text-white truncate">${escapeHtml(q.reader_name || 'Bút danh')}</span>
                 <span class="text-slate-500">•</span>
                 <span style="color: ${teamColor};" class="font-bold truncate">${escapeHtml(q.team_display_name || q.team_name || 'Đội ' + q.team_id)}</span>
               </div>
@@ -1042,18 +1070,20 @@ function renderDeepGrowth(growth) {
     } else {
       mvpsGrid.innerHTML = mvps.map(m => {
         const color = m.team_color || '#38bdf8';
+        const adminTeamNames = { 1: 'SCU_BO', 2: 'Hà Đông Tây Bắc', 3: 'Trung Đông Tây Nam', 4: 'Thập đại Miền Nam', 5: 'FPL_AU_FU', 6: 'FTIBU_BOM', 7: 'FTI BA_TU_BOP', 8: 'IMU_PSU' };
+        const teamNameDisplay = m.team_display_name || m.team_name || adminTeamNames[m.team_id] || ('ĐỘI ' + m.team_id);
         return `
           <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-amber-400/50 transition relative overflow-hidden flex flex-col justify-between">
             <div class="absolute top-0 right-0 px-2 py-0.5 rounded-bl-lg bg-amber-500/20 text-amber-300 text-[9px] font-black uppercase">
-              MVP ĐỘI ${m.team_id}
+              MVP ${escapeHtml(teamNameDisplay)}
             </div>
             <div>
               <div class="flex items-center gap-2 mb-2">
                 <span class="text-lg">${m.team_icon || '🌱'}</span>
                 <span class="text-[11px] font-black truncate" style="color: ${color};">${escapeHtml(m.team_display_name || m.team_name)}</span>
               </div>
-              <div class="font-black text-white text-xs truncate">${escapeHtml(m.nickname || m.full_name)}</div>
-              <div class="text-[10px] text-slate-400 truncate mb-2.5">${escapeHtml(m.job_title || m.branch || 'Thành viên')}</div>
+              <div class="font-black text-white text-xs truncate">${escapeHtml(m.nickname || 'Bút danh')}</div>
+              <div class="text-[10px] text-slate-400 truncate mb-2.5">Thành viên đội</div>
             </div>
             <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10.5px]">
               <span class="text-slate-400 font-medium">✨ ${m.contributed_books_count || 0} sách</span>
@@ -1193,7 +1223,15 @@ function renderTeamsTable() {
           ${(t.tree_exp || 0).toLocaleString()}
         </td>
         <td class="p-3.5 font-extrabold text-amber-400">
-          ${t.tree_seeds || 0}/50
+          ${(() => {
+            const exp = t.tree_exp || 0;
+            if (exp < 50) return `${exp}/50 EXP`;
+            if (exp < 150) return `${exp}/150 EXP`;
+            if (exp < 300) return `${exp}/300 EXP`;
+            if (exp < 600) return `${exp}/600 EXP`;
+            if (exp < 1200) return `${exp}/1.200 EXP`;
+            return 'Max (1.200+)';
+          })()}
         </td>
         <td class="p-3.5 font-bold text-slate-300">
           ${t.actual_members || 0} / ${t.target_members || 40}
@@ -1247,7 +1285,7 @@ window.openTeamModal = async function(teamId) {
   }
 
   modal.classList.add('show');
-  tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500 font-bold"><span class="inline-block animate-spin mr-2">⏳</span> Đang tải danh sách thành viên...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500 font-bold"><span class="inline-block animate-spin mr-2">⏳</span> Đang tải danh sách thành viên...</td></tr>';
 
   try {
     const res = await fetch(`${API_BASE}/teams/${teamId}/members?date=${encodeURIComponent(dateStr)}`);
@@ -1256,9 +1294,7 @@ window.openTeamModal = async function(teamId) {
       tbody.innerHTML = data.data.map((m, idx) => `
         <tr class="hover:bg-slate-800/40">
           <td class="p-3 text-center text-slate-500 font-bold text-xs">${idx + 1}</td>
-          <td class="p-3 font-bold text-white">${escapeHtml(m.nickname || m.full_name || '')}</td>
-          <td class="p-3 text-slate-300 text-xs">${escapeHtml(m.branch || m.parent_department || 'FPT')}</td>
-          <td class="p-3 text-slate-400 text-xs">${escapeHtml(m.job_title || '-')}</td>
+          <td class="p-3 font-bold text-white">${escapeHtml(m.nickname || 'Bút danh')}</td>
           <td class="p-3">
             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${m.participated_on_date ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-500'}">
               ${m.participated_on_date ? `✅ Đã tham gia (${dateLabel})` : '⏳ Chưa tham gia'}
@@ -1273,7 +1309,7 @@ window.openTeamModal = async function(teamId) {
       `).join('');
     }
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-rose-400">Lỗi tải danh sách thành viên</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-rose-400">Lỗi tải danh sách thành viên</td></tr>';
   }
 };
 
@@ -1352,8 +1388,14 @@ function renderUsersTable(users) {
     }
   }
 
+  // Update export single date button text
+  const exportUsersBtnText = document.getElementById('btn-export-users-text');
+  if (exportUsersBtnText) {
+    exportUsersBtnText.textContent = isToday ? 'Xuất Danh Sách Hôm Nay (CSV)' : `Xuất Danh Sách Ngày ${formattedDate} (CSV)`;
+  }
+
   if (!users || users.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-500">Không tìm thấy nhân sự nào phù hợp.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">Không tìm thấy bút danh nào phù hợp.</td></tr>';
     return;
   }
 
@@ -1361,15 +1403,8 @@ function renderUsersTable(users) {
     <tr class="hover:bg-slate-800/40 transition-colors">
       <td class="p-3 text-center text-slate-500 font-bold text-xs">${(usersPageState.page - 1) * usersPageState.limit + idx + 1}</td>
       <td class="p-3 font-bold text-white">
-        ${escapeHtml(u.nickname || u.full_name)}
-        <div class="text-[10px] text-slate-500">${escapeHtml(u.job_title || '')}</div>
+        ${escapeHtml(u.nickname || 'Bút danh')}
       </td>
-      <td class="p-3 text-slate-300">
-        <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-bold">
-          ${escapeHtml(u.branch || 'BGD/TDV/CLB')}
-        </span>
-      </td>
-      <td class="p-3 text-slate-400 text-xs">${escapeHtml(u.parent_department || u.child_department_1 || '-')}</td>
       <td class="p-3">
         <span class="px-2 py-0.5 rounded text-[10.5px] font-bold" style="background: ${(u.team_color || '#0284c7')}22; color: ${u.team_color || '#38bdf8'}; border: 1px solid ${(u.team_color || '#0284c7')}44;">
           ${escapeHtml(u.team_display_name || ('Đội ' + u.team_id))}
@@ -1382,12 +1417,47 @@ function renderUsersTable(users) {
       </td>
       <td class="p-3 font-bold text-emerald-400">${u.contributed_books_count || 0}</td>
       <td class="p-3 font-extrabold text-sky-400">${(u.total_exp_earned || 0).toLocaleString()}</td>
+      <td class="p-3 text-center">
+        <div class="flex items-center justify-center gap-1.5">
+          <button type="button" class="btn-personnel-detail p-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 hover:text-sky-300 transition-colors" data-id="${u.id}" title="Xem chi tiết bút danh">
+            👁️
+          </button>
+          <button type="button" class="btn-personnel-edit p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 hover:text-amber-300 transition-colors" data-id="${u.id}" title="Chỉnh sửa bút danh">
+            ✏️
+          </button>
+          <button type="button" class="btn-personnel-delete p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 transition-colors" data-id="${u.id}" data-name="${escapeHtml(u.nickname || 'Bút danh')}" data-team="${escapeHtml(u.team_display_name || ('Đội ' + u.team_id))}" title="Xóa bút danh">
+            🗑️
+          </button>
+        </div>
+      </td>
     </tr>
   `).join('');
+
+  // Attach click listeners to row action buttons
+  tbody.querySelectorAll('.btn-personnel-detail').forEach(btn => {
+    btn.addEventListener('click', () => viewPersonnelDetail(btn.getAttribute('data-id')));
+  });
+  tbody.querySelectorAll('.btn-personnel-edit').forEach(btn => {
+    btn.addEventListener('click', () => openEditPersonnelModal(btn.getAttribute('data-id')));
+  });
+  tbody.querySelectorAll('.btn-personnel-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      const name = btn.getAttribute('data-name');
+      const team = btn.getAttribute('data-team');
+      openDeletePersonnelModal(id, '', name, team);
+    });
+  });
 }
 
 async function exportUsersCSV() {
+  const btn = document.getElementById('btn-export-users-csv');
+  const originalHtml = btn ? btn.innerHTML : '';
   try {
+    if (btn) {
+      btn.innerHTML = '<span>⏳</span><span>Đang xuất...</span>';
+      btn.disabled = true;
+    }
     const dateStr = usersFilterDate || getTodayISODate();
     const formattedDate = formatDateVN(dateStr);
     const dateLabel = (dateStr === getTodayISODate()) ? 'Gieo Hôm Nay' : `Gieo Ngày ${formattedDate}`;
@@ -1396,21 +1466,22 @@ async function exportUsersCSV() {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     const data = await res.json();
-    if (!data.success || !data.data.users) return;
+    if (!data.success || !data.data.users) {
+      alert('Không thể tải danh sách nhân sự');
+      return;
+    }
 
     const rows = [
-      ['STT', 'Bút Danh Độc Giả', 'Giới Tính', 'Chi Nhánh / Khối', 'Phòng Ban', 'Chức Danh', 'Đội Thi Đua', dateLabel, 'Sách Đã Gieo', 'EXP Kiếm Được']
+      ['STT', 'Bút Danh', 'Đội Thi Đua', 'Khối / Ban', 'Chức Danh', dateLabel, 'Sách Đã Gieo', 'EXP Kiếm Được']
     ];
 
     data.data.users.forEach((u, idx) => {
       rows.push([
         idx + 1,
-        `"${u.nickname || u.full_name || ''}"`,
-        `"${u.gender || ''}"`,
-        `"${u.branch || ''}"`,
-        `"${u.parent_department || ''}"`,
-        `"${u.job_title || ''}"`,
+        `"${u.nickname || 'Bút danh'}"`,
         `"${u.team_display_name || ('Đội ' + u.team_id)}"`,
+        `"${(u.branch || '').replace(/"/g, '""')}"`,
+        `"${(u.job_title || '').replace(/"/g, '""')}"`,
         `"${(u.participated_today || u.participated_current_round) ? `Đã gieo (${formattedDate})` : `Chưa gieo (${formattedDate})`}"`,
         u.contributed_books_count || 0,
         u.total_exp_earned || 0
@@ -1421,10 +1492,102 @@ async function exportUsersCSV() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Danh_Ba_288_Nhan_Su_FoxREAD_${dateStr}.csv`;
+    link.download = `Danh_Ba_288_Nhan_Su_FOXREAD_${dateStr}.csv`;
     link.click();
   } catch (err) {
-    alert('Lỗi xuất file CSV');
+    console.error('Lỗi xuất file CSV:', err);
+    alert('Lỗi xuất file CSV nhân sự');
+  } finally {
+    if (btn) {
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }
+  }
+}
+
+async function exportUsersAllDaysCSV() {
+  const btn = document.getElementById('btn-export-users-all-csv');
+  const originalHtml = btn ? btn.innerHTML : '';
+  try {
+    if (btn) {
+      btn.innerHTML = '<span>⏳</span><span>Đang xuất...</span>';
+      btn.disabled = true;
+    }
+
+    const res = await fetch(`${API_BASE}/admin/users/all-days`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const result = await res.json();
+    if (!result.success || !result.data || !result.data.users) {
+      alert(result.message || 'Không tải được dữ liệu nhân sự tất cả các ngày');
+      return;
+    }
+
+    const { dates, users, total_days } = result.data;
+    const todayStr = getTodayISODate();
+
+    // Headers with individual date columns
+    const dateHeaders = dates.map(d => `"Ngày ${formatDateVN(d)}"`);
+
+    const rows = [
+      ['=== BÁO CÁO CHUYÊN CẦN & THAM GIA 288 NHÂN SỰ - FOXREAD (TẤT CẢ CÁC NGÀY) ==='],
+      [`Ngày xuất báo cáo: ${formatDateVN(todayStr)} | Tổng số cán bộ: ${users.length} | Ghi nhận: ${dates.length} ngày`],
+      [],
+      [
+        'STT',
+        'Bút Danh',
+        'Đội Thi Đua',
+        'Khối / Ban',
+        'Chức Danh',
+        `Tổng Ngày Tham Gia (${dates.length} Ngày)`,
+        'Tỷ Lệ Chuyên Cần (%)',
+        'Tổng Sách Đã Gieo',
+        'Tổng Lượt Tưới',
+        'Tổng EXP Kiếm Được',
+        'Ngày Gieo Gần Nhất',
+        ...dateHeaders
+      ]
+    ];
+
+    users.forEach((u, idx) => {
+      const dateValues = dates.map(d => {
+        const st = u.daily_status && u.daily_status[d];
+        if (st && st.participated) {
+          return st.book_title ? `"Đã gieo (${st.book_title.replace(/"/g, '""')})"` : '"Đã gieo"';
+        }
+        return '"Chưa gieo"';
+      });
+
+      rows.push([
+        idx + 1,
+        `"${u.nickname || 'Bút danh'}"`,
+        `"${u.team_name || ('Đội ' + u.team_id)}"`,
+        `"${(u.branch || '').replace(/"/g, '""')}"`,
+        `"${(u.job_title || '').replace(/"/g, '""')}"`,
+        `"${u.total_days_participated}/${dates.length}"`,
+        `"${u.attendance_rate}%"`,
+        u.contributed_books_count || 0,
+        u.total_dews_count || 0,
+        u.total_exp_earned || 0,
+        `"${u.latest_quote_date ? formatDateVN(u.latest_quote_date) : 'Chưa gieo'}"`,
+        ...dateValues
+      ]);
+    });
+
+    const csvContent = '\uFEFF' + rows.map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Bao_Cao_288_Nhan_Su_Tat_Ca_Cac_Ngay_FOXREAD_${todayStr}.csv`;
+    link.click();
+  } catch (err) {
+    console.error('Lỗi xuất báo cáo nhân sự tất cả các ngày:', err);
+    alert('Lỗi xuất file CSV nhân sự tất cả các ngày');
+  } finally {
+    if (btn) {
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }
   }
 }
 
@@ -1440,7 +1603,7 @@ function exportTeamsCSV() {
       'Tên Đội',
       'Cấp Độ Cây',
       'Tổng EXP Toàn Giải',
-      'Hạt Giống (Mầm)',
+      'EXP Vươn Cấp',
       'Cán Bộ Thực Tế',
       'Chỉ Tiêu',
       `Số Cán Bộ Tham Gia (${dateLabel})`,
@@ -1458,6 +1621,8 @@ function exportTeamsCSV() {
     const partRate = t.date_participation_rate !== undefined ? t.date_participation_rate : (t.today_participation_rate || 0);
     const dateBooks = t.date_books_count !== undefined ? t.date_books_count : 0;
     const dateDews = t.date_dews_count !== undefined ? t.date_dews_count : 0;
+    const exp = t.tree_exp || 0;
+    const nextTarget = exp < 50 ? '50 EXP' : exp < 150 ? '150 EXP' : exp < 300 ? '300 EXP' : exp < 600 ? '600 EXP' : exp < 1200 ? '1.200 EXP' : 'Max Level';
 
     rows.push([
       t.rank,
@@ -1465,7 +1630,7 @@ function exportTeamsCSV() {
       `"${t.display_name || t.name}"`,
       `"${t.levelName}"`,
       t.tree_exp,
-      t.tree_seeds,
+      `"${nextTarget}"`,
       t.actual_members,
       t.target_members,
       partCount,
@@ -1482,8 +1647,116 @@ function exportTeamsCSV() {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `Bao_Cao_Xep_Hang_8_Doi_Ngay_${dateStr}.csv`;
+  link.download = `Bao_Cao_Xep_Hang_8_Doi_Ngay_${dateStr}_FOXREAD.csv`;
   link.click();
+}
+
+async function exportTeamsAllDaysCSV() {
+  const btn = document.getElementById('btn-export-teams-all');
+  const originalHtml = btn ? btn.innerHTML : '';
+  try {
+    if (btn) {
+      btn.innerHTML = '<span>⏳</span><span>Đang xuất...</span>';
+      btn.disabled = true;
+    }
+
+    const res = await fetch(`${API_BASE}/admin/analytics/teams/all-days`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const result = await res.json();
+    if (!result.success || !result.data) {
+      alert(result.message || 'Không tải được dữ liệu 8 đội thi đua tất cả các ngày');
+      return;
+    }
+
+    const { dates, teams_summary, daily_history } = result.data;
+    const todayStr = getTodayISODate();
+
+    const rows = [
+      ['=== BÁO CÁO TOÀN GIẢI 8 ĐỘI THI ĐUA - FOXREAD (TẤT CẢ CÁC NGÀY) ==='],
+      [`Ngày xuất báo cáo: ${formatDateVN(todayStr)} | Tổng số ngày ghi nhận: ${dates.length} ngày`],
+      [],
+      ['--- PHẦN 1: BẢNG TỔNG HỢP TOÀN GIẢI 8 ĐỘI THI ĐUA ---'],
+      [
+        'Hạng',
+        'Mã Đội',
+        'Tên Đội',
+        'Cấp Độ Cây',
+        'Tổng EXP Toàn Giải',
+        'EXP Vươn Cấp',
+        'Cán Bộ Thực Tế',
+        'Chỉ Tiêu',
+        'Tỷ Lệ TB Toàn Giải (%)',
+        'Tổng Sách Đã Gieo',
+        'Tổng Lượt Tưới'
+      ]
+    ];
+
+    teams_summary.forEach(t => {
+      const exp = t.tree_exp || 0;
+      const nextTarget = exp < 50 ? '50 EXP' : exp < 150 ? '150 EXP' : exp < 300 ? '300 EXP' : exp < 600 ? '600 EXP' : exp < 1200 ? '1.200 EXP' : 'Max Level';
+      rows.push([
+        t.rank,
+        `"${t.code}"`,
+        `"${t.display_name || t.name}"`,
+        `"${t.levelName}"`,
+        t.tree_exp,
+        `"${nextTarget}"`,
+        t.actual_members,
+        t.target_members,
+        `"${t.avg_participation_rate}%"`,
+        t.books_count,
+        t.dews_count
+      ]);
+    });
+
+    rows.push([]);
+    rows.push(['--- PHẦN 2: CHI TIẾT THEO TỪNG NGÀY CỦA 8 ĐỘI THI ĐUA ---']);
+    rows.push([
+      'Ngày',
+      'Hạng Toàn Giải',
+      'Mã Đội',
+      'Tên Đội',
+      'Cấp Độ Cây',
+      'Cán Bộ Thực Tế',
+      'Chỉ Tiêu',
+      'Số Cán Bộ Tham Gia Ngày Này',
+      'Tỷ Lệ Tham Gia Ngày Này (%)',
+      'Sách Gieo Ngày Này',
+      'Lượt Tưới Ngày Này'
+    ]);
+
+    daily_history.forEach(h => {
+      rows.push([
+        `"${formatDateVN(h.date)}"`,
+        h.rank,
+        `"${h.team_code}"`,
+        `"${h.team_name}"`,
+        `"${h.level_name}"`,
+        h.actual_members,
+        h.target_members,
+        h.participants_count,
+        `"${h.participation_rate}%"`,
+        h.books_count,
+        h.dews_count
+      ]);
+    });
+
+    const csvContent = '\uFEFF' + rows.map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Bao_Cao_8_Doi_Tat_Ca_Cac_Ngay_FOXREAD_${todayStr}.csv`;
+    link.click();
+  } catch (err) {
+    console.error('Lỗi xuất báo cáo 8 đội tất cả các ngày:', err);
+    alert('Lỗi xuất file CSV 8 đội tất cả các ngày');
+  } finally {
+    if (btn) {
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }
+  }
 }
 
 // =========================================================================
@@ -1498,7 +1771,7 @@ function renderRoundsTimeline() {
 
   // Stages Cards
   const stages = [
-    { title: '🌱 GIAI ĐOẠN 1: Ủ MẦM (Chặng 1 - 3)', desc: 'Tích lũy 50 hạt giống nảy mầm cây tri thức', rounds: rounds.slice(0, 3), color: 'emerald' },
+    { title: '🌱 GIAI ĐOẠN 1: Ủ MẦM (Chặng 1 - 3)', desc: 'Tích lũy 50 EXP nảy mầm cây tri thức', rounds: rounds.slice(0, 3), color: 'emerald' },
     { title: '🌲 GIAI ĐOẠN 2: VƯƠN MÌNH (Chặng 4 - 12)', desc: 'Gieo sách hàng ngày, mở rộng cành lá và đơm hoa', rounds: rounds.slice(3, 12), color: 'sky' },
     { title: '🌟 GIAI ĐOẠN 3: VỀ ĐÍCH (Chặng 13 - 15)', desc: 'Bứt phá điểm số, kết trái vàng và xác lập Đại Cổ Thụ', rounds: rounds.slice(12, 15), color: 'amber' }
   ];
@@ -1547,6 +1820,64 @@ function renderRoundsTimeline() {
 // =========================================================================
 // 5. BOOKS MODERATION HUB
 // =========================================================================
+let currentBookViewMode = 'active'; // 'active' | 'deleted'
+
+function switchBookViewMode(mode) {
+  currentBookViewMode = mode;
+  const btnActive = document.getElementById('subtab-books-active');
+  const btnDeleted = document.getElementById('subtab-books-deleted');
+  const banner = document.getElementById('deleted-view-banner');
+  const visFilter = document.getElementById('filter-visibility');
+
+  if (mode === 'deleted') {
+    btnDeleted?.classList.remove('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+    btnDeleted?.classList.add('bg-rose-500/25', 'text-rose-300', 'border-rose-400/50', 'shadow-sm');
+
+    btnActive?.classList.remove('bg-sky-500/20', 'text-sky-300', 'border-sky-400/40', 'shadow-sm');
+    btnActive?.classList.add('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+
+    banner?.classList.remove('hidden');
+    if (visFilter) visFilter.value = 'deleted';
+  } else {
+    btnActive?.classList.remove('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+    btnActive?.classList.add('bg-sky-500/20', 'text-sky-300', 'border-sky-400/40', 'shadow-sm');
+
+    btnDeleted?.classList.remove('bg-rose-500/25', 'text-rose-300', 'border-rose-400/50', 'shadow-sm');
+    btnDeleted?.classList.add('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+
+    banner?.classList.add('hidden');
+    if (visFilter && visFilter.value === 'deleted') visFilter.value = '';
+  }
+
+  loadBooks();
+}
+
+function syncSubtabWithVisibility(val) {
+  const btnActive = document.getElementById('subtab-books-active');
+  const btnDeleted = document.getElementById('subtab-books-deleted');
+  const banner = document.getElementById('deleted-view-banner');
+
+  if (val === 'deleted') {
+    currentBookViewMode = 'deleted';
+    btnDeleted?.classList.remove('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+    btnDeleted?.classList.add('bg-rose-500/25', 'text-rose-300', 'border-rose-400/50', 'shadow-sm');
+
+    btnActive?.classList.remove('bg-sky-500/20', 'text-sky-300', 'border-sky-400/40', 'shadow-sm');
+    btnActive?.classList.add('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+
+    banner?.classList.remove('hidden');
+  } else {
+    currentBookViewMode = 'active';
+    btnActive?.classList.remove('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+    btnActive?.classList.add('bg-sky-500/20', 'text-sky-300', 'border-sky-400/40', 'shadow-sm');
+
+    btnDeleted?.classList.remove('bg-rose-500/25', 'text-rose-300', 'border-rose-400/50', 'shadow-sm');
+    btnDeleted?.classList.add('bg-slate-900/90', 'text-slate-400', 'border-slate-800');
+
+    banner?.classList.add('hidden');
+  }
+}
+
 async function loadBooks() {
   const tbody = document.getElementById('books-table-body');
   if (!tbody) return;
@@ -1554,21 +1885,113 @@ async function loadBooks() {
   const search = document.getElementById('filter-search')?.value.trim() || '';
   const modStatus = document.getElementById('filter-moderation')?.value || '';
   const visStatus = document.getElementById('filter-visibility')?.value || '';
+  const credFilter = document.getElementById('filter-credibility')?.value || '';
 
   let url = `${API_BASE}/admin/books?page=1&limit=50`;
   if (search) url += `&search=${encodeURIComponent(search)}`;
   if (modStatus) url += `&moderation_status=${modStatus}`;
   if (visStatus) url += `&visibility_status=${visStatus}`;
+  if (credFilter) url += `&credibility=${encodeURIComponent(credFilter)}`;
 
   try {
     const res = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
     const data = await res.json();
     if (data.success) {
       renderBooksTable(data.data.books);
+      fetchQueueStatus();
+
+      // Cập nhật số lượng huy hiệu cho subtabs
+      if (data.data.counts) {
+        const activeCountEl = document.getElementById('badge-active-count');
+        const deletedCountEl = document.getElementById('badge-deleted-count');
+        if (activeCountEl) activeCountEl.innerText = data.data.counts.active ?? 0;
+        if (deletedCountEl) deletedCountEl.innerText = data.data.counts.deleted ?? 0;
+      }
     }
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-rose-400">Lỗi tải danh sách sách</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-rose-400">Lỗi tải danh sách sách</td></tr>';
   }
+}
+
+function renderCredibilityCell(b) {
+  const status = b.credibility_status || 'unscored';
+  const score = b.credibility_score;
+  const rationale = b.credibility_rationale || '';
+
+  if (status === 'scoring') {
+    return `
+      <div class="space-y-1">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-950/60 text-sky-300 border border-sky-700/60">
+          <span class="inline-block animate-spin">⏳</span> Đang chấm AI...
+        </span>
+        <div class="text-[10px] text-slate-400">Pacing tuần tự chống quá tải</div>
+      </div>
+    `;
+  }
+
+  if (status === 'scored' && score !== null && score !== undefined) {
+    let badgeClass = 'bg-emerald-950/70 text-emerald-300 border-emerald-600/60';
+    let icon = '🛡️';
+    let label = 'Chuẩn Mực';
+
+    if (score >= 80) {
+      badgeClass = 'bg-emerald-950/70 text-emerald-300 border-emerald-600/60';
+      icon = '🛡️';
+      label = 'Chuẩn Mực';
+    } else if (score >= 60) {
+      badgeClass = 'bg-amber-950/70 text-amber-300 border-amber-600/60';
+      icon = '⚖️';
+      label = 'Cần Xem Xét';
+    } else {
+      badgeClass = 'bg-rose-950/90 text-rose-300 border-rose-600/80 animate-pulse';
+      icon = '🔴';
+      label = 'Vi Phạm (<60đ) • AI Tự Xóa';
+    }
+
+    return `
+      <div class="space-y-1 max-w-xs">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border ${badgeClass}">
+            <span>${icon}</span>
+            <span>${score}/100</span>
+            <span class="text-[9.5px] opacity-80 font-normal">(${label})</span>
+          </span>
+          <button onclick="scoreQuoteCredibilityRow('${b.id}', this)" class="text-[10px] text-slate-400 hover:text-sky-300 hover:underline transition-colors flex items-center gap-0.5" title="Kích hoạt AI Groq chấm lại trích dẫn này">
+            <span>🔄</span> Chấm lại
+          </button>
+        </div>
+        ${rationale ? `<div class="text-[10px] text-slate-400 font-medium">${escapeHtml(rationale)}</div>` : ''}
+      </div>
+    `;
+  }
+
+  if (status === 'failed') {
+    return `
+      <div class="space-y-1 max-w-xs">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-950/60 text-rose-300 border border-rose-800">
+            <span>⚠️</span><span>Lỗi chấm AI</span>
+          </span>
+          <button onclick="scoreQuoteCredibilityRow('${b.id}', this)" class="btn btn-ghost text-[10.5px] py-0.5 px-2 bg-rose-900/40 hover:bg-rose-800/60 text-rose-200 border border-rose-700/50 flex items-center gap-1">
+            <span>🔄</span> Chấm lại
+          </button>
+        </div>
+        ${rationale ? `<div class="text-[10px] text-rose-400 line-clamp-1" title="${escapeHtml(rationale)}">${escapeHtml(rationale)}</div>` : ''}
+      </div>
+    `;
+  }
+
+  // unscored / null
+  return `
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-slate-800 text-slate-400 border border-slate-700">
+        <span>⚪</span> Chưa chấm
+      </span>
+      <button onclick="scoreQuoteCredibilityRow('${b.id}', this)" class="btn btn-ghost text-[10.5px] py-0.5 px-2 bg-sky-950/50 hover:bg-sky-800/50 text-sky-300 border border-sky-700/50 font-bold flex items-center gap-1" title="Chấm điểm câu trích dẫn bằng AI Groq">
+        <span>✨</span> Chấm AI
+      </button>
+    </div>
+  `;
 }
 
 function renderBooksTable(books) {
@@ -1576,7 +1999,7 @@ function renderBooksTable(books) {
   if (!tbody) return;
 
   if (!books || books.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500">Không tìm thấy sách nào phù hợp.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-500">Không tìm thấy sách nào phù hợp.</td></tr>';
     return;
   }
 
@@ -1586,14 +2009,32 @@ function renderBooksTable(books) {
     if (b.moderation_status === 'rejected') modBadge = `<span class="badge badge-rejected">Bị Loại Bỏ</span>`;
 
     let visBadge = `<span class="text-[10px] text-emerald-400 font-bold">🟢 Đang Hiện Trên Cây</span>`;
-    if (b.visibility_status !== 'visible') visBadge = `<span class="text-[10px] text-rose-400 font-bold">🔴 Ẩn</span>`;
+    if (b.visibility_status === 'hidden') {
+      visBadge = `<span class="text-[10px] text-amber-400 font-bold">🟡 Đang Ẩn</span>`;
+    } else if (b.visibility_status === 'deleted') {
+      visBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-950 text-rose-300 border border-rose-700/60"><span>🗑️</span><span>Đã Xóa</span></span>`;
+    }
+
+    const deletionInfo = (b.visibility_status === 'deleted' && b.deletion_reason)
+      ? `<div class="text-[9.5px] text-rose-400 font-semibold mt-1 bg-rose-950/40 p-1.5 rounded border border-rose-900/60 max-w-xs" title="${escapeHtml(b.deletion_reason)}">
+          <span class="font-bold">Lý do:</span> ${escapeHtml(b.deletion_reason)}
+          ${b.deleted_at ? `<br><span class="text-[9px] text-slate-400 font-normal">Thời gian: ${new Date(b.deleted_at).toLocaleString('vi-VN')}</span>` : ''}
+        </div>`
+      : '';
+
+    const isDeleted = b.visibility_status === 'deleted';
+    const escapedTitle = escapeHtml(b.title).replace(/'/g, "\\'");
 
     return `
-      <tr class="hover:bg-slate-800/40 transition-colors">
+      <tr id="book-row-${b.id}" class="hover:bg-slate-800/40 transition-colors ${isDeleted ? 'bg-rose-950/10' : ''}">
         <td class="p-3.5 max-w-sm">
-          <div class="font-black text-white text-sm">${escapeHtml(b.title)}</div>
+          <div class="font-black text-white text-sm flex items-center gap-1.5">
+            ${isDeleted ? '<span class="text-rose-400 text-xs">🗑️</span>' : ''}
+            <span>${escapeHtml(b.title)}</span>
+          </div>
           <div class="text-[11px] text-sky-400 font-bold">${escapeHtml(b.author)}${b.team_display_name || b.team_name || (b.team_id ? ` · <span class="text-emerald-400 font-bold">${escapeHtml(b.team_display_name || b.team_name || `Đội ${b.team_id}`)}</span>` : '')}</div>
           <p class="text-slate-300 italic text-[11px] mt-1.5 line-clamp-2 bg-slate-950/40 p-2 rounded border border-slate-800">"${escapeHtml(b.quote)}"</p>
+          ${deletionInfo}
         </td>
         <td class="p-3.5">
           <div class="font-bold text-white">${escapeHtml(b.reader_name)}</div>
@@ -1604,17 +2045,222 @@ function renderBooksTable(books) {
           <div>${modBadge}</div>
           <div>${visBadge}</div>
         </td>
+        <td id="book-credibility-cell-${b.id}" class="p-3.5 min-w-[200px] transition-colors duration-500">
+          ${renderCredibilityCell(b)}
+        </td>
         <td class="p-3.5 font-black text-amber-400">
           ❤️ ${b.likes_count || 0}
         </td>
         <td class="p-3.5 text-right space-x-1 whitespace-nowrap">
-          <button onclick="openModModal('${b.id}')" class="btn btn-ghost text-[11px] py-1 px-3">
-            <span>⚙️</span><span>Hậu Kiểm</span>
-          </button>
+          ${isDeleted ? `
+            <button onclick="restoreDeletedBook('${b.id}', '${escapedTitle}')" class="btn btn-ghost text-[11px] py-1 px-2.5 bg-emerald-950/70 hover:bg-emerald-800/70 text-emerald-300 border border-emerald-600/60 font-black inline-flex items-center gap-1 shadow-sm" title="Khôi phục câu trích dẫn này lên cây">
+              <span>♻️</span><span>Khôi Phục</span>
+            </button>
+            <button onclick="openModModal('${b.id}')" class="btn btn-ghost text-[11px] py-1 px-2 text-slate-400 hover:text-white" title="Chi tiết hậu kiểm">
+              <span>⚙️</span>
+            </button>
+          ` : `
+            <button onclick="openModModal('${b.id}')" class="btn btn-ghost text-[11px] py-1 px-3">
+              <span>⚙️</span><span>Hậu Kiểm</span>
+            </button>
+          `}
         </td>
       </tr>
     `;
   }).join('');
+}
+
+window.restoreDeletedBook = async function(bookId, bookTitle) {
+  if (!confirm(`Bạn có chắc chắn muốn khôi phục trích dẫn "${bookTitle}" lên Cây Tri Thức không?`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/books/${bookId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        visibility_status: 'visible',
+        moderation_status: 'reviewed',
+        moderation_notes: 'Khôi phục bởi Quản trị viên từ Danh Sách Đã Xóa'
+      })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showToast('Khôi phục trích dẫn thành công!', 'success');
+      loadBooks();
+      loadAnalytics();
+    } else {
+      alert(data.message || 'Lỗi khôi phục');
+    }
+  } catch (err) {
+    alert('Lỗi kết nối máy chủ');
+  }
+};
+
+function updateBookCredibilityInDom(book) {
+  if (!book || !book.id) return;
+  const cell = document.getElementById(`book-credibility-cell-${book.id}`);
+  if (cell) {
+    cell.innerHTML = renderCredibilityCell(book);
+    cell.classList.add('bg-emerald-500/20');
+    setTimeout(() => {
+      cell.classList.remove('bg-emerald-500/20');
+    }, 2500);
+  }
+}
+
+async function fetchQueueStatus() {
+  if (!authToken) return;
+  try {
+    const res = await fetch(`${API_BASE}/admin/credibility/queue-status`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+    if (data.success) {
+      updateQueueBadge(data.data);
+    }
+  } catch (err) {
+    // Silent
+  }
+}
+
+function updateQueueBadge(status) {
+  const badgeText = document.getElementById('queue-status-text');
+  const dot = document.getElementById('queue-status-dot');
+  if (!badgeText || !dot) return;
+
+  if (status.isProcessing || status.pendingCount > 0) {
+    dot.className = 'inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping';
+    badgeText.textContent = `Hàng đợi AI: ${status.pendingCount} đang chấm`;
+  } else {
+    dot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-400';
+    badgeText.textContent = `Hàng đợi AI: 0 chờ (${status.stats?.totalSucceeded || 0} đã chấm)`;
+  }
+}
+
+async function triggerAiScanQueue() {
+  if (!authToken) {
+    alert('Vui lòng đăng nhập quản trị viên.');
+    return;
+  }
+  const btn = document.getElementById('btn-ai-scan-queue');
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-block animate-spin">⏳</span><span>Đang nạp...</span>';
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/credibility/trigger-scan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ limit: 50 })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(`⚡ ${data.message}`);
+      fetchQueueStatus();
+      await loadBooks();
+    } else {
+      alert(`❌ Lỗi quét nạp: ${data.message || 'Không thành công'}`);
+    }
+  } catch (err) {
+    alert(`❌ Lỗi kết nối: ${err.message}`);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
+  }
+}
+
+window.scoreQuoteCredibilityRow = async function(bookId, btnEl) {
+  if (!authToken) {
+    alert('Vui lòng đăng nhập quản trị viên để chấm điểm.');
+    return;
+  }
+  const originalHtml = btnEl ? btnEl.innerHTML : '';
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.innerHTML = '<span class="inline-block animate-spin">⏳</span> Đang chấm...';
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/books/${bookId}/score-credibility`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+    const data = await res.json();
+    if (data.success) {
+      updateBookCredibilityInDom(data.data);
+      fetchQueueStatus();
+    } else {
+      alert(`❌ Lỗi chấm điểm AI: ${data.message || 'Không thành công'}`);
+      if (btnEl) {
+        btnEl.disabled = false;
+        btnEl.innerHTML = originalHtml;
+      }
+    }
+  } catch (err) {
+    alert(`❌ Lỗi kết nối chấm AI: ${err.message}`);
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = originalHtml;
+    }
+  }
+};
+
+async function triggerAiBatchScore() {
+  if (!authToken) {
+    alert('Vui lòng đăng nhập quản trị viên.');
+    return;
+  }
+  const btn = document.getElementById('btn-ai-batch-score');
+  if (!confirm('Bạn có muốn kích hoạt AI Groq thẩm định tuần tự các câu trích dẫn chưa có điểm không?\\n(Hệ thống tự động điều tiết nhịp độ an toàn 800ms để không bao giờ vượt ngưỡng token/phút)')) {
+    return;
+  }
+
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-block animate-spin">⏳</span><span>Đang chấm tuần tự...</span>';
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/books/score-batch`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ limit: 15, delayMs: 800, forceRescore: false })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(`🎉 ${data.message}`);
+      await loadBooks();
+    } else {
+      alert(`❌ Lỗi chấm hàng loạt: ${data.message || 'Không thể thực hiện'}`);
+    }
+  } catch (err) {
+    alert(`❌ Lỗi kết nối: ${err.message}`);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
+  }
 }
 
 window.openModModal = async function(bookId) {
@@ -1748,8 +2394,7 @@ function renderLedgerTable(ledger) {
           ${isPositive ? '+' : ''}${item.amount} EXP
         </td>
         <td class="p-3 font-bold text-slate-200">
-          ${escapeHtml(item.user_name || 'Khách vãng lai')}
-          <div class="text-[10px] text-slate-500">${escapeHtml(item.user_email || item.user_fingerprint?.slice(0, 12) || '')}</div>
+          ${escapeHtml(item.nickname || 'Bút danh')}
         </td>
         <td class="p-3">
           <span class="px-2 py-0.5 rounded text-[10.5px] font-bold" style="background: ${(item.team_color || '#0284c7')}22; color: ${item.team_color || '#38bdf8'};">
@@ -1854,7 +2499,7 @@ function bindContentRulesEvents() {
 function syncWelcomePreview() {
   const badge = document.getElementById('cfg-welcome-badge')?.value || '🌱 VƯỜN TRI THỨC';
   const title = document.getElementById('cfg-welcome-title')?.value || 'Mỗi Cuốn Sách Là Một Hạt Mầm';
-  const subtitle = document.getElementById('cfg-welcome-subtitle')?.value || 'Mỗi Độc Giả Là Một Người Gieo Tri Thức';
+  const subtitle = document.getElementById('cfg-welcome-subtitle')?.value || 'Mỗi Bút Danh Là Một Người Gieo Tri Thức';
   const metaphor = document.getElementById('cfg-welcome-metaphor')?.value || '';
   const p1 = document.getElementById('cfg-welcome-pillar1')?.value || 'Gieo Hạt Tri Thức';
   const p2 = document.getElementById('cfg-welcome-pillar2')?.value || 'Lan Tỏa Tri Thức';
@@ -1971,7 +2616,7 @@ async function saveWelcomeSettings() {
   const payload = {
     badge: getVal('cfg-welcome-badge') || '🌱 VƯỜN TRI THỨC',
     title: getVal('cfg-welcome-title') || 'Mỗi Cuốn Sách Là Một Hạt Mầm',
-    subtitle: getVal('cfg-welcome-subtitle') || 'Mỗi Độc Giả Là Một Người Gieo Tri Thức',
+    subtitle: getVal('cfg-welcome-subtitle') || 'Mỗi Bút Danh Là Một Người Gieo Tri Thức',
     metaphor: getVal('cfg-welcome-metaphor'),
     pillar1: getVal('cfg-welcome-pillar1') || 'Gieo Hạt Tri Thức',
     pillar2: getVal('cfg-welcome-pillar2') || 'Lan Tỏa Tri Thức',
@@ -1994,7 +2639,7 @@ async function saveWelcomeSettings() {
     });
     const data = await res.json();
     if (data.success) {
-      alert('✅ Lưu cấu hình Popup Chào Mừng thành công! Mọi độc giả đang mở trang sẽ thấy nội dung mới ngay lập tức.');
+      alert('✅ Lưu cấu hình Popup Chào Mừng thành công! Mọi Bút danh đang mở trang sẽ thấy nội dung mới ngay lập tức.');
     } else {
       alert('❌ Lỗi: ' + (data.message || 'Không thể lưu'));
     }
@@ -2035,11 +2680,16 @@ async function saveRulesSettings() {
   });
 
   const payload = {
-    badge: getVal('cfg-rules-badge') || 'THỂ LỆ & QUY TRÌNH NUÔI DƯỠNG CÂY TRI THỨC',
-    milestonesTitle: getVal('cfg-rules-milestones-title') || '🌱 5 GIAI ĐOẠN SINH TRƯỞNG CỦA CÂY TRI THỨC',
+    badge: getVal('cfg-rules-badge') || 'THỂ LỆ',
+    milestonesTitle: getVal('cfg-rules-milestones-title') || '4 GIAI ĐOẠN PHÁT TRIỂN CỦA CÂY TRI THỨC',
     milestones: milestones.length > 0 ? milestones : (currentRulesSettings?.milestones || []),
-    interactionsTitle: getVal('cfg-rules-interactions-title') || 'Cơ Chế Tương Tác & Điểm EXP Nuôi Cây',
+    interactionsTitle: getVal('cfg-rules-interactions-title') || 'CƠ CHẾ TƯƠNG TÁC & TÍCH LŨY EXP',
     interactions: interactions.length > 0 ? interactions : (currentRulesSettings?.interactions || []),
+    regulationsTitle: currentRulesSettings?.regulationsTitle || 'QUY ĐỊNH THAM GIA',
+    regulations: currentRulesSettings?.regulations || {
+      time: 'Thời gian: 10/09/2026 – 05/10/2026',
+      rules: 'Mỗi ngày là một lượt chơi. Các hoạt động chỉ được tính khi đáp ứng điều kiện hợp lệ của chương trình. EXP vẫn tiếp tục được tích lũy sau khi đội đạt 1.200 EXP.'
+    },
     confirmButton: getVal('cfg-rules-confirm-btn') || '🌱 Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây'
   };
 
@@ -2786,3 +3436,373 @@ window.editAdminAccount = function(id) {
 };
 window.toggleAdminStatus = toggleAdminStatus;
 window.openDeleteAdminModal = openDeleteAdminModal;
+
+// =========================================================================
+// 288 PERSONNEL MANAGEMENT MODULE (FULL CRUD)
+// =========================================================================
+
+let pendingDeletePersonnel = null;
+
+function bindPersonnelEvents() {
+  // Create Modal Open
+  const btnOpenCreate = document.getElementById('btn-open-create-personnel');
+  if (btnOpenCreate) {
+    btnOpenCreate.addEventListener('click', openCreatePersonnelModal);
+  }
+
+  // Form Submit
+  const formEl = document.getElementById('form-personnel');
+  if (formEl) {
+    formEl.addEventListener('submit', handlePersonnelFormSubmit);
+  }
+
+  // Form Modal Close
+  const closeBtn = document.getElementById('personnel-modal-close');
+  const cancelBtn = document.getElementById('personnel-modal-cancel');
+  const modalForm = document.getElementById('modal-personnel-form');
+  if (closeBtn) closeBtn.addEventListener('click', closePersonnelModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closePersonnelModal);
+  if (modalForm) {
+    modalForm.addEventListener('click', (e) => {
+      if (e.target === modalForm) closePersonnelModal();
+    });
+  }
+
+  // Detail Modal Close
+  const detailCloseBtn = document.getElementById('personnel-detail-close');
+  const detailOkBtn = document.getElementById('personnel-detail-ok');
+  const modalDetail = document.getElementById('modal-personnel-detail');
+  if (detailCloseBtn) detailCloseBtn.addEventListener('click', closePersonnelDetailModal);
+  if (detailOkBtn) detailOkBtn.addEventListener('click', closePersonnelDetailModal);
+  if (modalDetail) {
+    modalDetail.addEventListener('click', (e) => {
+      if (e.target === modalDetail) closePersonnelDetailModal();
+    });
+  }
+
+  // Delete Modal Close & Confirm
+  const delCloseBtn = document.getElementById('personnel-delete-modal-close');
+  const delCancelBtn = document.getElementById('personnel-delete-cancel');
+  const modalDelete = document.getElementById('modal-personnel-delete');
+  const btnConfirmDelete = document.getElementById('btn-confirm-delete-personnel');
+
+  if (delCloseBtn) delCloseBtn.addEventListener('click', closeDeletePersonnelModal);
+  if (delCancelBtn) delCancelBtn.addEventListener('click', closeDeletePersonnelModal);
+  if (modalDelete) {
+    modalDelete.addEventListener('click', (e) => {
+      if (e.target === modalDelete) closeDeletePersonnelModal();
+    });
+  }
+  if (btnConfirmDelete) {
+    btnConfirmDelete.addEventListener('click', handleConfirmDeletePersonnel);
+  }
+
+  // ESC Key listener
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (modalForm?.classList.contains('show')) closePersonnelModal();
+      if (modalDetail?.classList.contains('show')) closePersonnelDetailModal();
+      if (modalDelete?.classList.contains('show')) closeDeletePersonnelModal();
+    }
+  });
+}
+
+function openCreatePersonnelModal() {
+  const modal = document.getElementById('modal-personnel-form');
+  const form = document.getElementById('form-personnel');
+  const errBox = document.getElementById('personnel-form-error');
+
+  if (form) form.reset();
+  document.getElementById('personnel-form-id').value = '';
+  document.getElementById('personnel-form-nickname').value = '';
+  document.getElementById('personnel-form-team').value = '1';
+  document.getElementById('personnel-modal-title').textContent = 'Thêm Bút Danh Mới';
+  document.getElementById('personnel-form-btn-text').textContent = 'Lưu Bút Danh';
+  if (errBox) errBox.classList.add('hidden');
+
+  if (modal) {
+    modal.classList.add('show');
+    setTimeout(() => document.getElementById('personnel-form-nickname')?.focus(), 150);
+  }
+}
+
+function closePersonnelModal() {
+  const modal = document.getElementById('modal-personnel-form');
+  const errBox = document.getElementById('personnel-form-error');
+  if (modal) modal.classList.remove('show');
+  if (errBox) errBox.classList.add('hidden');
+}
+
+async function openEditPersonnelModal(id) {
+  const modal = document.getElementById('modal-personnel-form');
+  const errBox = document.getElementById('personnel-form-error');
+  if (errBox) errBox.classList.add('hidden');
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/users/${id}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+    if (!data.success || !data.data) {
+      alert(data.message || 'Không thể lấy thông tin bút danh.');
+      return;
+    }
+
+    const u = data.data;
+    document.getElementById('personnel-form-id').value = u.id || '';
+    document.getElementById('personnel-form-nickname').value = u.nickname || '';
+    document.getElementById('personnel-form-team').value = u.team_id || '1';
+
+    document.getElementById('personnel-modal-title').textContent = `Chỉnh Sửa Bút Danh: ${u.nickname || 'Bút danh'}`;
+    document.getElementById('personnel-form-btn-text').textContent = 'Cập Nhật Bút Danh';
+
+    if (modal) {
+      modal.classList.add('show');
+      setTimeout(() => document.getElementById('personnel-form-nickname')?.focus(), 150);
+    }
+  } catch (err) {
+    alert('Lỗi kết nối máy chủ: ' + err.message);
+  }
+}
+
+async function handlePersonnelFormSubmit(e) {
+  e.preventDefault();
+
+  const id = document.getElementById('personnel-form-id').value;
+  const nickname = document.getElementById('personnel-form-nickname').value.trim();
+  const teamId = parseInt(document.getElementById('personnel-form-team').value, 10);
+
+  const errBox = document.getElementById('personnel-form-error');
+  const errMsg = document.getElementById('personnel-form-error-msg');
+  const btnSubmit = document.getElementById('btn-submit-personnel-form');
+  const spinner = document.getElementById('personnel-form-spinner');
+
+  if (!nickname) {
+    if (errBox && errMsg) {
+      errMsg.textContent = 'Vui lòng nhập bút danh.';
+      errBox.classList.remove('hidden');
+    }
+    return;
+  }
+
+  if (errBox) errBox.classList.add('hidden');
+
+  const payload = {
+    nickname: nickname,
+    team_id: teamId
+  };
+
+  // UI loading
+  if (btnSubmit) btnSubmit.disabled = true;
+  if (spinner) spinner.classList.remove('hidden');
+
+  try {
+    const isEdit = !!id;
+    const url = isEdit ? `${API_BASE}/admin/users/${id}` : `${API_BASE}/admin/users`;
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      if (errBox && errMsg) {
+        errMsg.textContent = data.message || (data.errors ? data.errors[0]?.message : 'Lỗi xử lý');
+        errBox.classList.remove('hidden');
+      }
+      return;
+    }
+
+    closePersonnelModal();
+    alert(data.message || (isEdit ? 'Cập nhật thành công!' : 'Thêm bút danh thành công!'));
+    loadUsers();
+    loadAnalytics();
+  } catch (err) {
+    if (errBox && errMsg) {
+      errMsg.textContent = 'Lỗi kết nối máy chủ: ' + err.message;
+      errBox.classList.remove('hidden');
+    }
+  } finally {
+    if (btnSubmit) btnSubmit.disabled = false;
+    if (spinner) spinner.classList.add('hidden');
+  }
+}
+
+async function viewPersonnelDetail(id) {
+  const modal = document.getElementById('modal-personnel-detail');
+  const contentEl = document.getElementById('personnel-detail-content');
+  if (!modal || !contentEl) return;
+
+  contentEl.innerHTML = `
+    <div class="p-8 text-center text-slate-500 font-bold">
+      <span class="inline-block animate-spin mr-2">⏳</span> Đang tải thông tin chi tiết bút danh...
+    </div>
+  `;
+  modal.classList.add('show');
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/users/${id}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+
+    if (!data.success || !data.data) {
+      contentEl.innerHTML = `
+        <div class="p-6 text-center text-rose-400 font-bold">
+          ❌ Không tìm thấy thông tin bút danh.
+        </div>
+      `;
+      return;
+    }
+
+    const u = data.data;
+    const teamColor = u.team_color || '#0284c7';
+    const recentQuotes = Array.isArray(u.recent_quotes) ? u.recent_quotes : [];
+
+    contentEl.innerHTML = `
+      <!-- Header Profile Card -->
+      <div class="flex items-center gap-4 p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl text-white shadow-lg flex-shrink-0"
+             style="background: linear-gradient(135deg, ${teamColor}, ${teamColor}99);">
+          ${escapeHtml((u.nickname || 'BD').slice(0, 2).toUpperCase())}
+        </div>
+        <div class="space-y-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <h4 class="text-sm font-black text-white truncate">${escapeHtml(u.nickname || 'Bút danh')}</h4>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black" style="background: ${teamColor}22; color: ${teamColor}; border: 1px solid ${teamColor}44;">
+              ${escapeHtml(u.team_display_name || ('Đội ' + u.team_id))}
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">Thành viên đội thi đua</p>
+        </div>
+      </div>
+
+      <!-- Stats Counters -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
+          <div class="text-lg font-black text-sky-400">${(u.total_exp_earned || 0).toLocaleString()}</div>
+          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">EXP Cá Nhân</div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
+          <div class="text-lg font-black text-emerald-400">${u.contributed_books_count || 0}</div>
+          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Sách Đã Gieo</div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
+          <div class="text-lg font-black text-amber-400">${u.total_quotes_count || 0}</div>
+          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tổng Quote</div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
+          <div class="text-lg font-black text-purple-400">${u.total_dews_count || 0}</div>
+          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Lượt Tưới</div>
+        </div>
+      </div>
+
+      <!-- Recent Quotes Activity -->
+      <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+        <div class="text-[11px] font-black text-slate-300 uppercase tracking-wider border-b border-slate-800 pb-1.5 flex items-center justify-between">
+          <span class="flex items-center gap-1.5"><span>📖</span><span>Trích Dẫn Gần Nhất (${recentQuotes.length})</span></span>
+        </div>
+        ${recentQuotes.length === 0 ? `
+          <p class="text-xs text-slate-500 italic py-2 text-center">Chưa có trích dẫn sách nào được ghi nhận.</p>
+        ` : `
+          <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+            ${recentQuotes.map(q => `
+              <div class="p-2.5 rounded-lg bg-slate-800/40 border border-slate-700/60 space-y-1">
+                <div class="flex items-center justify-between text-[11px]">
+                  <span class="font-bold text-sky-300 truncate max-w-[280px]">📚 ${escapeHtml(q.book_title || 'Không rõ sách')}</span>
+                  <span class="text-[10px] font-mono text-slate-400">${q.quote_date ? formatDateVN(q.quote_date) : ''}</span>
+                </div>
+                ${q.book_quote ? `<p class="text-[11px] text-slate-300 italic line-clamp-2">“${escapeHtml(q.book_quote)}”</p>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `}
+      </div>
+    `;
+  } catch (err) {
+    contentEl.innerHTML = `
+      <div class="p-6 text-center text-rose-400 font-bold">
+        ❌ Không thể tải thông tin: ${err.message}
+      </div>
+    `;
+  }
+}
+
+function closePersonnelDetailModal() {
+  const modal = document.getElementById('modal-personnel-detail');
+  if (modal) modal.classList.remove('show');
+}
+
+function openDeletePersonnelModal(id, code, name, team) {
+  pendingDeletePersonnel = { id, code, name, team };
+  const modal = document.getElementById('modal-personnel-delete');
+  const errBox = document.getElementById('delete-personnel-error');
+
+  const nameEl = document.getElementById('delete-personnel-name');
+  if (nameEl) nameEl.textContent = name || '...';
+  const teamEl = document.getElementById('delete-personnel-team');
+  if (teamEl) teamEl.textContent = team || '...';
+  if (errBox) errBox.classList.add('hidden');
+
+  if (modal) modal.classList.add('show');
+}
+
+function closeDeletePersonnelModal() {
+  const modal = document.getElementById('modal-personnel-delete');
+  const errBox = document.getElementById('delete-personnel-error');
+  if (modal) modal.classList.remove('show');
+  if (errBox) errBox.classList.add('hidden');
+  pendingDeletePersonnel = null;
+}
+
+async function handleConfirmDeletePersonnel() {
+  if (!pendingDeletePersonnel) return;
+
+  const btnConfirm = document.getElementById('btn-confirm-delete-personnel');
+  const spinner = document.getElementById('personnel-delete-spinner');
+  const errBox = document.getElementById('delete-personnel-error');
+  const errMsg = document.getElementById('delete-personnel-error-msg');
+
+  if (btnConfirm) btnConfirm.disabled = true;
+  if (spinner) spinner.classList.remove('hidden');
+  if (errBox) errBox.classList.add('hidden');
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/users/${pendingDeletePersonnel.id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Không thể xóa bút danh này.');
+    }
+
+    closeDeletePersonnelModal();
+    alert(data.message || 'Đã xóa bút danh thành công!');
+    loadUsers();
+    loadAnalytics();
+  } catch (err) {
+    if (errBox && errMsg) {
+      errMsg.textContent = err.message || 'Có lỗi xảy ra khi xóa.';
+      errBox.classList.remove('hidden');
+    }
+  } finally {
+    if (btnConfirm) btnConfirm.disabled = false;
+    if (spinner) spinner.classList.add('hidden');
+  }
+}
+
+// Window global bindings
+window.openCreatePersonnelModal = openCreatePersonnelModal;
+window.openEditPersonnelModal = openEditPersonnelModal;
+window.viewPersonnelDetail = viewPersonnelDetail;
+window.openDeletePersonnelModal = openDeletePersonnelModal;
+

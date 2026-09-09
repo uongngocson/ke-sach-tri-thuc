@@ -2,18 +2,14 @@ import db from '../config/database.js';
 import { EXP_CONFIG } from '../config/constants.js';
 import GrowthService from './growth.service.js';
 import socketService from './socket.service.js';
+import { CredibilityQueue } from './credibilityQueue.service.js';
 
 export class BookService {
   /**
    * Check if a user/device has already contributed a quote today
    */
-  static async getDailyQuoteStatus({ userId, email, userFingerprint }) {
+  static async getDailyQuoteStatus({ userId, userFingerprint }) {
     let resolvedUserId = userId || null;
-    if (!resolvedUserId && email) {
-      const u = await db.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [email.trim()]);
-      if (u.rows.length > 0) resolvedUserId = u.rows[0].id;
-    }
-
     if (resolvedUserId) {
       const res = await db.query(`
         SELECT dq.id, dq.quote_date, b.id as book_id, b.title, b.author, b.quote, b.created_at
@@ -51,7 +47,6 @@ export class BookService {
 
   static async contributeBook(payload) {
     const { title, author, quote, category, reader, userFingerprint } = payload;
-    let email = payload.email;
 
     // ACID Database Transaction: Insert Book + Insert Ledger + Update Community Growth
     const result = await db.transaction(async (client) => {
@@ -59,17 +54,10 @@ export class BookService {
       let userId = payload.userId || null;
       let teamId = payload.teamId ? parseInt(payload.teamId, 10) : null;
 
-      if (email && email.trim()) {
-        const userRes = await client.query('SELECT id, team_id FROM users WHERE LOWER(email) = LOWER($1)', [email.trim()]);
-        if (userRes.rows.length > 0) {
-          userId = userRes.rows[0].id;
-          if (!teamId) teamId = userRes.rows[0].team_id;
-        }
-      } else if (userId) {
-        const userRes = await client.query('SELECT id, team_id, email FROM users WHERE id = $1', [userId]);
+      if (userId) {
+        const userRes = await client.query('SELECT id, team_id FROM users WHERE id = $1', [userId]);
         if (userRes.rows.length > 0) {
           if (!teamId) teamId = userRes.rows[0].team_id;
-          if (!email) email = userRes.rows[0].email;
         }
       }
 
@@ -97,24 +85,29 @@ export class BookService {
         `, [userFingerprint]);
 
         if (fpCheck.rows.length > 0) {
-          const err = new Error('Mỗi ngày mỗi độc giả chỉ được gieo 1 câu trích dẫn sách. Bạn đã gieo trích dẫn cho ngày hôm nay rồi, vui lòng quay lại vào ngày mai!');
+          const err = new Error('Mỗi ngày mỗi Bút danh chỉ được gieo 1 câu trích dẫn sách. Bạn đã gieo trích dẫn cho ngày hôm nay rồi, vui lòng quay lại vào ngày mai!');
           err.statusCode = 409;
           err.code = 'DAILY_QUOTE_LIMIT_EXCEEDED';
           throw err;
         }
       }
 
-      // 1. Assign anonymous pen name (Bút danh / Nick danh)
-      let penName = (reader || '').trim();
-      if (!penName && userId) {
-        const userRes = await client.query('SELECT nickname FROM users WHERE id = $1', [userId]);
+      // 1. Assign pen name (Bút danh)
+      let penName = '';
+      if (userId) {
+        const userRes = await client.query('SELECT nickname, full_name FROM users WHERE id = $1', [userId]);
         if (userRes.rows[0]?.nickname) {
           penName = userRes.rows[0].nickname;
+        } else if (userRes.rows[0]?.full_name) {
+          penName = userRes.rows[0].full_name;
         }
       }
       if (!penName) {
+        penName = (reader || '').trim();
+      }
+      if (!penName) {
         const fallbackPenNames = [
-          'Người Gieo Mầm Tri Thức', 'Bạn Đọc Cáo Sách', 'Độc Giả Tinh Hoa',
+          'Người Gieo Mầm Tri Thức', 'Bút Danh FOXREAD', 'Bút Danh Tinh Hoa',
           'Kẻ Mộng Mơ Đọc Sách', 'Người Vun Đắp Phù Sa', 'Tâm Hồn Tri Thức',
           'Người Lữ Hành Thời Gian', 'Cánh Chim Tự Do', 'Hạt Mầm Tự Chủ'
         ];
@@ -126,7 +119,7 @@ export class BookService {
         INSERT INTO books (title, author, quote, category, reader_name, reader_email, visibility_status, moderation_status, user_id, team_id, user_fingerprint)
         VALUES ($1, $2, $3, $4, $5, $6, 'visible', 'pending_review', $7, $8, $9)
         RETURNING *
-      `, [title, author, quote, category, penName, email ? email.trim() : null, userId, teamId, userFingerprint]);
+      `, [title, author, quote, category, penName, null, userId, teamId, userFingerprint]);
 
       const newBook = bookInsert.rows[0];
 
@@ -147,14 +140,22 @@ export class BookService {
         await client.query(`
           UPDATE teams
           SET total_books = total_books + 1,
-              tree_seeds = CASE WHEN tree_seeds < 50 THEN tree_seeds + 1 ELSE tree_seeds END,
+              tree_seeds = CASE WHEN tree_seeds < 10 THEN tree_seeds + 1 ELSE tree_seeds END,
               total_exp = total_exp + $1,
               tree_level = CASE 
-                WHEN total_exp + $1 >= 2500 THEN 5
-                WHEN total_exp + $1 >= 1000 THEN 4
-                WHEN total_exp + $1 >= 400 THEN 3
+                WHEN total_exp + $1 >= 1200 THEN 5
+                WHEN total_exp + $1 >= 600 THEN 4
+                WHEN total_exp + $1 >= 300 THEN 3
                 WHEN total_exp + $1 >= 150 THEN 2
-                WHEN tree_seeds + 1 >= 50 OR total_exp + $1 >= 50 THEN 1
+                WHEN tree_seeds + 1 >= 10 OR total_exp + $1 >= 50 THEN 1
+                ELSE 0
+              END,
+              level = CASE 
+                WHEN total_exp + $1 >= 1200 THEN 5
+                WHEN total_exp + $1 >= 600 THEN 4
+                WHEN total_exp + $1 >= 300 THEN 3
+                WHEN total_exp + $1 >= 150 THEN 2
+                WHEN tree_seeds + 1 >= 10 OR total_exp + $1 >= 50 THEN 1
                 ELSE 0
               END,
               updated_at = NOW()
@@ -203,6 +204,9 @@ export class BookService {
     const fullGrowth = await GrowthService.getCommunityGrowth();
     socketService.broadcastGrowthUpdated(fullGrowth);
     socketService.broadcastAdminBookEvent('new_book_submitted', result.book);
+
+    // Tự động nạp vào Hàng đợi Thẩm định AI ngầm (Non-blocking background job)
+    CredibilityQueue.enqueue(result.book.id);
 
     return result;
   }

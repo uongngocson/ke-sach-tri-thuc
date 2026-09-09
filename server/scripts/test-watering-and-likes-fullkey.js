@@ -53,18 +53,18 @@ async function runFullTestKey() {
 
     // Tạo test users:
     await db.query(`
-      INSERT INTO users (id, employee_code, email, full_name, nickname, team_id, total_exp_earned)
-      VALUES ($1, 'TK_U1', 'testkey_u1@fpt.com', 'Tester Đội 1', 'Độc Giả Tri Thức #01', 1, 100)
+      INSERT INTO users (id, full_name, nickname, team_id, total_exp_earned)
+      VALUES ($1, 'Tester Đội 1', 'Độc Giả Tri Thức #01', 1, 100)
     `, [testUserId1]);
 
     await db.query(`
-      INSERT INTO users (id, employee_code, email, full_name, nickname, team_id, total_exp_earned)
-      VALUES ($1, 'TK_U2', 'testkey_u2@fpt.com', 'Tester Đội 2', 'Độc Giả Tri Thức #02', 2, 100)
+      INSERT INTO users (id, full_name, nickname, team_id, total_exp_earned)
+      VALUES ($1, 'Tester Đội 2', 'Độc Giả Tri Thức #02', 2, 100)
     `, [testUserId2]);
 
     await db.query(`
-      INSERT INTO users (id, employee_code, email, full_name, nickname, team_id, total_exp_earned)
-      VALUES ($1, 'TK_U3', 'testkey_u3@fpt.com', 'Tester No Team', 'Độc Giả Vô Đội', NULL, 0)
+      INSERT INTO users (id, full_name, nickname, team_id, total_exp_earned)
+      VALUES ($1, 'Tester No Team', 'Độc Giả Vô Đội', NULL, 0)
     `, [testNoTeamUserId]);
 
     await db.query(`
@@ -282,15 +282,15 @@ async function runFullTestKey() {
     assert(team1ExpAfterUnlike === team1ExpBefore, 'EXP của Đội 1 hoàn lại chuẩn xác (trừ 2 EXP)');
 
     // 2.4 Luồng Toggle Like hoàn chỉnh (Like -> Unlike -> Like lại)
-    const relikeRes = await QuoteService.likeQuote(testBookId, likeFp);
+    const relikeRes = await QuoteService.likeQuote(testBookId, likeFp, { userId: testUserId2, teamId: 2 });
     assert(relikeRes.newLikesCount === bookLikesBefore + 1, 'Thả tim lại lần 2 sau khi unlike thành công mượt mà');
 
     // 2.5 Kiểm tra cờ is_liked khi truy vấn sách
-    const quotesForLiker = await BookService.getPublicQuotes({ userFingerprint: likeFp });
+    const quotesForLiker = await BookService.getPublicQuotes({ userFingerprint: likeFp, search: 'Đắc Nhân Tâm Tri Thức' });
     const targetBookForLiker = quotesForLiker.quotes.find(b => b.id === testBookId);
     assert(targetBookForLiker && targetBookForLiker.is_liked === true, 'Truy vấn cho người đã thả tim: is_liked = true');
 
-    const quotesForOther = await BookService.getPublicQuotes({ userFingerprint: 'fp_other_stranger' });
+    const quotesForOther = await BookService.getPublicQuotes({ userFingerprint: 'fp_other_stranger', search: 'Đắc Nhân Tâm Tri Thức' });
     const targetBookForOther = quotesForOther.quotes.find(b => b.id === testBookId);
     assert(targetBookForOther && targetBookForOther.is_liked === false, 'Truy vấn cho người chưa thả tim: is_liked = false');
 
@@ -346,8 +346,8 @@ async function runFullTestKey() {
     await db.query('DELETE FROM users WHERE id = $1', [multiDayUserId]);
 
     await db.query(`
-      INSERT INTO users (id, employee_code, email, full_name, nickname, team_id, total_exp_earned)
-      VALUES ($1, 'TK_U5', 'multiday_u5@fpt.com', 'Tester MultiDay', 'Độc Giả Xuyên Ngày #05', 1, 50)
+      INSERT INTO users (id, full_name, nickname, team_id, total_exp_earned)
+      VALUES ($1, 'Tester MultiDay', 'Độc Giả Xuyên Ngày #05', 1, 50)
     `, [multiDayUserId]);
 
     await db.query(`
@@ -423,7 +423,7 @@ async function runFullTestKey() {
 
     // 4.5 Kiểm thử Flow Thả Tim Qua Ngày Mới (Quote Likes Persistence Across Days)
     // Ngày 1: Thả tim Sách 1
-    await QuoteService.likeQuote(bookDay1Id, multiDayFp);
+    await QuoteService.likeQuote(bookDay1Id, multiDayFp, { userId: multiDayUserId, teamId: 1 });
     const book1Likes = (await db.query('SELECT likes_count FROM books WHERE id = $1', [bookDay1Id])).rows[0].likes_count;
     assert(parseInt(book1Likes, 10) === 1, 'Ngày 1: Thả tim Sách 1 thành công (likes_count = 1)');
 
@@ -435,14 +435,14 @@ async function runFullTestKey() {
     // Ngày 2: Không được thả tim lại Sách 1 để gian lận EXP
     let b1RelikeBlocked = false;
     try {
-      await QuoteService.likeQuote(bookDay1Id, multiDayFp);
+      await QuoteService.likeQuote(bookDay1Id, multiDayFp, { userId: multiDayUserId, teamId: 1 });
     } catch (e) {
       b1RelikeBlocked = true;
     }
     assert(b1RelikeBlocked, 'Ngày 2: Chặn thả tim trùng lặp trên Sách 1 (Chống lạm phát EXP xuyên ngày)');
 
     // Ngày 2: Thả tim tiếp Sách 2 mới thành công
-    const likeB2Res = await QuoteService.likeQuote(bookDay2Id, multiDayFp);
+    const likeB2Res = await QuoteService.likeQuote(bookDay2Id, multiDayFp, { userId: multiDayUserId, teamId: 1 });
     assert(likeB2Res && likeB2Res.newLikesCount === 1, 'Ngày 2: Thả tim Sách 2 mới thành công mượt mà (+2 EXP)');
 
     const quotesDay2After = await BookService.getPublicQuotes({ userFingerprint: multiDayFp, search: 'Sách Ngày' });

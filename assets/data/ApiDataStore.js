@@ -1,6 +1,6 @@
 /**
  * ApiDataStore.js
- * Production Realtime Client Data Adapter for Cáo Sách
+ * Production Realtime Client Data Adapter for FOXREAD
  * Connects directly to Node.js Express REST API & Socket.io Realtime Engine
  * with Offline-First Local Cache Fallback & Idempotency Protection.
  */
@@ -89,7 +89,7 @@ class ApiDataStoreManager {
         });
 
         this.socket.on('connect', () => {
-          console.log(`⚡ Connected to Cáo Sách Realtime Engine at ${socketUrl}!`);
+          console.log(`⚡ Connected to FOXREAD Realtime Engine at ${socketUrl}!`);
         });
 
         this.socket.on('growth:updated', (growthData) => {
@@ -167,7 +167,7 @@ class ApiDataStoreManager {
   formatGrowthResponse(raw) {
     const totalExp = raw.totalEXP || raw.total_exp || 0;
     const level = raw.level || 0;
-    const isSprouted = level > 0;
+    const isSprouted = level > 0 || totalExp >= 50 || (raw.tree_seeds >= 10) || (raw.totalSeeds >= 10) || (raw.seedsCount >= 10);
     const readers = raw.activeReaders || raw.active_readers || 1;
     this.updateActiveReadersUI(readers);
     return {
@@ -270,7 +270,7 @@ class ApiDataStoreManager {
           author: seedData.author,
           quote: seedData.quote,
           category: seedData.category || null,
-          reader: seedData.reader || (session?.nickname || session?.full_name) || 'Độc giả yêu sách',
+          reader: seedData.reader || (session?.nickname || session?.full_name) || 'Bút danh',
           email: email,
           userId: userId,
           teamId: teamId,
@@ -501,6 +501,19 @@ class ApiDataStoreManager {
   }
 
   async toggleLike(id) {
+    let session = null;
+    try {
+      session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+    } catch {}
+    const isGuest = !session || !session.id || session.id === 'guest' || !session.team_id;
+    if (isGuest) {
+      return {
+        success: false,
+        error: 'LOGIN_REQUIRED',
+        message: 'Vui lòng đăng nhập tài khoản FOXREAD để thả tim trích dẫn!'
+      };
+    }
+
     const isLiked = this.isLikedByUser(id);
     if (isLiked) {
       // User is unliking
@@ -547,14 +560,23 @@ class ApiDataStoreManager {
 
   async unlikeQuote(quoteId) {
     try {
-      const idempotencyKey = this.generateIdempotencyKey();
-      const fp = this.getUserFingerprint();
       let session = null;
       try {
         session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
       } catch {}
-      const userId = (session && session.id && session.id !== 'guest') ? session.id : null;
-      const teamId = (session && session.team_id) ? session.team_id : null;
+      const isGuest = !session || !session.id || session.id === 'guest' || !session.team_id;
+      if (isGuest) {
+        return {
+          success: false,
+          error: 'LOGIN_REQUIRED',
+          message: 'Vui lòng đăng nhập tài khoản FOXREAD để thực hiện!'
+        };
+      }
+
+      const idempotencyKey = this.generateIdempotencyKey();
+      const fp = this.getUserFingerprint();
+      const userId = session.id;
+      const teamId = session.team_id;
 
       const res = await fetch(`${getApiBase()}/quotes/${quoteId}/unlike`, {
         method: 'POST',
@@ -578,7 +600,7 @@ class ApiDataStoreManager {
         }
         return { success: true, likes: data.data.newLikesCount };
       } else {
-        return { success: false, message: data?.message || 'Không thể bỏ thích trích dẫn' };
+        return { success: false, error: data?.error, message: data?.message || 'Không thể bỏ thích trích dẫn' };
       }
     } catch (err) {
       console.error('Error unliking quote:', err);
@@ -588,14 +610,23 @@ class ApiDataStoreManager {
 
   async likeQuote(quoteId) {
     try {
-      const idempotencyKey = this.generateIdempotencyKey();
-      const fp = this.getUserFingerprint();
       let session = null;
       try {
         session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
       } catch {}
-      const userId = (session && session.id && session.id !== 'guest') ? session.id : null;
-      const teamId = (session && session.team_id) ? session.team_id : null;
+      const isGuest = !session || !session.id || session.id === 'guest' || !session.team_id;
+      if (isGuest) {
+        return {
+          success: false,
+          error: 'LOGIN_REQUIRED',
+          message: 'Vui lòng đăng nhập tài khoản FOXREAD để thả tim trích dẫn!'
+        };
+      }
+
+      const idempotencyKey = this.generateIdempotencyKey();
+      const fp = this.getUserFingerprint();
+      const userId = session.id;
+      const teamId = session.team_id;
 
       const res = await fetch(`${getApiBase()}/quotes/${quoteId}/like`, {
         method: 'POST',
@@ -695,8 +726,48 @@ class ApiDataStoreManager {
     }
   }
 
-  async harvestFruit(fruitIndex) {
+  async getFruitHarvestStatus(userId, teamId = null) {
     try {
+      let url = `${getApiBase()}/fruits/status?`;
+      if (userId) url += `userId=${encodeURIComponent(userId)}&`;
+      if (teamId) url += `teamId=${encodeURIComponent(teamId)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success) {
+        return data.data;
+      }
+    } catch (err) {
+      console.warn('Failed to fetch fruit harvest status from server:', err);
+    }
+    return { today: new Date().toISOString().split('T')[0], harvestedByTeam: {} };
+  }
+
+  async harvestFruit(arg1, arg2, arg3) {
+    try {
+      let fruitIndex = 0;
+      let teamId = 1;
+      let userId = null;
+
+      if (typeof arg1 === 'object' && arg1 !== null) {
+        fruitIndex = typeof arg1.fruitIndex === 'number' ? arg1.fruitIndex : 0;
+        teamId = arg1.teamId || 1;
+        userId = arg1.userId || null;
+      } else {
+        fruitIndex = typeof arg1 === 'number' ? arg1 : 0;
+        teamId = arg2 || 1;
+        userId = arg3 || null;
+      }
+
+      if (!userId) {
+        let session = null;
+        try {
+          session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+        } catch {}
+        if (session && session.id && session.id !== 'guest') {
+          userId = session.id;
+        }
+      }
+
       const idempotencyKey = this.generateIdempotencyKey();
       const res = await fetch(`${getApiBase()}/fruits/harvest`, {
         method: 'POST',
@@ -704,20 +775,37 @@ class ApiDataStoreManager {
           'Content-Type': 'application/json',
           'Idempotency-Key': idempotencyKey
         },
-        body: JSON.stringify({ fruitIndex, userFingerprint: this.fingerprint })
+        body: JSON.stringify({ 
+          fruitIndex, 
+          teamId,
+          userId,
+          userFingerprint: this.getUserFingerprint() 
+        })
       });
 
       const data = await res.json();
       if (data.success) {
-        const growth = await this.getCommunityGrowth();
-        this.emit('growth:updated', growth);
-        return { success: true, quote: data.data.quote, expEarned: 5 };
+        this.emit('teams:updated');
+        if (data.data?.team) {
+          this.emit('team:updated', data.data.team);
+        }
+        return { 
+          success: true, 
+          quote: data.data.quote, 
+          team: data.data.team,
+          expEarned: 5,
+          message: data.message
+        };
       } else {
-        return { success: false, message: data.message };
+        return { 
+          success: false, 
+          error: data.error,
+          message: data.message || 'Không thể hái Trái Tri Thức lúc này' 
+        };
       }
     } catch (err) {
       console.error('Error harvesting fruit:', err);
-      return { success: false, message: 'Lỗi kết nối máy chủ' };
+      return { success: false, error: 'NETWORK_ERROR', message: 'Lỗi kết nối máy chủ' };
     }
   }
 

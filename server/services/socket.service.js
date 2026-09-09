@@ -14,6 +14,10 @@ class SocketService {
     });
   }
 
+  getIO() {
+    return this.io;
+  }
+
   broadcastGrowthUpdated(growthData) {
     if (this.io) {
       this.io.emit('growth:updated', growthData);
@@ -45,6 +49,13 @@ class SocketService {
   broadcastAdminBookEvent(event, data) {
     if (this.io) {
       this.io.emit(`admin:book:${event}`, data);
+    }
+  }
+
+  broadcastBookCredibilityScored(bookData) {
+    if (this.io) {
+      this.io.emit('book:credibility_scored', bookData);
+      this.io.emit('admin:book:credibility_scored', bookData);
     }
   }
 

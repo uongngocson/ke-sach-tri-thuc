@@ -32,53 +32,72 @@ export class WisdomFruitManager {
     this.mouse = new THREE.Vector2(-999, -999);
     this.hoveredFruit = null;
     this.currentLevel = 0;
+    this.serverHarvestedStatus = {};
+
+    // Synchronize harvest status from backend database (anti-spam, cross-browser consistency)
+    this.syncServerHarvestStatus();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('user:logged_in', () => this.syncServerHarvestStatus());
+      window.addEventListener('user:logged_out', () => this.syncServerHarvestStatus());
+      window.addEventListener('user:session_changed', () => this.syncServerHarvestStatus());
+    }
 
     // 1. Organic Anatomical Geometries
     this.fruitGeometry = this.createOrganicFruitGeometry();
     this.leafGeometry = this.createMiniLeafGeometry();
     this.stemGeometry = this.createCurvedStemGeometry();
 
-    // 2. Photorealistic Organic Materials
+    // 2. Photorealistic Organic Materials with 5 distinct vibrant, self-luminous fruit colors
     this.materials = [
       new THREE.MeshPhysicalMaterial({
-        color: 0x991b1b, // Ripe Apple
-        emissive: 0x3f0708,
-        emissiveIntensity: 0.15,
-        roughness: 0.32,
-        metalness: 0.02,
-        clearcoat: 0.6,
-        clearcoatRoughness: 0.25,
-        reflectivity: 0.5
+        color: 0xff2222, // 🍎 Trái Ruby Đỏ Rực (Bright Ruby Red Apple)
+        emissive: 0xaa0000,
+        emissiveIntensity: 0.45,
+        roughness: 0.22,
+        metalness: 0.05,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.12,
+        reflectivity: 0.7
       }),
       new THREE.MeshPhysicalMaterial({
-        color: 0xc2410c, // Persimmon
-        emissive: 0x431407,
-        emissiveIntensity: 0.15,
-        roughness: 0.35,
-        metalness: 0.02,
-        clearcoat: 0.55,
-        clearcoatRoughness: 0.28,
-        reflectivity: 0.5
+        color: 0xff7b00, // 🍊 Trái Hổ Phách Cam (Vibrant Amber Orange)
+        emissive: 0xaa4000,
+        emissiveIntensity: 0.45,
+        roughness: 0.25,
+        metalness: 0.05,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.12,
+        reflectivity: 0.7
       }),
       new THREE.MeshPhysicalMaterial({
-        color: 0x65a30d, // Orchard Olive Green
-        emissive: 0x1a2e05,
-        emissiveIntensity: 0.12,
-        roughness: 0.38,
-        metalness: 0.02,
-        clearcoat: 0.5,
-        clearcoatRoughness: 0.3,
-        reflectivity: 0.45
+        color: 0xffd000, // ✨ Trái Hoàng Kim Vàng Sáng (Golden Wisdom Pear)
+        emissive: 0xaa8000,
+        emissiveIntensity: 0.45,
+        roughness: 0.22,
+        metalness: 0.05,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.12,
+        reflectivity: 0.7
       }),
       new THREE.MeshPhysicalMaterial({
-        color: 0xd97706, // Amber Pear
-        emissive: 0x451a03,
-        emissiveIntensity: 0.15,
-        roughness: 0.34,
-        metalness: 0.02,
-        clearcoat: 0.6,
-        clearcoatRoughness: 0.25,
-        reflectivity: 0.5
+        color: 0xff1493, // 🌸 Trái Tinh Hoa Hồng Tím (Deep Rose Dragonfruit)
+        emissive: 0x990558,
+        emissiveIntensity: 0.45,
+        roughness: 0.22,
+        metalness: 0.05,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.12,
+        reflectivity: 0.7
+      }),
+      new THREE.MeshPhysicalMaterial({
+        color: 0x00e676, // 🍏 Trái Ngọc Bích Phát Sáng (Glowing Emerald Jade)
+        emissive: 0x008038,
+        emissiveIntensity: 0.40,
+        roughness: 0.25,
+        metalness: 0.05,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.12,
+        reflectivity: 0.7
       })
     ];
 
@@ -119,13 +138,14 @@ export class WisdomFruitManager {
 
   createCurvedStemGeometry() {
     const THREE = this.THREE;
+    // Botanical stem arching from top of fruit (y=0.40) up and back to branch origin (y=1.75, z=-1.10)
     const curve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(0, 0.40, 0),
-      new THREE.Vector3(0.05, 0.60, 0.02),
-      new THREE.Vector3(0.08, 0.85, 0.08),
-      new THREE.Vector3(0.04, 1.05, 0.12)
+      new THREE.Vector3(0.04, 0.85, -0.25),
+      new THREE.Vector3(0.06, 1.35, -0.65),
+      new THREE.Vector3(0.02, 1.75, -1.10)
     ]);
-    return new THREE.TubeGeometry(curve, 12, 0.035, 6, false);
+    return new THREE.TubeGeometry(curve, 14, 0.045, 6, false);
   }
 
   createMiniLeafGeometry() {
@@ -182,6 +202,38 @@ export class WisdomFruitManager {
     }
   }
 
+  async syncServerHarvestStatus() {
+    try {
+      const userSession = (window.UserIdentityModal && window.UserIdentityModal.getStoredSession()) 
+        || JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+      const userId = (userSession && userSession.id && userSession.id !== 'guest') ? userSession.id : null;
+      if (!userId) {
+        this.serverHarvestedStatus = {};
+        for (const f of this.fruits) {
+          f.userData.isHarvested = false;
+          f.visible = true;
+        }
+        return;
+      }
+      const store = window.MockDataStore || window.ApiDataStore;
+      if (store && typeof store.getFruitHarvestStatus === 'function') {
+        const res = await store.getFruitHarvestStatus(userId);
+        if (res && res.harvestedByTeam) {
+          this.serverHarvestedStatus = res.harvestedByTeam;
+          for (const f of this.fruits) {
+            const tId = f.userData.teamId;
+            const idx = f.userData.index;
+            const isHarvested = !!(this.serverHarvestedStatus[tId] && this.serverHarvestedStatus[tId].includes(idx));
+            f.userData.isHarvested = isHarvested;
+            f.visible = !isHarvested;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Could not sync fruit harvest status from server:', err);
+    }
+  }
+
   /**
    * Synchronize fruit cluster for a specific team tree
    * Condition: Team tree MUST reach Level 5 (Ancient Tree)
@@ -207,7 +259,7 @@ export class WisdomFruitManager {
     const totalEXP = (teamState && typeof teamState.totalEXP === 'number') ? teamState.totalEXP : 0;
 
     // Requirement: "nếu cây nào của team nào đạt LV5 thì đều hiển thị quả như ảnh trên hiện tại"
-    const isLevel5 = (level >= 5) || (totalEXP >= 2500);
+    const isLevel5 = (level >= 5) || (totalEXP >= 1200);
     if (!isLevel5) {
       return; // Tree with Level < 5 bears 0 fruits!
     }
@@ -218,60 +270,158 @@ export class WisdomFruitManager {
     }
 
     const availableNodes = currentTree.leafClusterOrigins;
-    // 36 abundant ripe fruits lavishly bearing on Ancient Sage Tree canopy
-    const targetCount = 36;
-    const step = Math.max(1, Math.floor(availableNodes.length / targetCount));
+    if (!availableNodes || availableNodes.length === 0) return;
+
+    // Filter reasonable nodes in active canopy height (avoid bare base trunk or extreme tips)
+    let allCandidates = availableNodes.filter(n => n.origin.y >= 7.5 && n.origin.y <= 21.0);
+    if (allCandidates.length < 5) allCandidates = [...availableNodes];
+
+    // Find bounding box in X and Y to understand this tree model's unique shape
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const n of allCandidates) {
+      if (n.origin.x < minX) minX = n.origin.x;
+      if (n.origin.x > maxX) maxX = n.origin.x;
+      if (n.origin.y < minY) minY = n.origin.y;
+      if (n.origin.y > maxY) maxY = n.origin.y;
+    }
+    const width = Math.max(4.0, maxX - minX);
+    const height = Math.max(5.0, maxY - minY);
+
+    // 5 Normalized Canopy Target Profiles (0.0 to 1.0 in tree's width & height):
+    // 0: Lower-Left Branch (normX: 0.12, normY: 0.32) - Cành dưới bên trái
+    // 1: Upper-Left Branch (normX: 0.26, normY: 0.72) - Cành trên bên trái
+    // 2: Crown Center-Front (normX: 0.50, normY: 0.82) - Cành đỉnh diện tiền
+    // 3: Upper-Right Branch (normX: 0.74, normY: 0.72) - Cành trên bên phải
+    // 4: Lower-Right Branch (normX: 0.88, normY: 0.32) - Cành dưới bên phải
+    const targetProfiles = [
+      { targetNormX: 0.12, targetNormY: 0.32, desc: 'Cành dưới trái' },
+      { targetNormX: 0.26, targetNormY: 0.72, desc: 'Cành trên trái' },
+      { targetNormX: 0.50, targetNormY: 0.82, desc: 'Cành đỉnh diện tiền' },
+      { targetNormX: 0.74, targetNormY: 0.72, desc: 'Cành trên phải' },
+      { targetNormX: 0.88, targetNormY: 0.32, desc: 'Cành dưới phải' }
+    ];
+
+    const selectedNodes = [];
+    const minDistance = Math.min(3.4, width * 0.38);
+
+    for (let i = 0; i < 5; i++) {
+      const profile = targetProfiles[i];
+      let bestNode = null;
+      let bestScore = -Infinity;
+
+      // Pass 1: Strict distance check against already selected fruits
+      for (const node of allCandidates) {
+        let isSeparated = true;
+        for (const sel of selectedNodes) {
+          if (node.origin.distanceTo(sel.origin) < minDistance) {
+            isSeparated = false;
+            break;
+          }
+        }
+        if (!isSeparated) continue;
+
+        const normX = (node.origin.x - minX) / width;
+        const normY = (node.origin.y - minY) / height;
+        const dist2D = Math.sqrt(
+          Math.pow(normX - profile.targetNormX, 2) * 1.8 +
+          Math.pow(normY - profile.targetNormY, 2)
+        );
+
+        // Frontness bonus: prioritize nodes facing the camera (+Z)
+        const frontBonus = node.origin.z >= 0.2 ? 1.8 : (node.origin.z * 1.5);
+        const score = frontBonus - (dist2D * 3.5);
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestNode = node;
+        }
+      }
+
+      // Pass 2: Relaxed separation fallback (at least 2.0 units)
+      if (!bestNode) {
+        bestScore = -Infinity;
+        for (const node of allCandidates) {
+          let isSeparated = true;
+          for (const sel of selectedNodes) {
+            if (node.origin.distanceTo(sel.origin) < 2.0) {
+              isSeparated = false;
+              break;
+            }
+          }
+          if (!isSeparated) continue;
+
+          const normX = (node.origin.x - minX) / width;
+          const normY = (node.origin.y - minY) / height;
+          const dist2D = Math.sqrt(
+            Math.pow(normX - profile.targetNormX, 2) +
+            Math.pow(normY - profile.targetNormY, 2)
+          );
+          const score = (node.origin.z * 1.2) - (dist2D * 2.5);
+          if (score > bestScore) {
+            bestScore = score;
+            bestNode = node;
+          }
+        }
+      }
+
+      selectedNodes.push(bestNode || allCandidates[(i * 9) % allCandidates.length]);
+    }
+
     const THREE = this.THREE;
 
-    for (let i = 0; i < targetCount; i++) {
-      const nodeIndex = (i * step + (i % 3)) % availableNodes.length;
-      const node = availableNodes[nodeIndex];
+    for (let i = 0; i < 5; i++) {
+      const node = selectedNodes[i];
       if (!node) continue;
 
       const fruitAssembly = new THREE.Group();
 
-      // Position fruit stem exactly at the real branch section origin, hanging naturally below foliage
-      fruitAssembly.position.copy(node.origin);
-      fruitAssembly.position.y -= (0.55 + (i % 4) * 0.08);
-      fruitAssembly.position.x += ((i % 5) - 2) * 0.12;
-      fruitAssembly.position.z += (((i * 3) % 5) - 2) * 0.12;
+      // Position fruit comfortably hanging below and in front of the foliage:
+      // y -= 1.75: Lowers the fruit clear beneath the leaves quad, so leaves don't clip it
+      // z = Math.max(1.2, node.origin.z + 1.1): Pushes it forward in front of trunk and all foliage
+      fruitAssembly.position.x = node.origin.x;
+      fruitAssembly.position.y = node.origin.y - 1.75;
+      fruitAssembly.position.z = Math.max(1.2, node.origin.z + 1.1);
 
-      // 1. Organic Fruit Mesh with rich ripe colors
-      const mat = this.materials[(i + teamId) % this.materials.length];
+      // 1. Organic Fruit Mesh with rich ripe colors (each of the 5 fruits gets a unique vibrant color)
+      const mat = this.materials[i % this.materials.length];
       const fruitMesh = new THREE.Mesh(this.fruitGeometry, mat);
       fruitMesh.castShadow = true;
       fruitMesh.receiveShadow = true;
 
-      // 2. Curved Stem
+      // 2. Curved Stem connecting fruit up to the branch joint
       const stemMesh = new THREE.Mesh(this.stemGeometry, this.stemMaterial);
       stemMesh.castShadow = true;
 
       // 3. Mini Leaflet
       const leafMesh = new THREE.Mesh(this.leafGeometry, this.leafMaterial);
-      leafMesh.position.set(0.06, 0.75, 0.05);
+      leafMesh.position.set(0.06, 1.05, 0.05);
       leafMesh.rotation.set(0.4, (i * 1.5), -0.6);
 
       fruitAssembly.add(fruitMesh);
       fruitAssembly.add(stemMesh);
       fruitAssembly.add(leafMesh);
 
-      // Natural organic size variations
-      const naturalVariance = 0.85 + (i % 5) * 0.1;
-      const fruitScale = 1.15 * naturalVariance;
+      // Natural organic size variations - prominent scale (1.95) so clearly visible from panorama
+      const naturalVariance = 0.96 + (i % 3) * 0.06;
+      const fruitScale = 1.95 * naturalVariance;
       fruitAssembly.scale.setScalar(fruitScale);
-      fruitAssembly.rotation.y = (i * 1.15);
+      fruitAssembly.rotation.y = (i * 1.25);
+
+      const isHarvested = !!(this.serverHarvestedStatus && this.serverHarvestedStatus[teamId] && this.serverHarvestedStatus[teamId].includes(i));
 
       fruitAssembly.userData = {
         id: `fruit-team${teamId}-${i}`,
         teamId: teamId,
+        index: i,
         baseScale: fruitScale,
         swaySpeed: 0.9 + (i % 3) * 0.2,
         swayPhase: (i * 1.7) + teamId * 0.5,
         mesh: fruitMesh,
         mat: mat,
-        isHarvested: false,
+        isHarvested: isHarvested,
         respawnTimer: 0
       };
+      fruitAssembly.visible = !isHarvested;
 
       this.fruits.push(fruitAssembly);
       group.add(fruitAssembly);
@@ -338,78 +488,176 @@ export class WisdomFruitManager {
   }
 
   async checkClick(e) {
-    if (!this.camera || this.fruits.length === 0) return;
+    if (!this.camera) return;
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
-    const hitTargets = [];
-    this.fruits.forEach(f => {
-      if (!f.userData.isHarvested) {
-        hitTargets.push(f.userData.mesh);
+    if (this.fruits.length > 0) {
+      const hitTargets = [];
+      this.fruits.forEach(f => {
+        if (!f.userData.isHarvested) {
+          hitTargets.push(f.userData.mesh);
+        }
+      });
+
+      const intersects = this.raycaster.intersectObjects(hitTargets, false);
+      if (intersects.length > 0) {
+        const hitMesh = intersects[0].object;
+        const hitFruit = this.fruits.find(f => f.userData.mesh === hitMesh);
+
+        if (hitFruit && !hitFruit.userData.isHarvested) {
+          this.harvestFruit(hitFruit, e);
+          return;
+        }
       }
-    });
+    }
 
-    const intersects = this.raycaster.intersectObjects(hitTargets, false);
-    if (intersects.length > 0) {
-      const hitMesh = intersects[0].object;
-      const hitFruit = this.fruits.find(f => f.userData.mesh === hitMesh);
+    // Check if clicked on 3D Tree Mesh or 3D Botanical Root Rings
+    if (this.treeManager) {
+      const treeTargets = [];
+      if (this.treeManager.teamTrees) {
+        this.treeManager.teamTrees.forEach(t => {
+          if (t && t.group && t.group.visible) treeTargets.push(t.group);
+        });
+      }
+      if (this.treeManager.teamRings) {
+        this.treeManager.teamRings.forEach(r => {
+          if (r && r.visible) treeTargets.push(r);
+        });
+      }
+      if (treeTargets.length > 0) {
+        const treeIntersects = this.raycaster.intersectObjects(treeTargets, true);
+        if (treeIntersects.length > 0) {
+          if (typeof window.handleGroundAction === 'function') {
+            window.handleGroundAction(e);
+            return;
+          }
+        }
+      }
+    }
 
-      if (hitFruit && !hitFruit.userData.isHarvested) {
-        this.harvestFruit(hitFruit, e);
+    // Check if clicked on 3D Ground Terrain Mesh
+    if (window.skyCanvasInstance && window.skyCanvasInstance.ground && window.skyCanvasInstance.ground.mesh) {
+      const groundIntersects = this.raycaster.intersectObject(window.skyCanvasInstance.ground.mesh, false);
+      if (groundIntersects.length > 0) {
+        if (typeof window.handleGroundAction === 'function') {
+          window.handleGroundAction(e);
+        }
       }
     }
   }
 
   async harvestFruit(fruit, e) {
-    fruit.userData.isHarvested = true;
-    fruit.visible = false;
+    let userSession = null;
+    try {
+      if (window.UserIdentityModal && typeof window.UserIdentityModal.getStoredSession === 'function') {
+        userSession = window.UserIdentityModal.getStoredSession();
+      }
+      if (!userSession) {
+        userSession = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+      }
+    } catch {}
+
+    const isGuest = !userSession || !userSession.id || userSession.id === 'guest';
+    if (isGuest) {
+      if (window.showToast) {
+        window.showToast('🔒 Vui lòng đăng nhập tài khoản FOXREAD để hái Trái Tri Thức!', 'warning');
+      }
+      if (window.openUserIdentityModal) {
+        window.openUserIdentityModal();
+      }
+      return;
+    }
 
     const teamId = fruit.userData.teamId || (this.treeManager?.activeTeamId || 1);
+    const fruitIndex = typeof fruit.userData.index === 'number' ? fruit.userData.index : 0;
     const allTeams = (window.getAllTeams && window.getAllTeams()) || [];
-    const teamObj = allTeams.find(t => t.id === teamId) || { short_name: `Đội ${teamId}`, display_name: `Đội ${teamId}`, color_code: '#0054A6' };
-    const teamName = teamObj.short_name || `Đội ${teamId}`;
+    const teamObj = allTeams.find(t => t.id === teamId) || {};
+    const TEAM_NAMES = { 1: 'SCU_BO', 2: 'Hà Đông Tây Bắc', 3: 'Trung Đông Tây Nam', 4: 'Thập đại Miền Nam', 5: 'FPL_AU_FU', 6: 'FTIBU_BOM', 7: 'FTI BA_TU_BOP', 8: 'IMU_PSU' };
+    const teamName = teamObj.display_name || teamObj.name || teamObj.short_name || TEAM_NAMES[teamId] || `Đội ${teamId}`;
 
-    if (window.showToast) {
-      window.showToast(`🍎 Bạn đã hái 1 Trái Tri Thức của ${teamName} (+5 EXP)!`);
+    const store = window.MockDataStore || window.ApiDataStore;
+    if (!store || typeof store.harvestFruit !== 'function') {
+      console.warn('DataStore.harvestFruit not available');
+      return;
     }
 
-    await MockDataStore.addEXP(5);
+    const res = await store.harvestFruit({
+      teamId,
+      fruitIndex,
+      userId: userSession.id
+    });
 
-    // Requirement: "click vào quả thì hiển thị modal 1 câu quote của cây đó"
-    let selectedQuote = null;
-    try {
-      const quotes = await MockDataStore.getMasterQuotes(true);
-      const teamQuotes = (quotes || []).filter(q => Number(q.team_id) === Number(teamId));
-      if (teamQuotes.length > 0) {
-        selectedQuote = teamQuotes[Math.floor(Math.random() * teamQuotes.length)];
+    if (res && res.success) {
+      fruit.userData.isHarvested = true;
+      fruit.visible = false;
+
+      if (!this.serverHarvestedStatus[teamId]) this.serverHarvestedStatus[teamId] = [];
+      if (!this.serverHarvestedStatus[teamId].includes(fruitIndex)) {
+        this.serverHarvestedStatus[teamId].push(fruitIndex);
       }
-    } catch (err) {
-      console.warn('Failed to load team quotes:', err);
-    }
 
-    // Fallback inspiring wisdom quote attributed directly to this team
-    if (!selectedQuote) {
-      selectedQuote = {
-        id: `fruit_quote_${teamId}_${Date.now()}`,
-        book: 'Đại Cổ Thụ Tri Thức',
-        author: teamObj.display_name || teamName,
-        quote: `Trái ngọt tri thức đơm hoa kết trái từ nỗ lực gieo mầm đọc sách của ${teamObj.display_name || teamName}!`,
-        reader: teamName,
-        team_id: teamId,
-        team_name: teamObj.display_name || teamName,
-        team_short_name: teamName,
-        team_color: teamObj.color_code || '#0054A6',
-        category: 'Trí Tuệ',
-        likes: 25
-      };
-    }
+      if (window.showToast) {
+        window.showToast(`🍎 Bạn đã hái 1 Trái Tri Thức của ${teamName} (+5 EXP cho ${teamName})!`);
+      }
 
-    if (window.openBookQuoteModal) {
-      window.openBookQuoteModal(selectedQuote);
-    } else if (window.openQuoteModal) {
-      window.openQuoteModal(selectedQuote);
-    }
+      let selectedQuote = res.quote;
+      if (!selectedQuote) {
+        try {
+          const quotes = await store.getMasterQuotes(true);
+          const teamQuotes = (quotes || []).filter(q => Number(q.team_id) === Number(teamId));
+          if (teamQuotes.length > 0) {
+            selectedQuote = teamQuotes[Math.floor(Math.random() * teamQuotes.length)];
+          }
+        } catch (err) {
+          console.warn('Failed to load team quotes:', err);
+        }
+      }
 
-    fruit.userData.respawnTimer = 30;
+      if (!selectedQuote) {
+        selectedQuote = {
+          id: `fruit_quote_${teamId}_${Date.now()}`,
+          book: 'Đại Cổ Thụ Tri Thức',
+          author: teamObj.display_name || teamName,
+          quote: `Trái ngọt tri thức đơm hoa kết trái từ nỗ lực gieo mầm đọc sách của ${teamObj.display_name || teamName}!`,
+          reader: teamName,
+          team_id: teamId,
+          team_name: teamObj.display_name || teamName,
+          team_short_name: teamName,
+          team_color: teamObj.color_code || '#0054A6',
+          category: 'Trí Tuệ',
+          likes: 25
+        };
+      }
+
+      if (window.openBookQuoteModal) {
+        window.openBookQuoteModal(selectedQuote);
+      } else if (window.openQuoteModal) {
+        window.openQuoteModal(selectedQuote);
+      }
+    } else {
+      if (res && res.error === 'ALREADY_HARVESTED') {
+        fruit.userData.isHarvested = true;
+        fruit.visible = false;
+        if (!this.serverHarvestedStatus[teamId]) this.serverHarvestedStatus[teamId] = [];
+        if (!this.serverHarvestedStatus[teamId].includes(fruitIndex)) {
+          this.serverHarvestedStatus[teamId].push(fruitIndex);
+        }
+        if (window.showToast) {
+          window.showToast('⚠️ Bạn đã hái Trái Tri Thức này hôm nay rồi!', 'warning');
+        }
+      } else if (res && res.error === 'LOGIN_REQUIRED') {
+        if (window.showToast) {
+          window.showToast('🔒 Vui lòng đăng nhập tài khoản FOXREAD để hái Trái Tri Thức!', 'warning');
+        }
+        if (window.openUserIdentityModal) {
+          window.openUserIdentityModal();
+        }
+      } else {
+        if (window.showToast) {
+          window.showToast(res?.message || 'Không thể hái Trái Tri Thức lúc này!', 'error');
+        }
+      }
+    }
   }
 
   update(elapsedTime, delta, daylightFactor = 1.0) {
@@ -419,7 +667,7 @@ export class WisdomFruitManager {
       this._lastCheck = elapsedTime;
       for (let tId = 1; tId <= 8; tId++) {
         const tState = this.treeManager?.teamStates && this.treeManager.teamStates[tId - 1];
-        const isQualified = (tState?.level >= 5) || (tState?.totalEXP >= 2500);
+        const isQualified = (tState?.level >= 5) || (tState?.totalEXP >= 1200);
         const group = this.teamFruitGroups?.get(tId);
         if (isQualified && (!group || group.children.length === 0)) {
           this.syncTeamFruits(tId);
@@ -431,13 +679,8 @@ export class WisdomFruitManager {
       const f = this.fruits[i];
       const data = f.userData;
 
-      if (data.isHarvested) {
-        data.respawnTimer -= delta;
-        if (data.respawnTimer <= 0) {
-          data.isHarvested = false;
-          f.visible = true;
-          f.scale.setScalar(0.05);
-        }
+      // Persistently harvested fruits remain hidden (no client timer respawn)
+      if (data.isHarvested || !f.visible) {
         continue;
       }
 

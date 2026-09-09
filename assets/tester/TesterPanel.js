@@ -53,14 +53,14 @@ export class TesterPanel {
           <select id="tester-team-select" style="width:100%; padding:7px 10px; border-radius:8px; background:#0f172a; color:#f8fafc; border:1px solid #334155; font-size:12px; font-weight:700; cursor:pointer; outline:none;">
             <option value="active">🌳 Đội Đang Xem (Tự động theo màn hình)</option>
             <option value="all">🌐 Toàn Bộ 8 Đội (Đồng bộ tất cả cây)</option>
-            <option value="1">Đội 1</option>
-            <option value="2">Đội 2</option>
-            <option value="3">Đội 3</option>
-            <option value="4">Đội 4</option>
-            <option value="5">Đội 5</option>
-            <option value="6">Đội 6</option>
-            <option value="7">Đội 7</option>
-            <option value="8">Đội 8</option>
+            <option value="1">Đội 1: SCU_BO</option>
+            <option value="2">Đội 2: Hà Đông Tây Bắc</option>
+            <option value="3">Đội 3: Trung Đông Tây Nam</option>
+            <option value="4">Đội 4: Thập đại Miền Nam</option>
+            <option value="5">Đội 5: FPL_AU_FU</option>
+            <option value="6">Đội 6: FTIBU_BOM</option>
+            <option value="7">Đội 7: FTI BA_TU_BOP</option>
+            <option value="8">Đội 8: IMU_PSU</option>
           </select>
         </div>
 
@@ -68,32 +68,32 @@ export class TesterPanel {
         <div class="tester-section">
           <label class="tester-section-label">⚡ Chuyển Giai Đoạn Nhanh</label>
           <div class="tester-grid-2">
-            <button class="tester-btn stage-btn" id="stage-btn-0-seeds">🌰 0 Hạt (Mặt Đất Trống)</button>
-            <button class="tester-btn stage-btn" id="stage-btn-15-seeds">🌰 Gieo 15 Hạt Giống</button>
-            <button class="tester-btn stage-btn" id="stage-btn-30-seeds">🌰 Gieo 30 Hạt Giống</button>
-            <button class="tester-btn stage-btn" id="stage-btn-45-seeds">🌰 Gieo 45 Hạt (Sắp Mầm)</button>
-            <button class="tester-btn stage-btn" id="stage-btn-50-sprout" style="color:#70B928; font-weight:bold;">🌱 Lvl 1: Nảy Mầm (50 Hạt)</button>
-            <button class="tester-btn stage-btn" data-level="2">🌿 Lvl 2: Đâm Chồi (150 EXP)</button>
-            <button class="tester-btn stage-btn" data-level="3">🌳 Lvl 3: Cây Tơ (400 EXP)</button>
-            <button class="tester-btn stage-btn" data-level="4">🌲 Lvl 4: Trưởng Thành (1000 EXP)</button>
+            <button class="tester-btn stage-btn" id="stage-btn-0-seeds">🌰 0 EXP (0 hạt mầm)</button>
+            <button class="tester-btn stage-btn" id="stage-btn-15-seeds">🌰 15 EXP (3 hạt mầm)</button>
+            <button class="tester-btn stage-btn" id="stage-btn-30-seeds">🌰 30 EXP (6 hạt mầm)</button>
+            <button class="tester-btn stage-btn" id="stage-btn-45-seeds">🌰 45 EXP (9 hạt mầm)</button>
+            <button class="tester-btn stage-btn" id="stage-btn-50-sprout" style="color:#70B928; font-weight:bold;">🌱 Lvl 1: Mầm Non (50 EXP)</button>
+            <button class="tester-btn stage-btn" data-level="2">🌿 Lvl 2: Cây Con (150 EXP)</button>
+            <button class="tester-btn stage-btn" data-level="3">🌳 Lvl 3: Trưởng Thành (300 EXP)</button>
+            <button class="tester-btn stage-btn" data-level="4">🌲 Lvl 4: Cổ Thụ (600 EXP)</button>
           </div>
-          <button class="tester-btn stage-btn" data-level="5" style="width:100%; margin-top:6px; color:#f59e0b; font-weight:bold;">✨ Lvl 5: Đại Cổ Thụ (2500+ EXP)</button>
+          <button class="tester-btn stage-btn" data-level="5" style="width:100%; margin-top:6px; color:#f59e0b; font-weight:bold;">✨ Lvl 5: Đại Cổ Thụ (1200+ EXP)</button>
         </div>
 
         <!-- 2. Continuous EXP Slider -->
         <div class="tester-section">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <label class="tester-section-label" style="margin:0;">🎚️ Kéo Tăng Trưởng Liên Tục</label>
-            <span class="tester-exp-val" id="tester-exp-val">0 Hạt</span>
+            <span class="tester-exp-val" id="tester-exp-val">0 EXP</span>
           </div>
           <input type="range" min="0" max="3000" step="5" value="0" class="tester-slider" id="tester-exp-slider" />
           <div class="tester-slider-labels">
-            <span>0 (Trống)</span>
-            <span>50 (Nảy Mầm)</span>
-            <span>150</span>
-            <span>400</span>
-            <span>1000</span>
-            <span>2500+</span>
+            <span>0 (Ủ Mầm)</span>
+            <span>50 (Mầm Non)</span>
+            <span>150 (Cây Con)</span>
+            <span>300 (Trưởng Thành)</span>
+            <span>600 (Cổ Thụ)</span>
+            <span>1200+ (Đại Cổ Thụ)</span>
           </div>
         </div>
 
@@ -101,12 +101,12 @@ export class TesterPanel {
         <div class="tester-section">
           <label class="tester-section-label">🎮 Mô Phỏng Tương Tác Trực Tiếp</label>
           <div class="tester-grid-2">
-            <button class="tester-btn" id="tester-sim-1-seed">🌰 +1 Hạt Giống</button>
-            <button class="tester-btn" id="tester-sim-10-seeds">🌰 +10 Hạt Giống</button>
-            <button class="tester-btn" id="tester-sim-50-seeds" style="color:#70B928; font-weight:bold;">🌱 +50 Hạt (Nảy Mầm Ngay)</button>
+            <button class="tester-btn" id="tester-sim-1-seed">🌰 +5 EXP (1 Sách/Quote)</button>
+            <button class="tester-btn" id="tester-sim-10-seeds">🌰 +25 EXP (5 Sách)</button>
+            <button class="tester-btn" id="tester-sim-50-seeds" style="color:#70B928; font-weight:bold;">🌱 +50 EXP (Nảy Mầm Ngay)</button>
             <button class="tester-btn" id="tester-sim-heart" style="color:#ec4899; font-weight:bold;">❤️ +10 Tim (+20 EXP)</button>
           </div>
-          <button class="tester-btn-reset" id="tester-sim-reset-all" style="margin-top:6px;">↺ Reset Về Ban Đầu (0 Hạt, Mặt Đất Trống)</button>
+          <button class="tester-btn-reset" id="tester-sim-reset-all" style="margin-top:6px;">↺ Reset Về Ban Đầu (0 EXP, Mặt Đất Trống)</button>
           <button class="tester-btn-reset" id="tester-db-empty" style="margin-top:6px; background:#7f1d1d; border-color:#ef4444; color:#fca5a5;">🧹 Dọn Sạch CSDL (Empty CSDL - Giữ Tài Khoản)</button>
         </div>
       </div>
@@ -201,7 +201,7 @@ export class TesterPanel {
       slider.addEventListener('input', async (e) => {
         const val = parseInt(e.target.value, 10);
         this.updateExpLabel(val, expVal);
-        const seeds = val < 50 ? val : 0;
+        const seeds = val < 50 ? Math.floor(val / 5) : 0;
         const teamId = getTargetTeamId();
         if (typeof MockDataStore.setTesterEXP === 'function') {
           await MockDataStore.setTesterEXP(val, seeds, teamId);
@@ -218,13 +218,13 @@ export class TesterPanel {
         let targetExp = 0;
         let seedsCount = 0;
         if (btn.id === 'stage-btn-0-seeds') { targetExp = 0; seedsCount = 0; }
-        else if (btn.id === 'stage-btn-15-seeds') { targetExp = 15; seedsCount = 15; }
-        else if (btn.id === 'stage-btn-30-seeds') { targetExp = 30; seedsCount = 30; }
-        else if (btn.id === 'stage-btn-45-seeds') { targetExp = 45; seedsCount = 45; }
+        else if (btn.id === 'stage-btn-15-seeds') { targetExp = 15; seedsCount = 3; }
+        else if (btn.id === 'stage-btn-30-seeds') { targetExp = 30; seedsCount = 6; }
+        else if (btn.id === 'stage-btn-45-seeds') { targetExp = 45; seedsCount = 9; }
         else if (btn.id === 'stage-btn-50-sprout') { targetExp = 50; seedsCount = 0; }
         else if (btn.dataset.level) {
           const lvl = parseInt(btn.dataset.level, 10);
-          const map = { 1: 50, 2: 150, 3: 400, 4: 1000, 5: 2500 };
+          const map = { 1: 50, 2: 150, 3: 300, 4: 600, 5: 1200 };
           targetExp = map[lvl] || 0;
           seedsCount = 0;
         }
@@ -257,9 +257,9 @@ export class TesterPanel {
     if (btnSim10) btnSim10.addEventListener('click', async () => {
       const teamId = getTargetTeamId();
       if (typeof MockDataStore.simulateSeedContribution === 'function') {
-        await MockDataStore.simulateSeedContribution(10, teamId);
+        await MockDataStore.simulateSeedContribution(5, teamId);
       } else if (typeof MockDataStore.addSeeds === 'function') {
-        await MockDataStore.addSeeds(10, teamId);
+        await MockDataStore.addSeeds(5, teamId);
       }
       await refreshUI();
     });
@@ -268,9 +268,9 @@ export class TesterPanel {
     if (btnSim50) btnSim50.addEventListener('click', async () => {
       const teamId = getTargetTeamId();
       if (typeof MockDataStore.simulateSeedContribution === 'function') {
-        await MockDataStore.simulateSeedContribution(50, teamId);
+        await MockDataStore.simulateSeedContribution(10, teamId);
       } else if (typeof MockDataStore.addSeeds === 'function') {
-        await MockDataStore.addSeeds(50, teamId);
+        await MockDataStore.addSeeds(10, teamId);
       }
       await refreshUI();
     });
@@ -355,8 +355,8 @@ export class TesterPanel {
     }
 
     if (targetTeam) {
-      const isSprouted = targetTeam.is_sprouted || targetTeam.level >= 1;
-      const exp = isSprouted ? (targetTeam.total_exp || 0) : (targetTeam.tree_seeds || 0);
+      const isSprouted = targetTeam.is_sprouted || targetTeam.level >= 1 || (targetTeam.total_exp || 0) >= 50 || (targetTeam.tree_seeds || 0) >= 10;
+      const exp = targetTeam.total_exp || 0;
       if (slider) slider.value = exp;
       this.updateExpLabel(exp, expVal);
       if (currentBadge && (!teamSelect || teamSelect.value === 'active')) {
@@ -368,7 +368,7 @@ export class TesterPanel {
         current = MockDataStore.getState();
       }
       if (slider && current) {
-        const exp = typeof current.totalEXP === 'number' ? current.totalEXP : (current.totalSeeds || 0);
+        const exp = typeof current.totalEXP === 'number' ? current.totalEXP : 0;
         slider.value = exp;
         this.updateExpLabel(exp, expVal);
       }
@@ -378,7 +378,8 @@ export class TesterPanel {
   updateExpLabel(val, expValEl) {
     if (!expValEl) return;
     if (val < 50) {
-      expValEl.textContent = `${val} Hạt (Giai Đoạn Gieo Mầm)`;
+      const seeds = Math.floor(val / 5);
+      expValEl.textContent = `${val}/50 EXP (${seeds} hạt mầm)`;
     } else {
       expValEl.textContent = `${val} EXP`;
     }

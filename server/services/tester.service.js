@@ -1,5 +1,6 @@
 import db from '../config/database.js';
 import socketService from './socket.service.js';
+import GrowthService from './growth.service.js';
 import { calculateLevelFromExp } from '../config/constants.js';
 
 export const MOCK_LIBRARY = [
@@ -8,14 +9,14 @@ export const MOCK_LIBRARY = [
     author: 'Antoine de Saint-Exupéry',
     quote: 'Người ta chỉ thấy rõ bằng trái tim. Điều cốt lõi thì vô hình trong mắt trần.',
     category: 'Văn Học Kinh Điển',
-    reader: 'Bạn đọc Sao Hỏa'
+    reader: 'Bút danh Sao Hỏa'
   },
   {
     title: 'Nhà Giả Kim (The Alchemist)',
     author: 'Paulo Coelho',
     quote: 'Khi bạn thực sự khao khát điều gì, toàn bộ vũ trụ sẽ hợp lực giúp bạn đạt được nó.',
     category: 'Triết Lý Sống',
-    reader: 'Độc giả Sa Mạc'
+    reader: 'Bút danh Sa Mạc'
   },
   {
     title: 'Đắc Nhân Tâm (How to Win Friends)',
@@ -85,7 +86,7 @@ export const MOCK_LIBRARY = [
     author: 'Hector Malot',
     quote: 'Hãy luôn nhìn thẳng về phía trước, bước đi dũng cảm và không bao giờ đánh mất lòng nhân hậu.',
     category: 'Văn Học Kinh Điển',
-    reader: 'Độc giả Rémi'
+    reader: 'Bút danh Rémi'
   },
   {
     title: 'Trăm Năm Cô Đơn',
@@ -127,14 +128,14 @@ export const MOCK_LIBRARY = [
     author: 'Jack Canfield & Mark Victor Hansen',
     quote: 'Cuộc sống như một trang sách, mỗi ngày trôi qua là một trang mới được lật mở.',
     category: 'Cảm Hứng Sống',
-    reader: 'Độc giả Tích Cực'
+    reader: 'Bút danh Tích Cực'
   },
   {
     title: 'Búp Sen Xanh',
     author: 'Sơn Tùng',
     quote: 'Nước mắt chỉ chảy ngược vào tim khi ta khóc vì tình yêu quê hương đất nước.',
     category: 'Văn Học Lịch Sử',
-    reader: 'Độc giả Đất Việt'
+    reader: 'Bút danh Đất Việt'
   },
   {
     title: 'Kẻ Trộm Sách (The Book Thief)',
@@ -234,8 +235,9 @@ export class TesterService {
 
   static async setExp(exp, customSeedsCount = null, teamId = null) {
     const levelInfo = calculateLevelFromExp(exp);
-    const targetSeeds = customSeedsCount !== null ? customSeedsCount : (exp < 50 ? exp : 0);
-    const isSprouted = (levelInfo.level >= 1 || targetSeeds >= 50 || exp >= 50);
+    const targetSeeds = customSeedsCount !== null ? customSeedsCount : (exp < 50 ? Math.floor(exp / 5) : 0);
+    const isSprouted = (levelInfo.level >= 1 || exp >= 50 || targetSeeds >= 10);
+    const finalLevel = isSprouted ? Math.max(1, levelInfo.level) : 0;
 
     const result = await db.transaction(async (client) => {
       // 1. Determine target teams
@@ -279,7 +281,7 @@ export class TesterService {
               tree_level = $3,
               updated_at = NOW()
           WHERE id = $4
-        `, [exp, targetSeeds, levelInfo.level, tId]);
+        `, [exp, targetSeeds, finalLevel, tId]);
       }
 
       // 3. Count final books
@@ -295,7 +297,7 @@ export class TesterService {
             updated_at = NOW()
         WHERE id = 1
         RETURNING *
-      `, [exp, levelInfo.level, totalBooks]);
+      `, [exp, finalLevel, totalBooks]);
 
       const updated = growthRes.rows[0];
 
@@ -342,9 +344,10 @@ export class TesterService {
         const countRes = await client.query("SELECT COUNT(*) FROM books WHERE team_id = $1 AND visibility_status = 'visible'", [tId]);
         const totalSeeds = parseInt(countRes.rows[0].count, 10);
 
-        const isSprouted = totalSeeds >= 50;
-        const newExp = totalSeeds < 50 ? totalSeeds : (totalSeeds * 10);
+        const newExp = totalSeeds * 5;
         const levelInfo = calculateLevelFromExp(newExp);
+        const isSprouted = (levelInfo.level >= 1 || newExp >= 50 || totalSeeds >= 10);
+        const finalLevel = isSprouted ? Math.max(1, levelInfo.level) : 0;
 
         await client.query(`
           UPDATE teams
@@ -355,22 +358,25 @@ export class TesterService {
               tree_level = $3,
               updated_at = NOW()
           WHERE id = $4
-        `, [totalSeeds, newExp, levelInfo.level, tId]);
+        `, [totalSeeds, newExp, finalLevel, tId]);
       }
 
       const finalCountRes = await client.query('SELECT COUNT(*) FROM books');
       const totalBooks = parseInt(finalCountRes.rows[0].count, 10);
 
+      const addedExp = count * 5 * targetTeamIds.length;
       const growthRes = await client.query(`
         UPDATE community_growth
         SET total_books = $1,
+            total_exp = total_exp + $2,
             updated_at = NOW()
         WHERE id = 1
         RETURNING *
-      `, [totalBooks]);
+      `, [totalBooks, addedExp]);
 
       const updated = growthRes.rows[0];
-      const levelInfo = calculateLevelFromExp(parseInt(updated.total_exp, 10));
+      const newTotalExp = parseInt(updated.total_exp, 10);
+      const levelInfo = await GrowthService.recalculateAndSyncLevel(client, newTotalExp);
 
       const fullGrowth = {
         totalEXP: parseInt(updated.total_exp, 10),
@@ -427,13 +433,17 @@ export class TesterService {
         }
       }
 
-      await client.query(`
+      const gRes = await client.query(`
         UPDATE community_growth
         SET total_exp = total_exp + $1,
             total_likes = total_likes + $2,
             updated_at = NOW()
         WHERE id = 1
+        RETURNING total_exp
       `, [expBonus, count]);
+
+      const newTotalExp = parseInt(gRes.rows[0].total_exp, 10);
+      await GrowthService.recalculateAndSyncLevel(client, newTotalExp);
 
       socketService.broadcastGrowthUpdated({ totalEXP: expBonus });
       socketService.broadcastSeedsUpdated();

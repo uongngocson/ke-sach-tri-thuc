@@ -1,6 +1,6 @@
 /**
  * assets/ground/groundShaders.js
- * High-End Photorealistic Procedural Forest Soil & Terrain Shader for Cáo Sách
+ * High-End Photorealistic Procedural Forest Soil & Terrain Shader for FOXREAD
  */
 
 export const groundVertexShader = /* glsl */ `

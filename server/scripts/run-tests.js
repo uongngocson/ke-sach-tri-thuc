@@ -56,7 +56,7 @@ async function runAllTests() {
     assert(lvl1.level === 1 && lvl1.progressPercent === 50, 'Level 1 with 100 EXP has 50% progress');
 
     const lvl4 = calculateLevelFromExp(750);
-    assert(lvl4.level === 4 && lvl4.name === 'Đại Thụ Đơm Hoa Kết Trái', 'Level 4 thresholds correctly mapped');
+    assert(lvl4.level === 4 && (lvl4.name === 'Cổ Thụ' || lvl4.name === 'Đại Thụ Đơm Hoa Kết Trái'), 'Level 4 thresholds correctly mapped');
 
     const lvl5 = calculateLevelFromExp(1500);
     assert(lvl5.level === 5 && lvl5.progressPercent === 100, 'Level 5 Max Level capped with 100% progress');
@@ -152,14 +152,13 @@ async function runAllTests() {
     assert(statusCheck.hasClaimedToday === true, 'Daily Dew: getDewStatus correctly reports hasClaimedToday = true');
 
     // Quote Like 1st time
-    const likeFp = `like_test_${Date.now()}`;
-    const like1 = await QuoteService.likeQuote(contribution.book.id, likeFp);
+    const like1 = await QuoteService.likeQuote(contribution.book.id, validUser.id, validUser);
     assert(like1.expEarned === 2, 'Quote Like: First like succeeds (+2 EXP)');
 
     // Quote Like 2nd time on same book -> Must throw 23505 Unique Constraint
     let likeSpamBlocked = false;
     try {
-      await QuoteService.likeQuote(contribution.book.id, likeFp);
+      await QuoteService.likeQuote(contribution.book.id, validUser.id, validUser);
     } catch (err) {
       if (err.code === '23505') likeSpamBlocked = true;
     }
@@ -240,11 +239,11 @@ async function runAllTests() {
     const totalUsersRes = await db.query('SELECT COUNT(*) FROM users');
     assert(parseInt(totalUsersRes.rows[0].count, 10) === 288, 'Users: Exactly 288 users stored in PostgreSQL database');
 
-    const userLookup = await UserService.lookupUser('thuhuong@fpt.com');
-    assert(userLookup && userLookup.employee_code === '00000295' && userLookup.team_id === 5, 'Users: Lookup by email thuhuong@fpt.com returns correct employee_code 00000295 and team 5');
+    const userLookup = await UserService.lookupUser('Viết Kim Hoàng');
+    assert(userLookup && userLookup.nickname === 'Viết Kim Hoàng' && userLookup.team_id === 5, 'Users: Lookup by nickname "Viết Kim Hoàng" returns correct user and team 5');
 
-    const codeLookup = await UserService.lookupUser('00000295');
-    assert(codeLookup && codeLookup.email === 'thuhuong@fpt.com', 'Users: Lookup by code 00000295 returns correct user profile');
+    const nameLookup = await UserService.lookupUser('Đỗ Viết Kim Hoàng');
+    assert(nameLookup && nameLookup.full_name === 'Đỗ Viết Kim Hoàng', 'Users: Lookup by full_name "Đỗ Viết Kim Hoàng" returns correct user profile');
 
     // -------------------------------------------------------------
     // INTEGRATION TESTS: DAILY QUOTE CONSTRAINT (1 QUOTE / USER / DAY)

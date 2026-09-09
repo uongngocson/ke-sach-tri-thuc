@@ -55,7 +55,11 @@ async function migrate() {
       reviewed_at TIMESTAMPTZ,
       deleted_at TIMESTAMPTZ,
       deleted_by UUID REFERENCES admin_users(id),
-      deletion_reason VARCHAR(255)
+      deletion_reason VARCHAR(255),
+      credibility_score INT DEFAULT NULL,
+      credibility_rationale TEXT DEFAULT NULL,
+      credibility_status VARCHAR(20) DEFAULT 'unscored',
+      credibility_scored_at TIMESTAMPTZ DEFAULT NULL
     );
 
     -- 4. EXP Ledger Table
@@ -88,16 +92,26 @@ async function migrate() {
       CONSTRAINT unq_user_quote_like UNIQUE(user_fingerprint, book_id)
     );
 
-    -- 7. Fruit Harvests Table (Cooldown & daily limit per fruit)
+    -- 7. Fruit Harvests Table (Cooldown & anti-spam limit per fruit per tree)
     CREATE TABLE IF NOT EXISTS fruit_harvests (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      fruit_index INT NOT NULL,
+      team_id INT REFERENCES teams(id),
+      fruit_index INT NOT NULL CHECK (fruit_index BETWEEN 0 AND 4),
+      user_id UUID REFERENCES users(id),
       user_fingerprint VARCHAR(100) NOT NULL,
       harvest_date DATE NOT NULL,
       exp_granted INT DEFAULT 5,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      CONSTRAINT unq_user_fruit_harvest UNIQUE(user_fingerprint, fruit_index, harvest_date)
+      created_at TIMESTAMPTZ DEFAULT NOW()
     );
+
+    ALTER TABLE fruit_harvests ADD COLUMN IF NOT EXISTS team_id INT REFERENCES teams(id);
+    ALTER TABLE fruit_harvests ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_unq_user_team_fruit_harvest 
+    ON fruit_harvests (user_id, team_id, fruit_index, harvest_date) 
+    WHERE user_id IS NOT NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_unq_fp_team_fruit_harvest 
+    ON fruit_harvests (user_fingerprint, team_id, fruit_index, harvest_date) 
+    WHERE user_id IS NULL;
 
     -- 8. Idempotency Keys Table
     CREATE TABLE IF NOT EXISTS idempotency_keys (
@@ -259,6 +273,25 @@ async function migrate() {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- 18. Deleted Quotes Archive Table (Enterprise Archive)
+    CREATE TABLE IF NOT EXISTS deleted_quotes_archive (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      book_id UUID NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      author VARCHAR(255) NOT NULL,
+      quote TEXT NOT NULL,
+      category VARCHAR(100),
+      reader_name VARCHAR(100),
+      reader_email VARCHAR(255),
+      team_id INT,
+      credibility_score INT,
+      credibility_rationale TEXT,
+      deletion_source VARCHAR(50) DEFAULT 'AI_AUTO',
+      deletion_reason TEXT,
+      deleted_at TIMESTAMPTZ DEFAULT NOW(),
+      metadata JSONB
+    );
+
     -- Alter existing tables to associate books and exp with teams/users
     DO $$ 
     BEGIN 
@@ -366,6 +399,19 @@ async function migrate() {
 
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='daily_dews' AND column_name='team_id') THEN
         ALTER TABLE daily_dews ADD COLUMN team_id INT REFERENCES teams(id);
+      END IF;
+      -- Credibility Score & AI Moderation Columns on books
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='credibility_score') THEN
+        ALTER TABLE books ADD COLUMN credibility_score INT DEFAULT NULL;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='credibility_rationale') THEN
+        ALTER TABLE books ADD COLUMN credibility_rationale TEXT DEFAULT NULL;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='credibility_status') THEN
+        ALTER TABLE books ADD COLUMN credibility_status VARCHAR(20) DEFAULT 'unscored';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='credibility_scored_at') THEN
+        ALTER TABLE books ADD COLUMN credibility_scored_at TIMESTAMPTZ DEFAULT NULL;
       END IF;
       -- Unique 1 dew per user per day constraint
       CREATE UNIQUE INDEX IF NOT EXISTS unq_user_dew_daily_user_id ON daily_dews(user_id, claim_date) WHERE user_id IS NOT NULL;

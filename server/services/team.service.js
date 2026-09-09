@@ -72,50 +72,19 @@ export class TeamService {
     return result.rows.map((team, idx) => {
       const exp = parseFloat(team.total_exp) || 0;
       const seeds = parseInt(team.tree_seeds, 10) || 0;
-      const isSprouted = seeds >= 50 || exp >= 50 || parseInt(team.level, 10) >= 1;
-
-      // Determine stage name according to rule specification
-      let stageName = 'Hạt Mầm Tri Thức';
-      let stageDesc = 'Đang ủ mầm trong lòng đất';
-      if (exp >= 2500) { stageName = 'Đại Cổ Thụ Ngàn Năm'; stageDesc = 'Di sản văn hóa đọc rực rỡ'; }
-      else if (exp >= 1000) { stageName = 'Cây Phát Triển'; stageDesc = 'Tán rộng rợp bóng tri thức'; }
-      else if (exp >= 400) { stageName = 'Cây Trưởng Thành'; stageDesc = '3 tầng cành lá sum sê'; }
-      else if (exp >= 150) { stageName = 'Cây Con'; stageDesc = 'Thân non vươn cành đón nắng'; }
-      else if (isSprouted) { stageName = 'Cây Nảy Mầm'; stageDesc = 'Mầm non nhú lên đón sương sớm'; }
-
-      // Calculate progress percentage
-      let progressPercent = 0;
-      let nextThreshold = 50;
-      if (!isSprouted) {
-        progressPercent = Math.min(100, Math.round((seeds / 50) * 100));
-        nextThreshold = 50;
-      } else if (exp < 150) {
-        progressPercent = Math.min(100, Math.round((exp / 150) * 100));
-        nextThreshold = 150;
-      } else if (exp < 400) {
-        progressPercent = Math.min(100, Math.round(((exp - 150) / 250) * 100));
-        nextThreshold = 400;
-      } else if (exp < 1000) {
-        progressPercent = Math.min(100, Math.round(((exp - 400) / 600) * 100));
-        nextThreshold = 1000;
-      } else if (exp < 2500) {
-        progressPercent = Math.min(100, Math.round(((exp - 1000) / 1500) * 100));
-        nextThreshold = 2500;
-      } else {
-        progressPercent = 100;
-        nextThreshold = 2500;
-      }
+      const lvlInfo = calculateLevelFromExp(exp);
+      const isSprouted = exp >= 50 || parseInt(team.level, 10) >= 1 || seeds >= 10;
 
       return {
         ...team,
         rank: idx + 1,
         total_exp: exp,
         tree_seeds: seeds,
-        level: isSprouted ? Math.max(1, parseInt(team.level, 10)) : 0,
-        level_name: stageName,
-        level_description: stageDesc,
-        progress_percent: progressPercent,
-        next_threshold: nextThreshold,
+        level: isSprouted ? Math.max(1, lvlInfo.level) : 0,
+        level_name: isSprouted ? (lvlInfo.levelName || 'Mầm Non') : 'Ủ Mầm',
+        level_description: lvlInfo.levelDescription,
+        progress_percent: lvlInfo.progressPercent,
+        next_threshold: lvlInfo.nextThreshold,
         is_sprouted: isSprouted,
         avg_participation_rate: parseFloat(team.avg_participation_rate) || 0
       };
@@ -142,7 +111,8 @@ export class TeamService {
     const team = teamRes.rows[0];
     const exp = parseFloat(team.total_exp) || 0;
     const seeds = parseInt(team.tree_seeds, 10) || 0;
-    const isSprouted = seeds >= 50 || exp >= 50 || parseInt(team.level, 10) >= 1;
+    const lvlInfo = calculateLevelFromExp(exp);
+    const isSprouted = seeds >= 10 || exp >= 50 || parseInt(team.level, 10) >= 1;
 
     // Get 15 rounds history for this team
     const roundsHistoryRes = await db.query(`
@@ -165,7 +135,7 @@ export class TeamService {
     // Also get members
     const membersRes = await db.query(`
       SELECT 
-        id, employee_code, email, full_name, gender, branch,
+        id, full_name, gender, branch,
         parent_department, child_department_1, child_department_2,
         officer_code, job_title, team_id, role, avatar_url, contributed_books_count, total_exp_earned
       FROM users
@@ -177,7 +147,11 @@ export class TeamService {
       ...team,
       total_exp: exp,
       tree_seeds: seeds,
-      level: isSprouted ? Math.max(1, parseInt(team.level, 10)) : 0,
+      level: isSprouted ? Math.max(1, lvlInfo.level) : 0,
+      level_name: isSprouted ? (lvlInfo.levelName || 'Mầm Non') : 'Ủ Mầm',
+      level_description: lvlInfo.levelDescription,
+      progress_percent: lvlInfo.progressPercent,
+      next_threshold: lvlInfo.nextThreshold,
       is_sprouted: isSprouted,
       rounds_history: roundsHistoryRes.rows,
       rounds: roundsHistoryRes.rows,
@@ -195,7 +169,7 @@ export class TeamService {
 
     const result = await db.query(`
       SELECT 
-        u.id, u.employee_code, u.email, u.full_name, u.gender, u.branch,
+        u.id, u.full_name, u.gender, u.branch,
         u.parent_department, u.child_department_1, u.child_department_2,
         u.officer_code, u.job_title, u.team_id, u.role, u.avatar_url, 
         u.contributed_books_count, u.total_exp_earned,

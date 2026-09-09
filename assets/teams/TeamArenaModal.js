@@ -63,11 +63,11 @@ export class TeamArenaModal {
         <!-- Footer -->
         <div class="tam-footer">
           <div class="tam-legend">
-            <span>🌱 Level 1: Nảy Mầm (50 Hạt)</span>
-            <span>🌿 Lvl 2 (150 EXP)</span>
-            <span>🌳 Lvl 3 (400 EXP)</span>
-            <span>🌲 Lvl 4 (1.000 EXP)</span>
-            <span>✨ Lvl 5 (2.500+ EXP)</span>
+            <span>🌱 Lvl 1: Mầm Non (50 EXP)</span>
+            <span>🌿 Lvl 2: Cây Con (150 EXP)</span>
+            <span>🌳 Lvl 3: Trưởng Thành (300 EXP)</span>
+            <span>🌲 Lvl 4: Cổ Thụ (600 EXP)</span>
+            <span>✨ Lvl 5: Đại Cổ Thụ (1.200+ EXP)</span>
           </div>
           <button class="tam-dismiss-btn" id="tam-dismiss-btn">
             <span>✓ Đóng Bảng So Sánh</span>
@@ -454,14 +454,16 @@ export class TeamArenaModal {
         const isMyTeam = myTeamId === t.id.toString();
         const isCurrentlyInspecting = currentTeamId === t.id.toString();
         const rankClass = t.rank === 1 ? 'rank-1' : (t.rank === 2 ? 'rank-2' : (t.rank === 3 ? 'rank-3' : ''));
-        const medal = t.rank === 1 ? '🥇' : (t.rank === 2 ? '🥈' : (t.rank === 3 ? '🥉' : `#${t.rank}`));
+        const medal = t.rank === 1 ? '🥇' : (t.rank === 2 ? '🥈' : (t.rank === 3 ? '🥉' : `Top ${t.rank}`));
         const color = t.color_code || t.color_primary || '#3b82f6';
+        const teamDisplayName = t.display_name || t.name || `Đội ${t.id}`;
+        const teamSubtitle = t.slogan || (t.code ? `Mã: ${t.code}` : '');
 
         // Stage & progress logic
-        const isSprouted = t.is_sprouted || t.level >= 1;
+        const isSprouted = t.is_sprouted || t.level >= 1 || (t.total_exp || 0) >= 50 || (t.tree_seeds || 0) >= 10;
         const progressLabel = !isSprouted 
-          ? `${t.tree_seeds || 0}/50 Hạt (Ủ Mầm)` 
-          : `${t.total_exp} EXP (${t.level_name})`;
+          ? `${t.total_exp || 0}/50 EXP (Ủ Mầm)` 
+          : `${(t.total_exp || 0).toLocaleString()} EXP (${t.level_name || 'Đang phát triển'})`;
 
         return `
           <div class="tam-team-card ${isMyTeam ? 'is-my-team' : ''}" style="border-top: 3px solid ${color};">
@@ -470,10 +472,10 @@ export class TeamArenaModal {
               <div class="tam-team-info">
                 <div class="tam-team-name-row">
                   <span class="tam-team-icon">${t.icon || '🌳'}</span>
-                  <span class="tam-team-name" title="Đội ${t.id}">Đội ${t.id}</span>
+                  <span class="tam-team-name" title="${teamDisplayName}">${teamDisplayName}</span>
                   ${isMyTeam ? '<span class="tam-my-team-pill">Đội của bạn</span>' : ''}
                 </div>
-                <div class="tam-team-comp">${t.display_name || ('Đội ' + t.id)}</div>
+                <div class="tam-team-comp">${teamSubtitle}</div>
               </div>
             </div>
 

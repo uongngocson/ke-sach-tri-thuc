@@ -30,6 +30,7 @@
 7. [Bảng Điều Khiển Tester (Testing Suite & Simulation)](#-bảng-điều-khiển-tester-testing-suite--simulation)
 8. [Kiểm Thử Tự Động (Automated Testing)](#-kiểm-thử-tự-động-automated-testing)
 9. [Cấu Trúc Thư Mục (Project Structure)](#-cấu-trúc-thư-mục-project-structure)
+10. [Groq Model Pool Service (AI Gateway)](./docs/GROQ_POOL_SERVICE.md)
 
 ---
 
@@ -234,6 +235,17 @@ Sach-tri-thuc/
 │   └── server.js               # Entry point máy chủ Express & Socket.io
 └── README.md                   # Tài liệu hướng dẫn dự án toàn diện
 ```
+
+---
+
+## 🤖 Groq Model Pool Service (AI Gateway)
+
+Hệ thống tích hợp cổng điều phối AI đa mô hình thông minh với cơ chế:
+- **Priority-based Fallback**: Tự động thử lần lượt danh sách 7 models theo độ ưu tiên khi chạm hạn mức hoặc lỗi.
+- **Circuit Breaker**: Khóa mạch 120s khi gặp 3 lỗi liên tiếp, tự động cooldown theo mã lỗi HTTP (429 -> 60s, 5xx -> 15s, parse failure -> 3s).
+- **Fault-tolerant JSON Extractor**: Tự động lọc thẻ `<think>`, vá JSON bị cắt ngang, chuẩn hóa smart quotes và sửa Python literals.
+
+👉 Xem chi tiết tài liệu hướng dẫn tích hợp: **[`docs/GROQ_POOL_SERVICE.md`](./docs/GROQ_POOL_SERVICE.md)**
 
 ---
 

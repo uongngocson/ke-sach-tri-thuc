@@ -64,54 +64,62 @@ export async function seedTeamsAndUsers() {
         }
       }
     }
-    const LITERARY_PREFIXES = [
-      'Cáo Tri Thức', 'Người Gieo Mầm', 'Độc Giả Tinh Hoa', 'Tâm Hồn Sách', 'Kẻ Mộng Mơ',
-      'Hạt Mầm Xanh', 'Cú Mèo Uyên Bác', 'Trang Sách Bay', 'Ngọn Lửa Nhỏ', 'Hạt Sương Mai',
-      'Ánh Sao Đêm', 'Cánh Hạc Trắng', 'Suối Nguồn', 'Người Lữ Hành', 'Bình Minh Đọc Sách',
-      'Cánh Buồm Tri Thức', 'Người Đưa Đò', 'Tầm Nhìn Xa', 'Trúc Lâm', 'Hải Đăng Soi Sáng',
-      'Khát Vọng Xanh', 'Thuyền Trí Tuệ', 'Gió Mùa Thu', 'Dấu Chân Tri Thức', 'Vườn Tâm Hồn'
-    ];
-
     for (let i = 0; i < users.length; i++) {
       const u = users[i];
-      const prefix = LITERARY_PREFIXES[i % LITERARY_PREFIXES.length];
-      const suffix = (u.employee_code || '').slice(-4) || String(i + 1).padStart(4, '0');
-      const nickname = u.nickname || `${prefix} #${suffix}`;
+      // Bút danh = tên đệm + tên thật (bỏ họ)
+      const parts = (u.full_name || '').trim().split(/\s+/);
+      const nickname = parts.length > 1 ? parts.slice(1).join(' ') : u.full_name;
 
-      await client.query(`
-        INSERT INTO users (
-          employee_code, email, full_name, nickname, gender, branch, 
-          parent_department, child_department_1, child_department_2, 
-          officer_code, job_title, team_id
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-        ON CONFLICT (employee_code) DO UPDATE SET
-          email = EXCLUDED.email,
-          full_name = EXCLUDED.full_name,
-          nickname = COALESCE(users.nickname, EXCLUDED.nickname),
-          gender = EXCLUDED.gender,
-          branch = EXCLUDED.branch,
-          parent_department = EXCLUDED.parent_department,
-          child_department_1 = EXCLUDED.child_department_1,
-          child_department_2 = EXCLUDED.child_department_2,
-          officer_code = EXCLUDED.officer_code,
-          job_title = EXCLUDED.job_title,
-          team_id = EXCLUDED.team_id,
-          updated_at = NOW()
-      `, [
-        u.employee_code,
-        u.email,
-        u.full_name,
-        nickname,
-        u.gender,
-        u.branch,
-        u.parent_department,
-        u.child_department_1,
-        u.child_department_2,
-        u.officer_code,
-        u.job_title,
-        u.team_id
-      ]);
+      const existing = await client.query(
+        'SELECT id FROM users WHERE full_name = $1 AND team_id = $2 LIMIT 1',
+        [u.full_name, u.team_id]
+      );
+
+      if (existing.rows.length > 0) {
+        await client.query(`
+          UPDATE users SET
+            nickname = $1,
+            gender = $2,
+            branch = $3,
+            parent_department = $4,
+            child_department_1 = $5,
+            child_department_2 = $6,
+            officer_code = $7,
+            job_title = $8,
+            updated_at = NOW()
+          WHERE id = $9
+        `, [
+          nickname,
+          u.gender,
+          u.branch,
+          u.parent_department,
+          u.child_department_1,
+          u.child_department_2,
+          u.officer_code,
+          u.job_title,
+          existing.rows[0].id
+        ]);
+      } else {
+        await client.query(`
+          INSERT INTO users (
+            full_name, nickname, gender, branch, 
+            parent_department, child_department_1, child_department_2, 
+            officer_code, job_title, team_id
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        `, [
+          u.full_name,
+          nickname,
+          u.gender,
+          u.branch,
+          u.parent_department,
+          u.child_department_1,
+          u.child_department_2,
+          u.officer_code,
+          u.job_title,
+          u.team_id
+        ]);
+      }
     }
     console.log(`✅ Upserted ${users.length} users successfully.`);
 

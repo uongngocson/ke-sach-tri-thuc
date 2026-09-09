@@ -67,3 +67,28 @@ export async function getAdminDeepDiveAnalytics(req, res, next) {
   }
 }
 
+export async function getAdminTeamsAllDaysExport(req, res, next) {
+  try {
+    const data = await AnalyticsService.getTeamsAllDaysExport();
+    res.json({
+      success: true,
+      data
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getAdminUsersAllDaysExport(req, res, next) {
+  try {
+    const data = await AnalyticsService.getUsersAllDaysExport();
+    res.json({
+      success: true,
+      data
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+
