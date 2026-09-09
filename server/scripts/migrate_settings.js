@@ -12,58 +12,68 @@ export const DEFAULT_WELCOME_SETTINGS = {
 };
 
 export const DEFAULT_RULES_SETTINGS = {
-  badge: 'THỂ LỆ & QUY TRÌNH NUÔI DƯỠNG CÂY TRI THỨC',
-  milestonesTitle: '🌱 5 GIAI ĐOẠN SINH TRƯỞNG CỦA CÂY TRI THỨC',
+  badge: 'THỂ LỆ',
+  milestonesTitle: '4 GIAI ĐOẠN PHÁT TRIỂN CỦA CÂY TRI THỨC',
   milestones: [
     {
-      level: 0,
-      label: 'Giai đoạn 0 – Hạt giống tri thức 🌰',
-      range: '0–49 hạt giống',
-      effect: 'Mỗi câu quote được chia sẻ sẽ gieo một hạt giống tri thức xuống lòng đất, góp phần hình thành nền móng cho Cây Tri Thức. Cần tích lũy đủ 50 hạt giống để đánh thức mầm sống.'
-    },
-    {
       level: 1,
-      label: 'Giai đoạn 1 – Mầm non 🌱',
-      range: '50 hạt – dưới 150 EXP',
-      effect: 'Khi đủ 50 hạt giống, Cây Tri Thức chính thức nảy mầm và chuyển sang giai đoạn nuôi dưỡng bằng EXP. Từ thời điểm này, mỗi câu quote tham gia hợp lệ sẽ tiếp tục cung cấp dưỡng chất EXP giúp cây phát triển. Những điều hay từ sách được tiếp nhận, ghi nhớ và lan tỏa, tạo nên nguồn dưỡng chất tri thức đầu tiên cho Cây Mầm Non.'
+      label: 'Giai đoạn 1 – Mầm Non 🌱',
+      range: '50 EXP – dưới 150 EXP',
+      effect: 'Cây Tri Thức chính thức nảy mầm khi đạt 50 EXP. Từ thời điểm này, mỗi câu quote tham gia hợp lệ sẽ tiếp tục cung cấp dưỡng chất EXP giúp cây phát triển.'
     },
     {
       level: 2,
-      label: 'Giai đoạn 2 – Cây con 🌿',
-      range: '150–400 EXP',
-      effect: 'Mỗi câu quote mới tiếp thêm phân bón dinh dưỡng, cây bắt đầu bén rễ và vươn chồi, mỗi lượt tương tác tiếp tục bổ sung EXP, đều góp thêm dưỡng chất, giúp Cây Tri Thức ngày càng vươn cao và phát triển.'
+      label: 'Giai đoạn 2 – Cây Con 🌿',
+      range: '150 EXP – dưới 300 EXP',
+      effect: 'Cây tiếp tục phát triển và mở tính năng Tưới cây. Mỗi thành viên tiếp tục viết câu quote và được tưới cây của đội mình tối đa 3 lần/ngày để tích lũy EXP'
     },
     {
       level: 3,
-      label: 'Giai đoạn 3 – Cây trưởng thành 🌳',
-      range: '400–1.000 EXP',
-      effect: 'Cây vươn mình rộng lớn với những tầng cành sum sê, quang hợp tự nhiên theo chu kỳ ngày đêm, tạo nên một hệ sinh thái tri thức ngày càng phong phú. Tri thức bắt đầu “đơm hoa”, tạo ra những giá trị và thành quả rõ nét.'
+      label: 'Giai đoạn 3 – Cây Trưởng Thành 🌳',
+      range: '300 – dưới 600 EXP',
+      effect: 'Tiếp tục tạo Quote, Reaction quote và Tưới cây để tích lũy EXP.'
     },
     {
       level: 4,
-      label: 'Giai đoạn 4 – Cây cổ thụ 🌲',
-      range: '1.000–2.500+ EXP',
-      effect: 'Cây đã trưởng thành vững chãi, tỏa bóng mát và trở thành biểu tượng cho hành trình tích lũy, lan tỏa tri thức của cả đội. Mỗi giá trị được chia sẻ góp phần tạo nên một di sản văn hóa đọc bền vững.'
+      label: 'Giai đoạn 4 – Cây Cổ Thụ 🌲',
+      range: '600 – dưới 1.200 EXP',
+      effect: 'Cây bắt đầu có Quả. Thành viên có thể tương tác với Quả để khám phá Quote và tiếp tục đóng góp EXP.'
+    },
+    {
+      level: 5,
+      label: 'Đại Cổ Thụ Tri Thức ✨',
+      range: 'từ 1.200 EXP',
+      effect: 'Đạt 1.200 EXP để chạm mốc Đại Cổ Thụ Tri Thức. Sau mốc này, các đội vẫn tiếp tục tích lũy EXP để cạnh tranh thứ hạng chung cuộc.'
     }
   ],
-  interactionsTitle: 'Cơ Chế Tương Tác & Điểm EXP Nuôi Cây',
+  interactionsTitle: 'CƠ CHẾ TƯƠNG TÁC & TÍCH LŨY EXP',
   interactions: [
     {
       action: '🌱 Gieo Hạt Tri Thức',
-      exp: '+1 Hạt giống Tri Thức khi Cây chưa đủ 50 hạt\nhoặc +5 EXP khi Cây đã Nảy Mầm.',
-      note: 'Mỗi câu quote được chia sẻ hợp lệ là một hạt giống góp phần nuôi dưỡng Cây Tri Thức.'
+      exp: '+5 EXP/Quote hợp lệ',
+      note: 'Mỗi thành viên được tạo tối đa 3 Quote/ngày.'
     },
     {
       action: '💖 Lan Tỏa Tri Thức',
-      exp: '+2 EXP / lượt thả tim',
-      note: 'Mỗi lượt yêu thích dành cho một câu quote bất kỳ trong vườn Tri Thức là một lần tiếp thêm dưỡng chất, giúp Cây Tri Thức của đội được lan tỏa và phát triển.'
+      exp: '+2 EXP/Reaction thả tim hợp lệ cho mỗi câu quote',
+      note: 'Mỗi người chỉ được thả tim 1 lần trên mỗi Quote. Có thể tương tác với Quote của đội mình hoặc đội khác; EXP được tính cho đội sở hữu Quote.'
     },
     {
-      action: '🔗 Nhật Ký Tri Thức',
-      exp: '',
-      note: 'Mỗi lượt tham gia và tương tác được ghi nhận minh bạch trên hệ thống, tạo thành nhật ký hành trình phát triển của từng Cây Tri Thức của mỗi đội trong vườn.'
+      action: '💧 Tưới Cây',
+      exp: '+2 EXP/lần tưới',
+      note: 'Mỗi thành viên được tưới cây của đội mình tối đa 3 lần/ngày. Tính năng mở từ Giai đoạn cây con về sau.'
+    },
+    {
+      action: '🍎 Hái Quả cây tri thức',
+      exp: '+5 EXP cho đội sở hữu Quote',
+      note: 'Mở khi cây đạt Cây Cổ Thụ. Mỗi thành viên được hái tối đa 5 Quả trong toàn chương trình, mỗi Quả chỉ được hái 1 lần. Hái Quả sẽ mở một Quote và +5 EXP cho đội sở hữu Quote.'
     }
   ],
+  regulationsTitle: 'QUY ĐỊNH THAM GIA',
+  regulations: {
+    time: 'Thời gian: 10/09/2026 – 05/10/2026',
+    rules: 'Mỗi ngày là một lượt chơi. Các hoạt động chỉ được tính khi đáp ứng điều kiện hợp lệ của chương trình. EXP vẫn tiếp tục được tích lũy sau khi đội đạt 1.200 EXP.'
+  },
   confirmButton: '🌱 Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây'
 };
 

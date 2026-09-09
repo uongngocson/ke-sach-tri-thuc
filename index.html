@@ -4421,7 +4421,7 @@
       border-radius: 24px;
       box-shadow: 0 25px 60px -12px rgba(0, 84, 166, 0.4), 0 0 0 1px rgba(0, 84, 166, 0.1);
       width: 100%;
-      max-width: 620px;
+      max-width: 660px;
       max-height: 90vh;
       max-height: 90dvh;
       overflow-y: auto;
@@ -4576,10 +4576,32 @@
       box-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
     }
 
+    .rules-timeline-dot.golden {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+    }
+
+    html.dark .rules-timeline-dot.golden {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: #0f172a;
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+    }
+
     .rules-rewards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 10px;
+    }
+
+    html.dark #rules-regulations-content {
+      color: #cbd5e1;
+    }
+    html.dark #rules-regulations-content div:first-child {
+      color: #38bdf8 !important;
+    }
+    html.dark #rules-regulations-rules {
+      color: #94a3b8;
     }
 
     .rules-reward-box {
@@ -6288,7 +6310,7 @@
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; position:relative; z-index:2;">
         <div class="bq-badge">
           <span>📜</span>
-          <span id="rules-badge-text">THỂ LỆ & QUY TRÌNH NUÔI DƯỠNG CÂY TRI THỨC</span>
+          <span id="rules-badge-text">THỂ LỆ</span>
         </div>
         <button class="bq-close" id="rules-close-btn" title="Đóng (Esc)">✕</button>
       </div>
@@ -6296,70 +6318,97 @@
       <!-- Body Content -->
       <div style="display:flex; flex-direction:column; gap:14px; position:relative; z-index:2;">
         
-        <!-- 1. 5 Giai Đoạn Sinh Trưởng Của Cây Tri Thức -->
+        <!-- 1. 4 GIAI ĐOẠN PHÁT TRIỂN CỦA CÂY TRI THỨC -->
         <div class="rules-section-card">
           <div class="rules-section-header">
             <span class="rules-icon-badge" style="background:rgba(112,185,40,0.15); color:#15803d;">🌱</span>
-            <h4 class="rules-heading" id="rules-milestones-heading">🌱 5 GIAI ĐOẠN SINH TRƯỞNG CỦA CÂY TRI THỨC</h4>
+            <h4 class="rules-heading" id="rules-milestones-heading">4 GIAI ĐOẠN PHÁT TRIỂN CỦA CÂY TRI THỨC</h4>
           </div>
           <div class="rules-timeline" id="rules-timeline-container">
             <div class="rules-timeline-item">
-              <div class="rules-timeline-dot">0</div>
-              <div class="rules-timeline-content">
-                <strong>Giai đoạn 0 – Ủ mầm 🌰 (0–49 EXP):</strong> Mỗi cuốn sách và trích dẫn được chia sẻ sẽ gieo mầm tri thức xuống lòng đất, góp phần hình thành nền móng cho Cây Tri Thức. Cần tích lũy đủ <strong>50 EXP</strong> để đánh thức mầm sống.
-              </div>
-            </div>
-            <div class="rules-timeline-item">
               <div class="rules-timeline-dot active">1</div>
               <div class="rules-timeline-content">
-                <strong>Giai đoạn 1 – Mầm non 🌱 (50–150 EXP):</strong> Khi đủ 50 EXP, Cây Tri Thức chính thức nảy mầm vươn lên đón nắng. Mỗi cuốn sách, câu quote và lượt tương tác tiếp tục cung cấp dưỡng chất EXP giúp mầm non phát triển.
+                <strong>Giai đoạn 1 – Mầm Non 🌱 (50 EXP – dưới 150 EXP):</strong> Cây Tri Thức chính thức nảy mầm khi đạt 50 EXP. Từ thời điểm này, mỗi câu quote tham gia hợp lệ sẽ tiếp tục cung cấp dưỡng chất EXP giúp cây phát triển.
               </div>
             </div>
             <div class="rules-timeline-item">
               <div class="rules-timeline-dot">2</div>
               <div class="rules-timeline-content">
-                <strong>Giai đoạn 2 – Cây con 🌿 (150–300 EXP):</strong> Cây bắt đầu bén rễ sâu và vươn những nhánh cành đầu tiên, tiếp tục hấp thụ dưỡng chất EXP để ngày càng cứng cáp.
+                <strong>Giai đoạn 2 – Cây Con 🌿 (150 EXP – dưới 300 EXP):</strong> Cây tiếp tục phát triển và mở tính năng Tưới cây. Mỗi thành viên tiếp tục viết câu quote và được tưới cây của đội mình tối đa 3 lần/ngày để tích lũy EXP
               </div>
             </div>
             <div class="rules-timeline-item">
               <div class="rules-timeline-dot">3</div>
               <div class="rules-timeline-content">
-                <strong>Giai đoạn 3 – Trưởng thành 🌳 (300–600 EXP):</strong> Cây vươn mình sum sê với các tầng tán lá rộng lớn, quang hợp tự nhiên theo chu kỳ ngày đêm, tri thức đơm hoa kết trái.
+                <strong>Giai đoạn 3 – Cây Trưởng Thành 🌳 (300 – dưới 600 EXP):</strong> Tiếp tục tạo Quote, Reaction quote và Tưới cây để tích lũy EXP.
               </div>
             </div>
             <div class="rules-timeline-item">
               <div class="rules-timeline-dot">4</div>
               <div class="rules-timeline-content">
-                <strong>Giai đoạn 4 – Cổ thụ 🌲 (600–1.200+ EXP):</strong> Cây đại thụ vững chãi, tỏa bóng mát rợp trời, tượng trưng cho di sản văn hóa đọc bền vững của cả đội.
+                <strong>Giai đoạn 4 – Cây Cổ Thụ 🌲 (600 – dưới 1.200 EXP):</strong> Cây bắt đầu có Quả. Thành viên có thể tương tác với Quả để khám phá Quote và tiếp tục đóng góp EXP.
+              </div>
+            </div>
+            <div class="rules-timeline-item">
+              <div class="rules-timeline-dot golden">✨</div>
+              <div class="rules-timeline-content">
+                <strong>Đại Cổ Thụ Tri Thức ✨ (từ 1.200 EXP):</strong> Đạt 1.200 EXP để chạm mốc Đại Cổ Thụ Tri Thức. Sau mốc này, các đội vẫn tiếp tục tích lũy EXP để cạnh tranh thứ hạng chung cuộc.
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 2. Cơ Chế Tương Tác & Điểm EXP Nuôi Cây -->
+        <!-- 2. CƠ CHẾ TƯƠNG TÁC & TÍCH LŨY EXP -->
         <div class="rules-section-card">
           <div class="rules-section-header">
-            <span class="rules-icon-badge" style="background:rgba(244,63,94,0.12); color:#e11d48;">💖</span>
-            <h4 class="rules-heading" id="rules-interactions-heading">Cơ Chế Tương Tác & Điểm EXP Nuôi Cây</h4>
+            <span class="rules-icon-badge" style="background:rgba(244,63,94,0.12); color:#e11d48;">⚡</span>
+            <h4 class="rules-heading" id="rules-interactions-heading">CƠ CHẾ TƯƠNG TÁC & TÍCH LŨY EXP</h4>
           </div>
           <div class="rules-rewards-grid" id="rules-interactions-grid">
             <div class="rules-reward-box">
               <div class="rules-reward-title">🌱 Gieo Hạt Tri Thức</div>
-              <div style="font-size:11px; font-weight:800; color:#15803d; margin-bottom:4px; line-height:1.4;">
-                +5 EXP / sách & trích dẫn hợp lệ
+              <div style="font-size:11.5px; font-weight:800; color:#15803d; margin-bottom:4px; line-height:1.4;">
+                +5 EXP/Quote hợp lệ
               </div>
-              <div class="rules-reward-detail">Mỗi cuốn sách hoặc câu trích dẫn được chia sẻ hợp lệ góp phần cung cấp dưỡng chất EXP nuôi dưỡng Cây Tri Thức.</div>
+              <div class="rules-reward-detail">Mỗi thành viên được tạo tối đa 3 Quote/ngày.</div>
             </div>
             <div class="rules-reward-box">
               <div class="rules-reward-title">💖 Lan Tỏa Tri Thức</div>
-              <div style="font-size:11px; font-weight:800; color:#e11d48; margin-bottom:4px;">
-                +2 EXP / lượt thả tim
+              <div style="font-size:11.5px; font-weight:800; color:#e11d48; margin-bottom:4px; line-height:1.4;">
+                +2 EXP/Reaction thả tim hợp lệ cho mỗi câu quote
               </div>
-              <div class="rules-reward-detail">Mỗi lượt yêu thích dành cho một câu quote bất kỳ trong vườn Tri Thức là một lần tiếp thêm dưỡng chất, giúp Cây Tri Thức của đội được lan tỏa và phát triển.</div>
+              <div class="rules-reward-detail">Mỗi người chỉ được thả tim 1 lần trên mỗi Quote. Có thể tương tác với Quote của đội mình hoặc đội khác; EXP được tính cho đội sở hữu Quote.</div>
             </div>
             <div class="rules-reward-box">
-              <div class="rules-reward-title">🔗 Nhật Ký Tri Thức</div>
-              <div class="rules-reward-detail" style="margin-top:6px;">Mỗi lượt tham gia và tương tác được ghi nhận minh bạch trên hệ thống, tạo thành nhật ký hành trình phát triển của từng Cây Tri Thức của mỗi đội trong vườn.</div>
+              <div class="rules-reward-title">💧 Tưới Cây</div>
+              <div style="font-size:11.5px; font-weight:800; color:#0284c7; margin-bottom:4px; line-height:1.4;">
+                +2 EXP/lần tưới
+              </div>
+              <div class="rules-reward-detail">Mỗi thành viên được tưới cây của đội mình tối đa 3 lần/ngày. Tính năng mở từ Giai đoạn cây con về sau.</div>
+            </div>
+            <div class="rules-reward-box">
+              <div class="rules-reward-title">🍎 Hái Quả cây tri thức</div>
+              <div style="font-size:11.5px; font-weight:800; color:#d97706; margin-bottom:4px; line-height:1.4;">
+                +5 EXP cho đội sở hữu Quote
+              </div>
+              <div class="rules-reward-detail">Mở khi cây đạt Cây Cổ Thụ. Mỗi thành viên được hái tối đa 5 Quả trong toàn chương trình, mỗi Quả chỉ được hái 1 lần. Hái Quả sẽ mở một Quote và +5 EXP cho đội sở hữu Quote.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. QUY ĐỊNH THAM GIA -->
+        <div class="rules-section-card" style="border-left: 4px solid #0054A6;">
+          <div class="rules-section-header">
+            <span class="rules-icon-badge" style="background:rgba(0,84,166,0.12); color:#0054A6;">📋</span>
+            <h4 class="rules-heading" id="rules-regulations-heading">QUY ĐỊNH THAM GIA</h4>
+          </div>
+          <div id="rules-regulations-content" style="font-size:12.5px; line-height:1.6; color:#334155; display:flex; flex-direction:column; gap:6px;">
+            <div style="font-weight:800; color:#0054A6; display:flex; align-items:center; gap:6px;">
+              <span>📅</span>
+              <span id="rules-regulations-time">Thời gian: 10/09/2026 – 05/10/2026</span>
+            </div>
+            <div id="rules-regulations-rules" style="color:#475569;">
+              Mỗi ngày là một lượt chơi. Các hoạt động chỉ được tính khi đáp ứng điều kiện hợp lệ của chương trình. EXP vẫn tiếp tục được tích lũy sau khi đội đạt 1.200 EXP.
             </div>
           </div>
         </div>
@@ -8625,9 +8674,11 @@
                 const label = m.label || m.title || `Giai đoạn ${m.level}`;
                 const range = m.range ? ` (${escapeHtml(m.range)})` : '';
                 const effect = m.effect || m.desc || '';
+                const dotClass = m.level === 5 ? 'golden' : (m.level === 1 ? 'active' : '');
+                const dotSymbol = m.level === 5 ? '✨' : m.level;
                 return `
                   <div class="rules-timeline-item">
-                    <div class="rules-timeline-dot ${m.level === 1 ? 'active' : ''}">${m.level}</div>
+                    <div class="rules-timeline-dot ${dotClass}">${dotSymbol}</div>
                     <div class="rules-timeline-content">
                       <strong>${escapeHtml(label)}${range}:</strong> ${escapeHtml(effect)}
                     </div>
@@ -8644,10 +8695,10 @@
           if (Array.isArray(r.interactions) && r.interactions.length > 0) {
             const grid = document.getElementById('rules-interactions-grid');
             if (grid) {
-              const colors = ['#15803d', '#e11d48', '#0054A6'];
+              const colors = ['#15803d', '#e11d48', '#0284c7', '#d97706'];
               grid.innerHTML = r.interactions.map((act, i) => {
                 const action = act.action || act.title || '';
-                const expText = act.exp ? `<div style="font-size:11px; font-weight:800; color:${colors[i % 3]}; margin-bottom:4px; line-height:1.4;">${escapeHtml(act.exp).replace(/\n/g, '<br/>')}</div>` : '';
+                const expText = act.exp ? `<div style="font-size:11.5px; font-weight:800; color:${colors[i % colors.length]}; margin-bottom:4px; line-height:1.4;">${escapeHtml(act.exp).replace(/\n/g, '<br/>')}</div>` : '';
                 const note = act.note || act.desc || '';
                 return `
                   <div class="rules-reward-box">
@@ -8659,6 +8710,16 @@
               }).join('');
             }
           }
+
+          // Regulations Heading & Content
+          const regHeading = document.getElementById('rules-regulations-heading');
+          if (regHeading && r.regulationsTitle) regHeading.textContent = r.regulationsTitle;
+
+          const regTime = document.getElementById('rules-regulations-time');
+          if (regTime && r.regulations && r.regulations.time) regTime.textContent = r.regulations.time;
+
+          const regRules = document.getElementById('rules-regulations-rules');
+          if (regRules && r.regulations && r.regulations.rules) regRules.textContent = r.regulations.rules;
 
           // Confirm button
           const confirmBtn = document.querySelector('#rules-dismiss-btn span:last-child');

@@ -2681,11 +2681,16 @@ async function saveRulesSettings() {
   });
 
   const payload = {
-    badge: getVal('cfg-rules-badge') || 'THỂ LỆ & QUY TRÌNH NUÔI DƯỠNG CÂY TRI THỨC',
-    milestonesTitle: getVal('cfg-rules-milestones-title') || '🌱 5 GIAI ĐOẠN SINH TRƯỞNG CỦA CÂY TRI THỨC',
+    badge: getVal('cfg-rules-badge') || 'THỂ LỆ',
+    milestonesTitle: getVal('cfg-rules-milestones-title') || '4 GIAI ĐOẠN PHÁT TRIỂN CỦA CÂY TRI THỨC',
     milestones: milestones.length > 0 ? milestones : (currentRulesSettings?.milestones || []),
-    interactionsTitle: getVal('cfg-rules-interactions-title') || 'Cơ Chế Tương Tác & Điểm EXP Nuôi Cây',
+    interactionsTitle: getVal('cfg-rules-interactions-title') || 'CƠ CHẾ TƯƠNG TÁC & TÍCH LŨY EXP',
     interactions: interactions.length > 0 ? interactions : (currentRulesSettings?.interactions || []),
+    regulationsTitle: currentRulesSettings?.regulationsTitle || 'QUY ĐỊNH THAM GIA',
+    regulations: currentRulesSettings?.regulations || {
+      time: 'Thời gian: 10/09/2026 – 05/10/2026',
+      rules: 'Mỗi ngày là một lượt chơi. Các hoạt động chỉ được tính khi đáp ứng điều kiện hợp lệ của chương trình. EXP vẫn tiếp tục được tích lũy sau khi đội đạt 1.200 EXP.'
+    },
     confirmButton: getVal('cfg-rules-confirm-btn') || '🌱 Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây'
   };
 
