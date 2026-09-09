@@ -38,47 +38,57 @@ export class WisdomFruitManager {
     this.leafGeometry = this.createMiniLeafGeometry();
     this.stemGeometry = this.createCurvedStemGeometry();
 
-    // 2. Photorealistic Organic Materials
+    // 2. Photorealistic Organic Materials with 5 distinct vibrant, self-luminous fruit colors
     this.materials = [
       new THREE.MeshPhysicalMaterial({
-        color: 0x991b1b, // Ripe Apple
-        emissive: 0x3f0708,
-        emissiveIntensity: 0.15,
-        roughness: 0.32,
-        metalness: 0.02,
-        clearcoat: 0.6,
-        clearcoatRoughness: 0.25,
-        reflectivity: 0.5
+        color: 0xff2222, // 🍎 Trái Ruby Đỏ Rực (Bright Ruby Red Apple)
+        emissive: 0xaa0000,
+        emissiveIntensity: 0.45,
+        roughness: 0.22,
+        metalness: 0.05,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.12,
+        reflectivity: 0.7
       }),
       new THREE.MeshPhysicalMaterial({
-        color: 0xc2410c, // Persimmon
-        emissive: 0x431407,
-        emissiveIntensity: 0.15,
-        roughness: 0.35,
-        metalness: 0.02,
-        clearcoat: 0.55,
-        clearcoatRoughness: 0.28,
-        reflectivity: 0.5
+        color: 0xff7b00, // 🍊 Trái Hổ Phách Cam (Vibrant Amber Orange)
+        emissive: 0xaa4000,
+        emissiveIntensity: 0.45,
+        roughness: 0.25,
+        metalness: 0.05,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.12,
+        reflectivity: 0.7
       }),
       new THREE.MeshPhysicalMaterial({
-        color: 0x65a30d, // Orchard Olive Green
-        emissive: 0x1a2e05,
-        emissiveIntensity: 0.12,
-        roughness: 0.38,
-        metalness: 0.02,
-        clearcoat: 0.5,
-        clearcoatRoughness: 0.3,
-        reflectivity: 0.45
+        color: 0xffd000, // ✨ Trái Hoàng Kim Vàng Sáng (Golden Wisdom Pear)
+        emissive: 0xaa8000,
+        emissiveIntensity: 0.45,
+        roughness: 0.22,
+        metalness: 0.05,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.12,
+        reflectivity: 0.7
       }),
       new THREE.MeshPhysicalMaterial({
-        color: 0xd97706, // Amber Pear
-        emissive: 0x451a03,
-        emissiveIntensity: 0.15,
-        roughness: 0.34,
-        metalness: 0.02,
-        clearcoat: 0.6,
-        clearcoatRoughness: 0.25,
-        reflectivity: 0.5
+        color: 0xff1493, // 🌸 Trái Tinh Hoa Hồng Tím (Deep Rose Dragonfruit)
+        emissive: 0x990558,
+        emissiveIntensity: 0.45,
+        roughness: 0.22,
+        metalness: 0.05,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.12,
+        reflectivity: 0.7
+      }),
+      new THREE.MeshPhysicalMaterial({
+        color: 0x00e676, // 🍏 Trái Ngọc Bích Phát Sáng (Glowing Emerald Jade)
+        emissive: 0x008038,
+        emissiveIntensity: 0.40,
+        roughness: 0.25,
+        metalness: 0.05,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.12,
+        reflectivity: 0.7
       })
     ];
 
@@ -119,13 +129,14 @@ export class WisdomFruitManager {
 
   createCurvedStemGeometry() {
     const THREE = this.THREE;
+    // Botanical stem arching from top of fruit (y=0.40) up and back to branch origin (y=1.75, z=-1.10)
     const curve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(0, 0.40, 0),
-      new THREE.Vector3(0.05, 0.60, 0.02),
-      new THREE.Vector3(0.08, 0.85, 0.08),
-      new THREE.Vector3(0.04, 1.05, 0.12)
+      new THREE.Vector3(0.04, 0.85, -0.25),
+      new THREE.Vector3(0.06, 1.35, -0.65),
+      new THREE.Vector3(0.02, 1.75, -1.10)
     ]);
-    return new THREE.TubeGeometry(curve, 12, 0.035, 6, false);
+    return new THREE.TubeGeometry(curve, 14, 0.045, 6, false);
   }
 
   createMiniLeafGeometry() {
@@ -218,45 +229,140 @@ export class WisdomFruitManager {
     }
 
     const availableNodes = currentTree.leafClusterOrigins;
-    // Exactly 5 prominent ripe wisdom fruits beautifully hanging on Ancient Sage Tree canopy
-    const targetCount = 5;
+    if (!availableNodes || availableNodes.length === 0) return;
+
+    // Filter reasonable nodes in active canopy height (avoid bare base trunk or extreme tips)
+    let allCandidates = availableNodes.filter(n => n.origin.y >= 7.5 && n.origin.y <= 21.0);
+    if (allCandidates.length < 5) allCandidates = [...availableNodes];
+
+    // Find bounding box in X and Y to understand this tree model's unique shape
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const n of allCandidates) {
+      if (n.origin.x < minX) minX = n.origin.x;
+      if (n.origin.x > maxX) maxX = n.origin.x;
+      if (n.origin.y < minY) minY = n.origin.y;
+      if (n.origin.y > maxY) maxY = n.origin.y;
+    }
+    const width = Math.max(4.0, maxX - minX);
+    const height = Math.max(5.0, maxY - minY);
+
+    // 5 Normalized Canopy Target Profiles (0.0 to 1.0 in tree's width & height):
+    // 0: Lower-Left Branch (normX: 0.12, normY: 0.32) - Cành dưới bên trái
+    // 1: Upper-Left Branch (normX: 0.26, normY: 0.72) - Cành trên bên trái
+    // 2: Crown Center-Front (normX: 0.50, normY: 0.82) - Cành đỉnh diện tiền
+    // 3: Upper-Right Branch (normX: 0.74, normY: 0.72) - Cành trên bên phải
+    // 4: Lower-Right Branch (normX: 0.88, normY: 0.32) - Cành dưới bên phải
+    const targetProfiles = [
+      { targetNormX: 0.12, targetNormY: 0.32, desc: 'Cành dưới trái' },
+      { targetNormX: 0.26, targetNormY: 0.72, desc: 'Cành trên trái' },
+      { targetNormX: 0.50, targetNormY: 0.82, desc: 'Cành đỉnh diện tiền' },
+      { targetNormX: 0.74, targetNormY: 0.72, desc: 'Cành trên phải' },
+      { targetNormX: 0.88, targetNormY: 0.32, desc: 'Cành dưới phải' }
+    ];
+
+    const selectedNodes = [];
+    const minDistance = Math.min(3.4, width * 0.38);
+
+    for (let i = 0; i < 5; i++) {
+      const profile = targetProfiles[i];
+      let bestNode = null;
+      let bestScore = -Infinity;
+
+      // Pass 1: Strict distance check against already selected fruits
+      for (const node of allCandidates) {
+        let isSeparated = true;
+        for (const sel of selectedNodes) {
+          if (node.origin.distanceTo(sel.origin) < minDistance) {
+            isSeparated = false;
+            break;
+          }
+        }
+        if (!isSeparated) continue;
+
+        const normX = (node.origin.x - minX) / width;
+        const normY = (node.origin.y - minY) / height;
+        const dist2D = Math.sqrt(
+          Math.pow(normX - profile.targetNormX, 2) * 1.8 +
+          Math.pow(normY - profile.targetNormY, 2)
+        );
+
+        // Frontness bonus: prioritize nodes facing the camera (+Z)
+        const frontBonus = node.origin.z >= 0.2 ? 1.8 : (node.origin.z * 1.5);
+        const score = frontBonus - (dist2D * 3.5);
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestNode = node;
+        }
+      }
+
+      // Pass 2: Relaxed separation fallback (at least 2.0 units)
+      if (!bestNode) {
+        bestScore = -Infinity;
+        for (const node of allCandidates) {
+          let isSeparated = true;
+          for (const sel of selectedNodes) {
+            if (node.origin.distanceTo(sel.origin) < 2.0) {
+              isSeparated = false;
+              break;
+            }
+          }
+          if (!isSeparated) continue;
+
+          const normX = (node.origin.x - minX) / width;
+          const normY = (node.origin.y - minY) / height;
+          const dist2D = Math.sqrt(
+            Math.pow(normX - profile.targetNormX, 2) +
+            Math.pow(normY - profile.targetNormY, 2)
+          );
+          const score = (node.origin.z * 1.2) - (dist2D * 2.5);
+          if (score > bestScore) {
+            bestScore = score;
+            bestNode = node;
+          }
+        }
+      }
+
+      selectedNodes.push(bestNode || allCandidates[(i * 9) % allCandidates.length]);
+    }
+
     const THREE = this.THREE;
 
-    for (let i = 0; i < targetCount; i++) {
-      const nodeIndex = Math.floor((i + 0.5) * (availableNodes.length / targetCount)) % availableNodes.length;
-      const node = availableNodes[nodeIndex];
+    for (let i = 0; i < 5; i++) {
+      const node = selectedNodes[i];
       if (!node) continue;
 
       const fruitAssembly = new THREE.Group();
 
-      // Position fruit stem exactly at the real branch section origin, hanging naturally below foliage
-      fruitAssembly.position.copy(node.origin);
-      fruitAssembly.position.y -= (0.62 + (i % 2) * 0.1);
-      fruitAssembly.position.x += ((i % 3) - 1) * 0.15;
-      fruitAssembly.position.z += (((i * 2) % 3) - 1) * 0.15;
+      // Position fruit comfortably hanging below and in front of the foliage:
+      // y -= 1.75: Lowers the fruit clear beneath the leaves quad, so leaves don't clip it
+      // z = Math.max(1.2, node.origin.z + 1.1): Pushes it forward in front of trunk and all foliage
+      fruitAssembly.position.x = node.origin.x;
+      fruitAssembly.position.y = node.origin.y - 1.75;
+      fruitAssembly.position.z = Math.max(1.2, node.origin.z + 1.1);
 
-      // 1. Organic Fruit Mesh with rich ripe colors
-      const mat = this.materials[(i + teamId) % this.materials.length];
+      // 1. Organic Fruit Mesh with rich ripe colors (each of the 5 fruits gets a unique vibrant color)
+      const mat = this.materials[i % this.materials.length];
       const fruitMesh = new THREE.Mesh(this.fruitGeometry, mat);
       fruitMesh.castShadow = true;
       fruitMesh.receiveShadow = true;
 
-      // 2. Curved Stem
+      // 2. Curved Stem connecting fruit up to the branch joint
       const stemMesh = new THREE.Mesh(this.stemGeometry, this.stemMaterial);
       stemMesh.castShadow = true;
 
       // 3. Mini Leaflet
       const leafMesh = new THREE.Mesh(this.leafGeometry, this.leafMaterial);
-      leafMesh.position.set(0.06, 0.75, 0.05);
+      leafMesh.position.set(0.06, 1.05, 0.05);
       leafMesh.rotation.set(0.4, (i * 1.5), -0.6);
 
       fruitAssembly.add(fruitMesh);
       fruitAssembly.add(stemMesh);
       fruitAssembly.add(leafMesh);
 
-      // Natural organic size variations - prominent scale for 5 fruits
-      const naturalVariance = 0.95 + (i % 3) * 0.1;
-      const fruitScale = 1.35 * naturalVariance;
+      // Natural organic size variations - prominent scale (1.95) so clearly visible from panorama
+      const naturalVariance = 0.96 + (i % 3) * 0.06;
+      const fruitScale = 1.95 * naturalVariance;
       fruitAssembly.scale.setScalar(fruitScale);
       fruitAssembly.rotation.y = (i * 1.25);
 
