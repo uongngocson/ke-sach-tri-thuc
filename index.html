@@ -6515,8 +6515,7 @@
       <!-- Footer Buttons -->
       <div style="margin-top:16px; display:flex; align-items:center; justify-content:flex-end; gap:10px; position:relative; z-index:2;">
         <button id="rules-dismiss-btn" class="cb-submit-btn" type="button">
-          <span>🌱</span>
-          <span id="rules-confirm-btn-text">Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây</span>
+          <span id="rules-confirm-btn-text">🌱 Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây</span>
         </button>
       </div>
     </div>
@@ -8928,8 +8927,8 @@
           if (regRules && r.regulations && r.regulations.rules) regRules.textContent = r.regulations.rules;
 
           // Confirm button
-          const confirmBtn = document.querySelector('#rules-dismiss-btn span:last-child');
-          if (confirmBtn && r.confirmButton) confirmBtn.textContent = r.confirmButton;
+          const confirmBtn = document.getElementById('rules-confirm-btn-text');
+          if (confirmBtn && r.confirmButton) confirmBtn.textContent = r.confirmButton.trim();
         }
       }
 

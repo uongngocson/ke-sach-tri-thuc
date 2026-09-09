@@ -2559,14 +2559,14 @@ async function loadContentSettings() {
       const r = settings.rules_content;
       currentRulesSettings = r;
 
-      setVal('cfg-rules-badge', r.badge || '');
-      setVal('cfg-rules-milestones-title', r.milestonesTitle || '🌱 5 GIAI ĐOẠN SINH TRƯỞNG CỦA CÂY TRI THỨC');
+      setVal('cfg-rules-badge', r.badge || 'THỂ LỆ');
+      setVal('cfg-rules-milestones-title', r.milestonesTitle || '4 GIAI ĐOẠN PHÁT TRIỂN CỦA CÂY TRI THỨC');
       renderMilestonesEditor(r.milestones || []);
 
-      setVal('cfg-rules-interactions-title', r.interactionsTitle || 'Cơ Chế Tương Tác & Điểm EXP Nuôi Cây');
+      setVal('cfg-rules-interactions-title', r.interactionsTitle || 'CƠ CHẾ TƯƠNG TÁC & TÍCH LŨY EXP');
       renderInteractionsEditor(r.interactions || []);
 
-      setVal('cfg-rules-confirm-btn', r.confirmButton || '');
+      setVal('cfg-rules-confirm-btn', r.confirmButton || '🌱 Đã Hiểu & Bắt Đầu Gieo Mầm Nuôi Cây');
     }
   } catch (err) {
     console.error('Error loading content settings:', err);
@@ -2728,7 +2728,7 @@ async function saveRulesSettings() {
 }
 
 async function resetContentSetting(key) {
-  const name = key === 'welcome_content' ? 'Popup Chào Mừng' : 'Thể Lệ 15 Lượt';
+  const name = key === 'welcome_content' ? 'Popup Chào Mừng' : 'Thể Lệ Cây Tri Thức';
   if (!confirm(`Bạn có chắc chắn muốn khôi phục nội dung [${name}] về mặc định của BTC?`)) return;
 
   try {
