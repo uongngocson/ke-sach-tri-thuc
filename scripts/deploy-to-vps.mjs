@@ -83,7 +83,11 @@ async function deploy() {
     'server/scripts/test-fruit-harvest-fullkey.js',
     'server/scripts/run-all-test-suites.js',
     'server/scripts/test-unit-suite.js',
-    'server/scripts/run-tests.js',
+    'assets/tree/WisdomFruitManager.js',
+    'assets/tree/TreeManager.js',
+    'assets/sky/RealisticSky.js',
+    'assets/sky/components/SkyCanvas.js',
+    'server/scripts/test-fruit-ui-mobile-interaction-fullkey.js',
     'scripts/sync-book-users.js',
     'scripts/apply-ordered-users-to-db.js'
   ];
@@ -147,6 +151,14 @@ async function deploy() {
       console.log(`   ${fruitHarvestOutput.replace(/\n/g, '\n   ')}`);
     } catch (e) {
       console.warn(`   ⚠️ Fruit harvest test trên ${target.name}: ${e.message}`);
+    }
+
+    console.log(`🧪 Kiểm thử 100% UI Click & Mobile Touch 5 Quả trên ${target.name}...`);
+    try {
+      const fruitUiOutput = await runSSH(`docker exec -i ${target.backend} node scripts/test-fruit-ui-mobile-interaction-fullkey.js`);
+      console.log(`   ${fruitUiOutput.replace(/\n/g, '\n   ')}`);
+    } catch (e) {
+      console.warn(`   ⚠️ Fruit UI test trên ${target.name}: ${e.message}`);
     }
 
     console.log(`🧪 Kiểm thử 100% quy tắc 3 lần/ngày trên ${target.name}...`);
