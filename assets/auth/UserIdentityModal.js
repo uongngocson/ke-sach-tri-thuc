@@ -58,12 +58,42 @@ export class UserIdentityModal {
     }
   }
 
+  /**
+   * Clears all user-specific and cached data from localStorage and sessionStorage
+   * to guarantee complete isolation when switching accounts.
+   * Preserves theme preference (light/dark) by default.
+   */
+  static clearUserLocalStorage(options = { preserveTheme: true }) {
+    try {
+      if (typeof localStorage === 'undefined') return;
+      const preserveTheme = options && options.preserveTheme !== false;
+      const savedTheme = preserveTheme ? localStorage.getItem('theme_mode') : null;
+
+      // 1. Clear all localStorage keys
+      localStorage.clear();
+
+      // 2. Restore theme if preserved
+      if (savedTheme) {
+        localStorage.setItem('theme_mode', savedTheme);
+      }
+
+      // 3. Clear sessionStorage team inspection
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem('caosach_inspected_team_id');
+      }
+    } catch (e) {
+      console.warn('Error clearing localStorage upon account switch:', e);
+    }
+  }
+
   static clearSession() {
-    localStorage.removeItem('caosach_user_session');
-    localStorage.removeItem('caosach_current_team_id');
+    UserIdentityModal.clearUserLocalStorage({ preserveTheme: true });
   }
 
   initDOM() {
+    if (typeof document === 'undefined' || !document.body) {
+      return;
+    }
     // Check if modal container already exists
     if (document.getElementById('user-identity-modal-overlay')) {
       return;
@@ -661,6 +691,29 @@ export class UserIdentityModal {
 
     // Guest button click
     guestBtn.addEventListener('click', () => {
+      // 1. Purge all prior user data from localStorage
+      UserIdentityModal.clearUserLocalStorage({ preserveTheme: true });
+
+      // 2. Clear client in-memory caches
+      try {
+        if (typeof window !== 'undefined') {
+          if (window.DailyDewService && typeof window.DailyDewService.invalidateCache === 'function') {
+            window.DailyDewService.invalidateCache();
+          }
+          if (window.MockDataStore && typeof window.MockDataStore.clearLocalCache === 'function') {
+            window.MockDataStore.clearLocalCache();
+          }
+          if (window.ApiDataStore && typeof window.ApiDataStore.clearLocalCache === 'function') {
+            window.ApiDataStore.clearLocalCache();
+          }
+          if (window.treeManager?.fruitManager?.syncServerHarvestStatus) {
+            window.treeManager.fruitManager.syncServerHarvestStatus();
+          }
+        }
+      } catch (e) {
+        console.warn('Error resetting client in-memory caches:', e);
+      }
+
       const guestSession = {
         id: 'guest',
         full_name: 'Khách Tham Quan',
@@ -778,6 +831,30 @@ export class UserIdentityModal {
   }
 
   confirmUser(user) {
+    // 1. Purge all prior data in localStorage to completely prevent data leakage between accounts
+    UserIdentityModal.clearUserLocalStorage({ preserveTheme: true });
+
+    // 2. Clear client in-memory caches
+    try {
+      if (typeof window !== 'undefined') {
+        if (window.DailyDewService && typeof window.DailyDewService.invalidateCache === 'function') {
+          window.DailyDewService.invalidateCache();
+        }
+        if (window.MockDataStore && typeof window.MockDataStore.clearLocalCache === 'function') {
+          window.MockDataStore.clearLocalCache();
+        }
+        if (window.ApiDataStore && typeof window.ApiDataStore.clearLocalCache === 'function') {
+          window.ApiDataStore.clearLocalCache();
+        }
+        if (window.treeManager?.fruitManager?.syncServerHarvestStatus) {
+          window.treeManager.fruitManager.syncServerHarvestStatus();
+        }
+      }
+    } catch (e) {
+      console.warn('Error resetting client in-memory caches:', e);
+    }
+
+    // 3. Save new user session
     UserIdentityModal.saveSession(user);
     this.close();
 
@@ -816,4 +893,8 @@ export class UserIdentityModal {
       overlay.style.display = 'none';
     }, 300);
   }
+}
+
+if (typeof window !== 'undefined') {
+  window.UserIdentityModal = UserIdentityModal;
 }

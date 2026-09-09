@@ -26,7 +26,8 @@ const suites = [
   'test-e2e-multiday-fullkey.mjs',
   'test-e2e-team-full-journey.mjs',
   'test-exhaustive-multiday-limits.mjs',
-  'test-ui-state-refresh-fullkey.mjs'
+  'test-ui-state-refresh-fullkey.mjs',
+  'test-account-switch-storage-clear-fullkey.js'
 ];
 
 console.log(`\n🚀 Starting execution of all ${suites.length} test suites...\n`);
