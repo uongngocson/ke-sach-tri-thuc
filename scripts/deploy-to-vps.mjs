@@ -70,6 +70,7 @@ async function deploy() {
     'server/scripts/seed-teams-users.js',
     'server/scripts/test-288-users-seeding-and-ui-fullkey.js',
     'server/scripts/test-3-claims-per-day-fullkey.js',
+    'server/scripts/test-single-row-user-directory.mjs',
     'server/scripts/run-all-test-suites.js',
     'server/scripts/test-unit-suite.js',
     'server/scripts/run-tests.js',
