@@ -196,15 +196,19 @@ export class AnalyticsService {
     // 6. Branch / Department Breakdown
     const branchRes = await db.query(`
       SELECT 
-        COALESCE(NULLIF(branch, ''), 'Khối Chung') as branch,
-        COUNT(*) as total_members,
+        COALESCE(NULLIF(u.branch, ''), 'Khối Chung') as branch,
+        COUNT(u.id) as total_members,
         COALESCE(SUM(u.total_exp_earned), 0) as total_exp,
         COALESCE(SUM(u.contributed_books_count), 0) as total_books,
-        COUNT(DISTINCT dq.user_id) as active_round_members,
-        COUNT(DISTINCT dq.user_id) as today_active_members
+        COUNT(dq.user_id) as active_round_members,
+        COUNT(dq.user_id) as today_active_members
       FROM users u
-      LEFT JOIN daily_quotes dq ON u.id = dq.user_id AND dq.quote_date = CURRENT_DATE
-      GROUP BY branch
+      LEFT JOIN (
+        SELECT DISTINCT user_id
+        FROM daily_quotes
+        WHERE quote_date = CURRENT_DATE
+      ) dq ON u.id = dq.user_id
+      GROUP BY u.branch
       ORDER BY total_members DESC
     `);
 
@@ -359,12 +363,21 @@ export class AnalyticsService {
         u.job_title, u.team_id, u.role, u.avatar_url,
         u.contributed_books_count, u.total_exp_earned, u.created_at,
         t.display_name as team_display_name, t.color_code as team_color,
-        CASE WHEN dq.id IS NOT NULL THEN true ELSE false END as participated_today,
-        CASE WHEN dq.id IS NOT NULL THEN true ELSE false END as participated_current_round,
-        dq.created_at as today_contribution_time
+        CASE WHEN dq.user_id IS NOT NULL THEN true ELSE false END as participated_today,
+        CASE WHEN dq.user_id IS NOT NULL THEN true ELSE false END as participated_current_round,
+        COALESCE(dq.today_quotes_count, 0) as today_quotes_count,
+        dq.today_contribution_time
       FROM users u
       LEFT JOIN teams t ON u.team_id = t.id
-      LEFT JOIN daily_quotes dq ON u.id = dq.user_id AND dq.quote_date = $1::date
+      LEFT JOIN (
+        SELECT 
+          user_id,
+          COUNT(*)::int as today_quotes_count,
+          MAX(created_at) as today_contribution_time
+        FROM daily_quotes
+        WHERE quote_date = $1::date
+        GROUP BY user_id
+      ) dq ON u.id = dq.user_id
       WHERE 1=1
     `;
     const params = [targetDate];
@@ -378,9 +391,9 @@ export class AnalyticsService {
       query += ` AND u.branch = $${params.length}`;
     }
     if (status === 'participated') {
-      query += ' AND dq.id IS NOT NULL';
+      query += ' AND dq.user_id IS NOT NULL';
     } else if (status === 'not_participated') {
-      query += ' AND dq.id IS NULL';
+      query += ' AND dq.user_id IS NULL';
     }
     if (search) {
       params.push(`%${search}%`);
