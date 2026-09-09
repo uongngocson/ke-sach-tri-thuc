@@ -214,9 +214,9 @@ Những điều trông thấy mà đau đớn lòng.” ✨📚`;
     assert(foundBook !== undefined, 'Sách vừa gieo xuất hiện ngay lập tức trong API công khai cho toàn thể độc giả đọc và thả tim');
 
     // -------------------------------------------------------------
-    // TEST KEY 9: DAILY QUOTE LIMIT (1 QUOTE / DAY / USER)
+    // TEST KEY 9: DAILY QUOTE LIMIT (3 QUOTES / DAY / USER)
     // -------------------------------------------------------------
-    console.log('\n📦 [9/10] Test Key 9: Kiểm tra giới hạn 1 Quote / Ngày / UserID...');
+    console.log('\n📦 [9/10] Test Key 9: Kiểm tra giới hạn Tối đa 3 Quotes / Ngày / UserID...');
     const testDailyEmail = `test_daily_${Date.now()}@caosach.vn`;
     const testDailyFp = `fp_daily_${Date.now()}`;
 
@@ -236,12 +236,12 @@ Những điều trông thấy mà đau đớn lòng.” ✨📚`;
     const dataDaily1 = await resDaily1.json();
     assert(resDaily1.status === 201 && dataDaily1.success === true, 'Lần 1 gieo quote trong ngày thành công (HTTP 201)');
 
-    // Lần 2: Cùng user gieo tiếp trong cùng ngày -> Bị chặn 409
+    // Lần 2: Thành công
     const resDaily2 = await fetch(`${BASE_URL}/books/contribute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: 'Quẳng Gánh Lo Đi Và Vui Sống',
+        title: 'Quẳng Gánh Lo Đi',
         author: 'Dale Carnegie',
         quote: 'Hãy sống trong những ngăn kín của từng ngày.',
         reader: 'Độc giả Test Daily',
@@ -250,7 +250,39 @@ Những điều trông thấy mà đau đớn lòng.” ✨📚`;
       })
     });
     const dataDaily2 = await resDaily2.json();
-    assert(resDaily2.status === 409 && dataDaily2.success === false, 'Chặn thành công lượt gieo thứ 2 trong ngày (HTTP 409 DAILY_QUOTE_LIMIT_EXCEEDED)', `Message: ${dataDaily2.message}`);
+    assert(resDaily2.status === 201 && dataDaily2.success === true, 'Lần 2 gieo quote trong ngày thành công (HTTP 201)');
+
+    // Lần 3: Thành công (đạt mốc 3/3)
+    const resDaily3 = await fetch(`${BASE_URL}/books/contribute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Nhà Giả Kim',
+        author: 'Paulo Coelho',
+        quote: 'Khi bạn khao khát một điều gì đó, cả vũ trụ sẽ hợp lực giúp bạn đạt được.',
+        reader: 'Độc giả Test Daily',
+        email: testDailyEmail,
+        userFingerprint: testDailyFp
+      })
+    });
+    const dataDaily3 = await resDaily3.json();
+    assert(resDaily3.status === 201 && dataDaily3.success === true, 'Lần 3 gieo quote trong ngày thành công (HTTP 201, tối đa 3 quotes)');
+
+    // Lần 4: Chặn 409
+    const resDaily4 = await fetch(`${BASE_URL}/books/contribute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Cuốn Sách Thứ 4',
+        author: 'Dale Carnegie',
+        quote: 'Vượt quá hạn mức 3 câu trong ngày.',
+        reader: 'Độc giả Test Daily',
+        email: testDailyEmail,
+        userFingerprint: testDailyFp
+      })
+    });
+    const dataDaily4 = await resDaily4.json();
+    assert(resDaily4.status === 409 && dataDaily4.success === false, 'Chặn thành công lượt gieo thứ 4 trong ngày (HTTP 409 DAILY_QUOTE_LIMIT_EXCEEDED)');
 
     // -------------------------------------------------------------
     // TEST KEY 10: GET DAILY QUOTE STATUS ENDPOINT
@@ -259,7 +291,7 @@ Những điều trông thấy mà đau đớn lòng.” ✨📚`;
     const statusRes = await fetch(`${BASE_URL}/books/daily-status?email=${encodeURIComponent(testDailyEmail)}&userFingerprint=${encodeURIComponent(testDailyFp)}`);
     const statusData = await statusRes.json();
     assert(statusRes.status === 200 && statusData.success === true, 'API /books/daily-status phản hồi HTTP 200');
-    assert(statusData.data.hasContributedToday === true, 'hasContributedToday = true xác nhận đã gieo hôm nay');
+    assert(statusData.data.hasContributedToday === true, 'hasContributedToday = true xác nhận đã gieo đủ 3 quotes hôm nay');
     assert(statusData.data.remainingToday === 0, 'remainingToday = 0 xác nhận không thể gieo thêm câu quote nào hôm nay');
 
   } catch (err) {

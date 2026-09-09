@@ -275,6 +275,9 @@ export class DailyDewService {
     return {
       success: true,
       expGained: expGained,
+      claimsToday: claimsToday,
+      remainingClaimsToday: remainingClaimsToday,
+      hasClaimedToday: hasClaimedToday,
       streak: currentStreak,
       quote: luckyQuote,
       team: apiRes.team,

@@ -153,21 +153,44 @@ async function run288UsersSeedingAndUiFullkey() {
       assert(seeded === members, `Đội ${tId} (${EXPECTED_TEAMS[tId]}) nhận đúng 100% trích dẫn từ thành viên của mình`, `${seeded}/${members} trích dẫn`);
     }
 
-    // Kiểm tra ràng buộc: Mỗi ngày mỗi thành viên chỉ gieo đúng 1 câu
-    console.log('\n   🔒 Kiểm thử ràng buộc chống gieo trùng trong ngày (1 user / 1 quote / day)...');
+    // Kiểm tra ràng buộc: Mỗi ngày mỗi thành viên tối đa 3 câu trích dẫn
+    console.log('\n   🔒 Kiểm thử ràng buộc hạn mức tối đa 3 quotes / ngày / user...');
     let duplicatesBlocked = 0;
     for (let tId = 1; tId <= 8; tId++) {
       const sampleUser = allUsersRes.rows.find(u => u.team_id === tId);
+      // Gieo thêm câu 2 và câu 3
+      await BookService.contributeBook({
+        title: 'Trích dẫn 2',
+        author: 'Test Author',
+        quote: 'Câu trích dẫn thứ hai trong ngày',
+        category: 'Kinh doanh',
+        reader: sampleUser.nickname || sampleUser.full_name,
+        userId: sampleUser.id,
+        teamId: tId,
+        userFingerprint: `fp_q2_${sampleUser.id.substring(0, 8)}`
+      });
+      await BookService.contributeBook({
+        title: 'Trích dẫn 3',
+        author: 'Test Author',
+        quote: 'Câu trích dẫn thứ ba trong ngày',
+        category: 'Kinh doanh',
+        reader: sampleUser.nickname || sampleUser.full_name,
+        userId: sampleUser.id,
+        teamId: tId,
+        userFingerprint: `fp_q3_${sampleUser.id.substring(0, 8)}`
+      });
+
+      // Câu thứ 4 phải bị chặn 409
       try {
         await BookService.contributeBook({
-          title: 'Trích dẫn trùng lặp',
+          title: 'Trích dẫn 4',
           author: 'Test Author',
-          quote: 'Câu trích dẫn thứ hai trong ngày',
+          quote: 'Câu trích dẫn thứ tư vượt hạn mức',
           category: 'Kinh doanh',
           reader: sampleUser.nickname || sampleUser.full_name,
           userId: sampleUser.id,
           teamId: tId,
-          userFingerprint: `fp_dup_${sampleUser.id.substring(0, 8)}`
+          userFingerprint: `fp_q4_${sampleUser.id.substring(0, 8)}`
         });
       } catch (err) {
         if (err.statusCode === 409 && err.code === 'DAILY_QUOTE_LIMIT_EXCEEDED') {
@@ -175,7 +198,7 @@ async function run288UsersSeedingAndUiFullkey() {
         }
       }
     }
-    assert(duplicatesBlocked === 8, 'Hệ thống chặn đứng 100% nỗ lực gieo trích dẫn thứ 2 trong ngày (HTTP 409)', 
+    assert(duplicatesBlocked === 8, 'Hệ thống chặn đứng 100% nỗ lực gieo trích dẫn thứ 4 trong ngày (HTTP 409)', 
       `Chặn thành công: ${duplicatesBlocked}/8 đội`);
 
     // =========================================================================

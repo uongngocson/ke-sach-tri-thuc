@@ -3900,24 +3900,36 @@
       }
       .aside-quote-footer { font-size: 9.5px !important; }
       .aside-timer-track { height: 2px !important; margin-top: 4px !important; }
+      .aside-quick-plant-btn {
+        margin-top: 6px !important;
+        height: 29px !important;
+        padding: 5px 10px !important;
+        font-size: 11px !important;
+        gap: 5px !important;
+        border-radius: 9px !important;
+      }
+      .aside-quick-plant-btn .aside-plant-badge {
+        font-size: 9px !important;
+        padding: 1px 5px !important;
+      }
 
       /* Mobile Tester Button: Fixed Bottom-Left with Safe Area Inset */
       .tester-toggle-btn {
-        bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+        bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
         left: 10px !important;
         top: auto !important;
         right: auto !important;
-        padding: 5px 10px !important;
+        padding: 6px 12px !important;
         font-size: 10.5px !important;
         font-weight: 800 !important;
         border-radius: 9999px !important;
-        gap: 4px !important;
+        gap: 5px !important;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5) !important;
         z-index: 999999 !important;
       }
 
       .tester-panel-card {
-        bottom: calc(50px + env(safe-area-inset-bottom, 0px)) !important;
+        bottom: calc(54px + env(safe-area-inset-bottom, 0px)) !important;
         top: auto !important;
         left: 10px !important;
         right: auto !important;
@@ -3925,9 +3937,9 @@
         max-width: 320px !important;
       }
 
-      /* Mobile Ground Action Hint: Fixed Bottom-Center with Safe Area Inset */
+      /* Mobile Ground Action Hint: Fixed Bottom-Center with Safe Area Inset & Professional Padding */
       #ground-action-hint {
-        bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+        bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
         top: auto !important;
@@ -3937,20 +3949,40 @@
         white-space: nowrap !important;
       }
       .ground-hint-pill {
-        padding: 5px 11px !important;
-        font-size: 10.5px !important;
-        gap: 4px !important;
+        padding: 7px 16px !important;
+        font-size: 11px !important;
+        gap: 6px !important;
         border-width: 1.5px !important;
         white-space: nowrap !important;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 16px rgba(245, 206, 66, 0.2) !important;
       }
       .ground-hint-pill span {
-        font-size: 10.5px !important;
+        font-size: 11px !important;
         white-space: nowrap !important;
       }
       #ground-action-hint-text {
-        font-size: 10.5px !important;
+        font-size: 11px !important;
         white-space: nowrap !important;
+      }
+
+      /* Mobile Ground Scroll Hint: Nâng vị trí lên tầng trên, cách xa thanh Chạm vào cây */
+      .fpt-ground-scroll-hint {
+        bottom: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
+        right: 14px !important;
+        padding: 6px 14px !important;
+        font-size: 11px !important;
+        gap: 6px !important;
+        border-radius: 9999px !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+      }
+      .fpt-ground-scroll-hint .fpt-scroll-text {
+        font-size: 11px !important;
+        letter-spacing: 0.02em !important;
+      }
+      .fpt-ground-scroll-hint .fpt-scroll-arrow {
+        font-size: 11px !important;
       }
 
       .fpt-ground-container {
@@ -4252,6 +4284,14 @@
                   <div class="aside-timer-track w-full h-[2px] rounded-full overflow-hidden mt-2">
                     <div class="aside-timer-bar h-full rounded-full" id="aside-quote-timer-bar"></div>
                   </div>
+
+                  <!-- Quick Plant Seed Action Button -->
+                  <button type="button" id="aside-quick-plant-btn" class="aside-quick-plant-btn" title="Gieo hạt trích dẫn sách của bạn ngay (+5 EXP)">
+                    <span>🌱</span>
+                    <span>Gieo Hạt Ngay</span>
+                    <span class="aside-plant-badge">+5 EXP</span>
+                    <span class="text-[11px] text-amber-200">✨</span>
+                  </button>
                 </div>
               </aside>
 
@@ -4837,6 +4877,56 @@
     .aside-timer-bar {
       background: linear-gradient(90deg, #F36F21 0%, #0054A6 50%, #70B928 100%) !important;
       width: 0%;
+    }
+
+    /* Aside Quick Plant Button (Convenient Call To Action under quote card) */
+    .aside-quick-plant-btn {
+      width: 100%;
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 12px;
+      height: 33px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff !important;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.015em;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.32);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .aside-quick-plant-btn:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+      transform: translateY(-1px);
+    }
+    .aside-quick-plant-btn:active {
+      transform: scale(0.98);
+    }
+    .aside-quick-plant-btn .aside-plant-badge {
+      font-size: 9.5px;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.22);
+      padding: 1.5px 6px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      line-height: 1;
+      margin-left: 2px;
+    }
+    html.dark .aside-quick-plant-btn {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      border-color: rgba(52, 211, 153, 0.4);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 12px rgba(16, 185, 129, 0.25);
+    }
+    html.dark .aside-quick-plant-btn:hover {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
     }
 
     /* Explicit FPT Buttons (Guaranteed Contrast) */
@@ -5621,15 +5711,20 @@
     /* Mobile Ground Scroll Hint Indicator */
     .fpt-ground-scroll-hint {
       position: absolute;
-      right: 12px;
-      bottom: 36px;
+      right: 16px;
+      bottom: 58px;
       z-index: 60 !important;
       display: none;
       pointer-events: auto;
       transition: opacity 0.3s ease, transform 0.3s ease;
       color: #ffffff !important;
-      border: 1px solid rgba(255, 255, 255, 0.4) !important;
-      background: rgba(15, 23, 42, 0.95) !important;
+      border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+      background: rgba(15, 23, 42, 0.94) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 9999px;
+      padding: 6.5px 15px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
     }
     .fpt-ground-scroll-hint,
     .fpt-ground-scroll-hint span,
@@ -7313,9 +7408,7 @@
         renderGroundSeeds();
         updateDewButtonState();
         render8TeamTimeline();
-        if (notify) {
-          showToast(`🌳 Đang ghé thăm Cây Tri Thức: ${team.display_name || team.name || TEAM_SHORT_NAMES[team.id] || ('Đội ' + team.id)}`);
-        }
+        // Bỏ thông báo toast "Đang ghé thăm Cây Tri Thức" theo yêu cầu
       }
 
       async function loadUserTeamAndSync() {
@@ -8124,6 +8217,19 @@
           });
         }
 
+        const quickPlantBtn = document.getElementById('aside-quick-plant-btn');
+        if (quickPlantBtn) {
+          quickPlantBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof openContributeModal === 'function') {
+              openContributeModal();
+            } else if (typeof window.handleGroundAction === 'function') {
+              window.handleGroundAction(e);
+            }
+          });
+        }
+
         updateQuote(0, false);
         startAutoRotate();
         MockDataStore.subscribe('growth:updated', reloadQuotes);
@@ -8245,6 +8351,14 @@
           const userTeamName = (myTeam && (myTeam.display_name || myTeam.name)) || TEAM_SHORT_NAMES[currentUser.team_id] || `Đội ${currentUser.team_id}`;
           modalTeamBadge.textContent = `GIEO MẦM VÀO CÂY ${userTeamName.toUpperCase()}`;
         }
+
+        // Đảm bảo nút submit luôn ở trạng thái sẵn sàng (active, không bị stuck disabled)
+        const submitBtn = document.getElementById('cb-submit-btn');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>✨</span><span>Xác Nhận Gieo Mầm</span>';
+        }
+
         if (contributeOverlay) contributeOverlay.classList.add('active');
         updateBodyModalState();
         if (cbBookTitle && window.innerWidth > 640) {
@@ -8606,29 +8720,45 @@
           }
 
           const targetTeamId = currentUser.team_id;
-          const res = await MockDataStore.plantSeed({
-            book: bookTitleVal,
-            author: bookAuthorVal,
-            quote: bookQuoteVal,
-            reader: readerVal,
-            userId: currentUser?.id !== 'guest' ? currentUser?.id : null,
-            teamId: targetTeamId,
-            email: currentUser?.email
-          });
+          const submitBtn = document.getElementById('cb-submit-btn');
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>⏳</span><span>Đang Gieo Mầm...</span>';
+          }
 
-          if (res.success) {
-            contributeForm.reset();
-            closeContributeModal();
-            if (typeof renderGroundSeeds === 'function') {
-              renderGroundSeeds();
+          try {
+            const res = await MockDataStore.plantSeed({
+              book: bookTitleVal,
+              author: bookAuthorVal,
+              quote: bookQuoteVal,
+              reader: readerVal,
+              userId: currentUser?.id !== 'guest' ? currentUser?.id : null,
+              teamId: targetTeamId,
+              email: currentUser?.email
+            });
+
+            if (res.success) {
+              contributeForm.reset();
+              closeContributeModal();
+              if (typeof renderGroundSeeds === 'function') {
+                renderGroundSeeds();
+              }
+              if (typeof loadUserTeamAndSync === 'function') {
+                loadUserTeamAndSync();
+              }
+              const teamName = (myTeam && (myTeam.display_name || myTeam.name)) || TEAM_SHORT_NAMES[targetTeamId] || `Đội ${targetTeamId}`;
+              showToast(`🎉 Gieo mầm thành công: "${bookTitleVal}" đã được gieo vào Cây ${teamName} (+5 EXP)!`);
+            } else {
+              showToast(`⚠️ ${res.message || 'Mỗi ngày mỗi thành viên chỉ được gieo tối đa 3 câu quote!'}`);
             }
-            if (typeof loadUserTeamAndSync === 'function') {
-              loadUserTeamAndSync();
+          } catch (err) {
+            console.error('Lỗi khi gửi trích dẫn gieo mầm:', err);
+            showToast('❌ Đã xảy ra lỗi khi gửi. Vui lòng thử lại!');
+          } finally {
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = '<span>✨</span><span>Xác Nhận Gieo Mầm</span>';
             }
-            const teamName = (myTeam && (myTeam.display_name || myTeam.name)) || TEAM_SHORT_NAMES[targetTeamId] || `Đội ${targetTeamId}`;
-            showToast(`🎉 Gieo mầm thành công: "${bookTitleVal}" đã được gieo vào Cây ${teamName} (+5 EXP)!`);
-          } else {
-            showToast(`⚠️ ${res.message || 'Mỗi ngày mỗi thành viên chỉ được gieo tối đa 3 câu quote!'}`);
           }
         });
       }

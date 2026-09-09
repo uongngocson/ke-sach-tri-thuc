@@ -789,6 +789,11 @@ export class UserIdentityModal {
       window.showToast(`Chào mừng ${displayName} đã gia nhập Đội ${user.team_id}! ✨`);
     }
 
+    try {
+      window.dispatchEvent(new CustomEvent('user:logged_in', { detail: user }));
+      window.dispatchEvent(new CustomEvent('user:session_changed', { detail: user }));
+    } catch {}
+
     this.onUserIdentified(user);
   }
 

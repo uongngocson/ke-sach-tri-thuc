@@ -19,7 +19,14 @@ const suites = [
   'test-day-night-fullkey.js',
   'test-realtime-concurrency-fullkey.js',
   'test-security-fullkey.js',
-  'test-288-users-seeding-and-ui-fullkey.js'
+  'test-288-users-seeding-and-ui-fullkey.js',
+  'test-3-claims-per-day-fullkey.js',
+  'test-team-exp-and-members-modal-fullkey.js',
+  'test-single-row-user-directory.mjs',
+  'test-e2e-multiday-fullkey.mjs',
+  'test-e2e-team-full-journey.mjs',
+  'test-exhaustive-multiday-limits.mjs',
+  'test-ui-state-refresh-fullkey.mjs'
 ];
 
 console.log(`\n🚀 Starting execution of all ${suites.length} test suites...\n`);

@@ -215,7 +215,7 @@ export class QuoteService {
   }
 
   static async harvestFruit(fruitIndex, userFingerprint, meta = {}) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = meta.customDate || new Date().toISOString().split('T')[0];
     const parsedFruitIndex = parseInt(fruitIndex, 10);
     if (isNaN(parsedFruitIndex) || parsedFruitIndex < 0 || parsedFruitIndex > 4) {
       const err = new Error('Chỉ số quả không hợp lệ (phải từ 0 đến 4)');

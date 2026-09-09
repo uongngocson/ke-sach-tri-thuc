@@ -26,8 +26,8 @@ export async function contributeBook(req, res, next) {
 
 export async function getDailyQuoteStatus(req, res, next) {
   try {
-    const { userId, email, userFingerprint } = req.query;
-    const status = await BookService.getDailyQuoteStatus({ userId, email, userFingerprint });
+    const { userId, email, userFingerprint, date } = req.query;
+    const status = await BookService.getDailyQuoteStatus({ userId, email, userFingerprint, date });
     res.json({
       success: true,
       data: status

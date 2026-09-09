@@ -210,17 +210,17 @@ async function runStateIntegrityTests() {
     const successDews = dewResults.filter(r => r.success);
     const rejectedDews = dewResults.filter(r => !r.success);
 
-    assert(successDews.length === 1, 'Chính xác DUY NHẤT 1 request tưới cây thành công', `Thành công: ${successDews.length}/12`);
-    assert(rejectedDews.length === 11, '11 request còn lại bị chặn hoàn toàn (ACID Race Protection)', `Bị chặn: ${rejectedDews.length}/12`);
+    assert(successDews.length === 3, 'Chính xác TỐI ĐA 3 requests tưới cây thành công (Hạn mức 3 lần/ngày)', `Thành công: ${successDews.length}/12`);
+    assert(rejectedDews.length === 9, '9 request còn lại bị chặn hoàn toàn (ACID Race Protection)', `Bị chặn: ${rejectedDews.length}/12`);
     
-    // Kiểm tra CSDL chỉ tăng đúng +2 EXP
+    // Kiểm tra CSDL chỉ tăng đúng +6 EXP (3 lần * 2 EXP)
     const userExpAfterDew = (await db.query('SELECT total_exp_earned FROM users WHERE id = $1', [testUserId])).rows[0].total_exp_earned;
     const team1ExpAfterDew = (await db.query('SELECT tree_exp FROM teams WHERE id = 1')).rows[0].tree_exp;
     const dewsInDb = (await db.query('SELECT COUNT(*)::INT as count FROM daily_dews WHERE user_id = $1', [testUserId])).rows[0].count;
 
-    assert(userExpAfterDew === userExpBeforeDew + 2, 'User EXP CHỈ TĂNG ĐÚNG +2 EXP (Không bị nhân đôi/nhân 12)', `Trước: ${userExpBeforeDew}, Sau: ${userExpAfterDew}`);
-    assert(parseInt(team1ExpAfterDew, 10) === parseInt(team1ExpBeforeDew, 10) + 2, 'Team tree_exp CHỈ TĂNG ĐÚNG +2 EXP (Không bị race condition)');
-    assert(dewsInDb === 1, 'Bảng daily_dews chỉ lưu ĐÚNG 1 BẢN GHI (0 bản ghi trùng lặp)');
+    assert(userExpAfterDew === userExpBeforeDew + 6, 'User EXP CHỈ TĂNG ĐÚNG +6 EXP (Không bị race condition)', `Trước: ${userExpBeforeDew}, Sau: ${userExpAfterDew}`);
+    assert(parseInt(team1ExpAfterDew, 10) === parseInt(team1ExpBeforeDew, 10) + 6, 'Team tree_exp CHỈ TĂNG ĐÚNG +6 EXP (Không bị race condition)');
+    assert(dewsInDb === 3, 'Bảng daily_dews chỉ lưu ĐÚNG 3 BẢN GHI (chuẩn hạn mức 3 lần/ngày)');
 
     // 3.2: Concurrent Like Stampede (10 requests thả tim cùng 1 mili-giây cho 1 cuốn sách)
     let testBookRes = await db.query('SELECT id, likes_count, team_id FROM books WHERE visibility_status = \'visible\' LIMIT 1');
@@ -440,7 +440,6 @@ async function runStateIntegrityTests() {
       SELECT conname, contype 
       FROM pg_constraint 
       WHERE conname IN (
-        'unq_user_daily_quote',
         'unq_user_quote_like',
         'unq_user_fruit_harvest',
         'community_growth_id_check',
@@ -449,7 +448,6 @@ async function runStateIntegrityTests() {
     `);
     const existingConstraints = constraintsRes.rows.map(r => r.conname);
 
-    assert(existingConstraints.includes('unq_user_daily_quote'), 'Ràng buộc UNIQUE unq_user_daily_quote bảo vệ 1 quote/ngày/user');
     assert(existingConstraints.includes('unq_user_quote_like'), 'Ràng buộc UNIQUE unq_user_quote_like bảo vệ chống duplicate like');
     assert(existingConstraints.includes('community_growth_id_check'), 'Ràng buộc CHECK id=1 bảo vệ bảng community_growth');
     assert(existingConstraints.includes('community_growth_level_check'), 'Ràng buộc CHECK level 0-5 bảo vệ cấp độ cây trong khoảng hợp lệ');

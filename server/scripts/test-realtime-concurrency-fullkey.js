@@ -94,28 +94,28 @@ async function runRealtimeConcurrencyTests() {
     const rejectedDews = dewResults.filter(r => r.status === 'rejected');
 
     assert(
-      successfulDews.length === 1,
-      'Chính xác 1 request thành công khi 1 user tưới 10 lần đồng thời',
+      successfulDews.length === 3,
+      'Chính xác TỐI ĐA 3 requests thành công khi 1 user tưới 10 lần đồng thời (Hạn mức 3 lần/ngày)',
       `Thành công: ${successfulDews.length}, Thất bại: ${rejectedDews.length}`
     );
 
     assert(
-      rejectedDews.length === 9,
-      'Chính xác 9 requests còn lại bị chặn đứng hoàn toàn (DUPLICATE_DEW_CLAIM)',
+      rejectedDews.length === 7,
+      'Chính xác 7 requests còn lại bị chặn đứng hoàn toàn (DUPLICATE_DEW_CLAIM)',
       `Mã lỗi mẫu: ${rejectedDews[0]?.reason?.code || rejectedDews[0]?.reason?.message}`
     );
 
     const dewRows = await db.query('SELECT COUNT(*)::INT as count FROM daily_dews WHERE user_id = $1 AND claim_date = $2', [singleUserId, todayVN]);
     assert(
-      dewRows.rows[0].count === 1,
-      'Bảng daily_dews chỉ lưu chính xác DUY NHẤT 1 bản ghi (Không bị spam DB)',
+      dewRows.rows[0].count === 3,
+      'Bảng daily_dews chỉ lưu chính xác ĐÚNG 3 bản ghi (chuẩn 3 lần/ngày, không bị spam DB)',
       `Số bản ghi thực tế trong DB: ${dewRows.rows[0].count}`
     );
 
     const userExpRow = await db.query('SELECT total_exp_earned FROM users WHERE id = $1', [singleUserId]);
     assert(
-      userExpRow.rows[0].total_exp_earned === EXP_CONFIG.DAILY_DEW,
-      `Điểm EXP của User chỉ tăng đúng +${EXP_CONFIG.DAILY_DEW} EXP chuẩn theo cấu hình (Triệt tiêu bug lạm phát)`,
+      userExpRow.rows[0].total_exp_earned === 3 * EXP_CONFIG.DAILY_DEW,
+      `Điểm EXP của User chỉ tăng đúng +${3 * EXP_CONFIG.DAILY_DEW} EXP chuẩn theo cấu hình (3 lần * 2 EXP)`,
       `total_exp_earned: ${userExpRow.rows[0].total_exp_earned}`
     );
 
@@ -309,21 +309,21 @@ async function runRealtimeConcurrencyTests() {
     const rejectedBooks = bookResults.filter(r => r.status === 'rejected');
 
     assert(
-      successfulBooks.length === 1,
-      'Chính xác 1 request gieo sách thành công khi 1 user bấm gửi 5 lần đồng thời',
+      successfulBooks.length === 3,
+      'Chính xác TỐI ĐA 3 requests gieo sách thành công khi 1 user bấm gửi 5 lần đồng thời (Hạn mức 3 quotes/ngày)',
       `Thành công: ${successfulBooks.length}, Bị chặn: ${rejectedBooks.length}`
     );
 
     assert(
-      rejectedBooks.length === 4,
-      'Chính xác 4 requests còn lại bị chặn (DAILY_QUOTE_LIMIT_EXCEEDED)',
+      rejectedBooks.length === 2,
+      'Chính xác 2 requests còn lại bị chặn (DAILY_QUOTE_LIMIT_EXCEEDED)',
       `Lỗi mẫu: ${rejectedBooks[0]?.reason?.code || rejectedBooks[0]?.reason?.message}`
     );
 
     const dailyQuoteCount = await db.query('SELECT COUNT(*)::INT as count FROM daily_quotes WHERE user_id = $1 AND quote_date = CURRENT_DATE', [bookAuthorUser]);
     assert(
-      dailyQuoteCount.rows[0].count === 1,
-      'Bảng daily_quotes chỉ có đúng 1 bản ghi duy nhất cho user trong ngày hôm nay',
+      dailyQuoteCount.rows[0].count === 3,
+      'Bảng daily_quotes chỉ có đúng 3 bản ghi chuẩn hạn mức 3 câu/ngày cho user hôm nay',
       `daily_quotes count: ${dailyQuoteCount.rows[0].count}`
     );
 
