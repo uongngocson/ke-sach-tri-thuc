@@ -105,6 +105,7 @@ async function migrate() {
 
     ALTER TABLE fruit_harvests ADD COLUMN IF NOT EXISTS team_id INT REFERENCES teams(id);
     ALTER TABLE fruit_harvests ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id);
+    ALTER TABLE fruit_harvests DROP CONSTRAINT IF EXISTS unq_user_fruit_harvest;
     CREATE UNIQUE INDEX IF NOT EXISTS idx_unq_user_team_fruit_harvest 
     ON fruit_harvests (user_id, team_id, fruit_index, harvest_date) 
     WHERE user_id IS NOT NULL;
@@ -203,10 +204,20 @@ async function migrate() {
     );
 
     ALTER TABLE users ADD COLUMN IF NOT EXISTS nickname VARCHAR(100);
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS officer_code VARCHAR(100);
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS job_title VARCHAR(255);
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS tt INT;
     CREATE INDEX IF NOT EXISTS idx_users_team_id ON users(team_id);
-    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-    CREATE INDEX IF NOT EXISTS idx_users_employee_code ON users(employee_code);
     CREATE INDEX IF NOT EXISTS idx_users_nickname ON users(nickname);
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='email') THEN
+        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='employee_code') THEN
+        CREATE INDEX IF NOT EXISTS idx_users_employee_code ON users(employee_code);
+      END IF;
+    END $$;
 
     -- 13. Daily Quotes Table (Max 3 quotes per user/device per day)
     CREATE TABLE IF NOT EXISTS daily_quotes (
@@ -288,6 +299,99 @@ async function migrate() {
       deletion_reason TEXT,
       deleted_at TIMESTAMPTZ DEFAULT NOW(),
       metadata JSONB
+    );
+
+    -- 19. User Profiles Table
+    CREATE TABLE IF NOT EXISTS user_profiles (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_fingerprint VARCHAR(100),
+      display_name VARCHAR(100),
+      real_name VARCHAR(150),
+      email VARCHAR(255),
+      employee_id VARCHAR(50),
+      team_id INT REFERENCES teams(id),
+      total_books_contributed INT DEFAULT 0,
+      total_dews_count INT DEFAULT 0,
+      total_likes_given INT DEFAULT 0,
+      total_likes_received INT DEFAULT 0,
+      total_exp_contributed INT DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- 20. Game Rounds Table
+    CREATE TABLE IF NOT EXISTS game_rounds (
+      id INT PRIMARY KEY,
+      round_number INT NOT NULL,
+      name VARCHAR(100) NOT NULL,
+      stage_type VARCHAR(20) NOT NULL,
+      start_date DATE NOT NULL,
+      end_date DATE NOT NULL,
+      is_exp_counting BOOLEAN DEFAULT true,
+      status VARCHAR(20) DEFAULT 'UPCOMING',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- 21. Mini Games Table
+    CREATE TABLE IF NOT EXISTS mini_games (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      banner_url VARCHAR(255),
+      start_time TIMESTAMPTZ NOT NULL,
+      end_time TIMESTAMPTZ NOT NULL,
+      reward_info TEXT,
+      winner_count INT DEFAULT 0,
+      status VARCHAR(20) DEFAULT 'ACTIVE',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- 22. Mini Game Entries Table
+    CREATE TABLE IF NOT EXISTS mini_game_entries (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      game_id UUID REFERENCES mini_games(id),
+      user_id UUID REFERENCES users(id),
+      team_id INT REFERENCES teams(id),
+      action_type VARCHAR(50) NOT NULL,
+      reference_id UUID,
+      is_winner BOOLEAN DEFAULT false,
+      awarded_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- 23. Reading Codes Table
+    CREATE TABLE IF NOT EXISTS reading_codes (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      code VARCHAR(100) UNIQUE NOT NULL,
+      round_id INT,
+      is_used BOOLEAN DEFAULT false,
+      used_by_user_id UUID REFERENCES users(id),
+      used_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- 24. Team Round Stats Table
+    CREATE TABLE IF NOT EXISTS team_round_stats (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      round_id INT,
+      team_id INT REFERENCES teams(id),
+      participants_count INT DEFAULT 0,
+      total_members INT DEFAULT 0,
+      participation_rate NUMERIC(6,3) DEFAULT 0.000,
+      exp_earned NUMERIC(10,2) DEFAULT 0.00,
+      cumulative_exp NUMERIC(10,2) DEFAULT 0.00,
+      tree_level INT DEFAULT 0,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- 25. Team Round Contributions Table
+    CREATE TABLE IF NOT EXISTS team_round_contributions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      round_id INT,
+      team_id INT REFERENCES teams(id),
+      user_id UUID REFERENCES users(id),
+      code VARCHAR(100),
+      submitted_at TIMESTAMPTZ DEFAULT NOW()
     );
 
     -- Alter existing tables to associate books and exp with teams/users
@@ -398,6 +502,18 @@ async function migrate() {
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='daily_dews' AND column_name='team_id') THEN
         ALTER TABLE daily_dews ADD COLUMN team_id INT REFERENCES teams(id);
       END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='daily_dews' AND column_name='quote_id') THEN
+        ALTER TABLE daily_dews ADD COLUMN quote_id UUID REFERENCES books(id) ON DELETE SET NULL;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='site_visitors' AND column_name='team_id') THEN
+        ALTER TABLE site_visitors ADD COLUMN team_id INT REFERENCES teams(id);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='active_members_count') THEN
+        ALTER TABLE teams ADD COLUMN active_members_count INT DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teams' AND column_name='total_dews') THEN
+        ALTER TABLE teams ADD COLUMN total_dews INT DEFAULT 0;
+      END IF;
       -- Credibility Score & AI Moderation Columns on books
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='credibility_score') THEN
         ALTER TABLE books ADD COLUMN credibility_score INT DEFAULT NULL;
@@ -427,9 +543,11 @@ async function migrate() {
       DATE(created_at),
       team_id,
       created_at
-    FROM books
+    FROM books b
     WHERE user_id IS NOT NULL
-    ON CONFLICT (user_id, quote_date) DO NOTHING;
+      AND NOT EXISTS (
+        SELECT 1 FROM daily_quotes dq WHERE dq.user_id = b.user_id AND dq.quote_date = DATE(b.created_at)
+      );
 
     -- Backfill exp_ledger historical entries for users and teams
     UPDATE exp_ledger el

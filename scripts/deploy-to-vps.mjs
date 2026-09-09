@@ -65,6 +65,10 @@ async function deploy() {
     'server/services/dew.service.js',
     'server/scripts/migrate.js',
     'server/scripts/migrate_daily_quotes.js',
+    'server/scripts/migrate_settings.js',
+    'server/scripts/migrate_rounds.js',
+    'server/scripts/migrate_admin_fks.js',
+    'server/scripts/migrate_nickname.js',
     'server/scripts/sync-team-exp.js',
     'server/scripts/test-team-exp-and-members-modal-fullkey.js',
     'server/scripts/apply-ordered-users-to-db.js',
@@ -76,6 +80,7 @@ async function deploy() {
     'server/scripts/test-e2e-team-full-journey.mjs',
     'server/scripts/test-exhaustive-multiday-limits.mjs',
     'server/scripts/test-ui-state-refresh-fullkey.mjs',
+    'server/scripts/test-fruit-harvest-fullkey.js',
     'server/scripts/run-all-test-suites.js',
     'server/scripts/test-unit-suite.js',
     'server/scripts/run-tests.js',
@@ -89,7 +94,7 @@ async function deploy() {
   ];
 
   for (const target of targets) {
-    console.log(`📦 [1/4] Đồng bộ files mã nguồn vào môi trường ${target.name}...`);
+    console.log(`📦 [1/5] Đồng bộ files mã nguồn vào môi trường ${target.name}...`);
     for (const relFile of filesToDeploy) {
       const remotePath = `${target.path}/${relFile}`;
       process.stdout.write(`   ↳ Pushing ${relFile} -> ${target.name}... `);
@@ -97,7 +102,23 @@ async function deploy() {
       console.log('✅ OK');
     }
 
-    console.log(`\n🔄 [2/4] Chạy cập nhật thứ tự TT 1-288 & CLUSTER database trên ${target.name}...`);
+    console.log(`\n🚀 [2/5] Chạy MIGRATION CSDL TOÀN DIỆN 100% trên ${target.name}...`);
+    try {
+      const migOutput = await runSSH(`docker exec -i ${target.backend} node scripts/migrate.js`);
+      console.log(`   ${migOutput.replace(/\n/g, '\n   ')}`);
+      const migQuotes = await runSSH(`docker exec -i ${target.backend} node scripts/migrate_daily_quotes.js`);
+      console.log(`   ${migQuotes.replace(/\n/g, '\n   ')}`);
+      const migSettings = await runSSH(`docker exec -i ${target.backend} node scripts/migrate_settings.js`);
+      console.log(`   ${migSettings.replace(/\n/g, '\n   ')}`);
+      const migRounds = await runSSH(`docker exec -i ${target.backend} node scripts/migrate_rounds.js`);
+      console.log(`   ${migRounds.replace(/\n/g, '\n   ')}`);
+      const migFks = await runSSH(`docker exec -i ${target.backend} node scripts/migrate_admin_fks.js`);
+      console.log(`   ${migFks.replace(/\n/g, '\n   ')}`);
+    } catch (e) {
+      console.warn(`   ⚠️ Chú ý Migration trên ${target.name}: ${e.message}`);
+    }
+
+    console.log(`\n🔄 [3/5] Chạy cập nhật thứ tự TT 1-288 & CLUSTER database trên ${target.name}...`);
     try {
       const applyOutput = await runSSH(`docker exec -i ${target.backend} node scripts/apply-ordered-users-to-db.js`);
       console.log(`   ${applyOutput.replace(/\n/g, '\n   ')}`);
@@ -105,7 +126,7 @@ async function deploy() {
       console.warn(`   ⚠️ Chú ý DB update: ${e.message}`);
     }
 
-    console.log(`\n🌳 [3/4] Đồng bộ tree_exp, total_exp & avg_participation_rate trên ${target.name}...`);
+    console.log(`\n🌳 [4/5] Đồng bộ tree_exp, total_exp & avg_participation_rate trên ${target.name}...`);
     try {
       const expSyncOutput = await runSSH(`docker exec -i ${target.backend} node scripts/sync-team-exp.js`);
       console.log(`   ${expSyncOutput.replace(/\n/g, '\n   ')}`);
@@ -113,16 +134,16 @@ async function deploy() {
       console.warn(`   ⚠️ Chú ý sync team exp: ${e.message}`);
     }
 
-    console.log(`\n⚡ [4/4] Khởi động lại container ${target.name}...`);
+    console.log(`\n⚡ [5/5] Khởi động lại container ${target.name}...`);
     await runSSH(`docker restart ${target.backend} ${target.frontend}`);
     console.log(`   ✅ Đã khởi động lại ${target.backend} và ${target.frontend} thành công!\n`);
 
-    console.log(`🧪 Kiểm tra Unit Test tự động trên ${target.name}...`);
+    console.log(`🧪 Kiểm thử 100% logic Hái Trái Tri Thức (Fruit Harvest) trên ${target.name}...`);
     try {
-      const testOutput = await runSSH(`docker exec -i ${target.backend} node scripts/test-team-exp-and-members-modal-fullkey.js`);
-      console.log(`   ${testOutput.replace(/\n/g, '\n   ')}`);
+      const fruitHarvestOutput = await runSSH(`docker exec -i ${target.backend} node scripts/test-fruit-harvest-fullkey.js`);
+      console.log(`   ${fruitHarvestOutput.replace(/\n/g, '\n   ')}`);
     } catch (e) {
-      console.warn(`   ⚠️ Unit test trên ${target.name}: ${e.message}`);
+      console.warn(`   ⚠️ Fruit harvest test trên ${target.name}: ${e.message}`);
     }
 
     console.log(`🧪 Kiểm thử 100% quy tắc 3 lần/ngày trên ${target.name}...`);
