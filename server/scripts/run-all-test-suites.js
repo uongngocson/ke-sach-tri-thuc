@@ -29,7 +29,7 @@ let passedCount = 0;
 for (const suite of suites) {
   const scriptPath = path.join(__dirname, suite);
   console.log(`\n▶️ [RUNNING] ${suite}...`);
-  const res = spawnSync(process.execPath, ['--max-old-space-size=4096', scriptPath], {
+  const res = spawnSync(process.execPath, [scriptPath], {
     stdio: 'inherit',
     cwd: path.join(__dirname, '..')
   });

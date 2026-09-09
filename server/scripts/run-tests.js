@@ -239,8 +239,8 @@ async function runAllTests() {
     const totalUsersRes = await db.query('SELECT COUNT(*) FROM users');
     assert(parseInt(totalUsersRes.rows[0].count, 10) === 288, 'Users: Exactly 288 users stored in PostgreSQL database');
 
-    const userLookup = await UserService.lookupUser('Viết Kim Hoàng');
-    assert(userLookup && userLookup.nickname === 'Viết Kim Hoàng' && userLookup.team_id === 5, 'Users: Lookup by nickname "Viết Kim Hoàng" returns correct user and team 5');
+    const userLookup = await UserService.lookupUser('Kim Hoàng');
+    assert(userLookup && userLookup.nickname === 'Kim Hoàng' && userLookup.team_id === 5, 'Users: Lookup by nickname "Kim Hoàng" returns correct user and team 5');
 
     const nameLookup = await UserService.lookupUser('Đỗ Viết Kim Hoàng');
     assert(nameLookup && nameLookup.full_name === 'Đỗ Viết Kim Hoàng', 'Users: Lookup by full_name "Đỗ Viết Kim Hoàng" returns correct user profile');

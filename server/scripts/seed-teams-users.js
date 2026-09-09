@@ -65,10 +65,9 @@ export async function seedTeamsAndUsers() {
       }
     }
     for (let i = 0; i < users.length; i++) {
-      const u = users[i];
-      // Bút danh = tên đệm + tên thật (bỏ họ)
+      // Bút danh chính thức từ Danh sách bút danh FoxREAD (ưu tiên u.nickname)
       const parts = (u.full_name || '').trim().split(/\s+/);
-      const nickname = parts.length > 1 ? parts.slice(1).join(' ') : u.full_name;
+      const nickname = (u.nickname && u.nickname.trim()) ? u.nickname.trim() : (parts.length > 1 ? parts.slice(1).join(' ') : u.full_name);
 
       const existing = await client.query(
         'SELECT id FROM users WHERE full_name = $1 AND team_id = $2 LIMIT 1',
