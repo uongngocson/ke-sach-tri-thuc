@@ -92,16 +92,26 @@ async function migrate() {
       CONSTRAINT unq_user_quote_like UNIQUE(user_fingerprint, book_id)
     );
 
-    -- 7. Fruit Harvests Table (Cooldown & daily limit per fruit)
+    -- 7. Fruit Harvests Table (Cooldown & anti-spam limit per fruit per tree)
     CREATE TABLE IF NOT EXISTS fruit_harvests (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      fruit_index INT NOT NULL,
+      team_id INT REFERENCES teams(id),
+      fruit_index INT NOT NULL CHECK (fruit_index BETWEEN 0 AND 4),
+      user_id UUID REFERENCES users(id),
       user_fingerprint VARCHAR(100) NOT NULL,
       harvest_date DATE NOT NULL,
       exp_granted INT DEFAULT 5,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      CONSTRAINT unq_user_fruit_harvest UNIQUE(user_fingerprint, fruit_index, harvest_date)
+      created_at TIMESTAMPTZ DEFAULT NOW()
     );
+
+    ALTER TABLE fruit_harvests ADD COLUMN IF NOT EXISTS team_id INT REFERENCES teams(id);
+    ALTER TABLE fruit_harvests ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_unq_user_team_fruit_harvest 
+    ON fruit_harvests (user_id, team_id, fruit_index, harvest_date) 
+    WHERE user_id IS NOT NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_unq_fp_team_fruit_harvest 
+    ON fruit_harvests (user_fingerprint, team_id, fruit_index, harvest_date) 
+    WHERE user_id IS NULL;
 
     -- 8. Idempotency Keys Table
     CREATE TABLE IF NOT EXISTS idempotency_keys (

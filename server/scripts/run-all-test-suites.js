@@ -15,6 +15,7 @@ const suites = [
   'test-state-integrity.js',
   'test-admin-crud.js',
   'test-watering-and-likes-fullkey.js',
+  'test-fruit-harvest-fullkey.js',
   'test-day-night-fullkey.js',
   'test-realtime-concurrency-fullkey.js',
   'test-security-fullkey.js'

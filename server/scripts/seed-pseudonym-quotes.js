@@ -1,14 +1,7 @@
 import db from '../config/database.js';
 
 async function seedPseudonymQuotes() {
-  console.log('📚 Seeding 36 curated quotes with 100% ANONYMOUS PEN NAMES (Bút danh)...');
-
-  // Get sample users from each team for user_id association
-  const teamUsers = {};
-  for (let t = 1; t <= 8; t++) {
-    const res = await db.query('SELECT id, full_name, email, team_id FROM users WHERE team_id = $1 ORDER BY id LIMIT 10', [t]);
-    teamUsers[t] = res.rows;
-  }
+  console.log('📚 Seeding 36 curated quotes với BÚT DANH THẬT từ CSDL (users.nickname)...');
 
   const curatedBooks = [
     // Đội 1 (7 quotes)
@@ -316,6 +309,16 @@ async function seedPseudonymQuotes() {
     }
   ];
 
+  // Get real nicknames for each team (bút danh thật từ CSDL)
+  const teamNicknames = {};
+  for (let t = 1; t <= 8; t++) {
+    const res = await db.query(
+      'SELECT id, nickname, full_name, email FROM users WHERE team_id = $1 AND nickname IS NOT NULL ORDER BY id',
+      [t]
+    );
+    teamNicknames[t] = res.rows;
+  }
+
   // Clean all books first
   await db.query('DELETE FROM exp_ledger WHERE reference_type = \'books\'');
   await db.query('DELETE FROM daily_quotes');
@@ -324,8 +327,11 @@ async function seedPseudonymQuotes() {
 
   for (let i = 0; i < curatedBooks.length; i++) {
     const item = curatedBooks[i];
-    const uList = teamUsers[item.teamId] || [];
-    const assignedUser = uList[i % uList.length] || { id: null };
+    const uList = teamNicknames[item.teamId] || [];
+    const assignedUser = uList[i % uList.length] || { id: null, nickname: null, full_name: 'Người Gieo Mầm' };
+
+    // Dùng nickname thật (bút danh) từ CSDL, fallback về full_name nếu không có
+    const realPenName = assignedUser.nickname || assignedUser.full_name || 'Người Gieo Mầm';
 
     await db.query(`
       INSERT INTO books (title, author, quote, reader_name, team_id, user_id, likes_count, visibility_status, moderation_status, created_at)
@@ -334,7 +340,7 @@ async function seedPseudonymQuotes() {
       item.title,
       item.author,
       item.quote,
-      item.penName,
+      realPenName,
       item.teamId,
       assignedUser.id,
       item.likes,
@@ -342,18 +348,18 @@ async function seedPseudonymQuotes() {
     ]);
   }
 
-  // Update total counts in community_growth
+  // Sync teams.total_books
   await db.query(`
-    UPDATE community_growth 
-    SET total_books = (SELECT COUNT(*) FROM books WHERE visibility_status = 'visible'),
-        total_likes = (SELECT COALESCE(SUM(likes_count), 0) FROM books WHERE visibility_status = 'visible'),
-        updated_at = NOW()
-    WHERE id = 1
+    UPDATE teams t
+    SET total_books = (SELECT COUNT(*) FROM books b WHERE b.team_id = t.id AND b.visibility_status = 'visible')
   `);
 
-  const res = await db.query('SELECT team_id, count(*), json_agg(json_build_object(\'title\', title, \'penName\', reader_name, \'likes\', likes_count)) as books FROM books GROUP BY team_id ORDER BY team_id');
-  console.log('✅ Successfully seeded 36 quotes with 100% ANONYMOUS PEN NAMES!');
-  console.log(JSON.stringify(res.rows, null, 2));
+  const res = await db.query(`SELECT team_id, count(*), json_agg(json_build_object('title', title, 'penName', reader_name, 'likes', likes_count)) as books FROM books GROUP BY team_id ORDER BY team_id`);
+  console.log('✅ Seeded 36 quotes với BÚT DANH THẬT từ CSDL (users.nickname)!');
+  res.rows.forEach(r => {
+    console.log(`  Đội ${r.team_id}: ${r.count} quotes`);
+    r.books.forEach(b => console.log(`    - "${b.title}" | Bút danh: ${b.penName} | ❤️ ${b.likes}`));
+  });
   process.exit(0);
 }
 

@@ -1,7 +1,7 @@
 import express from 'express';
 import { 
   contributeBook, getDailyQuoteStatus, getQuotes, getGrowth, recordVisit, claimDew, 
-  getDewStatus, likeQuote, unlikeQuote, harvestFruit,
+  getDewStatus, likeQuote, unlikeQuote, harvestFruit, getFruitHarvestStatus,
   getTeams, getTeamById, getTeamMembers,
   getUsers, lookupUser, suggestUsers, getUserById,
   getCurrentRound, getAllRounds, getPublicContentSettings
@@ -18,6 +18,7 @@ router.post('/growth/visit', recordVisit);
 router.get('/quotes', getQuotes);
 router.get('/books/daily-status', getDailyQuoteStatus);
 router.get('/dew/status', getDewStatus);
+router.get('/fruits/status', getFruitHarvestStatus);
 router.get('/content/settings', getPublicContentSettings);
 
 // Teams & 8 Trees Endpoints

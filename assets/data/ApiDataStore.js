@@ -726,8 +726,48 @@ class ApiDataStoreManager {
     }
   }
 
-  async harvestFruit(fruitIndex) {
+  async getFruitHarvestStatus(userId, teamId = null) {
     try {
+      let url = `${getApiBase()}/fruits/status?`;
+      if (userId) url += `userId=${encodeURIComponent(userId)}&`;
+      if (teamId) url += `teamId=${encodeURIComponent(teamId)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success) {
+        return data.data;
+      }
+    } catch (err) {
+      console.warn('Failed to fetch fruit harvest status from server:', err);
+    }
+    return { today: new Date().toISOString().split('T')[0], harvestedByTeam: {} };
+  }
+
+  async harvestFruit(arg1, arg2, arg3) {
+    try {
+      let fruitIndex = 0;
+      let teamId = 1;
+      let userId = null;
+
+      if (typeof arg1 === 'object' && arg1 !== null) {
+        fruitIndex = typeof arg1.fruitIndex === 'number' ? arg1.fruitIndex : 0;
+        teamId = arg1.teamId || 1;
+        userId = arg1.userId || null;
+      } else {
+        fruitIndex = typeof arg1 === 'number' ? arg1 : 0;
+        teamId = arg2 || 1;
+        userId = arg3 || null;
+      }
+
+      if (!userId) {
+        let session = null;
+        try {
+          session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+        } catch {}
+        if (session && session.id && session.id !== 'guest') {
+          userId = session.id;
+        }
+      }
+
       const idempotencyKey = this.generateIdempotencyKey();
       const res = await fetch(`${getApiBase()}/fruits/harvest`, {
         method: 'POST',
@@ -735,20 +775,37 @@ class ApiDataStoreManager {
           'Content-Type': 'application/json',
           'Idempotency-Key': idempotencyKey
         },
-        body: JSON.stringify({ fruitIndex, userFingerprint: this.fingerprint })
+        body: JSON.stringify({ 
+          fruitIndex, 
+          teamId,
+          userId,
+          userFingerprint: this.getUserFingerprint() 
+        })
       });
 
       const data = await res.json();
       if (data.success) {
-        const growth = await this.getCommunityGrowth();
-        this.emit('growth:updated', growth);
-        return { success: true, quote: data.data.quote, expEarned: 5 };
+        this.emit('teams:updated');
+        if (data.data?.team) {
+          this.emit('team:updated', data.data.team);
+        }
+        return { 
+          success: true, 
+          quote: data.data.quote, 
+          team: data.data.team,
+          expEarned: 5,
+          message: data.message
+        };
       } else {
-        return { success: false, message: data.message };
+        return { 
+          success: false, 
+          error: data.error,
+          message: data.message || 'Không thể hái Trái Tri Thức lúc này' 
+        };
       }
     } catch (err) {
       console.error('Error harvesting fruit:', err);
-      return { success: false, message: 'Lỗi kết nối máy chủ' };
+      return { success: false, error: 'NETWORK_ERROR', message: 'Lỗi kết nối máy chủ' };
     }
   }
 

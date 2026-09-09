@@ -24,8 +24,8 @@ export const claimDewSchema = z.object({
 });
 
 export const harvestFruitSchema = z.object({
-  fruitIndex: z.number().int().min(0).max(100),
-  userFingerprint: z.string().trim().min(1, 'Fingerprint thiết bị là bắt buộc'),
+  fruitIndex: z.number().int().min(0).max(4),
+  userFingerprint: z.string().trim().optional().default('default_fp'),
   userId: z.string().trim().optional().nullable(),
   teamId: z.number().int().min(1).max(8).optional().nullable()
 });

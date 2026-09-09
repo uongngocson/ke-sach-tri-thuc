@@ -140,11 +140,39 @@ export async function likeQuote(req, res, next) {
 export async function harvestFruit(req, res, next) {
   try {
     const { fruitIndex, userFingerprint, userId, teamId } = req.body;
+    if (!userId || userId === 'guest') {
+      return res.status(401).json({
+        success: false,
+        error: 'LOGIN_REQUIRED',
+        message: 'Vui lòng đăng nhập tài khoản FPT để hái Trái Tri Thức!'
+      });
+    }
+
     const result = await QuoteService.harvestFruit(fruitIndex, userFingerprint, { userId, teamId });
     res.json({
       success: true,
-      message: 'Hái trái tri thức thành công (+5 EXP)!',
+      message: `Hái Trái Tri Thức thành công (+5 EXP cho ${result.team?.short_name || result.team?.display_name || 'Đội'})!`,
       data: result
+    });
+  } catch (err) {
+    if (err.code === '23505' || err.message?.includes('hôm nay rồi') || err.message?.includes('duplicate')) {
+      return res.status(400).json({
+        success: false,
+        error: 'ALREADY_HARVESTED',
+        message: 'Bạn đã hái Trái Tri Thức này hôm nay rồi!'
+      });
+    }
+    next(err);
+  }
+}
+
+export async function getFruitHarvestStatus(req, res, next) {
+  try {
+    const { userId, teamId } = req.query;
+    const status = await QuoteService.getHarvestStatus(userId, teamId ? parseInt(teamId, 10) : null);
+    res.json({
+      success: true,
+      data: status
     });
   } catch (err) {
     next(err);

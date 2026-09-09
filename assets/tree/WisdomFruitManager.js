@@ -32,6 +32,15 @@ export class WisdomFruitManager {
     this.mouse = new THREE.Vector2(-999, -999);
     this.hoveredFruit = null;
     this.currentLevel = 0;
+    this.serverHarvestedStatus = {};
+
+    // Synchronize harvest status from backend database (anti-spam, cross-browser consistency)
+    this.syncServerHarvestStatus();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('user:logged_in', () => this.syncServerHarvestStatus());
+      window.addEventListener('user:logged_out', () => this.syncServerHarvestStatus());
+      window.addEventListener('user:session_changed', () => this.syncServerHarvestStatus());
+    }
 
     // 1. Organic Anatomical Geometries
     this.fruitGeometry = this.createOrganicFruitGeometry();
@@ -190,6 +199,38 @@ export class WisdomFruitManager {
       if (anchor && group.parent !== anchor) {
         anchor.add(group);
       }
+    }
+  }
+
+  async syncServerHarvestStatus() {
+    try {
+      const userSession = (window.UserIdentityModal && window.UserIdentityModal.getStoredSession()) 
+        || JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+      const userId = (userSession && userSession.id && userSession.id !== 'guest') ? userSession.id : null;
+      if (!userId) {
+        this.serverHarvestedStatus = {};
+        for (const f of this.fruits) {
+          f.userData.isHarvested = false;
+          f.visible = true;
+        }
+        return;
+      }
+      const store = window.MockDataStore || window.ApiDataStore;
+      if (store && typeof store.getFruitHarvestStatus === 'function') {
+        const res = await store.getFruitHarvestStatus(userId);
+        if (res && res.harvestedByTeam) {
+          this.serverHarvestedStatus = res.harvestedByTeam;
+          for (const f of this.fruits) {
+            const tId = f.userData.teamId;
+            const idx = f.userData.index;
+            const isHarvested = !!(this.serverHarvestedStatus[tId] && this.serverHarvestedStatus[tId].includes(idx));
+            f.userData.isHarvested = isHarvested;
+            f.visible = !isHarvested;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Could not sync fruit harvest status from server:', err);
     }
   }
 
@@ -366,17 +407,21 @@ export class WisdomFruitManager {
       fruitAssembly.scale.setScalar(fruitScale);
       fruitAssembly.rotation.y = (i * 1.25);
 
+      const isHarvested = !!(this.serverHarvestedStatus && this.serverHarvestedStatus[teamId] && this.serverHarvestedStatus[teamId].includes(i));
+
       fruitAssembly.userData = {
         id: `fruit-team${teamId}-${i}`,
         teamId: teamId,
+        index: i,
         baseScale: fruitScale,
         swaySpeed: 0.9 + (i % 3) * 0.2,
         swayPhase: (i * 1.7) + teamId * 0.5,
         mesh: fruitMesh,
         mat: mat,
-        isHarvested: false,
+        isHarvested: isHarvested,
         respawnTimer: 0
       };
+      fruitAssembly.visible = !isHarvested;
 
       this.fruits.push(fruitAssembly);
       group.add(fruitAssembly);
@@ -502,56 +547,116 @@ export class WisdomFruitManager {
   }
 
   async harvestFruit(fruit, e) {
-    fruit.userData.isHarvested = true;
-    fruit.visible = false;
+    let userSession = null;
+    try {
+      if (window.UserIdentityModal && typeof window.UserIdentityModal.getStoredSession === 'function') {
+        userSession = window.UserIdentityModal.getStoredSession();
+      }
+      if (!userSession) {
+        userSession = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
+      }
+    } catch {}
+
+    const isGuest = !userSession || !userSession.id || userSession.id === 'guest';
+    if (isGuest) {
+      if (window.showToast) {
+        window.showToast('🔒 Vui lòng đăng nhập tài khoản FPT để hái Trái Tri Thức!', 'warning');
+      }
+      if (window.openUserIdentityModal) {
+        window.openUserIdentityModal();
+      }
+      return;
+    }
 
     const teamId = fruit.userData.teamId || (this.treeManager?.activeTeamId || 1);
+    const fruitIndex = typeof fruit.userData.index === 'number' ? fruit.userData.index : 0;
     const allTeams = (window.getAllTeams && window.getAllTeams()) || [];
     const teamObj = allTeams.find(t => t.id === teamId) || { short_name: `Đội ${teamId}`, display_name: `Đội ${teamId}`, color_code: '#0054A6' };
     const teamName = teamObj.short_name || `Đội ${teamId}`;
 
-    if (window.showToast) {
-      window.showToast(`🍎 Bạn đã hái 1 Trái Tri Thức của ${teamName} (+5 EXP)!`);
+    const store = window.MockDataStore || window.ApiDataStore;
+    if (!store || typeof store.harvestFruit !== 'function') {
+      console.warn('DataStore.harvestFruit not available');
+      return;
     }
 
-    await MockDataStore.addEXP(5);
+    const res = await store.harvestFruit({
+      teamId,
+      fruitIndex,
+      userId: userSession.id
+    });
 
-    // Requirement: "click vào quả thì hiển thị modal 1 câu quote của cây đó"
-    let selectedQuote = null;
-    try {
-      const quotes = await MockDataStore.getMasterQuotes(true);
-      const teamQuotes = (quotes || []).filter(q => Number(q.team_id) === Number(teamId));
-      if (teamQuotes.length > 0) {
-        selectedQuote = teamQuotes[Math.floor(Math.random() * teamQuotes.length)];
+    if (res && res.success) {
+      fruit.userData.isHarvested = true;
+      fruit.visible = false;
+
+      if (!this.serverHarvestedStatus[teamId]) this.serverHarvestedStatus[teamId] = [];
+      if (!this.serverHarvestedStatus[teamId].includes(fruitIndex)) {
+        this.serverHarvestedStatus[teamId].push(fruitIndex);
       }
-    } catch (err) {
-      console.warn('Failed to load team quotes:', err);
-    }
 
-    // Fallback inspiring wisdom quote attributed directly to this team
-    if (!selectedQuote) {
-      selectedQuote = {
-        id: `fruit_quote_${teamId}_${Date.now()}`,
-        book: 'Đại Cổ Thụ Tri Thức',
-        author: teamObj.display_name || teamName,
-        quote: `Trái ngọt tri thức đơm hoa kết trái từ nỗ lực gieo mầm đọc sách của ${teamObj.display_name || teamName}!`,
-        reader: teamName,
-        team_id: teamId,
-        team_name: teamObj.display_name || teamName,
-        team_short_name: teamName,
-        team_color: teamObj.color_code || '#0054A6',
-        category: 'Trí Tuệ',
-        likes: 25
-      };
-    }
+      if (window.showToast) {
+        window.showToast(`🍎 Bạn đã hái 1 Trái Tri Thức của ${teamName} (+5 EXP cho ${teamName})!`);
+      }
 
-    if (window.openBookQuoteModal) {
-      window.openBookQuoteModal(selectedQuote);
-    } else if (window.openQuoteModal) {
-      window.openQuoteModal(selectedQuote);
-    }
+      let selectedQuote = res.quote;
+      if (!selectedQuote) {
+        try {
+          const quotes = await store.getMasterQuotes(true);
+          const teamQuotes = (quotes || []).filter(q => Number(q.team_id) === Number(teamId));
+          if (teamQuotes.length > 0) {
+            selectedQuote = teamQuotes[Math.floor(Math.random() * teamQuotes.length)];
+          }
+        } catch (err) {
+          console.warn('Failed to load team quotes:', err);
+        }
+      }
 
-    fruit.userData.respawnTimer = 30;
+      if (!selectedQuote) {
+        selectedQuote = {
+          id: `fruit_quote_${teamId}_${Date.now()}`,
+          book: 'Đại Cổ Thụ Tri Thức',
+          author: teamObj.display_name || teamName,
+          quote: `Trái ngọt tri thức đơm hoa kết trái từ nỗ lực gieo mầm đọc sách của ${teamObj.display_name || teamName}!`,
+          reader: teamName,
+          team_id: teamId,
+          team_name: teamObj.display_name || teamName,
+          team_short_name: teamName,
+          team_color: teamObj.color_code || '#0054A6',
+          category: 'Trí Tuệ',
+          likes: 25
+        };
+      }
+
+      if (window.openBookQuoteModal) {
+        window.openBookQuoteModal(selectedQuote);
+      } else if (window.openQuoteModal) {
+        window.openQuoteModal(selectedQuote);
+      }
+    } else {
+      if (res && res.error === 'ALREADY_HARVESTED') {
+        fruit.userData.isHarvested = true;
+        fruit.visible = false;
+        if (!this.serverHarvestedStatus[teamId]) this.serverHarvestedStatus[teamId] = [];
+        if (!this.serverHarvestedStatus[teamId].includes(fruitIndex)) {
+          this.serverHarvestedStatus[teamId].push(fruitIndex);
+        }
+        if (window.showToast) {
+          window.showToast('⚠️ Bạn đã hái Trái Tri Thức này hôm nay rồi!', 'warning');
+        }
+      } else if (res && res.error === 'LOGIN_REQUIRED') {
+        if (window.showToast) {
+          window.showToast('🔒 Vui lòng đăng nhập tài khoản FPT để hái Trái Tri Thức!', 'warning');
+        }
+        if (window.openUserIdentityModal) {
+          window.openUserIdentityModal();
+        }
+      } else {
+        if (window.showToast) {
+          window.showToast(res?.message || 'Không thể hái Trái Tri Thức lúc này!', 'error');
+        }
+      }
+    }
   }
 
   update(elapsedTime, delta, daylightFactor = 1.0) {
@@ -573,13 +678,8 @@ export class WisdomFruitManager {
       const f = this.fruits[i];
       const data = f.userData;
 
-      if (data.isHarvested) {
-        data.respawnTimer -= delta;
-        if (data.respawnTimer <= 0) {
-          data.isHarvested = false;
-          f.visible = true;
-          f.scale.setScalar(0.05);
-        }
+      // Persistently harvested fruits remain hidden (no client timer respawn)
+      if (data.isHarvested || !f.visible) {
         continue;
       }
 
