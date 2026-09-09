@@ -88,6 +88,7 @@ async function deploy() {
     'assets/sky/RealisticSky.js',
     'assets/sky/components/SkyCanvas.js',
     'server/scripts/test-fruit-ui-mobile-interaction-fullkey.js',
+    'server/scripts/test-content-settings.js',
     'scripts/sync-book-users.js',
     'scripts/apply-ordered-users-to-db.js'
   ];

@@ -2473,7 +2473,7 @@ function bindContentRulesEvents() {
   }
 
   // Welcome Live Preview listeners
-  ['cfg-welcome-badge', 'cfg-welcome-title', 'cfg-welcome-subtitle', 'cfg-welcome-metaphor', 'cfg-welcome-pillar1', 'cfg-welcome-pillar2', 'cfg-welcome-pillar3', 'cfg-welcome-btn'].forEach(id => {
+  ['cfg-welcome-badge', 'cfg-welcome-title', 'cfg-welcome-subtitle', 'cfg-welcome-metaphor', 'cfg-welcome-btn'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', syncWelcomePreview);
   });
@@ -2506,27 +2506,18 @@ function syncWelcomePreview() {
   const title = document.getElementById('cfg-welcome-title')?.value || 'Mỗi Cuốn Sách Là Một Hạt Mầm';
   const subtitle = document.getElementById('cfg-welcome-subtitle')?.value || 'Mỗi Bút Danh Là Một Người Gieo Tri Thức';
   const metaphor = document.getElementById('cfg-welcome-metaphor')?.value || '';
-  const p1 = document.getElementById('cfg-welcome-pillar1')?.value || 'Gieo Hạt Tri Thức';
-  const p2 = document.getElementById('cfg-welcome-pillar2')?.value || 'Lan Tỏa Tri Thức';
-  const p3 = document.getElementById('cfg-welcome-pillar3')?.value || 'Nhật Ký Tri Thức';
   const btn = document.getElementById('cfg-welcome-btn')?.value || 'Khám Phá Vườn Tri Thức';
 
   const prevBadge = document.getElementById('preview-welcome-badge');
   const prevTitle = document.getElementById('preview-welcome-title');
   const prevSubtitle = document.getElementById('preview-welcome-subtitle');
   const prevMetaphor = document.getElementById('preview-welcome-metaphor');
-  const prevP1 = document.getElementById('preview-welcome-p1');
-  const prevP2 = document.getElementById('preview-welcome-p2');
-  const prevP3 = document.getElementById('preview-welcome-p3');
   const prevBtn = document.getElementById('preview-welcome-btn');
 
   if (prevBadge) prevBadge.textContent = badge;
   if (prevTitle) prevTitle.textContent = title;
   if (prevSubtitle) prevSubtitle.textContent = subtitle;
   if (prevMetaphor) prevMetaphor.textContent = metaphor;
-  if (prevP1) prevP1.textContent = p1;
-  if (prevP2) prevP2.textContent = p2;
-  if (prevP3) prevP3.textContent = p3;
   if (prevBtn) prevBtn.textContent = btn;
 }
 
@@ -2547,9 +2538,6 @@ async function loadContentSettings() {
       setVal('cfg-welcome-title', w.title || '');
       setVal('cfg-welcome-subtitle', w.subtitle || '');
       setVal('cfg-welcome-metaphor', w.metaphor || '');
-      setVal('cfg-welcome-pillar1', w.pillar1 || '');
-      setVal('cfg-welcome-pillar2', w.pillar2 || '');
-      setVal('cfg-welcome-pillar3', w.pillar3 || '');
       setVal('cfg-welcome-btn', w.buttonText || '');
       syncWelcomePreview();
     }
@@ -2623,9 +2611,6 @@ async function saveWelcomeSettings() {
     title: getVal('cfg-welcome-title') || 'Mỗi Cuốn Sách Là Một Hạt Mầm',
     subtitle: getVal('cfg-welcome-subtitle') || 'Mỗi Bút Danh Là Một Người Gieo Tri Thức',
     metaphor: getVal('cfg-welcome-metaphor'),
-    pillar1: getVal('cfg-welcome-pillar1') || 'Gieo Hạt Tri Thức',
-    pillar2: getVal('cfg-welcome-pillar2') || 'Lan Tỏa Tri Thức',
-    pillar3: getVal('cfg-welcome-pillar3') || 'Nhật Ký Tri Thức',
     buttonText: getVal('cfg-welcome-btn') || 'Khám Phá Vườn Tri Thức'
   };
 

@@ -4,10 +4,7 @@ export const DEFAULT_WELCOME_SETTINGS = {
   badge: 'VƯỜN TRI THỨC',
   title: 'Mỗi Cuốn Sách Là Một Hạt Mầm',
   subtitle: 'Mỗi Độc Giả Là Một Người Gieo Tri Thức',
-  metaphor: '“Một Cây Tri Thức lớn lên từ những hạt mầm nhỏ bé.\nMỗi lượt tham gia là một lần gieo hạt, mỗi trích dẫn được lan tỏa là một dòng dưỡng chất — cùng cộng đồng vun bồi để Cây Tri Thức vươn mình thành đại cổ thụ.”',
-  pillar1: 'Gieo Hạt Tri Thức',
-  pillar2: 'Lan Tỏa Tri Thức',
-  pillar3: 'Nhật Ký Tri Thức',
+  metaphor: '“Một Cây Tri Thức lớn lên từ những hạt mầm nhỏ bé.\nMỗi lượt tham gia là một lần gieo hạt, tưới nước, mỗi trích dẫn được lan tỏa là một dòng dưỡng chất — hãy cùng nhau ươm mầm Tri Thức.”',
   buttonText: 'Khám Phá Vườn Tri Thức'
 };
 

@@ -6694,30 +6694,8 @@
       <div class="welcome-quote-box" style="position: relative; z-index: 2;">
         <p class="welcome-metaphor-text">
           “Một Cây Tri Thức lớn lên từ những hạt mầm nhỏ bé.<br/>
-          Mỗi lượt tham gia là một lần gieo hạt, mỗi trích dẫn được lan tỏa là một dòng dưỡng chất — cùng cộng đồng vun bồi để Cây Tri Thức vươn mình thành đại cổ thụ.”
+          Mỗi lượt tham gia là một lần gieo hạt, tưới nước, mỗi trích dẫn được lan tỏa là một dòng dưỡng chất — hãy cùng nhau ươm mầm Tri Thức.”
         </p>
-      </div>
-
-      <!-- 3 Ecological Pillars -->
-      <div class="welcome-pillars-grid" style="position: relative; z-index: 2;">
-        <div class="welcome-pillar-item">
-          <span class="welcome-pillar-icon">🌰</span>
-          <div>
-            <strong>Gieo Hạt Tri Thức</strong>
-          </div>
-        </div>
-        <div class="welcome-pillar-item">
-          <span class="welcome-pillar-icon">💖</span>
-          <div>
-            <strong>Lan Tỏa Tri Thức</strong>
-          </div>
-        </div>
-        <div class="welcome-pillar-item">
-          <span class="welcome-pillar-icon">🔗</span>
-          <div>
-            <strong>Nhật Ký Tri Thức</strong>
-          </div>
-        </div>
       </div>
 
       <!-- Action Buttons -->
@@ -8852,11 +8830,6 @@
 
           const metaphorEl = document.querySelector('#welcome-slogan-card .welcome-metaphor-text');
           if (metaphorEl && w.metaphor) metaphorEl.innerHTML = escapeHtml(w.metaphor).replace(/\n/g, '<br/>');
-
-          const pillars = document.querySelectorAll('#welcome-slogan-card .welcome-pillar-item strong');
-          if (pillars[0] && w.pillar1) pillars[0].textContent = w.pillar1;
-          if (pillars[1] && w.pillar2) pillars[1].textContent = w.pillar2;
-          if (pillars[2] && w.pillar3) pillars[2].textContent = w.pillar3;
 
           const exploreBtnSpan = document.querySelector('#welcome-explore-btn span:last-child');
           if (exploreBtnSpan && w.buttonText) exploreBtnSpan.textContent = w.buttonText;
