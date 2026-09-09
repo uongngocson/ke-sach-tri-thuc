@@ -1401,7 +1401,7 @@ function renderUsersTable(users) {
 
   tbody.innerHTML = users.map((u, idx) => `
     <tr class="hover:bg-slate-800/40 transition-colors">
-      <td class="p-3 text-center text-slate-500 font-bold text-xs">${(usersPageState.page - 1) * usersPageState.limit + idx + 1}</td>
+      <td class="p-3 text-center text-slate-500 font-bold text-xs">${u.tt ? u.tt : ((usersPageState.page - 1) * usersPageState.limit + idx + 1)}</td>
       <td class="p-3 font-bold text-white">
         ${escapeHtml(u.nickname || 'Bút danh')}
       </td>

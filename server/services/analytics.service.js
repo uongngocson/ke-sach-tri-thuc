@@ -323,7 +323,7 @@ export class AnalyticsService {
 
     let query = `
       SELECT 
-        u.id, u.full_name, u.nickname, u.gender,
+        u.id, u.tt, u.full_name, u.nickname, u.gender,
         u.branch, u.parent_department, u.child_department_1, u.child_department_2,
         u.job_title, u.team_id, u.role, u.avatar_url,
         u.contributed_books_count, u.total_exp_earned, u.created_at,
@@ -360,7 +360,7 @@ export class AnalyticsService {
     const countRes = await db.query(countQuery, params);
     const total = parseInt(countRes.rows[0].count, 10);
 
-    query += ` ORDER BY u.team_id ASC, COALESCE(u.nickname, u.full_name) ASC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    query += ` ORDER BY COALESCE(u.tt, 9999) ASC, u.team_id ASC, COALESCE(u.nickname, u.full_name) ASC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(limit, offset);
 
     const res = await db.query(query, params);

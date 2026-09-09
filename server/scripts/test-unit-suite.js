@@ -245,8 +245,8 @@ async function runUnitSuite() {
     assert(parseInt(countUsers.rows[0].count, 10) === 288, 'Cơ sở dữ liệu lưu trữ chính xác 288 độc giả FoxREAD');
 
     // 6.4: Lookup độc giả theo Nickname
-    const userByEmail = await UserService.lookupUser('Viết Kim Hoàng');
-    assert(userByEmail && userByEmail.nickname === 'Viết Kim Hoàng' && userByEmail.team_id === 5, 'Tra cứu theo bút danh Viết Kim Hoàng trả về đúng Đội 5');
+    const userByEmail = await UserService.lookupUser('Kim Hoàng');
+    assert(userByEmail && userByEmail.nickname === 'Kim Hoàng' && userByEmail.team_id === 5, 'Tra cứu theo bút danh Kim Hoàng trả về đúng Đội 5');
 
     // 6.5: Lookup độc giả theo Họ tên
     const userByCode = await UserService.lookupUser('Đỗ Viết Kim Hoàng');

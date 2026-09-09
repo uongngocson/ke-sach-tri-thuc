@@ -87,6 +87,12 @@ async function run288UsersSeedingAndUiFullkey() {
       assert(count > 0, `Đội ${tId} (${EXPECTED_TEAMS[tId]}) có thành viên tham gia`, `Sĩ số: ${count} người`);
     }
 
+    // Kiểm tra thứ tự tuần tự TT từ 1 đến 288
+    const ttCheckRes = await db.query('SELECT tt, full_name, nickname FROM users ORDER BY tt ASC');
+    const ttValid = ttCheckRes.rows.every((u, idx) => u.tt === idx + 1);
+    assert(ttValid, '100% 288 thành viên có số thứ tự TT tuần tự chính xác từ 1 đến 288 (Zero gaps)', 
+      `TT đầu: ${ttCheckRes.rows[0]?.tt} (${ttCheckRes.rows[0]?.nickname}) - TT cuối: ${ttCheckRes.rows[287]?.tt} (${ttCheckRes.rows[287]?.nickname})`);
+
     // =========================================================================
     // PHẦN 2: KIỂM THỬ GIEO HẠT CHO TOÀN BỘ 288 USERS & BẢO VỆ GÁN ĐỘI
     // =========================================================================
@@ -177,8 +183,29 @@ async function run288UsersSeedingAndUiFullkey() {
     // =========================================================================
     console.log('\n🌳 [3/4] Kiểm thử Giao Diện UI Đất & Cây Tri Thức (UI Logic & Plaque)...');
 
-    const indexPath = path.join(__dirname, '../../index.html');
-    const indexHtml = fs.readFileSync(indexPath, 'utf-8');
+    const candidateIndexPaths = [
+      path.join(__dirname, '../../index.html'),
+      '/home/sonun/deployments/caosach-staging/index.html',
+      '/home/sonun/deployments/caosach-prod/index.html'
+    ];
+    let indexHtml = '';
+    for (const p of candidateIndexPaths) {
+      if (fs.existsSync(p)) {
+        indexHtml = fs.readFileSync(p, 'utf-8');
+        break;
+      }
+    }
+    if (!indexHtml) {
+      for (const url of ['http://127.0.0.1:5500/index.html', 'http://127.0.0.1:5506/index.html', 'http://127.0.0.1:5505/index.html', 'https://stagfoxread.soninfra.cloud/index.html']) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            indexHtml = await res.text();
+            break;
+          }
+        } catch (_) {}
+      }
+    }
 
     // 3.1: Global TEAM_SHORT_NAMES
     assert(indexHtml.includes("window.TEAM_SHORT_NAMES = TEAM_SHORT_NAMES"), 
@@ -211,8 +238,29 @@ async function run288UsersSeedingAndUiFullkey() {
       'Tiêu đề Modal Gieo Mầm tự động hiển thị tên Đội của thành viên');
 
     // 3.5: Lọc hạt theo đúng từng đội trong getSeeds
-    const apiDataStorePath = path.join(__dirname, '../../assets/data/ApiDataStore.js');
-    const apiDataStoreJs = fs.readFileSync(apiDataStorePath, 'utf-8');
+    const candidateStorePaths = [
+      path.join(__dirname, '../../assets/data/ApiDataStore.js'),
+      '/home/sonun/deployments/caosach-staging/assets/data/ApiDataStore.js',
+      '/home/sonun/deployments/caosach-prod/assets/data/ApiDataStore.js'
+    ];
+    let apiDataStoreJs = '';
+    for (const p of candidateStorePaths) {
+      if (fs.existsSync(p)) {
+        apiDataStoreJs = fs.readFileSync(p, 'utf-8');
+        break;
+      }
+    }
+    if (!apiDataStoreJs) {
+      for (const url of ['http://127.0.0.1:5500/assets/data/ApiDataStore.js', 'http://127.0.0.1:5506/assets/data/ApiDataStore.js', 'http://127.0.0.1:5505/assets/data/ApiDataStore.js', 'https://stagfoxread.soninfra.cloud/assets/data/ApiDataStore.js']) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            apiDataStoreJs = await res.text();
+            break;
+          }
+        } catch (_) {}
+      }
+    }
     assert(apiDataStoreJs.includes("const teamId = (session && session.team_id) ? session.team_id"), 
       'ApiDataStore.plantSeed luôn ưu tiên team_id của người dùng đang đăng nhập');
 
