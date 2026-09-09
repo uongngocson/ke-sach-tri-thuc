@@ -7,7 +7,7 @@
 import { Tree, LeafStyle, LeafType } from './tree.js?v=20260907_v1';
 import GUI from './lil-gui.module.min.js?v=20260907_v1';
 import { TreeGrowthController } from './TreeGrowthController.js?v=20260907_v3';
-import { WisdomFruitManager } from './WisdomFruitManager.js?v=20260909_v5fruits_backend_antispam';
+import { WisdomFruitManager } from './WisdomFruitManager.js?v=20260909_v6_smooth_mobile_fruit_tap';
 
 const DEFAULT_TEAM_COLORS = [
   '#F36F21', // Đội 1: Cam FOXREAD
