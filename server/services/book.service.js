@@ -3,21 +3,23 @@ import { EXP_CONFIG } from '../config/constants.js';
 import GrowthService from './growth.service.js';
 import socketService from './socket.service.js';
 import { CredibilityQueue } from './credibilityQueue.service.js';
+import { getVietnamDateString } from './dew.service.js';
 
 export class BookService {
   /**
    * Check if a user/device has already contributed a quote today
    */
   static async getDailyQuoteStatus({ userId, userFingerprint }) {
+    const todayVN = getVietnamDateString();
     let resolvedUserId = userId || null;
     if (resolvedUserId) {
       const res = await db.query(`
         SELECT dq.id, dq.quote_date, b.id as book_id, b.title, b.author, b.quote, b.created_at
         FROM daily_quotes dq
         LEFT JOIN books b ON dq.book_id = b.id
-        WHERE dq.user_id = $1 AND dq.quote_date = CURRENT_DATE
+        WHERE dq.user_id = $1 AND dq.quote_date = $2
         LIMIT 1
-      `, [resolvedUserId]);
+      `, [resolvedUserId, todayVN]);
 
       const hasContributed = res.rows.length > 0;
       return {
@@ -25,14 +27,16 @@ export class BookService {
         remainingToday: hasContributed ? 0 : 1,
         quote: res.rows[0] || null
       };
-    } else if (userFingerprint) {
+    }
+
+    if (userFingerprint) {
       const res = await db.query(`
         SELECT dq.id, dq.quote_date, b.id as book_id, b.title, b.author, b.quote, b.created_at
         FROM daily_quotes dq
         LEFT JOIN books b ON dq.book_id = b.id
-        WHERE dq.user_fingerprint = $1 AND dq.quote_date = CURRENT_DATE
+        WHERE dq.user_fingerprint = $1 AND dq.quote_date = $2
         LIMIT 1
-      `, [userFingerprint]);
+      `, [userFingerprint, todayVN]);
 
       const hasContributed = res.rows.length > 0;
       return {
@@ -47,6 +51,7 @@ export class BookService {
 
   static async contributeBook(payload) {
     const { title, author, quote, category, reader, userFingerprint } = payload;
+    const todayVN = getVietnamDateString();
 
     // ACID Database Transaction: Insert Book + Insert Ledger + Update Community Growth
     const result = await db.transaction(async (client) => {
@@ -54,10 +59,41 @@ export class BookService {
       let userId = payload.userId || null;
       let teamId = payload.teamId ? parseInt(payload.teamId, 10) : null;
 
+      // 0. Resolve user & strictly enforce user's actual team_id
       if (userId) {
-        const userRes = await client.query('SELECT id, team_id FROM users WHERE id = $1', [userId]);
+        const userRes = await client.query('SELECT id, team_id, nickname, full_name FROM users WHERE id = $1', [userId]);
         if (userRes.rows.length > 0) {
-          if (!teamId) teamId = userRes.rows[0].team_id;
+          if (userRes.rows[0].team_id) {
+            teamId = userRes.rows[0].team_id; // STRICTLY enforce actual team of the member
+          }
+        } else {
+          // If userId does not match any user in DB, nullify
+          userId = null;
+        }
+      }
+
+      // 0.0 Fallback lookup by reader nickname or full name if userId is missing
+      if (!userId && reader && reader.trim()) {
+        const cleanReader = reader.trim();
+        const readerLookup = await client.query(`
+          SELECT id, team_id, nickname, full_name FROM users
+          WHERE unaccent(LOWER(COALESCE(nickname, ''))) = unaccent(LOWER($1))
+             OR LOWER(COALESCE(nickname, '')) = LOWER($1)
+             OR unaccent(LOWER(COALESCE(full_name, ''))) = unaccent(LOWER($1))
+             OR LOWER(COALESCE(full_name, '')) = LOWER($1)
+          ORDER BY
+            CASE
+              WHEN LOWER(COALESCE(nickname, '')) = LOWER($1) THEN 1
+              WHEN unaccent(LOWER(COALESCE(nickname, ''))) = unaccent(LOWER($1)) THEN 2
+              ELSE 3
+            END
+          LIMIT 1
+        `, [cleanReader]);
+        if (readerLookup.rows.length > 0) {
+          userId = readerLookup.rows[0].id;
+          if (readerLookup.rows[0].team_id) {
+            teamId = readerLookup.rows[0].team_id;
+          }
         }
       }
 
@@ -66,9 +102,9 @@ export class BookService {
         const dailyCheck = await client.query(`
           SELECT id, book_id, created_at
           FROM daily_quotes
-          WHERE user_id = $1 AND quote_date = CURRENT_DATE
+          WHERE user_id = $1 AND quote_date = $2
           LIMIT 1
-        `, [userId]);
+        `, [userId, todayVN]);
 
         if (dailyCheck.rows.length > 0) {
           const err = new Error('Mỗi ngày mỗi thành viên chỉ được gieo 1 câu trích dẫn sách. Bạn đã gieo trích dẫn cho ngày hôm nay rồi, vui lòng quay lại vào ngày mai!');
@@ -80,9 +116,9 @@ export class BookService {
         // Fallback constraint for anonymous / fingerprint
         const fpCheck = await client.query(`
           SELECT id FROM daily_quotes
-          WHERE user_fingerprint = $1 AND quote_date = CURRENT_DATE
+          WHERE user_fingerprint = $1 AND quote_date = $2
           LIMIT 1
-        `, [userFingerprint]);
+        `, [userFingerprint, todayVN]);
 
         if (fpCheck.rows.length > 0) {
           const err = new Error('Mỗi ngày mỗi Bút danh chỉ được gieo 1 câu trích dẫn sách. Bạn đã gieo trích dẫn cho ngày hôm nay rồi, vui lòng quay lại vào ngày mai!');
@@ -126,8 +162,8 @@ export class BookService {
       // 1.1 Record in daily_quotes table
       await client.query(`
         INSERT INTO daily_quotes (user_id, user_fingerprint, book_id, quote_date, team_id)
-        VALUES ($1, $2, $3, CURRENT_DATE, $4)
-      `, [userId, userFingerprint, newBook.id, teamId]);
+        VALUES ($1, $2, $3, $4, $5)
+      `, [userId, userFingerprint, newBook.id, todayVN, teamId]);
 
       // 2. Insert into EXP Ledger (+5 EXP)
       await client.query(`

@@ -255,8 +255,8 @@ class ApiDataStoreManager {
         session = JSON.parse(localStorage.getItem('caosach_user_session') || 'null');
       } catch {}
 
-      const userId = seedData.userId || (session && session.id !== 'guest' ? session.id : null);
-      const teamId = seedData.teamId || (session && session.team_id ? session.team_id : null);
+      const userId = (session && session.id && session.id !== 'guest') ? session.id : (seedData.userId || null);
+      const teamId = (session && session.team_id) ? session.team_id : (seedData.teamId ? parseInt(seedData.teamId, 10) : null);
       const email = seedData.email || (session && session.email ? session.email : null);
 
       const res = await fetch(`${getApiBase()}/books/contribute`, {
