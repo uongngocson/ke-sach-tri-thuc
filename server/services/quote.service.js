@@ -184,7 +184,8 @@ export class QuoteService {
       harvestedByTeam[t] = [];
     }
 
-    if (!userId) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!userId || userId === 'guest' || !uuidRegex.test(userId)) {
       return { today, harvestedByTeam };
     }
 
@@ -223,20 +224,24 @@ export class QuoteService {
       throw err;
     }
 
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
     const result = await db.transaction(async (client) => {
       // 1. Resolve user_id and tree team_id
       let resolvedUserId = meta.userId || null;
       let targetTreeTeamId = meta.teamId ? parseInt(meta.teamId, 10) : null;
 
+      if (resolvedUserId && (resolvedUserId === 'guest' || !uuidRegex.test(resolvedUserId))) {
+        resolvedUserId = null;
+      }
+
       if (!resolvedUserId && userFingerprint) {
         if (userFingerprint.startsWith('user_')) {
           const potentialId = userFingerprint.replace('user_', '');
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           if (uuidRegex.test(potentialId)) {
             resolvedUserId = potentialId;
           }
         } else {
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           if (uuidRegex.test(userFingerprint)) {
             resolvedUserId = userFingerprint;
           }

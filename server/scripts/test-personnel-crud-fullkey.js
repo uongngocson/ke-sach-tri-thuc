@@ -314,7 +314,8 @@ async function runPersonnelCrudTests() {
     assert(moderatorActor.role === 'moderator', 'Tài khoản Moderator nhận diện đúng vai trò moderator');
     assert(superAdminActor.role === 'admin', 'Tài khoản Superadmin nhận diện đúng vai trò admin');
 
-    const API_BASE = 'http://localhost:5000/api/v1';
+    const API_PORT = process.env.PORT || 5000;
+    const API_BASE = `http://127.0.0.1:${API_PORT}/api/v1`;
 
     // 7.1 Moderator attempts to create personnel -> 403 Forbidden
     const modCreateRes = await fetch(`${API_BASE}/admin/users`, {

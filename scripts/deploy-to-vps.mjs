@@ -138,6 +138,9 @@ async function deploy() {
     await runSSH(`docker restart ${target.backend} ${target.frontend}`);
     console.log(`   ✅ Đã khởi động lại ${target.backend} và ${target.frontend} thành công!\n`);
 
+    console.log(`   ⏳ Chờ backend container ${target.backend} khởi động và lắng nghe port...`);
+    await new Promise(r => setTimeout(r, 4000));
+
     console.log(`🧪 Kiểm thử 100% logic Hái Trái Tri Thức (Fruit Harvest) trên ${target.name}...`);
     try {
       const fruitHarvestOutput = await runSSH(`docker exec -i ${target.backend} node scripts/test-fruit-harvest-fullkey.js`);
@@ -160,10 +163,12 @@ async function deploy() {
   console.log('🌐 =========================================================\n');
 
   const testEndpoints = [
-    'https://foxread.soninfra.cloud/api/v1/health',
-    'https://stagfoxread.soninfra.cloud/api/v1/health',
+    'https://foxread.soninfra.cloud/health',
+    'https://stagfoxread.soninfra.cloud/health',
     'https://foxread.soninfra.cloud/api/v1/teams',
-    'https://stagfoxread.soninfra.cloud/api/v1/teams'
+    'https://stagfoxread.soninfra.cloud/api/v1/teams',
+    'https://foxread.soninfra.cloud/api/v1/fruits/status?userId=guest',
+    'https://stagfoxread.soninfra.cloud/api/v1/fruits/status?userId=guest'
   ];
 
   for (const url of testEndpoints) {
