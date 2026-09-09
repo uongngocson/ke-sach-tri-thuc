@@ -73,14 +73,13 @@ async function migrate() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
-    -- 5. Daily Dews Table (Unique constraint: 1 claim per user per day)
+    -- 5. Daily Dews Table (Max 3 claims per user per day)
     CREATE TABLE IF NOT EXISTS daily_dews (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       user_fingerprint VARCHAR(100) NOT NULL,
       claim_date DATE NOT NULL,
       streak INT DEFAULT 1,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      CONSTRAINT unq_user_dew_date UNIQUE(user_fingerprint, claim_date)
+      created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
     -- 6. Quote Likes Table (Unique constraint: 1 like per user per book)
@@ -209,7 +208,7 @@ async function migrate() {
     CREATE INDEX IF NOT EXISTS idx_users_employee_code ON users(employee_code);
     CREATE INDEX IF NOT EXISTS idx_users_nickname ON users(nickname);
 
-    -- 13. Daily Quotes Table (1 quote per user/device per day)
+    -- 13. Daily Quotes Table (Max 3 quotes per user/device per day)
     CREATE TABLE IF NOT EXISTS daily_quotes (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -217,8 +216,7 @@ async function migrate() {
       book_id UUID REFERENCES books(id) ON DELETE CASCADE,
       quote_date DATE NOT NULL DEFAULT CURRENT_DATE,
       team_id INT REFERENCES teams(id),
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      CONSTRAINT unq_user_daily_quote UNIQUE(user_id, quote_date)
+      created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
     CREATE INDEX IF NOT EXISTS idx_daily_quotes_user_date ON daily_quotes(user_id, quote_date);
@@ -413,8 +411,11 @@ async function migrate() {
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='books' AND column_name='credibility_scored_at') THEN
         ALTER TABLE books ADD COLUMN credibility_scored_at TIMESTAMPTZ DEFAULT NULL;
       END IF;
-      -- Unique 1 dew per user per day constraint
-      CREATE UNIQUE INDEX IF NOT EXISTS unq_user_dew_daily_user_id ON daily_dews(user_id, claim_date) WHERE user_id IS NOT NULL;
+      -- Drop legacy 1-per-day constraints to allow up to 3 dews and 3 quotes per day
+      DROP INDEX IF EXISTS unq_user_dew_daily_user_id;
+      ALTER TABLE daily_dews DROP CONSTRAINT IF EXISTS unq_user_dew_date;
+      ALTER TABLE daily_quotes DROP CONSTRAINT IF EXISTS unq_user_daily_quote;
+      CREATE INDEX IF NOT EXISTS idx_daily_dews_user_claim_date ON daily_dews(user_id, claim_date);
     END $$;
 
     -- Backfill daily_quotes from existing books (if any)

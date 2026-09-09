@@ -18,13 +18,16 @@ export class BookService {
         FROM daily_quotes dq
         LEFT JOIN books b ON dq.book_id = b.id
         WHERE dq.user_id = $1 AND dq.quote_date = $2
-        LIMIT 1
+        ORDER BY dq.created_at DESC
       `, [resolvedUserId, todayVN]);
 
-      const hasContributed = res.rows.length > 0;
+      const count = res.rows.length;
+      const hasContributed = count >= 3;
       return {
         hasContributedToday: hasContributed,
-        remainingToday: hasContributed ? 0 : 1,
+        quotesTodayCount: count,
+        remainingToday: Math.max(0, 3 - count),
+        quotes: res.rows,
         quote: res.rows[0] || null
       };
     }
@@ -35,18 +38,21 @@ export class BookService {
         FROM daily_quotes dq
         LEFT JOIN books b ON dq.book_id = b.id
         WHERE dq.user_fingerprint = $1 AND dq.quote_date = $2
-        LIMIT 1
+        ORDER BY dq.created_at DESC
       `, [userFingerprint, todayVN]);
 
-      const hasContributed = res.rows.length > 0;
+      const count = res.rows.length;
+      const hasContributed = count >= 3;
       return {
         hasContributedToday: hasContributed,
-        remainingToday: hasContributed ? 0 : 1,
+        quotesTodayCount: count,
+        remainingToday: Math.max(0, 3 - count),
+        quotes: res.rows,
         quote: res.rows[0] || null
       };
     }
 
-    return { hasContributedToday: false, remainingToday: 1, quote: null };
+    return { hasContributedToday: false, quotesTodayCount: 0, remainingToday: 3, quotes: [], quote: null };
   }
 
   static async contributeBook(payload) {
@@ -97,17 +103,16 @@ export class BookService {
         }
       }
 
-      // 0.1 STRICT CONSTRAINT: Mỗi ngày mỗi userid chỉ được 1 câu quote
+      // 0.1 STRICT CONSTRAINT: Mỗi ngày mỗi userid chỉ được tối đa 3 câu quote
       if (userId) {
         const dailyCheck = await client.query(`
           SELECT id, book_id, created_at
           FROM daily_quotes
           WHERE user_id = $1 AND quote_date = $2
-          LIMIT 1
         `, [userId, todayVN]);
 
-        if (dailyCheck.rows.length > 0) {
-          const err = new Error('Mỗi ngày mỗi thành viên chỉ được gieo 1 câu trích dẫn sách. Bạn đã gieo trích dẫn cho ngày hôm nay rồi, vui lòng quay lại vào ngày mai!');
+        if (dailyCheck.rows.length >= 3) {
+          const err = new Error('Mỗi ngày mỗi thành viên chỉ được gieo tối đa 3 câu trích dẫn sách. Bạn đã gieo đủ 3 câu trích dẫn cho ngày hôm nay rồi, vui lòng quay lại vào ngày mai!');
           err.statusCode = 409;
           err.code = 'DAILY_QUOTE_LIMIT_EXCEEDED';
           throw err;
@@ -117,11 +122,10 @@ export class BookService {
         const fpCheck = await client.query(`
           SELECT id FROM daily_quotes
           WHERE user_fingerprint = $1 AND quote_date = $2
-          LIMIT 1
         `, [userFingerprint, todayVN]);
 
-        if (fpCheck.rows.length > 0) {
-          const err = new Error('Mỗi ngày mỗi Bút danh chỉ được gieo 1 câu trích dẫn sách. Bạn đã gieo trích dẫn cho ngày hôm nay rồi, vui lòng quay lại vào ngày mai!');
+        if (fpCheck.rows.length >= 3) {
+          const err = new Error('Mỗi ngày mỗi Bút danh chỉ được gieo tối đa 3 câu trích dẫn sách. Bạn đã gieo đủ 3 câu trích dẫn cho ngày hôm nay rồi, vui lòng quay lại vào ngày mai!');
           err.statusCode = 409;
           err.code = 'DAILY_QUOTE_LIMIT_EXCEEDED';
           throw err;

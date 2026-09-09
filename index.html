@@ -4037,6 +4037,7 @@
                   </button>
                   <button
                     id="fpt-mobile-dew-btn"
+                    style="display:none !important;"
                     class="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-500/20 border border-sky-500/40 text-sm font-bold text-sky-700 dark:text-sky-300 transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
                     title="Tưới nước cho cây hằng ngày (+2 EXP)" type="button">
                     <span>💧</span>
@@ -4083,6 +4084,7 @@
                 </button>
                 <button
                   id="fpt-main-dew-btn"
+                  style="display:none !important;"
                   class="h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-xs font-black transition-all cursor-pointer shadow-md whitespace-nowrap active:scale-95"
                   title="Tưới nước cho cây hằng ngày (+2 EXP)" type="button">
                   <span class="text-sm leading-none">💧</span>
@@ -6666,53 +6668,86 @@
         const mainDewBtn = document.getElementById('fpt-main-dew-btn');
         const mobileDewBtn = document.getElementById('fpt-mobile-dew-btn');
 
-        // Case 1: Guest / Not logged in
-        if (!currentUser || currentUser.isGuest || currentUser.id === 'guest' || !currentUser.team_id) {
-          if (mainDewText) mainDewText.textContent = 'Tưới Nước';
+        const hideDewButtons = () => {
+          if (mainDewBtn) mainDewBtn.style.setProperty('display', 'none', 'important');
+          if (mobileDewBtn) mobileDewBtn.style.setProperty('display', 'none', 'important');
+        };
+
+        const showDewButtons = () => {
           if (mainDewBtn) {
-            mainDewBtn.classList.remove('opacity-75');
-            mainDewBtn.title = 'Đăng nhập để tưới nước cho cây tri thức của đội bạn!';
+            mainDewBtn.style.removeProperty('display');
+            mainDewBtn.style.display = 'inline-flex';
           }
           if (mobileDewBtn) {
-            mobileDewBtn.classList.remove('opacity-75');
-            mobileDewBtn.title = 'Đăng nhập để tưới cây!';
+            mobileDewBtn.style.removeProperty('display');
+            mobileDewBtn.style.display = 'flex';
           }
+        };
+
+        // 1. Phải đăng nhập và có đội
+        if (!currentUser || currentUser.isGuest || currentUser.id === 'guest' || !currentUser.team_id) {
+          hideDewButtons();
           return;
         }
 
-        // Case 2: Logged in - Check if already claimed today
-        const hasClaimed = await DailyDewService.hasCheckedInToday(currentUser.id);
+        // 2. Tìm đội của người dùng để kiểm tra cấp độ cây
+        const userTeam = (myTeam) || (allTeams && allTeams.find(t => parseInt(t.id, 10) === parseInt(currentUser.team_id, 10)));
+        if (!userTeam) {
+          hideDewButtons();
+          return;
+        }
+
+        const teamExp = parseInt(userTeam.tree_exp || userTeam.total_exp || 0, 10);
+        const teamLevel = (userTeam.tree_level !== undefined && userTeam.tree_level !== null)
+          ? parseInt(userTeam.tree_level, 10)
+          : ((userTeam.level !== undefined && userTeam.level !== null)
+              ? parseInt(userTeam.level, 10)
+              : (teamExp >= 150 ? (teamExp >= 300 ? (teamExp >= 600 ? (teamExp >= 1200 ? 5 : 4) : 3) : 2) : (teamExp >= 50 ? 1 : 0)));
+
+        // RULE: Chỉ khi cây của đội mình đạt Level 2 trở lên (từ 150 EXP - Giai đoạn Cây Con) mới hiển thị button tưới nước!
+        if (teamLevel < 2 && teamExp < 150) {
+          hideDewButtons();
+          return;
+        }
+
+        // Đội đã đạt Level 2 trở lên -> Hiển thị button tưới nước!
+        showDewButtons();
+
+        // 3. Kiểm tra số lần đã tưới hôm nay (tối đa 3 lần)
+        const dewStatus = await DailyDewService.getDewStatusDetail(currentUser.id);
+        const hasClaimed = !!dewStatus.hasClaimedToday;
+        const claimsToday = dewStatus.claimsToday || 0;
         const isInspectingOther = activeTeam && (parseInt(activeTeam.id, 10) !== parseInt(currentUser.team_id, 10));
 
         if (hasClaimed) {
-          if (mainDewText) mainDewText.textContent = 'Đã Tưới Hôm Nay';
+          if (mainDewText) mainDewText.textContent = 'Đã Tưới Hôm Nay (3/3)';
           if (mainDewBtn) {
             mainDewBtn.classList.add('opacity-75');
-            mainDewBtn.title = 'Hôm nay bạn đã tưới nước cho cây đội mình rồi. Hẹn gặp lại ngày mai!';
+            mainDewBtn.title = 'Hôm nay bạn đã tưới nước đủ 3 lần cho cây đội mình rồi. Hẹn gặp lại ngày mai!';
           }
           if (mobileDewBtn) {
             mobileDewBtn.classList.add('opacity-75');
-            mobileDewBtn.title = 'Hôm nay bạn đã tưới cây rồi!';
+            mobileDewBtn.title = 'Hôm nay bạn đã tưới cây đủ 3 lần!';
           }
         } else if (isInspectingOther) {
-          if (mainDewText) mainDewText.textContent = 'Tưới Cây Đội Tôi';
+          if (mainDewText) mainDewText.textContent = claimsToday > 0 ? `Tưới Cây Đội Tôi (${claimsToday}/3)` : 'Tưới Cây Đội Tôi';
           if (mainDewBtn) {
             mainDewBtn.classList.remove('opacity-75');
-            mainDewBtn.title = `Bạn đang xem cây ${activeTeam.display_name || 'đội khác'}. Bấm để chuyển về cây đội bạn và tưới nước!`;
+            mainDewBtn.title = `Bạn đang xem cây ${activeTeam.display_name || 'đội khác'}. Bấm để chuyển về cây đội bạn và tưới nước! (Còn ${3 - claimsToday}/3 lượt hôm nay)`;
           }
           if (mobileDewBtn) {
             mobileDewBtn.classList.remove('opacity-75');
-            mobileDewBtn.title = 'Tưới nước cho cây đội bạn!';
+            mobileDewBtn.title = `Tưới nước cho cây đội bạn (${claimsToday}/3)!`;
           }
         } else {
-          if (mainDewText) mainDewText.textContent = 'Tưới Nước';
+          if (mainDewText) mainDewText.textContent = claimsToday > 0 ? `Tưới Nước (${claimsToday}/3)` : 'Tưới Nước';
           if (mainDewBtn) {
             mainDewBtn.classList.remove('opacity-75');
-            mainDewBtn.title = 'Tưới nước cho cây tri thức đội bạn (+2 EXP/ngày)';
+            mainDewBtn.title = `Tưới nước cho cây tri thức đội bạn (+2 EXP/lần - Còn ${3 - claimsToday}/3 lượt hôm nay)`;
           }
           if (mobileDewBtn) {
             mobileDewBtn.classList.remove('opacity-75');
-            mobileDewBtn.title = 'Tưới nước cho cây (+2 EXP)';
+            mobileDewBtn.title = `Tưới nước cho cây (+2 EXP - ${claimsToday}/3)`;
           }
         }
       }
@@ -6744,6 +6779,21 @@
           return;
         }
 
+        // 1.1 Kiểm tra cấp độ Cây của đội mình (chỉ mở từ Level 2 - Cây Con >= 150 EXP)
+        const userTeam = (myTeam) || (allTeams && allTeams.find(t => parseInt(t.id, 10) === parseInt(currentUser.team_id, 10)));
+        const teamExp = parseInt(userTeam?.tree_exp || userTeam?.total_exp || 0, 10);
+        const teamLevel = (userTeam?.tree_level !== undefined && userTeam?.tree_level !== null)
+          ? parseInt(userTeam.tree_level, 10)
+          : ((userTeam?.level !== undefined && userTeam?.level !== null)
+              ? parseInt(userTeam.level, 10)
+              : (teamExp >= 150 ? 2 : (teamExp >= 50 ? 1 : 0)));
+
+        if (teamLevel < 2 && teamExp < 150) {
+          showToast('🌱 Tính năng Tưới Cây chỉ mở khi Cây Tri Thức của đội bạn đạt Cấp 2 – Cây Con (từ 150 EXP trở lên)!');
+          updateDewButtonState();
+          return;
+        }
+
         // 2. Check if viewing other team's tree
         if (activeTeam && parseInt(activeTeam.id, 10) !== parseInt(currentUser.team_id, 10)) {
           const teamName = activeTeam.display_name || ('Đội ' + activeTeam.id);
@@ -6756,10 +6806,10 @@
           return;
         }
 
-        // 3. Check if already claimed today
+        // 3. Check if already reached 3 claims today
         const hasClaimed = await DailyDewService.hasCheckedInToday(currentUser.id);
         if (hasClaimed) {
-          showToast('💧 Hôm nay bạn đã tưới nước cho cây đội mình rồi! Hãy quay lại vào ngày mai nhé. 🌱');
+          showToast('💧 Hôm nay bạn đã tưới nước đủ 3 lần cho cây đội mình rồi! Hãy quay lại vào ngày mai nhé. 🌱');
           updateDewButtonState();
           return;
         }
@@ -6771,7 +6821,8 @@
         });
 
         if (result.success) {
-          showToast(`💧 Bạn đã tưới nước cho cây đội mình thành công (+2 EXP)! Chuỗi chăm sóc: ${result.streak} ngày liên tiếp 🌱`);
+          const claims = result.claimsToday || 1;
+          showToast(`💧 Bạn đã tưới nước cho cây đội mình thành công (+2 EXP)! (Lượt ${claims}/3) • Chuỗi chăm sóc: ${result.streak} ngày liên tiếp 🌱`);
           await loadUserTeamAndSync();
           updateDewButtonState();
         } else {
@@ -6784,7 +6835,7 @@
               await inspectTeam(myTeam, false);
             }
           } else {
-            showToast(result.message || 'Hôm nay bạn đã tưới cây rồi 🌱');
+            showToast(result.message || 'Hôm nay bạn đã tưới cây đủ 3 lần rồi 🌱');
           }
           updateDewButtonState();
         }
@@ -8577,7 +8628,7 @@
             const teamName = (myTeam && (myTeam.display_name || myTeam.name)) || TEAM_SHORT_NAMES[targetTeamId] || `Đội ${targetTeamId}`;
             showToast(`🎉 Gieo mầm thành công: "${bookTitleVal}" đã được gieo vào Cây ${teamName} (+5 EXP)!`);
           } else {
-            showToast(`⚠️ ${res.message || 'Mỗi ngày mỗi thành viên chỉ được gieo đúng 1 câu quote!'}`);
+            showToast(`⚠️ ${res.message || 'Mỗi ngày mỗi thành viên chỉ được gieo tối đa 3 câu quote!'}`);
           }
         });
       }

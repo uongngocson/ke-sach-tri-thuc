@@ -8,7 +8,7 @@ export async function migrateDailyQuotes() {
     ALTER TABLE books ADD COLUMN IF NOT EXISTS user_fingerprint VARCHAR(100);
   `);
 
-  // 2. Create daily_quotes table with unique constraint (1 quote per user per day)
+  // 2. Create daily_quotes table (Max 3 quotes per user per day)
   await db.query(`
     CREATE TABLE IF NOT EXISTS daily_quotes (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -17,9 +17,9 @@ export async function migrateDailyQuotes() {
       book_id UUID REFERENCES books(id) ON DELETE CASCADE,
       quote_date DATE NOT NULL DEFAULT CURRENT_DATE,
       team_id INT,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      CONSTRAINT unq_user_daily_quote UNIQUE(user_id, quote_date)
+      created_at TIMESTAMPTZ DEFAULT NOW()
     );
+    ALTER TABLE daily_quotes DROP CONSTRAINT IF EXISTS unq_user_daily_quote;
 
     CREATE INDEX IF NOT EXISTS idx_daily_quotes_user_date ON daily_quotes(user_id, quote_date);
     CREATE INDEX IF NOT EXISTS idx_daily_quotes_fp_date ON daily_quotes(user_fingerprint, quote_date);

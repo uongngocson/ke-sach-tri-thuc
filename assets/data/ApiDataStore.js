@@ -332,7 +332,7 @@ class ApiDataStoreManager {
     } catch (e) {
       console.warn('Error fetching daily quote status:', e);
     }
-    return { hasContributedToday: false, remainingToday: 1 };
+    return { hasContributedToday: false, quotesTodayCount: 0, remainingToday: 3 };
   }
 
   async getCurrentRound() {
@@ -709,6 +709,9 @@ class ApiDataStoreManager {
         return {
           success: true,
           streak: data.data.streak,
+          claimsToday: data.data.claimsToday,
+          remainingClaimsToday: data.data.remainingClaimsToday,
+          hasClaimedToday: data.data.hasClaimedToday,
           expEarned: data.data.expEarned || 2,
           team: data.data.team,
           growth: data.data.growth
@@ -717,7 +720,11 @@ class ApiDataStoreManager {
         return {
           success: false,
           code: data.error,
-          message: data.message
+          message: data.message,
+          streak: data.data?.streak,
+          claimsToday: data.data?.claimsToday,
+          remainingClaimsToday: data.data?.remainingClaimsToday,
+          hasClaimedToday: data.data?.hasClaimedToday
         };
       }
     } catch (err) {

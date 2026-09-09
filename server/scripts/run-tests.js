@@ -123,7 +123,7 @@ async function runAllTests() {
     // Clean up any test dew records today for this user
     await db.query('DELETE FROM daily_dews WHERE user_id = $1', [validUser.id]);
 
-    // Daily Dew 1st time on own team tree
+    // Daily Dew: Claims 1, 2, 3 succeed (+2 EXP each), 4th is blocked
     const dewFp = `dew_test_${Date.now()}`;
     const dew1 = await DewService.claimDew({
       userId: validUser.id,
@@ -132,9 +132,26 @@ async function runAllTests() {
       userFingerprint: dewFp
     });
     assert(dew1.expEarned === 2, 'Daily Dew: First claim on own team tree succeeds (+2 EXP)');
+    assert(dew1.claimsToday === 1 && dew1.remainingClaimsToday === 2, 'Daily Dew: 1st claim reports claimsToday=1, remaining=2');
     assert(dew1.team.id === validUser.team_id, 'Daily Dew: Team tree EXP is credited to the correct team');
 
-    // Daily Dew 2nd time on same date -> Must throw 409 DUPLICATE_DEW_CLAIM
+    const dew2 = await DewService.claimDew({
+      userId: validUser.id,
+      teamId: validUser.team_id,
+      email: validUser.email,
+      userFingerprint: dewFp
+    });
+    assert(dew2.claimsToday === 2 && dew2.remainingClaimsToday === 1, 'Daily Dew: 2nd claim succeeds, claimsToday=2, remaining=1');
+
+    const dew3 = await DewService.claimDew({
+      userId: validUser.id,
+      teamId: validUser.team_id,
+      email: validUser.email,
+      userFingerprint: dewFp
+    });
+    assert(dew3.claimsToday === 3 && dew3.remainingClaimsToday === 0 && dew3.hasClaimedToday === true, 'Daily Dew: 3rd claim succeeds, claimsToday=3, remaining=0, hasClaimedToday=true');
+
+    // Daily Dew 4th time on same date -> Must throw 409 DUPLICATE_DEW_CLAIM
     let dewSpamBlocked = false;
     try {
       await DewService.claimDew({
@@ -144,12 +161,12 @@ async function runAllTests() {
         userFingerprint: dewFp
       });
     } catch (err) {
-      if (err.statusCode === 409 || err.code === 'DUPLICATE_DEW_CLAIM' || err.code === '23505') dewSpamBlocked = true;
+      if (err.statusCode === 409 || err.code === 'DUPLICATE_DEW_CLAIM') dewSpamBlocked = true;
     }
-    assert(dewSpamBlocked, 'Daily Dew: Second claim on same day strictly blocked (HTTP 409 DUPLICATE_DEW_CLAIM)');
+    assert(dewSpamBlocked, 'Daily Dew: Fourth claim on same day strictly blocked (HTTP 409 DUPLICATE_DEW_CLAIM)');
 
     const statusCheck = await DewService.getDewStatus({ userId: validUser.id });
-    assert(statusCheck.hasClaimedToday === true, 'Daily Dew: getDewStatus correctly reports hasClaimedToday = true');
+    assert(statusCheck.hasClaimedToday === true && statusCheck.claimsToday === 3, 'Daily Dew: getDewStatus correctly reports hasClaimedToday = true and claimsToday = 3');
 
     // Quote Like 1st time
     const like1 = await QuoteService.likeQuote(contribution.book.id, validUser.id, validUser);
@@ -246,9 +263,9 @@ async function runAllTests() {
     assert(nameLookup && nameLookup.full_name === 'Đỗ Viết Kim Hoàng', 'Users: Lookup by full_name "Đỗ Viết Kim Hoàng" returns correct user profile');
 
     // -------------------------------------------------------------
-    // INTEGRATION TESTS: DAILY QUOTE CONSTRAINT (1 QUOTE / USER / DAY)
+    // INTEGRATION TESTS: DAILY QUOTE CONSTRAINT (3 QUOTES / USER / DAY)
     // -------------------------------------------------------------
-    console.log('\n📦 [7/7] Running Integration Tests: Daily Quote Limit (1 quote/day/user)...');
+    console.log('\n📦 [7/7] Running Integration Tests: Daily Quote Limit (3 quotes/day/user)...');
 
     // Clean any daily quotes today for validUser
     await db.query('DELETE FROM daily_quotes WHERE user_id = $1 AND quote_date = CURRENT_DATE', [validUser.id]);
@@ -265,19 +282,50 @@ async function runAllTests() {
       teamId: validUser.team_id,
       userFingerprint: dailyTestFp
     });
-
     assert(dailyBook1 && dailyBook1.book && dailyBook1.book.id, 'Daily Quote: 1st contribution today succeeds');
 
-    const dqStatus = await BookService.getDailyQuoteStatus({ userId: validUser.id });
-    assert(dqStatus.hasContributedToday === true && dqStatus.remainingToday === 0, 'Daily Quote: Status correctly reflects hasContributedToday = true and remainingToday = 0');
+    const dqStatus1 = await BookService.getDailyQuoteStatus({ userId: validUser.id });
+    assert(dqStatus1.quotesTodayCount === 1 && dqStatus1.remainingToday === 2 && dqStatus1.hasContributedToday === false, 'Daily Quote: After 1st quote, quotesTodayCount=1, remaining=2, hasContributedToday=false');
 
-    // 2nd contribution in same day by same user -> Must be blocked (409)
+    const dailyBook2 = await BookService.contributeBook({
+      title: 'Blink - Trong Chớp Mắt',
+      author: 'Malcolm Gladwell',
+      quote: 'Quyết định nhanh chóng có thể tốt như những quyết định thận trọng.',
+      category: 'Tâm Lý Học',
+      reader: validUser.full_name,
+      email: validUser.email,
+      userId: validUser.id,
+      teamId: validUser.team_id,
+      userFingerprint: dailyTestFp
+    });
+    assert(dailyBook2 && dailyBook2.book && dailyBook2.book.id, 'Daily Quote: 2nd contribution today succeeds');
+
+    const dqStatus2 = await BookService.getDailyQuoteStatus({ userId: validUser.id });
+    assert(dqStatus2.quotesTodayCount === 2 && dqStatus2.remainingToday === 1 && dqStatus2.hasContributedToday === false, 'Daily Quote: After 2nd quote, quotesTodayCount=2, remaining=1, hasContributedToday=false');
+
+    const dailyBook3 = await BookService.contributeBook({
+      title: 'Điểm Bùng Phát',
+      author: 'Malcolm Gladwell',
+      quote: 'Những điều nhỏ bé có thể tạo nên sự khác biệt lớn.',
+      category: 'Tâm Lý Học',
+      reader: validUser.full_name,
+      email: validUser.email,
+      userId: validUser.id,
+      teamId: validUser.team_id,
+      userFingerprint: dailyTestFp
+    });
+    assert(dailyBook3 && dailyBook3.book && dailyBook3.book.id, 'Daily Quote: 3rd contribution today succeeds');
+
+    const dqStatus3 = await BookService.getDailyQuoteStatus({ userId: validUser.id });
+    assert(dqStatus3.quotesTodayCount === 3 && dqStatus3.remainingToday === 0 && dqStatus3.hasContributedToday === true, 'Daily Quote: After 3rd quote, quotesTodayCount=3, remaining=0, hasContributedToday=true');
+
+    // 4th contribution in same day by same user -> Must be blocked (409)
     let dailyBlocked = false;
     try {
       await BookService.contributeBook({
-        title: 'Blink - Trong Chớp Mắt',
+        title: 'Outliers - Những Kẻ Xuất Chúng',
         author: 'Malcolm Gladwell',
-        quote: 'Quyết định nhanh chóng có thể tốt như những quyết định thận trọng.',
+        quote: 'Thành công không phải là ngẫu nhiên.',
         category: 'Tâm Lý Học',
         reader: validUser.full_name,
         email: validUser.email,
@@ -290,7 +338,7 @@ async function runAllTests() {
         dailyBlocked = true;
       }
     }
-    assert(dailyBlocked, 'Daily Quote: 2nd contribution on same day strictly blocked (HTTP 409 DAILY_QUOTE_LIMIT_EXCEEDED)');
+    assert(dailyBlocked, 'Daily Quote: 4th contribution on same day strictly blocked (HTTP 409 DAILY_QUOTE_LIMIT_EXCEEDED)');
 
     // Clean up test books created during test run
     if (contribution && contribution.book && contribution.book.id) {

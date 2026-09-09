@@ -39,6 +39,7 @@ export class DailyDewService {
 
   /**
    * Check if user has already checked in today from server DB
+   * Returns true only when user reached daily limit (3 dews / day)
    * @param {string} userId 
    * @param {boolean} forceRefresh
    */
@@ -56,18 +57,21 @@ export class DailyDewService {
       if (MockDataStore && MockDataStore.getDewStatus) {
         const status = await MockDataStore.getDewStatus(userId);
         if (status) {
+          const hasClaimedToday = status.hasClaimedToday !== undefined ? !!status.hasClaimedToday : ((status.claimsToday || 0) >= 3);
           this._serverStatusCache[userId] = {
-            hasClaimedToday: !!status.hasClaimedToday,
+            hasClaimedToday: hasClaimedToday,
+            claimsToday: status.claimsToday || 0,
+            remainingClaimsToday: status.remainingClaimsToday ?? Math.max(0, 3 - (status.claimsToday || 0)),
             streak: status.streak,
             lastClaimDate: status.lastClaimDate,
             cacheDate: today
           };
           const key = this.getStorageKey(userId);
-          localStorage.setItem(key, status.hasClaimedToday ? 'true' : 'false');
+          localStorage.setItem(key, hasClaimedToday ? 'true' : 'false');
           if (status.streak !== undefined) {
             localStorage.setItem(this.getStreakKey(userId), String(status.streak));
           }
-          return !!status.hasClaimedToday;
+          return hasClaimedToday;
         }
       }
     } catch (e) {
@@ -80,6 +84,29 @@ export class DailyDewService {
     } catch (e) {
       return false;
     }
+  }
+
+  /**
+   * Get detailed dew status for user today
+   * @param {string} userId 
+   * @param {boolean} forceRefresh
+   */
+  static async getDewStatusDetail(userId, forceRefresh = false) {
+    if (!userId || userId === 'guest') {
+      return { hasClaimedToday: false, claimsToday: 0, remainingClaimsToday: 3, streak: 0 };
+    }
+    await this.hasCheckedInToday(userId, forceRefresh);
+    const cached = this._serverStatusCache[userId];
+    if (cached) {
+      return {
+        hasClaimedToday: !!cached.hasClaimedToday,
+        claimsToday: cached.claimsToday || 0,
+        remainingClaimsToday: cached.remainingClaimsToday ?? Math.max(0, 3 - (cached.claimsToday || 0)),
+        streak: cached.streak || 0,
+        lastClaimDate: cached.lastClaimDate
+      };
+    }
+    return { hasClaimedToday: false, claimsToday: 0, remainingClaimsToday: 3, streak: 0 };
   }
 
   /**
@@ -97,8 +124,11 @@ export class DailyDewService {
       if (MockDataStore && MockDataStore.getDewStatus) {
         const status = await MockDataStore.getDewStatus(userId);
         if (status) {
+          const hasClaimedToday = status.hasClaimedToday !== undefined ? !!status.hasClaimedToday : ((status.claimsToday || 0) >= 3);
           this._serverStatusCache[userId] = {
-            hasClaimedToday: !!status.hasClaimedToday,
+            hasClaimedToday: hasClaimedToday,
+            claimsToday: status.claimsToday || 0,
+            remainingClaimsToday: status.remainingClaimsToday ?? Math.max(0, 3 - (status.claimsToday || 0)),
             streak: status.streak,
             lastClaimDate: status.lastClaimDate,
             cacheDate: today
@@ -117,7 +147,7 @@ export class DailyDewService {
   }
 
   /**
-   * Claim daily morning dew (+1 EXP & Lucky Wisdom Quote)
+   * Claim daily morning dew (+1 EXP & Lucky Wisdom Quote, up to 3 times/day)
    * @param {Object} params
    * @param {Object} params.currentUser - The logged-in user object
    * @param {Object} params.activeTeam - The team tree currently being viewed
@@ -150,13 +180,30 @@ export class DailyDewService {
       };
     }
 
-    // 4. Fast local check
+    // 4. Check if team's tree has unlocked watering (Level >= 2, >= 150 EXP)
+    if (activeTeam) {
+      const exp = parseInt(activeTeam.tree_exp || activeTeam.total_exp || 0, 10);
+      const level = (activeTeam.tree_level !== undefined && activeTeam.tree_level !== null)
+        ? parseInt(activeTeam.tree_level, 10)
+        : ((activeTeam.level !== undefined && activeTeam.level !== null)
+            ? parseInt(activeTeam.level, 10)
+            : (exp >= 150 ? 2 : (exp >= 50 ? 1 : 0)));
+      if (level < 2 && exp < 150) {
+        return {
+          success: false,
+          code: 'TREE_LEVEL_TOO_LOW',
+          message: 'Tính năng Tưới Nước chỉ mở khi Cây Tri Thức của đội bạn đạt Cấp 2 – Cây Con (từ 150 EXP trở lên)!'
+        };
+      }
+    }
+
+    // 5. Fast local check
     const today = this.getTodayDateString();
     if (await this.hasCheckedInToday(currentUser.id)) {
       return {
         success: false,
         code: 'ALREADY_CLAIMED',
-        message: 'Hôm nay bạn đã tưới cây đội mình rồi! Hãy quay lại vào ngày mai nhé. 🌱'
+        message: 'Hôm nay bạn đã tưới cây đủ 3 lần rồi! Hãy quay lại vào ngày mai nhé. 🌱'
       };
     }
 
@@ -172,6 +219,8 @@ export class DailyDewService {
       if (apiRes.code === 'DUPLICATE_DEW_CLAIM') {
         this._serverStatusCache[currentUser.id] = {
           hasClaimedToday: true,
+          claimsToday: apiRes.claimsToday || 3,
+          remainingClaimsToday: 0,
           streak: apiRes.streak || (await this.getStreak(currentUser.id)),
           cacheDate: today
         };
@@ -185,14 +234,20 @@ export class DailyDewService {
     }
 
     // 6. Save checkin state locally and in server cache on success
-    const currentStreak = apiRes.streak || (await this.getStreak(currentUser.id)) + 1;
+    const currentStreak = apiRes.streak || (await this.getStreak(currentUser.id));
+    const claimsToday = apiRes.claimsToday || 1;
+    const hasClaimedToday = apiRes.hasClaimedToday !== undefined ? apiRes.hasClaimedToday : (claimsToday >= 3);
+    const remainingClaimsToday = apiRes.remainingClaimsToday !== undefined ? apiRes.remainingClaimsToday : Math.max(0, 3 - claimsToday);
+
     this._serverStatusCache[currentUser.id] = {
-      hasClaimedToday: true,
+      hasClaimedToday: hasClaimedToday,
+      claimsToday: claimsToday,
+      remainingClaimsToday: remainingClaimsToday,
       streak: currentStreak,
       lastClaimDate: today,
       cacheDate: today
     };
-    localStorage.setItem(this.getStorageKey(currentUser.id), 'true');
+    localStorage.setItem(this.getStorageKey(currentUser.id), hasClaimedToday ? 'true' : 'false');
     localStorage.setItem(this.getStreakKey(currentUser.id), String(currentStreak));
 
     // 7. Pick an inspiring blessing quote of the day
