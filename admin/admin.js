@@ -599,7 +599,7 @@ function updateKPICards(kpi) {
   // Mode Pill
   const pill = document.getElementById('top-round-pill');
   if (pill) {
-    pill.textContent = `🌱 Vườn Tri Thức • 1 Quote / Ngày / Thành Viên`;
+    pill.textContent = `🌱 Vườn Tri Thức • Tối Đa 3 Quotes / Ngày / Thành Viên`;
   }
 }
 
@@ -1378,7 +1378,7 @@ function renderUsersTable(users) {
   // Update date column header
   const thDateCol = document.getElementById('th-users-date-col');
   if (thDateCol) {
-    thDateCol.textContent = isToday ? 'Hôm Nay (1 Quote)' : `Ngày ${formattedDate.slice(0, 5)} (1 Quote)`;
+    thDateCol.textContent = isToday ? 'Hôm Nay (Tối Đa 3 Quotes)' : `Ngày ${formattedDate.slice(0, 5)} (Tối Đa 3 Quotes)`;
   }
 
   // Update active date badge

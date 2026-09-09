@@ -93,7 +93,7 @@ export class UserIdentityModal {
         <div class="ui-identity-title-block">
           <h2 class="ui-identity-title">Chào Mừng Đến Vườn Cây Tri Thức</h2>
           <p class="ui-identity-subtitle">
-            Nhập <strong>Bút Danh</strong> để nhận diện Đội và cùng đồng đội chăm sóc Cây Tri Thức của bạn.
+            Nhập <strong>Tên đăng nhập</strong> để nhận diện Đội và cùng đồng đội chăm sóc Cây Tri Thức của bạn.
           </p>
         </div>
 
@@ -101,14 +101,14 @@ export class UserIdentityModal {
         <div class="ui-identity-form-group">
           <label class="ui-identity-label">
             <span>👤</span>
-            <span>Bút Danh:</span>
+            <span>Tên đăng nhập:</span>
           </label>
           <div class="ui-identity-input-wrapper">
             <input 
               type="text" 
               id="ui-identity-input" 
               class="ui-identity-input" 
-              placeholder="Ví dụ: Cáo Tri Thức, Sách Hay, Hoa Sen..." 
+              placeholder="Nhập bút danh ví dụ: Hạnh Dung, Thu Hương" 
               autocomplete="off"
             />
             <button class="ui-identity-clear-btn" id="ui-identity-clear-btn" style="display:none;">✕</button>

@@ -53,6 +53,8 @@ async function deploy() {
     'admin/index.html',
     'admin/admin.js',
     'assets/data/ApiDataStore.js',
+    'assets/services/DailyDewService.js',
+    'assets/auth/UserIdentityModal.js',
     'assets/config/appEnv.js',
     'server/data/teams-and-users.json',
     'server/services/book.service.js',
@@ -60,11 +62,14 @@ async function deploy() {
     'server/services/team.service.js',
     'server/services/quote.service.js',
     'server/services/dew.service.js',
+    'server/scripts/migrate.js',
+    'server/scripts/migrate_daily_quotes.js',
     'server/scripts/sync-team-exp.js',
     'server/scripts/test-team-exp-and-members-modal-fullkey.js',
     'server/scripts/apply-ordered-users-to-db.js',
     'server/scripts/seed-teams-users.js',
     'server/scripts/test-288-users-seeding-and-ui-fullkey.js',
+    'server/scripts/test-3-claims-per-day-fullkey.js',
     'server/scripts/run-all-test-suites.js',
     'server/scripts/test-unit-suite.js',
     'server/scripts/run-tests.js',
@@ -112,6 +117,14 @@ async function deploy() {
       console.log(`   ${testOutput.replace(/\n/g, '\n   ')}`);
     } catch (e) {
       console.warn(`   ⚠️ Unit test trên ${target.name}: ${e.message}`);
+    }
+
+    console.log(`🧪 Kiểm thử 100% quy tắc 3 lần/ngày trên ${target.name}...`);
+    try {
+      const test3Output = await runSSH(`docker exec -i ${target.backend} node scripts/test-3-claims-per-day-fullkey.js`);
+      console.log(`   ${test3Output.replace(/\n/g, '\n   ')}`);
+    } catch (e) {
+      console.warn(`   ⚠️ Test 3 claims trên ${target.name}: ${e.message}`);
     }
   }
 

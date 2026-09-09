@@ -66,29 +66,34 @@ export class DewService {
     const effectiveFingerprint = userFingerprint || `fp_user_${user.id.substring(0, 8)}`;
 
     const result = await db.transaction(async (client) => {
-      // 4. Check if user already claimed today (Strict 1 user 1 day check)
-      const existingClaim = await client.query(
+      // 4. Check if user already claimed max 3 times today
+      const existingClaims = await client.query(
         'SELECT id, claim_date, streak FROM daily_dews WHERE user_id = $1 AND claim_date = $2',
         [user.id, todayVN]
       );
 
-      if (existingClaim.rows.length > 0) {
-        const err = new Error('Hôm nay bạn đã tưới cây rồi. Hãy quay lại vào ngày mai nhé!');
+      if (existingClaims.rows.length >= 3) {
+        const err = new Error('Hôm nay bạn đã tưới cây đủ 3 lần rồi. Hãy quay lại vào ngày mai nhé!');
         err.statusCode = 409;
         err.code = 'DUPLICATE_DEW_CLAIM';
         throw err;
       }
 
-      // 5. Calculate streak from yesterday (Exact YYYY-MM-DD calculation)
-      const [y, m, d] = todayVN.split('-').map(Number);
-      const yesterdayObj = new Date(Date.UTC(y, m - 1, d - 1));
-      const yesterdayVN = yesterdayObj.toISOString().split('T')[0];
+      // 5. Calculate streak (Preserve streak across multiple claims on the same day)
+      let streak = 1;
+      if (existingClaims.rows.length > 0) {
+        streak = existingClaims.rows[0].streak || 1;
+      } else {
+        const [y, m, d] = todayVN.split('-').map(Number);
+        const yesterdayObj = new Date(Date.UTC(y, m - 1, d - 1));
+        const yesterdayVN = yesterdayObj.toISOString().split('T')[0];
 
-      const prevDew = await client.query(
-        'SELECT streak FROM daily_dews WHERE user_id = $1 AND claim_date = $2',
-        [user.id, yesterdayVN]
-      );
-      const streak = prevDew.rows.length > 0 ? prevDew.rows[0].streak + 1 : 1;
+        const prevDew = await client.query(
+          'SELECT streak FROM daily_dews WHERE user_id = $1 AND claim_date = $2 ORDER BY streak DESC LIMIT 1',
+          [user.id, yesterdayVN]
+        );
+        streak = prevDew.rows.length > 0 ? (prevDew.rows[0].streak || 0) + 1 : 1;
+      }
 
       // 6. Insert Daily Dew
       const dewInsert = await client.query(`
@@ -136,9 +141,16 @@ export class DewService {
       const newTotalExp = parseInt(growthRes.rows[0].total_exp, 10);
       const levelInfo = await GrowthService.recalculateAndSyncLevel(client, newTotalExp);
 
+      const claimsToday = existingClaims.rows.length + 1;
+      const remainingClaimsToday = Math.max(0, 3 - claimsToday);
+      const hasClaimedToday = claimsToday >= 3;
+
       return {
         dew: newDew,
         streak,
+        claimsToday,
+        remainingClaimsToday,
+        hasClaimedToday,
         expEarned: EXP_CONFIG.DAILY_DEW,
         team: teamRes.rows[0],
         user: {
@@ -163,38 +175,50 @@ export class DewService {
   }
 
   /**
-   * Get Dew claim status for a user today
+   * Get Dew claim status for a user today (Max 3 claims per day)
    */
   static async getDewStatus({ userId, userFingerprint, customDate }) {
     const todayVN = customDate || getVietnamDateString();
-    let res;
+    let todayClaims = [];
+    let latestRecord = null;
 
     if (userId && userId !== 'guest') {
-      res = await db.query(
-        'SELECT streak, claim_date::text as claim_date FROM daily_dews WHERE user_id = $1 ORDER BY claim_date DESC LIMIT 1',
+      const todayRes = await db.query(
+        'SELECT id, streak, claim_date::text as claim_date FROM daily_dews WHERE user_id = $1 AND claim_date = $2',
+        [userId, todayVN]
+      );
+      todayClaims = todayRes.rows;
+
+      const latestRes = await db.query(
+        'SELECT streak, claim_date::text as claim_date FROM daily_dews WHERE user_id = $1 ORDER BY claim_date DESC, created_at DESC LIMIT 1',
         [userId]
       );
+      latestRecord = latestRes.rows[0] || null;
     } else if (userFingerprint) {
-      res = await db.query(
-        'SELECT streak, claim_date::text as claim_date FROM daily_dews WHERE user_fingerprint = $1 ORDER BY claim_date DESC LIMIT 1',
+      const todayRes = await db.query(
+        'SELECT id, streak, claim_date::text as claim_date FROM daily_dews WHERE user_fingerprint = $1 AND claim_date = $2',
+        [userFingerprint, todayVN]
+      );
+      todayClaims = todayRes.rows;
+
+      const latestRes = await db.query(
+        'SELECT streak, claim_date::text as claim_date FROM daily_dews WHERE user_fingerprint = $1 ORDER BY claim_date DESC, created_at DESC LIMIT 1',
         [userFingerprint]
       );
+      latestRecord = latestRes.rows[0] || null;
     } else {
-      return { hasClaimedToday: false, streak: 0 };
+      return { hasClaimedToday: false, claimsToday: 0, remainingClaimsToday: 3, streak: 0 };
     }
 
-    if (res.rows.length === 0) {
-      return { hasClaimedToday: false, streak: 0 };
-    }
-
-    const last = res.rows[0];
-    const lastClaimDateVN = String(last.claim_date);
-    const hasClaimedToday = (lastClaimDateVN === todayVN);
+    const claimsCount = todayClaims.length;
+    const hasClaimedToday = claimsCount >= 3;
 
     return {
       hasClaimedToday,
-      streak: last.streak,
-      lastClaimDate: last.claim_date
+      claimsToday: claimsCount,
+      remainingClaimsToday: Math.max(0, 3 - claimsCount),
+      streak: latestRecord ? (latestRecord.streak || 0) : 0,
+      lastClaimDate: latestRecord ? latestRecord.claim_date : null
     };
   }
 }
