@@ -166,10 +166,11 @@ export class BookService {
       `, [userId, userFingerprint, newBook.id, todayVN, teamId]);
 
       // 2. Insert into EXP Ledger (+5 EXP)
+      const validFingerprint = userFingerprint || (userId ? `user_${userId}` : 'fp_anonymous');
       await client.query(`
         INSERT INTO exp_ledger (user_id, team_id, user_fingerprint, amount, type, reference_type, reference_id)
         VALUES ($1, $2, $3, $4, 'BOOK_CONTRIBUTION', 'books', $5)
-      `, [userId, teamId, userFingerprint, EXP_CONFIG.BOOK_CONTRIBUTION, newBook.id]);
+      `, [userId, teamId, validFingerprint, EXP_CONFIG.BOOK_CONTRIBUTION, newBook.id]);
 
       // 3. Update Team EXP and Level directly (No rounds concept)
       if (teamId) {
@@ -178,25 +179,53 @@ export class BookService {
           SET total_books = total_books + 1,
               tree_seeds = CASE WHEN tree_seeds < 10 THEN tree_seeds + 1 ELSE tree_seeds END,
               total_exp = total_exp + $1,
+              tree_exp = tree_exp + $1,
               tree_level = CASE 
-                WHEN total_exp + $1 >= 1200 THEN 5
-                WHEN total_exp + $1 >= 600 THEN 4
-                WHEN total_exp + $1 >= 300 THEN 3
-                WHEN total_exp + $1 >= 150 THEN 2
-                WHEN tree_seeds + 1 >= 10 OR total_exp + $1 >= 50 THEN 1
+                WHEN GREATEST(total_exp + $1, tree_exp + $1) >= 1200 THEN 5
+                WHEN GREATEST(total_exp + $1, tree_exp + $1) >= 600 THEN 4
+                WHEN GREATEST(total_exp + $1, tree_exp + $1) >= 300 THEN 3
+                WHEN GREATEST(total_exp + $1, tree_exp + $1) >= 150 THEN 2
+                WHEN tree_seeds + 1 >= 10 OR GREATEST(total_exp + $1, tree_exp + $1) >= 50 THEN 1
                 ELSE 0
               END,
               level = CASE 
-                WHEN total_exp + $1 >= 1200 THEN 5
-                WHEN total_exp + $1 >= 600 THEN 4
-                WHEN total_exp + $1 >= 300 THEN 3
-                WHEN total_exp + $1 >= 150 THEN 2
-                WHEN tree_seeds + 1 >= 10 OR total_exp + $1 >= 50 THEN 1
+                WHEN GREATEST(total_exp + $1, tree_exp + $1) >= 1200 THEN 5
+                WHEN GREATEST(total_exp + $1, tree_exp + $1) >= 600 THEN 4
+                WHEN GREATEST(total_exp + $1, tree_exp + $1) >= 300 THEN 3
+                WHEN GREATEST(total_exp + $1, tree_exp + $1) >= 150 THEN 2
+                WHEN tree_seeds + 1 >= 10 OR GREATEST(total_exp + $1, tree_exp + $1) >= 50 THEN 1
                 ELSE 0
               END,
               updated_at = NOW()
           WHERE id = $2
         `, [EXP_CONFIG.BOOK_CONTRIBUTION, teamId]);
+
+        // 3.1 Update team avg_participation_rate (Real-time campaign average)
+        await client.query(`
+          UPDATE teams t
+          SET avg_participation_rate = ROUND(
+            (
+              COALESCE((
+                SELECT COUNT(DISTINCT (dq.quote_date::text || '_' || COALESCE(dq.user_id::text, dq.user_fingerprint)))
+                FROM daily_quotes dq
+                WHERE dq.team_id = $2
+              ), 0)::numeric
+              /
+              (dc.total_days * GREATEST(COALESCE(t.target_members, t.actual_members, 40), 1))
+              * 100
+            )::numeric,
+            1
+          )
+          FROM (
+            SELECT GREATEST(COUNT(*), 1) as total_days
+            FROM (
+              SELECT DISTINCT quote_date::date as q_date FROM daily_quotes
+              UNION
+              SELECT $1::date as q_date
+            ) all_d
+          ) dc
+          WHERE t.id = $2
+        `, [todayVN, teamId]);
       }
 
       // 4. Update user stats if matched

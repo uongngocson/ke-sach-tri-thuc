@@ -93,13 +93,25 @@ export class AnalyticsService {
       });
     }
 
-    // 4. 8 Teams Deep-Dive
+    // 4. Determine Active Campaign Days (Số ngày thực tế đã diễn ra từ đầu giải đến hôm nay)
+    const distinctDatesRes = await db.query(`
+      SELECT DISTINCT quote_date::date as q_date FROM daily_quotes
+      UNION
+      SELECT $1::date as q_date
+    `, [todayVN]);
+    const totalCampaignDays = Math.max(distinctDatesRes.rows.length, 1);
+
+    // 4.1. 8 Teams Deep-Dive
     const teamsRes = await db.query(`
       SELECT 
         t.id, t.code, t.name, t.display_name, t.color_code,
         t.target_members, t.actual_members,
-        t.tree_exp, t.tree_level, t.tree_seeds,
-        t.avg_participation_rate, t.perfect_rounds_count,
+        GREATEST(COALESCE(t.tree_exp, 0), COALESCE(t.total_exp, 0))::BIGINT as tree_exp,
+        GREATEST(COALESCE(t.tree_exp, 0), COALESCE(t.total_exp, 0))::BIGINT as total_exp,
+        GREATEST(COALESCE(t.tree_level, 0), COALESCE(t.level, 0))::INT as tree_level,
+        GREATEST(COALESCE(t.tree_level, 0), COALESCE(t.level, 0))::INT as level,
+        t.tree_seeds,
+        t.perfect_rounds_count,
         t.milestone_150_at, t.milestone_400_at, t.milestone_1000_at, t.milestone_2500_at,
         (SELECT COUNT(*) FROM books b WHERE b.team_id = t.id) as books_count,
         (SELECT COUNT(*) FROM books b WHERE b.team_id = t.id AND (b.created_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date = $2::date) as date_books_count,
@@ -107,9 +119,10 @@ export class AnalyticsService {
         (SELECT COUNT(*) FROM daily_dews d WHERE d.team_id = t.id AND d.claim_date = $2::date) as date_dews_count,
         (SELECT COUNT(DISTINCT COALESCE(dq.user_id::text, dq.user_fingerprint)) FROM daily_quotes dq WHERE dq.team_id = t.id AND dq.quote_date = $3::date) as today_participants,
         (SELECT COUNT(DISTINCT COALESCE(dq.user_id::text, dq.user_fingerprint)) FROM daily_quotes dq WHERE dq.team_id = t.id AND dq.quote_date = $2::date) as date_participants,
+        (SELECT COUNT(DISTINCT (dq.quote_date::text || '_' || COALESCE(dq.user_id::text, dq.user_fingerprint))) FROM daily_quotes dq WHERE dq.team_id = t.id) as all_days_participants,
         (SELECT COUNT(DISTINCT rc.user_id) FROM round_contributions rc WHERE rc.team_id = t.id AND rc.round_number = $1) as current_round_participants
       FROM teams t
-      ORDER BY t.tree_exp DESC, t.id ASC
+      ORDER BY GREATEST(COALESCE(t.tree_exp, 0), COALESCE(t.total_exp, 0)) DESC, t.id ASC
     `, [currentRound.round_number, filterDate, todayVN]);
 
     const TEAM_SHORT_NAMES = {
@@ -118,20 +131,34 @@ export class AnalyticsService {
     };
 
     const teams = teamsRes.rows.map((team, index) => {
-      const target = team.target_members || 40;
+      const target = team.target_members || team.actual_members || 40;
       const todayParticipants = parseInt(team.today_participants || team.current_round_participants || 0, 10);
       const dateParticipants = parseInt(team.date_participants || 0, 10);
+      const allDaysParticipants = parseInt(team.all_days_participants || 0, 10);
       const currentRate = target > 0 ? parseFloat(((todayParticipants / target) * 100).toFixed(1)) : 0;
       const dateRate = target > 0 ? parseFloat(((dateParticipants / target) * 100).toFixed(1)) : 0;
-      const totalExp = parseFloat(team.tree_exp || team.total_exp || 0);
-      const isSprouted = (team.tree_level >= 1) || (totalExp >= 50) || (team.tree_seeds >= 10);
+      const calculatedAvgRate = (totalCampaignDays > 0 && target > 0)
+        ? parseFloat(((allDaysParticipants / (totalCampaignDays * target)) * 100).toFixed(1))
+        : 0;
+
+      const totalExp = Math.max(
+        parseInt(team.tree_exp || 0, 10),
+        parseInt(team.total_exp || 0, 10)
+      );
+      const calculatedLevel = totalExp >= 1200 ? 5 : (totalExp >= 600 ? 4 : (totalExp >= 300 ? 3 : (totalExp >= 150 ? 2 : ((totalExp >= 50 || team.tree_seeds >= 10) ? 1 : 0))));
+      const effectiveLevel = Math.max(parseInt(team.tree_level || 0, 10), calculatedLevel);
+      const isSprouted = effectiveLevel >= 1;
       const levelNames = ['Ủ Mầm', 'Mầm Non', 'Cây Con', 'Trưởng Thành', 'Cổ Thụ', 'Đại Cổ Thụ'];
 
       return {
         ...team,
         rank: index + 1,
         shortName: TEAM_SHORT_NAMES[team.id] || `Đội ${team.id}`,
-        levelName: isSprouted ? (levelNames[team.tree_level] || 'Mầm Non') : 'Ủ Mầm',
+        tree_exp: totalExp,
+        total_exp: totalExp,
+        tree_level: effectiveLevel,
+        level: effectiveLevel,
+        levelName: isSprouted ? (levelNames[effectiveLevel] || 'Mầm Non') : 'Ủ Mầm',
         isSprouted,
         books_count: parseInt(team.books_count || 0, 10),
         date_books_count: parseInt(team.date_books_count || 0, 10),
@@ -139,10 +166,13 @@ export class AnalyticsService {
         date_dews_count: parseInt(team.date_dews_count || 0, 10),
         today_participants: todayParticipants,
         date_participants: dateParticipants,
+        all_days_participants: allDaysParticipants,
+        total_campaign_days: totalCampaignDays,
         current_round_participants: todayParticipants,
         current_participation_rate: currentRate,
         today_participation_rate: currentRate,
-        date_participation_rate: dateRate
+        date_participation_rate: dateRate,
+        avg_participation_rate: calculatedAvgRate
       };
     });
 
@@ -227,6 +257,7 @@ export class AnalyticsService {
         totalHarvests: parseInt(harvestsRes.rows[0]?.total || 0, 10),
         siteVisitors: parseInt(visitorsRes.rows[0]?.total || 0, 10),
         totalMembers: totalUsers,
+        totalCampaignDays,
         todayActiveUsers,
         todayParticipationRate,
         dateActiveUsers,
@@ -616,12 +647,20 @@ export class AnalyticsService {
       db.query(`
         SELECT t.id, t.code, t.name, t.display_name, t.color_code, t.icon, t.slogan,
                t.actual_members, t.target_members,
-               COALESCE(t.total_exp, 0)::BIGINT as total_exp,
-               COALESCE(t.tree_exp, 0)::BIGINT as tree_exp,
-               COALESCE(t.level, 0)::INT as level,
-               COALESCE(t.tree_level, 0)::INT as tree_level,
+               GREATEST(COALESCE(t.total_exp, 0), COALESCE(t.tree_exp, 0))::BIGINT as total_exp,
+               GREATEST(COALESCE(t.tree_exp, 0), COALESCE(t.total_exp, 0))::BIGINT as tree_exp,
+               GREATEST(COALESCE(t.level, 0), COALESCE(t.tree_level, 0))::INT as level,
+               GREATEST(COALESCE(t.tree_level, 0), COALESCE(t.level, 0))::INT as tree_level,
                COALESCE(t.tree_seeds, 0)::INT as tree_seeds,
-               COALESCE(t.avg_participation_rate, 0)::FLOAT as avg_participation_rate,
+               ROUND(
+                 (
+                   COALESCE((SELECT COUNT(DISTINCT (dq.quote_date::text || '_' || COALESCE(dq.user_id::text, dq.user_fingerprint))) FROM daily_quotes dq WHERE dq.team_id = t.id), 0)::numeric
+                   /
+                   (GREATEST((SELECT COUNT(DISTINCT quote_date) FROM daily_quotes), 1) * GREATEST(COALESCE(t.target_members, t.actual_members, 40), 1))
+                   * 100
+                 )::numeric,
+                 1
+               )::FLOAT as avg_participation_rate,
                (SELECT COUNT(*)::INT FROM daily_dews d WHERE d.team_id = t.id) as total_dews,
                (SELECT COUNT(*)::INT FROM books b WHERE b.team_id = t.id AND b.visibility_status = 'visible') as total_books,
                (SELECT COUNT(*)::INT FROM quote_likes ql JOIN books b ON ql.book_id = b.id WHERE b.team_id = t.id) as total_likes,
@@ -740,28 +779,43 @@ export class AnalyticsService {
       SELECT 
         t.id, t.code, t.name, t.display_name, t.color_code,
         t.target_members, t.actual_members,
-        t.tree_exp, t.tree_level, t.tree_seeds,
-        t.avg_participation_rate,
+        GREATEST(COALESCE(t.tree_exp, 0), COALESCE(t.total_exp, 0))::BIGINT as tree_exp,
+        GREATEST(COALESCE(t.tree_exp, 0), COALESCE(t.total_exp, 0))::BIGINT as total_exp,
+        GREATEST(COALESCE(t.tree_level, 0), COALESCE(t.level, 0))::INT as tree_level,
+        GREATEST(COALESCE(t.tree_level, 0), COALESCE(t.level, 0))::INT as level,
+        t.tree_seeds,
+        (SELECT COUNT(DISTINCT (dq.quote_date::text || '_' || COALESCE(dq.user_id::text, dq.user_fingerprint))) FROM daily_quotes dq WHERE dq.team_id = t.id) as all_days_participants,
         (SELECT COUNT(*) FROM books b WHERE b.team_id = t.id) as books_count,
         (SELECT COUNT(*) FROM daily_dews d WHERE d.team_id = t.id) as dews_count
       FROM teams t
-      ORDER BY t.tree_exp DESC, t.id ASC
+      ORDER BY GREATEST(COALESCE(t.tree_exp, 0), COALESCE(t.total_exp, 0)) DESC, t.id ASC
     `);
 
     const levelNames = ['Ủ Mầm (Hạt)', 'Cây Nảy Mầm', 'Cây Con', 'Cây Phát Triển', 'Cây Cổ Thụ', 'Đại Cổ Thụ'];
+    const totalCampaignDays = Math.max(dates.length, 1);
 
-    const teamsSummary = teamsRes.rows.map((t, idx) => ({
-      ...t,
-      rank: idx + 1,
-      levelName: levelNames[t.tree_level] || 'Ủ Mầm',
-      books_count: parseInt(t.books_count || 0, 10),
-      dews_count: parseInt(t.dews_count || 0, 10),
-      tree_exp: parseInt(t.tree_exp || 0, 10),
-      tree_seeds: parseInt(t.tree_seeds || 0, 10),
-      actual_members: parseInt(t.actual_members || 0, 10),
-      target_members: parseInt(t.target_members || 40, 10),
-      avg_participation_rate: parseFloat(t.avg_participation_rate || 0).toFixed(1)
-    }));
+    const teamsSummary = teamsRes.rows.map((t, idx) => {
+      const target = parseInt(t.target_members || t.actual_members || 40, 10);
+      const allDaysParticipants = parseInt(t.all_days_participants || 0, 10);
+      const avgRate = (totalCampaignDays > 0 && target > 0)
+        ? parseFloat(((allDaysParticipants / (totalCampaignDays * target)) * 100).toFixed(1))
+        : 0;
+
+      return {
+        ...t,
+        rank: idx + 1,
+        levelName: levelNames[t.tree_level] || 'Ủ Mầm',
+        books_count: parseInt(t.books_count || 0, 10),
+        dews_count: parseInt(t.dews_count || 0, 10),
+        tree_exp: parseInt(t.tree_exp || 0, 10),
+        tree_seeds: parseInt(t.tree_seeds || 0, 10),
+        actual_members: parseInt(t.actual_members || 0, 10),
+        target_members: target,
+        all_days_participants: allDaysParticipants,
+        total_campaign_days: totalCampaignDays,
+        avg_participation_rate: avgRate
+      };
+    });
 
     // 3. For each date, query stats for each team
     const dailyQuotesRes = await db.query(`
