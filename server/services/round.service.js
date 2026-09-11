@@ -185,13 +185,14 @@ export class RoundService {
     // Update team
     await client.query(`
       UPDATE teams
-      SET total_exp = $1,
+      SET total_exp = ROUND($1::numeric),
           level = GREATEST(level, $2),
           avg_participation_rate = $3,
           updated_at = NOW()
           ${milestoneSql}
       WHERE id = $4
     `, [newTotalExp, newLevel, avgParticipationRate, teamId]);
+
 
     return {
       isNewParticipation: true,
