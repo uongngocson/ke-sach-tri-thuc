@@ -2234,11 +2234,11 @@
         margin-top: 3px !important;
       }
       .aside-quote-text {
-        font-size: 10.5px !important;
-        line-height: 1.4 !important;
+        font-size: 10px !important;
+        line-height: 1.35 !important;
         margin: 2px 0 !important;
         display: -webkit-box !important;
-        -webkit-line-clamp: 3 !important;
+        -webkit-line-clamp: 2 !important;
         -webkit-box-orient: vertical !important;
         overflow: hidden !important;
       }
@@ -2251,10 +2251,10 @@
       .aside-quote-footer { font-size: 9.5px !important; }
       .aside-timer-track { height: 2px !important; margin-top: 4px !important; }
       .aside-quick-plant-btn {
-        margin-top: 6px !important;
-        height: 29px !important;
-        padding: 5px 10px !important;
-        font-size: 11px !important;
+        margin-top: 5px !important;
+        height: 27px !important;
+        padding: 4px 10px !important;
+        font-size: 10.5px !important;
         gap: 5px !important;
         border-radius: 9px !important;
       }
@@ -2289,7 +2289,7 @@
 
       /* Mobile Ground Action Hint: Fixed Bottom-Center with Safe Area Inset & Professional Padding */
       #ground-action-hint {
-        bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+        bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
         top: auto !important;
@@ -2299,48 +2299,50 @@
         white-space: nowrap !important;
       }
       .ground-hint-pill {
-        padding: 7px 16px !important;
-        font-size: 11px !important;
-        gap: 6px !important;
+        padding: 5.5px 14px !important;
+        font-size: 10.5px !important;
+        gap: 5.5px !important;
         border-width: 1.5px !important;
         white-space: nowrap !important;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 16px rgba(245, 206, 66, 0.2) !important;
       }
       .ground-hint-pill span {
-        font-size: 11px !important;
+        font-size: 10.5px !important;
         white-space: nowrap !important;
       }
       #ground-action-hint-text {
-        font-size: 11px !important;
+        font-size: 10.5px !important;
         white-space: nowrap !important;
       }
 
-      /* Mobile Ground Scroll Hint: Nâng vị trí lên tầng trên, cách xa thanh Chạm vào cây */
+      /* Mobile Ground Scroll Hint: Nổi ở góc trên phải vùng đất, hoàn toàn không che plaques */
       .fpt-ground-scroll-hint {
-        bottom: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
-        right: 14px !important;
-        padding: 6px 14px !important;
-        font-size: 11px !important;
-        gap: 6px !important;
+        top: 8px !important;
+        bottom: auto !important;
+        right: 12px !important;
+        padding: 4px 10px !important;
+        font-size: 10px !important;
+        gap: 4px !important;
         border-radius: 9999px !important;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65) !important;
         backdrop-filter: blur(14px) !important;
         -webkit-backdrop-filter: blur(14px) !important;
+        z-index: 70 !important;
       }
       .fpt-ground-scroll-hint .fpt-scroll-text {
-        font-size: 11px !important;
+        font-size: 10px !important;
         letter-spacing: 0.02em !important;
       }
       .fpt-ground-scroll-hint .fpt-scroll-arrow {
-        font-size: 11px !important;
+        font-size: 10px !important;
       }
 
       .fpt-ground-container {
-        min-height: 155px !important;
-        height: 20dvh !important;
-        max-height: 180px !important;
-        padding-top: 8px !important;
-        padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px)) !important;
+        min-height: 180px !important;
+        height: 24dvh !important;
+        max-height: 210px !important;
+        padding-top: 6px !important;
+        padding-bottom: calc(44px + env(safe-area-inset-bottom, 0px)) !important;
         pointer-events: auto !important;
         touch-action: pan-x !important;
         position: relative !important;
@@ -2348,7 +2350,7 @@
         overflow-y: hidden !important;
       }
       .fpt-ground-inner {
-        min-height: 155px !important;
+        min-height: 180px !important;
         height: 100% !important;
         pointer-events: auto !important;
         position: relative !important;
@@ -4023,8 +4025,8 @@
     .team-root-plot {
       position: relative;
       flex: 1 1 0;
-      min-width: 154px !important;
-      margin: 0 14px !important;
+      min-width: 190px !important;
+      margin: 0 10px !important;
       height: 100%;
       background: transparent !important;
       border: none !important;
@@ -4104,7 +4106,7 @@
     /* Botanical Garden Signpost Plaque planted in the dirt in front of the tree root */
     .root-garden-plaque {
       position: absolute;
-      top: 80px;
+      top: 82px;
       left: 50%;
       transform: translateX(-50%);
       display: inline-flex;
@@ -4112,7 +4114,7 @@
       gap: 3.5px;
       padding: 2.5px 7.5px;
       border-radius: 999px;
-      background: rgba(15, 23, 42, 0.88);
+      background: rgba(15, 23, 42, 0.90);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       border: 1px solid rgba(255, 255, 255, 0.18);
@@ -4122,21 +4124,25 @@
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       pointer-events: auto;
       cursor: pointer;
+      box-sizing: border-box;
     }
 
     @media (max-width: 768px) {
       .root-garden-plaque {
-        top: 68px;
+        top: 80px !important;
+        gap: 3px !important;
+        padding: 2px 6px !important;
+        max-width: 172px !important;
       }
     }
 
     /* Plaque position when team is in unsprouted seed stage, framing the front edge of the root ring */
     .team-root-plot.is-unsprouted .root-garden-plaque {
-      top: 80px;
+      top: 82px;
     }
     @media (max-width: 768px) {
       .team-root-plot.is-unsprouted .root-garden-plaque {
-        top: 68px;
+        top: 80px !important;
       }
     }
 
@@ -4182,6 +4188,23 @@
       color: #fff;
       line-height: 1;
       letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    @media (max-width: 768px) {
+      .plaque-badge {
+        font-size: 8px !important;
+        padding: 1px 4px !important;
+        max-width: 88px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+    }
+
+    .team-name-mobile { display: none; }
+    .team-name-desktop { display: inline; }
+    @media (max-width: 768px) {
+      .team-name-mobile { display: inline; }
+      .team-name-desktop { display: none; }
     }
 
     .plaque-title {
@@ -4197,6 +4220,13 @@
       padding: 1px 4px;
       border-radius: 4px;
       line-height: 1;
+      white-space: nowrap;
+    }
+    @media (max-width: 768px) {
+      .plaque-status {
+        font-size: 7.5px !important;
+        padding: 1px 3.5px !important;
+      }
     }
     .plaque-status.status-seed {
       background: rgba(245, 158, 11, 0.22);
@@ -4217,6 +4247,13 @@
       background: #f59e0b;
       color: #0f172a;
       line-height: 1;
+      white-space: nowrap;
+    }
+    .plaque-myteam-mobile { display: none !important; }
+    .plaque-myteam-desktop { display: inline-block !important; }
+    @media (max-width: 768px) {
+      .plaque-myteam-mobile { display: inline-block !important; font-size: 7.5px !important; padding: 1px 3.5px !important; }
+      .plaque-myteam-desktop { display: none !important; }
     }
 
 
@@ -5623,16 +5660,34 @@
           const teamSeeds = isSprouted ? [] : allSeeds.filter(s => parseInt(s.team_id, 10) === teamId);
           const totalTeamSeeds = teamSeeds.length;
 
+          const TEAM_MOBILE_NAMES = {
+            1: 'SCU_BO',
+            2: 'Hà Đông TB',
+            3: 'Trung Đông TN',
+            4: 'Thập Đại MN',
+            5: 'FPL_AU_FU',
+            6: 'FTIBU_BOM',
+            7: 'BA_TU_BOP',
+            8: 'IMU_PSU'
+          };
+          const mobileShortName = TEAM_MOBILE_NAMES[teamId] || plaqueTeamName;
+
           // Botanical Garden Signpost Plaque planted in the soil at tree foot
           let innerContent = `
             <!-- Garden Signpost Plaque planted in the soil at tree foot -->
             <div class="root-garden-plaque" title="Click để xem toàn bộ trích dẫn ${escapeHtml(plaqueTeamName)}">
-              <span class="plaque-badge" style="background: ${teamColor};">${team.icon || '🌳'} ${escapeHtml(plaqueTeamName)}</span>
+              <span class="plaque-badge" style="background: ${teamColor};">
+                <span class="team-name-desktop">${team.icon || '🌳'} ${escapeHtml(plaqueTeamName)}</span>
+                <span class="team-name-mobile">${team.icon || '🌳'} ${escapeHtml(mobileShortName)}</span>
+              </span>
               ${isSprouted 
                 ? `<span class="plaque-status status-sprouted">${levelIcon} Lv.${level}</span>`
-                : `<span class="plaque-status status-seed">🌰 ${(team.total_exp || 0).toLocaleString()}/50 EXP</span>`
+                : `<span class="plaque-status status-seed">🌰 ${(team.total_exp || 0).toLocaleString()}/50<span class="hidden sm:inline"> EXP</span></span>`
               }
-              ${myTeamTag}
+              ${isMyTeam ? `
+                <span class="plaque-myteam plaque-myteam-desktop" style="background:#F36F21; color:#fff; font-size:10px; font-weight:800; padding:1.5px 6px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.35);">★ Đội Tôi</span>
+                <span class="plaque-myteam plaque-myteam-mobile" style="background:#F36F21; color:#fff; font-size:8px; font-weight:800; padding:1px 4px; border-radius:5px; box-shadow:0 1px 3px rgba(0,0,0,0.35);">★ Tôi</span>
+              ` : ''}
               ${!isSprouted && ((team.total_exp || 0) > 0 || totalTeamSeeds > 0) ? `<span class="plaque-inspect-icon" title="Xem danh sách trích dẫn">📖</span>` : ''}
             </div>
           `;
@@ -5727,18 +5782,19 @@
             const plotRect = zoneEl.getBoundingClientRect();
             if (plotRect.width > 0) {
               ringCenterX = ringMetrics.screenCenterX - plotRect.left;
-              ringCenterY = ringMetrics.screenCenterY - plotRect.top;
+              const rawY = ringMetrics.screenCenterY - plotRect.top;
+              ringCenterY = isMobile ? Math.min(34, Math.max(22, rawY)) : rawY;
               // Calibrated 2D scattering radii: Utilize full interior of the 3D botanical ring
-              rx = Math.max(isMobile ? 28 : 46, ringMetrics.rx * (isMobile ? 0.92 : 0.96));
-              ry = Math.max(isMobile ? 15 : 20, ringMetrics.ry * (isMobile ? 0.82 : 0.90));
+              rx = Math.max(isMobile ? 24 : 46, ringMetrics.rx * (isMobile ? 0.82 : 0.96));
+              ry = Math.max(isMobile ? 9 : 20, ringMetrics.ry * (isMobile ? 0.65 : 0.90));
             }
           } else {
-            rx = isMobile ? 36 : 60;
-            ry = isMobile ? 16 : 24;
+            rx = isMobile ? 26 : 60;
+            ry = isMobile ? 9.5 : 24;
           }
 
           // Safety clamp: Keep seeds comfortably inside the plot
-          ringCenterY = Math.max(ry + 14, ringCenterY);
+          ringCenterY = isMobile ? Math.max(ry + 8, Math.min(34, ringCenterY)) : Math.max(ry + 14, ringCenterY);
 
           // Deterministic concentric elliptical distribution
           const seedOffsets = getSeedOffsets(totalTeamSeeds, rx, ry, isMobile);
