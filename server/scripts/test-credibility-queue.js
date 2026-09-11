@@ -82,11 +82,13 @@ async function run() {
   console.log(`  📊 Queue Status: isRunning=${status.isRunning}, pending=${status.pendingCount}, processed=${status.stats.totalProcessed}, delay=${status.delayBetweenJobs}ms`);
   console.log('  ✅ [PASS] Telemetry trạng thái hàng đợi hoạt động đầy đủ và chính xác');
 
+  const TEST_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
+
   // 4. API Integration Test
   console.log('\n--- [4/4] KIỂM THỬ API QUẢN TRỊ VIÊN VỚI HÀNG ĐỢI ---');
   const loginRes = await request({
     hostname: '127.0.0.1',
-    port: 5000,
+    port: TEST_PORT,
     path: '/api/v1/admin/auth/login',
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }
@@ -97,7 +99,7 @@ async function run() {
 
   const apiStatusRes = await request({
     hostname: '127.0.0.1',
-    port: 5000,
+    port: TEST_PORT,
     path: '/api/v1/admin/credibility/queue-status',
     method: 'GET',
     headers: { 'Authorization': `Bearer ${token}` }

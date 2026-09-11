@@ -44,6 +44,7 @@ services:
       ADMIN_DEFAULT_PASSWORD: ${ADMIN_DEFAULT_PASSWORD:-admin123}
       RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
       RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-5000}
+      GROQ_API_KEY: ${GROQ_API_KEY}
     network_mode: host
     command: sh -c "npm install --production --no-audit --no-fund && node scripts/migrate.js && node scripts/migrate_daily_quotes.js || true && node scripts/migrate_settings.js || true && node scripts/seed.js && node scripts/migrate_rounds.js || true && node server.js"
 
