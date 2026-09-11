@@ -252,29 +252,22 @@ export class QuoteTreasuryModal {
         }
       }
 
-      /* Search & Sort Row */
+      /* Search & Sort Row - Unified on 1 row across Mobile and Desktop */
       .qtm-search-row {
-        display: grid;
-        grid-template-columns: 1fr;
+        display: flex;
+        align-items: center;
         gap: 8px;
         width: 100%;
         box-sizing: border-box;
       }
-      @media (min-width: 640px) {
-        .qtm-search-row {
-          grid-template-columns: 1fr auto;
-          gap: 10px;
-          align-items: center;
-        }
-      }
       .qtm-search-input-wrap {
         position: relative;
-        width: 100%;
+        flex: 1 1 0;
         min-width: 0;
       }
       .qtm-search-icon {
         position: absolute;
-        left: 12px;
+        left: 10px;
         top: 50%;
         transform: translateY(-50%);
         font-size: 13px;
@@ -284,16 +277,22 @@ export class QuoteTreasuryModal {
       .qtm-search-input {
         width: 100%;
         height: 38px;
-        padding: 0 34px 0 34px;
+        padding: 0 28px 0 32px;
         background: #ffffff;
         border: 1.5px solid #cbd5e1;
         border-radius: 10px;
-        font-size: 13px;
+        font-size: 12.5px;
         font-weight: 500;
         color: #0f172a;
         outline: none;
         box-sizing: border-box;
         transition: all 0.18s ease;
+      }
+      @media (min-width: 768px) {
+        .qtm-search-input {
+          font-size: 13px;
+          padding: 0 34px 0 34px;
+        }
       }
       .qtm-search-input::placeholder {
         color: #94a3b8;
@@ -304,7 +303,7 @@ export class QuoteTreasuryModal {
       }
       .qtm-search-clear {
         position: absolute;
-        right: 10px;
+        right: 8px;
         top: 50%;
         transform: translateY(-50%);
         background: #f1f5f9;
@@ -329,14 +328,8 @@ export class QuoteTreasuryModal {
         display: flex;
         align-items: center;
         gap: 6px;
-        width: 100%;
+        flex: 0 0 auto;
         box-sizing: border-box;
-      }
-      @media (min-width: 640px) {
-        .qtm-sort-wrap {
-          width: auto;
-          flex-shrink: 0;
-        }
       }
       .qtm-sort-label {
         font-size: 11.5px;
@@ -345,15 +338,14 @@ export class QuoteTreasuryModal {
         white-space: nowrap;
         display: none;
       }
-      @media (min-width: 480px) {
+      @media (min-width: 768px) {
         .qtm-sort-label {
           display: inline-block;
         }
       }
       .qtm-sort-select {
-        width: 100%;
         height: 38px;
-        padding: 0 12px;
+        padding: 0 8px 0 10px;
         background: #ffffff;
         border: 1.5px solid #cbd5e1;
         border-radius: 10px;
@@ -364,11 +356,15 @@ export class QuoteTreasuryModal {
         cursor: pointer;
         transition: border-color 0.18s;
         box-sizing: border-box;
+        white-space: nowrap;
+        min-width: 130px;
+        max-width: 155px;
       }
       @media (min-width: 640px) {
         .qtm-sort-select {
-          width: auto;
-          min-width: 175px;
+          min-width: 165px;
+          max-width: none;
+          padding: 0 12px;
         }
       }
       .qtm-sort-select:focus {
@@ -931,7 +927,7 @@ export class QuoteTreasuryModal {
                 type="text" 
                 id="treasury-search-input" 
                 class="qtm-search-input" 
-                placeholder="Tìm kiếm trích dẫn, tên sách, tác giả, bút danh..." 
+                placeholder="Tìm trích dẫn, sách, tác giả..." 
                 autocomplete="off"
               />
               <button id="treasury-search-clear" class="qtm-search-clear" style="display:none;">✕</button>
@@ -940,8 +936,8 @@ export class QuoteTreasuryModal {
               <span class="qtm-sort-label">Sắp xếp:</span>
               <select id="treasury-sort-select" class="qtm-sort-select">
                 <option value="most_liked">🔥 Yêu Thích Nhất</option>
-                <option value="newest">🕒 Trích Dẫn Mới Nhất</option>
-                <option value="oldest">🌟 Trích Dẫn Ban Đầu</option>
+                <option value="newest">🕒 Mới Nhất</option>
+                <option value="oldest">🌟 Cũ Nhất</option>
                 <option value="title_az">🔤 Tên Sách (A-Z)</option>
               </select>
             </div>
